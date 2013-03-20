@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
+using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 
@@ -13,16 +14,18 @@ namespace Verse.Models.JSON
     class JSONDecoder<T> : Decoder<T>
     {
 		#region Attributes
-
+		
 		private Func<T>							constructor;
+
+		private ValueReader						elementReader;
 
         private Encoding						encoding;
 
-        private Dictionary<string, FieldReader>	fields;
+        private Dictionary<string, ValueReader>	fieldReaders;
+
+        private KeyValueReader					keyValueReader;
 
         private Linker							linker;
-        
-        private SubReader						subscript;
         
         #endregion
         
@@ -30,11 +33,12 @@ namespace Verse.Models.JSON
 
         public JSONDecoder (Func<T> constructor, Encoding encoding)
         {
-            this.linker = null;
 			this.constructor = constructor;
+        	this.elementReader = null;
 			this.encoding = encoding;
-            this.fields = new Dictionary<string, FieldReader> ();
-            this.subscript = null;
+            this.fieldReaders = new Dictionary<string, ValueReader> ();
+			this.keyValueReader = null;
+            this.linker = null;
         }
         
         #endregion
@@ -60,44 +64,35 @@ namespace Verse.Models.JSON
 			return true;
         }
 
-        public override IDecoder<U>	Define<U> (string name, Func<U> builder, DecoderFieldSetter<T, U> setter)
+        public override IDecoder<U>	Define<U> (string name, Func<U> builder, DecoderValueSetter<T, U> setter)
         {
         	JSONDecoder<U>	reader;
 
         	reader = new JSONDecoder<U> (builder, this.encoding);
 
-        	this.fields[name] = (JSONLexer lexer, ref T container) =>
-        	{
-        		U	value;
-
-        		if (!reader.Convert (lexer, out value))
-        			return false;
-
-        		setter (ref container, value);
-
-				return true;
-        	};
+        	this.fieldReaders[name] = this.GetValueReader (reader, setter);
 
             return reader;
         }
 
-        public override IDecoder<U>	Define<U> (Func<U> builder, DecoderSubSetter<T, U> setter)
+        public override IDecoder<U>	Define<U> (Func<U> builder, DecoderKeyValueSetter<T, U> setter)
         {
         	JSONDecoder<U>	reader;
 
         	reader = new JSONDecoder<U> (builder, this.encoding);
 
-        	this.subscript = (JSONLexer lexer, ref T container, Subscript subscript) =>
-        	{
-        		U	value;
+			this.keyValueReader = this.GetKeyValueReader (reader, setter);
 
-        		if (!reader.Convert (lexer, out value))
-        			return false;
+			return reader;
+        }
 
-        		setter (ref container, subscript, value);
+        public override IDecoder<U>	Define<U> (Func<U> builder, DecoderValueSetter<T, U> setter)
+        {
+        	JSONDecoder<U>	reader;
 
-				return true;
-        	};
+        	reader = new JSONDecoder<U> (builder, this.encoding);
+
+        	this.elementReader = this.GetValueReader (reader, setter);
 
             return reader;
         }
@@ -114,65 +109,69 @@ namespace Verse.Models.JSON
 
         public override void	Link ()
         {
-        	if (typeof (T) == typeof (char))
+        	Type	type;
+
+        	type = typeof (T);
+
+        	if (type == typeof (char))
         		this.linker = this.GetLinker<char> (JSONConverter.ToChar);
-        	else if (typeof (T) == typeof (float))
+        	else if (type == typeof (float))
         		this.linker = this.GetLinker<float> (JSONConverter.ToFloat4);
-        	else if (typeof (T) == typeof (double))
+        	else if (type == typeof (double))
         		this.linker = this.GetLinker<double> (JSONConverter.ToFloat8);
-        	else if (typeof (T) == typeof (sbyte))
+        	else if (type == typeof (sbyte))
         		this.linker = this.GetLinker<sbyte> (JSONConverter.ToInt1s);
-        	else if (typeof (T) == typeof (byte))
+        	else if (type == typeof (byte))
         		this.linker = this.GetLinker<byte> (JSONConverter.ToInt1u);
-        	else if (typeof (T) == typeof (short))
+        	else if (type == typeof (short))
         		this.linker = this.GetLinker<short> (JSONConverter.ToInt2s);
-        	else if (typeof (T) == typeof (ushort))
+        	else if (type == typeof (ushort))
         		this.linker = this.GetLinker<ushort> (JSONConverter.ToInt2u);
-        	else if (typeof (T) == typeof (int))
+        	else if (type == typeof (int))
         		this.linker = this.GetLinker<int> (JSONConverter.ToInt4s);
-        	else if (typeof (T) == typeof (uint))
+        	else if (type == typeof (uint))
         		this.linker = this.GetLinker<uint> (JSONConverter.ToInt4u);
-        	else if (typeof (T) == typeof (long))
+        	else if (type == typeof (long))
         		this.linker = this.GetLinker<long> (JSONConverter.ToInt8s);
-        	else if (typeof (T) == typeof (ulong))
+        	else if (type == typeof (ulong))
         		this.linker = this.GetLinker<ulong> (JSONConverter.ToInt8u);
-        	else if (typeof (T) == typeof (string))
+        	else if (type == typeof (string))
         		this.linker = this.GetLinker<string> (JSONConverter.ToString);
         	else
-        		throw new BindTypeException (typeof (T), string.Format (CultureInfo.InvariantCulture, "JSON model does not support mapping for type \"{0}\"", typeof (T).Name));
+        		throw new LinkTypeException (type, "JSON model does not support binding for this type");
         }
         
         #endregion
         
         #region Methods / Protected
 
-        protected bool	Convert (JSONLexer lexer, out T source)
+        protected bool	Convert (JSONLexer lexer, out T value)
         {
         	string		key;
         	int			offset;
-        	FieldReader	reader;
+        	ValueReader	reader;
 
         	if (this.linker != null)
-        		return this.linker (lexer, out source);
+        		return this.linker (lexer, out value);
 
-        	source = this.constructor ();
+        	value = this.constructor ();
 
             switch (lexer.Lexem)
             {
             	case JSONLexem.ArrayBegin:
-        			for (offset = 0; true; ++offset)
+            		for (offset = 0; true; ++offset)
         			{
         				if (!lexer.Next ())
         					return false;
 
-        				if (this.fields.TryGetValue (offset.ToString (CultureInfo.InvariantCulture), out reader))
+        				if (this.fieldReaders.TryGetValue (offset.ToString (CultureInfo.InvariantCulture), out reader))
         				{
-        					if (!reader (lexer, ref source))
+        					if (!reader (lexer, ref value))
         						return false;
         				}
-        				else if (this.subscript != null)
+        				else if (this.elementReader != null)
         				{
-        					if (!this.subscript (lexer, ref source, new Subscript (offset)))
+        					if (!this.elementReader (lexer, ref value))
         						return false;
         				}
         				else if (!this.Ignore (lexer))
@@ -200,14 +199,19 @@ namespace Verse.Models.JSON
 						if (!lexer.Next () || lexer.Lexem != JSONLexem.Colon || !lexer.Next ())
 							return false;
 
-        				if (this.fields.TryGetValue (key, out reader))
+        				if (this.fieldReaders.TryGetValue (key, out reader))
         				{
-        					if (!reader (lexer, ref source))
+        					if (!reader (lexer, ref value))
         						return false;
         				}
-        				else if (this.subscript != null)
+        				else if (this.keyValueReader != null)
         				{
-        					if (!this.subscript (lexer, ref source, new Subscript (key)))
+        					if (!this.keyValueReader (lexer, ref value, key))
+        						return false;
+        				}
+        				else if (this.elementReader != null)
+        				{
+        					if (!this.elementReader (lexer, ref value))
         						return false;
         				}
         				else if (!this.Ignore (lexer))
@@ -284,54 +288,84 @@ namespace Verse.Models.JSON
         #endregion
         
         #region Methods / Private
+        
+        private KeyValueReader	GetKeyValueReader<U> (JSONDecoder<U> reader, DecoderKeyValueSetter<T, U> setter)
+        {
+			return (JSONLexer lexer, ref T container, string key) =>
+			{
+				U	value;
 
-        private Linker	GetLinker<U> (LinkerConverter<U> converter)
+				if (!reader.Convert (lexer, out value))
+					return false;
+
+				setter (ref container, key, value);
+
+				return true;
+			};
+        }
+
+        private Linker	GetLinker<U> (LinkerConverter<U> extractor)
         {
         	Label				assign;
         	ILGenerator			generator;
 			DynamicMethod		method;
-        	LocalBuilder		value;
+        	LocalBuilder		output;
         	LinkerWrapper<U>	wrapper;
 
-			method = new DynamicMethod (string.Empty, typeof (bool), new Type[] {typeof (JSONLexer), converter.GetType (), typeof (T).MakeByRefType ()}, this.GetType ());
+			method = new DynamicMethod (string.Empty, typeof (bool), new Type[] {typeof (JSONLexer), extractor.GetType (), typeof (T).MakeByRefType ()}, this.GetType ());
 			generator = method.GetILGenerator ();
 
 			assign = generator.DefineLabel ();
-			value = generator.DeclareLocal (typeof (U));
+			output = generator.DeclareLocal (typeof (U));
 
 			generator.Emit (OpCodes.Ldarg_1);
 			generator.Emit (OpCodes.Ldarg_0);
-			generator.Emit (OpCodes.Ldloca_S, value);
-			generator.Emit (OpCodes.Callvirt, converter.GetType ().GetMethod ("Invoke"));
+			generator.Emit (OpCodes.Ldloca_S, output);
+			generator.Emit (OpCodes.Callvirt, extractor.GetType ().GetMethod ("Invoke"));
 			generator.Emit (OpCodes.Brtrue_S, assign);
 			generator.Emit (OpCodes.Ldc_I4_0);
 			generator.Emit (OpCodes.Ret);
 
 			generator.MarkLabel (assign);
 			generator.Emit (OpCodes.Ldarg_2);
-			generator.Emit (OpCodes.Ldloc, value);
+			generator.Emit (OpCodes.Ldloc, output);
 			generator.Emit (OpCodes.Stind_Ref);
 			generator.Emit (OpCodes.Ldc_I4_1);
 			generator.Emit (OpCodes.Ret);
 
 			wrapper = (LinkerWrapper<U>)method.CreateDelegate (typeof (LinkerWrapper<U>));
 
-			return (JSONLexer lexer, out T target) => wrapper (lexer, converter, out target) && this.Ignore (lexer);
+			return (JSONLexer lexer, out T target) => wrapper (lexer, extractor, out target) && this.Ignore (lexer);
+        }
+        
+        private ValueReader	GetValueReader<U> (JSONDecoder<U> reader, DecoderValueSetter<T, U> setter)
+        {
+			return (JSONLexer lexer, ref T container) =>
+    		{
+    			U	value;
+
+    			if (!reader.Convert (lexer, out value))
+    				return false;
+
+    			setter (ref container, value);
+
+    			return true;
+    		};
         }
 
         #endregion
         
         #region Types
 
+        private delegate bool	KeyValueReader (JSONLexer lexer, ref T container, string key);
+
         private delegate bool	Linker (JSONLexer lexer, out T value);
-
-        private delegate bool	LinkerConverter<U> (JSONLexer lexer, out U value);
         
-        private delegate bool	LinkerWrapper<U> (JSONLexer lexer, LinkerConverter<U> converter, out T value);
+        private delegate bool	LinkerConverter<U> (JSONLexer lexer, out U value);
 
-        private delegate bool	FieldReader (JSONLexer lexer, ref T container);
+        private delegate bool	LinkerWrapper<U> (JSONLexer lexer, LinkerConverter<U> extractor, out T value);
 
-        private delegate bool	SubReader (JSONLexer lexer, ref T container, Subscript subscript);
+        private delegate bool	ValueReader (JSONLexer lexer, ref T container);
         
         #endregion
     }

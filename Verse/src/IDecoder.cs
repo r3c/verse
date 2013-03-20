@@ -9,13 +9,17 @@ namespace Verse
 	
 		bool		Decode (Stream stream, out T instance);
 
-		IDecoder<U>	Define<U> (string name, Func<U> builder, DecoderFieldSetter<T, U> setter);
+		IDecoder<U>	Define<U> (string name, Func<U> builder, DecoderValueSetter<T, U> setter);
 
-		IDecoder<U>	Define<U> (string name, DecoderFieldSetter<T, U> setter);
+		IDecoder<U>	Define<U> (string name, DecoderValueSetter<T, U> setter);
 
-		IDecoder<U>	Define<U> (Func<U> builder, DecoderSubSetter<T, U> setter);
+		IDecoder<U>	Define<U> (Func<U> builder, DecoderKeyValueSetter<T, U> setter);
 
-		IDecoder<U>	Define<U> (DecoderSubSetter<T, U> setter);
+		IDecoder<U>	Define<U> (DecoderKeyValueSetter<T, U> setter);
+		
+		IDecoder<U>	Define<U> (Func<U> builder, DecoderValueSetter<T, U> setter);
+
+		IDecoder<U>	Define<U> (DecoderValueSetter<T, U> setter);
 
 		void		Link (Func<T> builder);
 

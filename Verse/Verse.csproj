@@ -47,9 +47,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="src\DecoderFieldSetter.cs" />
-    <Compile Include="src\DecoderSubSetter.cs" />
-    <Compile Include="src\Exceptions\BindTypeException.cs" />
+    <Compile Include="src\DecoderValueSetter.cs" />
+    <Compile Include="src\DecoderKeyValueSetter.cs" />
+    <Compile Include="src\Exceptions\LinkTypeException.cs" />
     <Compile Include="src\Models\AbstractDecoder.cs" />
     <Compile Include="src\Models\JSON\JSONConverter.cs" />
     <Compile Include="src\Models\JSON\JSONDecoder.cs" />
@@ -60,7 +60,6 @@
     <Compile Include="src\Models\JSON\JSONEncoder.cs" />
     <Compile Include="src\IDecoder.cs" />
     <Compile Include="src\ISchema.cs" />
-    <Compile Include="src\Subscript.cs" />
     <Compile Include="src\IEncoder.cs" />
   </ItemGroup>
   <ItemGroup>

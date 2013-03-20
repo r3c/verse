@@ -27,7 +27,7 @@ namespace Verse.Console
 			decoder = schema.GetDecoder<Entity> (() => new Entity ());
 			decoder
 				.Define ("pairs", (ref Entity e, Dictionary<string, string> v) => { e.pairs = v; })
-				.Define ((ref Dictionary<string, string> pairs, Subscript key, string value) => { pairs[key.AsString] = value; })
+				.Define ((ref Dictionary<string, string> pairs, string key, string value) => { pairs[key] = value; })
 				.Link ();
 			decoder
 				.Define ("int2", (ref Entity e, short int2) => { e.int2 = int2; })

@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 
 namespace Verse.Exceptions
 {
-	public class BindTypeException : Exception, ISerializable
+	public class LinkTypeException : Exception, ISerializable
 	{
 		#region Properties
 
@@ -25,13 +25,13 @@ namespace Verse.Exceptions
 		
 		#region Constructors / Public
 
-		public BindTypeException (Type type, string message, Exception innerException) :
+		public LinkTypeException (Type type, string message, Exception innerException) :
 			base (message, innerException)
 		{
 			this.type = type;
 		}
 
-		public BindTypeException (Type type, string message) :
+		public LinkTypeException (Type type, string message) :
 			base (message)
 		{
 			this.type = type;
@@ -41,7 +41,7 @@ namespace Verse.Exceptions
 		
 		#region Constructors / Protected
 
-		protected	BindTypeException (SerializationInfo info, StreamingContext context) :
+		protected	LinkTypeException (SerializationInfo info, StreamingContext context) :
 			base (info, context)
 		{
 		}
