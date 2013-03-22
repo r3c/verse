@@ -51,6 +51,7 @@
     <Compile Include="src\DecoderKeyValueSetter.cs" />
     <Compile Include="src\Exceptions\LinkTypeException.cs" />
     <Compile Include="src\Models\AbstractDecoder.cs" />
+    <Compile Include="src\Models\StringSchema.cs" />
     <Compile Include="src\Models\JSON\JSONConverter.cs" />
     <Compile Include="src\Models\JSON\JSONDecoder.cs" />
     <Compile Include="src\Models\JSON\JSONLexem.cs" />

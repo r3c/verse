@@ -1,12 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Verse.Models.JSON
 {
-	public class JSONSchema : ISchema
+	public class JSONSchema : StringSchema
 	{
 		#region Attributes
-		
+
 		private Encoding	encoding;
 		
 		#endregion
@@ -27,12 +28,12 @@ namespace Verse.Models.JSON
 		
 		#region Methods
 
-		public IDecoder<T>	GetDecoder<T> (Func<T> constructor)
+		public override IDecoder<T>	GetDecoder<T> (Func<T> constructor)
 		{
-			return new JSONDecoder<T> (constructor, this.encoding);
+			return new JSONDecoder<T> (constructor, this.encoding, this.decoderConverters);
 		}
 		
-		public IEncoder<T>	GetEncoder<T> ()
+		public override IEncoder<T>	GetEncoder<T> ()
 		{
 			return new JSONEncoder<T> (this.encoding);
 		}
