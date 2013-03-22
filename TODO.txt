@@ -1,0 +1,5 @@
+- Error events in ISchema, fired from IDecoder & IEncoder
+- JSONEncoder
+- ProtoBufDecoder
+- ProtoBufEncoder
+- ProtoBufSchema
