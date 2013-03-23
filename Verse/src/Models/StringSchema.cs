@@ -3,11 +3,13 @@ using System.Collections.Generic;
 
 namespace Verse.Models
 {
-	public abstract class StringSchema : ISchema
+	public abstract class StringSchema : AbstractSchema
 	{
 		#region Attributes
 
 		protected Dictionary<Type, object>	decoderConverters;
+
+		protected Dictionary<Type, object>	encoderConverters;
 
 		#endregion
 		
@@ -16,15 +18,8 @@ namespace Verse.Models
 		protected	StringSchema ()
 		{
 			this.decoderConverters = new Dictionary<Type, object> ();
+			this.encoderConverters = new Dictionary<Type, object> ();
 		}
-		
-		#endregion
-		
-		#region Methods / Abstract
-
-		public abstract IDecoder<T>	GetDecoder<T> (Func<T> constructor);
-
-		public abstract IEncoder<T>	GetEncoder<T> ();
 		
 		#endregion
 		
@@ -37,7 +32,7 @@ namespace Verse.Models
 
 		public void	SetEncoderConverter<T> (EncoderConverter<T> converter)
 		{
-			throw new NotImplementedException ();
+			this.encoderConverters[typeof (T)] = converter;
 		}
 
 		#endregion

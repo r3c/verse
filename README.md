@@ -1,4 +1,4 @@
-Verse
-=====
+Verse README file
+=================
 
-Versatile Serializer
+VERsatile SErializer

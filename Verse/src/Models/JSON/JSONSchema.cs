@@ -30,12 +30,24 @@ namespace Verse.Models.JSON
 
 		public override IDecoder<T>	GetDecoder<T> (Func<T> constructor)
 		{
-			return new JSONDecoder<T> (constructor, this.encoding, this.decoderConverters);
+			AbstractDecoder<T>	decoder;
+
+			decoder = new JSONDecoder<T> (constructor, this.encoding, this.decoderConverters);
+			decoder.OnStreamError += this.EventStreamError;
+			decoder.OnTypeError += this.EventTypeError;
+
+			return decoder;
 		}
 		
 		public override IEncoder<T>	GetEncoder<T> ()
 		{
-			return new JSONEncoder<T> (this.encoding);
+			AbstractEncoder<T>	encoder;
+
+			encoder = new JSONEncoder<T> (this.encoding, this.encoderConverters);
+			encoder.OnStreamError += this.EventStreamError;
+			encoder.OnTypeError += this.EventTypeError;
+
+			return encoder;
 		}
 
 		#endregion

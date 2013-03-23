@@ -49,8 +49,12 @@
   <ItemGroup>
     <Compile Include="src\DecoderValueSetter.cs" />
     <Compile Include="src\DecoderKeyValueSetter.cs" />
-    <Compile Include="src\Exceptions\LinkTypeException.cs" />
+    <Compile Include="src\Events\StreamErrorEvent.cs" />
+    <Compile Include="src\Events\TypeErrorEvent.cs" />
+    <Compile Include="src\Exceptions\BindTypeException.cs" />
     <Compile Include="src\Models\AbstractDecoder.cs" />
+    <Compile Include="src\Models\AbstractEncoder.cs" />
+    <Compile Include="src\Models\AbstractSchema.cs" />
     <Compile Include="src\Models\StringSchema.cs" />
     <Compile Include="src\Models\JSON\JSONConverter.cs" />
     <Compile Include="src\Models\JSON\JSONDecoder.cs" />
@@ -68,6 +72,7 @@
     <Folder Include="src\Models\JSON" />
     <Folder Include="src" />
     <Folder Include="src\Exceptions" />
+    <Folder Include="src\Events" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

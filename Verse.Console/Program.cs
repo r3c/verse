@@ -25,22 +25,24 @@ namespace Verse.Console
 			Entity				entity;
 
 			schema = new JSONSchema ();
+			schema.OnStreamError += (position, message) => System.Console.Error.WriteLine ("Stream error at position {0}: {1}", position, message);
+			schema.OnTypeError += (type, value) => System.Console.Error.WriteLine ("Type error: could not convert \"{1}\" to {0}", type, value);
 			schema.SetDecoderConverter<Guid> (Guid.TryParse);
 
 			decoder = schema.GetDecoder<Entity> (() => new Entity ());
 			decoder
-				.Define ("pairs", (ref Entity e, Dictionary<string, string> v) => { e.pairs = v; })
-				.Define ((ref Dictionary<string, string> pairs, string key, string value) => { pairs[key] = value; })
-				.Link ();
+				.Field ("pairs", (ref Entity e, Dictionary<string, string> v) => { e.pairs = v; })
+				.Field ((ref Dictionary<string, string> pairs, string key, string value) => { pairs[key] = value; })
+				.Bind ();
 			decoder
-				.Define ("int2", (ref Entity e, short int2) => { e.int2 = int2; })
-				.Link ();
+				.Field ("int2", (ref Entity e, short int2) => { e.int2 = int2; })
+				.Bind ();
 			decoder
-				.Define ("str", (ref Entity e, string str) => { e.str = str; })
-				.Link ();
+				.Field ("str", (ref Entity e, string str) => { e.str = str; })
+				.Bind ();
 			decoder
-				.Define ("guid", (ref Entity e, Guid guid) => { e.guid = guid; })
-				.Link ();
+				.Field ("guid", (ref Entity e, Guid guid) => { e.guid = guid; })
+				.Bind ();
 
 			using (Stream stream = GetUTF8 ("{\"pairs\": {\"a\": \"aaa\", \"b\": \"bbb\"}, \"str\": \"Hello, World!\", \"int2\": 17.5, \"guid\": \"fc2706dd-ede6-4dbe-9014-9970c1931536\"}"))
 			{

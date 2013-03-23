@@ -32,20 +32,31 @@ namespace Verse.Models.JSON
 				return this.lexem;
 			}
 		}
-		
+
+		public long			Position
+		{
+			get
+			{
+				if (this.reader.BaseStream.CanSeek)
+					return this.reader.BaseStream.Position;
+
+				return -1;
+			}
+		}
+
 		#endregion
 		
 		#region Attributes
 		
-		private double		asDouble;
+		private double			asDouble;
 
-		private string		asString;
+		private string			asString;
 
-		private int			current;
+		private int				current;
 
-		private JSONLexem	lexem;
+		private JSONLexem		lexem;
 
-		private TextReader  reader;
+		private StreamReader	reader;
 		
 		#endregion
 		
@@ -53,7 +64,7 @@ namespace Verse.Models.JSON
 
 		public  JSONLexer (Stream stream, Encoding encoding)
 		{
-			TextReader	reader;
+			StreamReader	reader;
 			
 			reader = new StreamReader (stream, encoding);
 
@@ -264,6 +275,33 @@ namespace Verse.Models.JSON
 
 			return true;
 		}
+
+		public override string	ToString ()
+		{
+			switch (this.lexem)
+			{
+				case JSONLexem.False:
+					return "false";
+
+				case JSONLexem.Null:
+					return "true";
+
+				case JSONLexem.Number:
+					#warning JSONify number
+					return this.asDouble.ToString (CultureInfo.InvariantCulture);
+
+				case JSONLexem.String:
+					#warning JSONify string
+					return this.asString;
+
+				case JSONLexem.True:
+					return "true";
+
+				default:
+					return this.current.ToString (CultureInfo.InvariantCulture);
+			}
+		}
+
 		
 		#endregion
 	}
