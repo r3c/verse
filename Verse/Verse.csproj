@@ -49,12 +49,16 @@
   <ItemGroup>
     <Compile Include="src\DecoderValueSetter.cs" />
     <Compile Include="src\DecoderKeyValueSetter.cs" />
+    <Compile Include="src\EncoderMapGetter.cs" />
+    <Compile Include="src\EncoderArrayGetter.cs" />
+    <Compile Include="src\EncoderValueGetter.cs" />
     <Compile Include="src\Events\StreamErrorEvent.cs" />
     <Compile Include="src\Events\TypeErrorEvent.cs" />
     <Compile Include="src\Exceptions\BindTypeException.cs" />
     <Compile Include="src\Models\AbstractDecoder.cs" />
     <Compile Include="src\Models\AbstractEncoder.cs" />
     <Compile Include="src\Models\AbstractSchema.cs" />
+    <Compile Include="src\Models\JSON\JSONWriter.cs" />
     <Compile Include="src\Models\StringSchema.cs" />
     <Compile Include="src\Models\JSON\JSONConverter.cs" />
     <Compile Include="src\Models\JSON\JSONDecoder.cs" />

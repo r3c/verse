@@ -41,7 +41,7 @@ namespace Verse.Models
 		
 		public delegate bool	DecoderConverter<T> (string input, out T value);
 		
-		public delegate bool	EncoderConverter<T> (T input, out string value);
+		public delegate string	EncoderConverter<T> (T input);
 		
 		#endregion
 	}

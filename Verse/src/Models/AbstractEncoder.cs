@@ -17,7 +17,17 @@ namespace Verse.Models
 
 		#region Methods / Abstract
 
-		public abstract bool	Encode (Stream stream, T instance);
+		public abstract void		Bind (Func<T> builder);
+
+		public abstract void		Bind ();
+
+		public abstract bool		Encode (Stream stream, T instance);
+
+		public abstract IEncoder<U>	HasArray<U> (EncoderArrayGetter<T, U> getter);
+
+		public abstract IEncoder<U>	HasField<U> (string name, EncoderValueGetter<T, U> getter);
+
+		public abstract IEncoder<U>	HasMap<U> (EncoderMapGetter<T, U> getter);
 
 		#endregion
 		
