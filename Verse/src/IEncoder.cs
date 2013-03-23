@@ -13,11 +13,11 @@ namespace Verse
 
 		bool		Encode (Stream stream, T instance);
 
-		IEncoder<U>	HasArray<U> (EncoderArrayGetter<T, U> getter);
-
 		IEncoder<U>	HasField<U> (string name, EncoderValueGetter<T, U> getter);
 
-		IEncoder<U>	HasMap<U> (EncoderMapGetter<T, U> getter);
+		IEncoder<U>	HasItems<U> (EncoderArrayGetter<T, U> getter);
+
+		IEncoder<U>	HasPairs<U> (EncoderMapGetter<T, U> getter);
 		
 		#endregion
 	}

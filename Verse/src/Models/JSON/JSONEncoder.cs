@@ -42,17 +42,17 @@ namespace Verse.Models.JSON
             throw new NotImplementedException ();
         }
 
-		public override IEncoder<U>	HasArray<U> (EncoderArrayGetter<T, U> getter)
-		{
-			throw new NotImplementedException();
-		}
-
 		public override IEncoder<U>	HasField<U> (string name, EncoderValueGetter<T, U> getter)
 		{
 			throw new NotImplementedException();
 		}
 
-		public override IEncoder<U>	HasMap<U> (EncoderMapGetter<T, U> getter)
+		public override IEncoder<U>	HasItems<U> (EncoderArrayGetter<T, U> getter)
+		{
+			throw new NotImplementedException();
+		}
+
+		public override IEncoder<U>	HasPairs<U> (EncoderMapGetter<T, U> getter)
 		{
 			throw new NotImplementedException();
 		}

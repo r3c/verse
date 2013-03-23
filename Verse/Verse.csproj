@@ -47,8 +47,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\DecoderArraySetter.cs" />
     <Compile Include="src\DecoderValueSetter.cs" />
-    <Compile Include="src\DecoderKeyValueSetter.cs" />
+    <Compile Include="src\DecoderMapSetter.cs" />
     <Compile Include="src\EncoderMapGetter.cs" />
     <Compile Include="src\EncoderArrayGetter.cs" />
     <Compile Include="src\EncoderValueGetter.cs" />

@@ -59,17 +59,17 @@ namespace Verse.Console
 */
 			decoder = schema.GetDecoder<Entity> (() => new Entity ());
 			decoder
-				.Field ("pairs", (ref Entity e, Dictionary<string, string> v) => { e.pairs = v; })
-				.Field ((ref Dictionary<string, string> pairs, string key, string value) => { pairs[key] = value; })
+				.HasField ("pairs", (ref Entity e, Dictionary<string, string> v) => { e.pairs = v; })
+				.HasPairs ((ref Dictionary<string, string> pairs, IList<KeyValuePair<string, string>> input) => { foreach (var pair in input) pairs[pair.Key] = pair.Value; })
 				.Bind ();
 			decoder
-				.Field ("int2", (ref Entity e, short int2) => { e.int2 = int2; })
+				.HasField ("int2", (ref Entity e, short int2) => { e.int2 = int2; })
 				.Bind ();
 			decoder
-				.Field ("str", (ref Entity e, string str) => { e.str = str; })
+				.HasField ("str", (ref Entity e, string str) => { e.str = str; })
 				.Bind ();
 			decoder
-				.Field ("guid", (ref Entity e, Guid guid) => { e.guid = guid; })
+				.HasField ("guid", (ref Entity e, Guid guid) => { e.guid = guid; })
 				.Bind ();
 
 			using (MemoryStream stream = new MemoryStream ())

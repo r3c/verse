@@ -23,11 +23,11 @@ namespace Verse.Models
 
 		public abstract bool		Encode (Stream stream, T instance);
 
-		public abstract IEncoder<U>	HasArray<U> (EncoderArrayGetter<T, U> getter);
-
 		public abstract IEncoder<U>	HasField<U> (string name, EncoderValueGetter<T, U> getter);
 
-		public abstract IEncoder<U>	HasMap<U> (EncoderMapGetter<T, U> getter);
+		public abstract IEncoder<U>	HasItems<U> (EncoderArrayGetter<T, U> getter);
+
+		public abstract IEncoder<U>	HasPairs<U> (EncoderMapGetter<T, U> getter);
 
 		#endregion
 		

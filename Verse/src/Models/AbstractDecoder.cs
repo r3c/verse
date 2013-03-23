@@ -26,41 +26,29 @@ namespace Verse.Models
 
 		public abstract bool		Decode (Stream stream, out T instance);
 
-		public abstract IDecoder<U>	Field<U> (string name, Func<U> builder, DecoderValueSetter<T, U> setter);
+		public abstract IDecoder<U>	HasField<U> (string name, Func<U> builder, DecoderValueSetter<T, U> setter);
 
-		public abstract IDecoder<U>	Field<U> (Func<U> builder, DecoderKeyValueSetter<T, U> setter);
+		public abstract IDecoder<U>	HasItems<U> (Func<U> builder, DecoderArraySetter<T, U> setter);
 
-		public abstract IDecoder<U>	Field<U> (Func<U> builder, DecoderValueSetter<T, U> setter);
+		public abstract IDecoder<U>	HasPairs<U> (Func<U> builder, DecoderMapSetter<T, U> setter);
 
 		#endregion
 
 		#region Methods / Public
 
-		public IDecoder<U>	Field<U> (string name, DecoderValueSetter<T, U> setter)
+		public IDecoder<U>	HasField<U> (string name, DecoderValueSetter<T, U> setter)
 		{
-			Func<U>	constructor;
-			
-			constructor = this.GetConstructor<U> ();
-
-			return this.Field<U> (name, () => constructor (), setter);
+			return this.HasField<U> (name, this.GetConstructor<U> (), setter);
 		}
 
-		public IDecoder<U>	Field<U> (DecoderKeyValueSetter<T, U> setter)
+		public IDecoder<U>	HasItems<U> (DecoderArraySetter<T, U> setter)
 		{
-			Func<U>	constructor;
-			
-			constructor = this.GetConstructor<U> ();
-
-			return this.Field<U> (() => constructor (), setter);
+			return this.HasItems<U> (this.GetConstructor<U> (), setter);
 		}
 
-		public IDecoder<U>	Field<U> (DecoderValueSetter<T, U> setter)
+		public IDecoder<U>	HasPairs<U> (DecoderMapSetter<T, U> setter)
 		{
-			Func<U>	constructor;
-			
-			constructor = this.GetConstructor<U> ();
-
-			return this.Field<U> (() => constructor (), setter);
+			return this.HasPairs<U> (this.GetConstructor<U> (), setter);
 		}
 
 		#endregion
