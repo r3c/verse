@@ -87,6 +87,8 @@ namespace Verse.Models.JSON
 		public bool	Next ()
 		{
 			StringBuilder	buffer;
+			int				unicode;
+			int				value;
 
 			while (this.current >= 0 && this.current <= (int)' ')
 				this.current = this.reader.Read ();
@@ -140,7 +142,32 @@ namespace Verse.Models.JSON
 									break;
 
 								case 'u':
-									throw new NotImplementedException ();
+									unicode = 0;
+
+									for (int i = 0; i < 4; ++i)
+									{
+										this.current = this.reader.Read ();
+
+										if (this.current >= (int)'0' && this.current <= (int)'9')
+											value = this.current - (int)'0';
+										else if (this.current >= (int)'A' && this.current <= (int)'F')
+											value = this.current - (int)'A' + 10;
+										else if (this.current >= (int)'a' && this.current <= (int)'f')
+											value = this.current - (int)'a' + 10;
+										else
+										{
+											unicode = -1;
+										
+											break;
+										}
+
+										unicode = (unicode << 4) + value;
+									}
+
+									if (unicode >= 0)
+										buffer.Append ((char)unicode);
+
+									break;
 
 								default:
 									buffer.Append ((char)this.current);
@@ -278,27 +305,43 @@ namespace Verse.Models.JSON
 
 		public override string	ToString ()
 		{
-			switch (this.lexem)
+			using (MemoryStream stream = new MemoryStream ())
 			{
-				case JSONLexem.False:
-					return "false";
+				using (JSONWriter writer = new JSONWriter (stream, this.reader.CurrentEncoding))
+				{
+					switch (this.lexem)
+					{
+						case JSONLexem.False:
+							writer.WriteBoolean (false);
 
-				case JSONLexem.Null:
-					return "true";
+							break;
+		
+						case JSONLexem.Null:
+							writer.WriteNull ();
 
-				case JSONLexem.Number:
-					#warning JSONify number
-					return this.asDouble.ToString (CultureInfo.InvariantCulture);
+							break;
+		
+						case JSONLexem.Number:
+							writer.WriteNumber (this.asDouble);
 
-				case JSONLexem.String:
-					#warning JSONify string
-					return this.asString;
+							break;
+		
+						case JSONLexem.String:
+							writer.WriteString (this.asString);
 
-				case JSONLexem.True:
-					return "true";
+							break;
+		
+						case JSONLexem.True:
+							writer.WriteBoolean (true);
 
-				default:
-					return this.current.ToString (CultureInfo.InvariantCulture);
+							break;
+		
+						default:
+							return this.current.ToString (CultureInfo.InvariantCulture);
+					}
+				}
+
+				return this.reader.CurrentEncoding.GetString (stream.ToArray ());
 			}
 		}
 

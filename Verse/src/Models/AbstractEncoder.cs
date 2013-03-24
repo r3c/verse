@@ -17,8 +17,6 @@ namespace Verse.Models
 
 		#region Methods / Abstract
 
-		public abstract void		Bind (Func<T> builder);
-
 		public abstract void		Bind ();
 
 		public abstract bool		Encode (Stream stream, T instance);

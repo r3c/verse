@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Windows.Forms;
+
+using Verse.Models.JSON.Formatters;
 
 namespace Verse.Models.JSON
 {
@@ -9,18 +12,26 @@ namespace Verse.Models.JSON
 		#region Attributes
 
 		private Encoding	encoding;
+
+		private IFormatter	formatter;
 		
 		#endregion
 		
 		#region Constructors
 
-		public	JSONSchema (Encoding encoding)
+		public	JSONSchema (Encoding encoding, IFormatter formatter)
 		{
 			this.encoding = encoding;
+			this.formatter = formatter;
+		}
+
+		public	JSONSchema (Encoding encoding) :
+			this (encoding, new CompactFormatter ())
+		{
 		}
 
 		public	JSONSchema () :
-			this (Encoding.UTF8)
+			this (new UTF8Encoding (false), new CompactFormatter ())
 		{
 		}
 		
@@ -43,7 +54,7 @@ namespace Verse.Models.JSON
 		{
 			AbstractEncoder<T>	encoder;
 
-			encoder = new JSONEncoder<T> (this.encoding, this.encoderConverters);
+			encoder = new JSONEncoder<T> (this.encoding, this.encoderConverters, this.formatter);
 			encoder.OnStreamError += this.EventStreamError;
 			encoder.OnTypeError += this.EventTypeError;
 

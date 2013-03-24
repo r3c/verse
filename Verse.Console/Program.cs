@@ -42,6 +42,15 @@ namespace Verse.Console
 			schema.SetDecoderConverter<Guid> (Guid.TryParse);
 			schema.SetEncoderConverter<Guid> ((guid) => guid.ToString ());
 
+			var enc = schema.GetEncoder<string> ();
+			enc.Bind ();
+			using (MemoryStream stream = new MemoryStream ())
+			{
+				enc.Encode (stream, "Hello,\r\nWorld!");
+
+				System.Console.WriteLine (Encoding.UTF8.GetString (stream.ToArray ()));
+			}
+
 			encoder = schema.GetEncoder<Entity> ();
 /*			encoder
 				.HasField ("pairs", (entity) => entity.pairs)

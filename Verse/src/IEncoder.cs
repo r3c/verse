@@ -7,8 +7,6 @@ namespace Verse
 	{
 		#region Methods
 
-		void		Bind (Func<T> builder);
-
 		void		Bind ();
 
 		bool		Encode (Stream stream, T instance);

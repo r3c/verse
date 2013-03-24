@@ -59,6 +59,8 @@
     <Compile Include="src\Models\AbstractDecoder.cs" />
     <Compile Include="src\Models\AbstractEncoder.cs" />
     <Compile Include="src\Models\AbstractSchema.cs" />
+    <Compile Include="src\Models\JSON\Formatters\CompactFormatter.cs" />
+    <Compile Include="src\Models\JSON\IFormatter.cs" />
     <Compile Include="src\Models\JSON\JSONWriter.cs" />
     <Compile Include="src\Models\StringSchema.cs" />
     <Compile Include="src\Models\JSON\JSONConverter.cs" />
@@ -78,6 +80,7 @@
     <Folder Include="src" />
     <Folder Include="src\Exceptions" />
     <Folder Include="src\Events" />
+    <Folder Include="src\Models\JSON\Formatters" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
