@@ -7,11 +7,11 @@ namespace Verse
 	{
 		#region Methods
 
-		void		Bind (Func<T> builder);
-
 		void		Bind ();
 	
 		bool		Decode (Stream stream, out T instance);
+
+		void		Fake (Func<T> builder);
 
 		IDecoder<U>	HasField<U> (string name, Func<U> builder, DecoderValueSetter<T, U> setter);
 

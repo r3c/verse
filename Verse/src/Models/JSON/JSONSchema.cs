@@ -1,37 +1,54 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Windows.Forms;
-
-using Verse.Models.JSON.Formatters;
 
 namespace Verse.Models.JSON
 {
 	public class JSONSchema : StringSchema
 	{
+		#region Properties
+
+		public Encoding	Encoding
+		{
+			get
+			{
+				return this.encoding;
+			}
+		}
+
+		#endregion
+
 		#region Attributes
 
-		private Encoding	encoding;
+		private Encoding							encoding;
 
-		private IFormatter	formatter;
+		private Func<Stream, Encoding, JSONPrinter>	printer;
 		
 		#endregion
 		
 		#region Constructors
 
-		public	JSONSchema (Encoding encoding, IFormatter formatter)
+		public	JSONSchema (Func<Stream, Encoding, JSONPrinter> printer, Encoding encoding)
 		{
+			if (encoding == null)
+				throw new ArgumentNullException ("encoding");
+
+			if (printer == null)
+				throw new ArgumentNullException ("printer");
+
 			this.encoding = encoding;
-			this.formatter = formatter;
+			this.printer = printer;
 		}
 
-		public	JSONSchema (Encoding encoding) :
-			this (encoding, new CompactFormatter ())
+		public	JSONSchema (Func<Stream, Encoding, JSONPrinter> printer) :
+			this (printer, new UTF8Encoding (false))
 		{
 		}
 
 		public	JSONSchema () :
-			this (new UTF8Encoding (false), new CompactFormatter ())
+			this ((s, e) => new JSONPrinter (s, e))
 		{
 		}
 		
@@ -43,7 +60,10 @@ namespace Verse.Models.JSON
 		{
 			AbstractDecoder<T>	decoder;
 
-			decoder = new JSONDecoder<T> (constructor, this.encoding, this.decoderConverters);
+			if (constructor == null)
+				throw new ArgumentNullException ("constructor");
+
+			decoder = new JSONDecoder<T> (this.decoderConverters, this.encoding, constructor);
 			decoder.OnStreamError += this.EventStreamError;
 			decoder.OnTypeError += this.EventTypeError;
 
@@ -54,7 +74,7 @@ namespace Verse.Models.JSON
 		{
 			AbstractEncoder<T>	encoder;
 
-			encoder = new JSONEncoder<T> (this.encoding, this.encoderConverters, this.formatter);
+			encoder = new JSONEncoder<T> (this.encoderConverters, this.encoding, this.printer);
 			encoder.OnStreamError += this.EventStreamError;
 			encoder.OnTypeError += this.EventTypeError;
 

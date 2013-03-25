@@ -11,15 +11,13 @@ using Verse.Exceptions;
 
 namespace Verse.Models.JSON
 {
-    class JSONDecoder<T> : AbstractDecoder<T>
+    class JSONDecoder<T> : StringDecoder<T>
     {
 		#region Attributes
 		
 		private Browser						arrayBrowser;
 
 		private Func<T>						constructor;
-		
-		private Dictionary<Type, object>	converters;
 
 		private Encoding					encoding;
 
@@ -33,11 +31,11 @@ namespace Verse.Models.JSON
 
         #region Constructors
 
-        public	JSONDecoder (Func<T> constructor, Encoding encoding, Dictionary<Type, object> converters)
+        public	JSONDecoder (Dictionary<Type, object> converters, Encoding encoding, Func<T> constructor) :
+        	base (converters)
         {
         	this.arrayBrowser = null;
 			this.constructor = constructor;
-			this.converters = converters;
 			this.encoding = encoding;
 			this.fieldBrowsers = new Dictionary<string, Browser> ();
  			this.objectBrowser = null;
@@ -47,55 +45,6 @@ namespace Verse.Models.JSON
         #endregion
         
         #region Methods / Public
-
-        public override void	Bind (Func<T> builder)
-        {
-        	this.reader = (JSONLexer lexer, out T value) =>
-        	{
-        		value = builder ();
-
-        		return this.Ignore (lexer);
-        	};
-        }
-
-        public override void	Bind ()
-        {
-        	object	converter;
-        	Type	type;
-
-        	type = typeof (T);
-
-        	if (this.converters.TryGetValue (type, out converter))
-        		this.reader = this.BuildReader (converter);
-        	else if (type == typeof (bool))
-        		this.reader = this.BuildReader<bool> (JSONConverter.ToBoolean);
-        	else if (type == typeof (char))
-        		this.reader = this.BuildReader<char> (JSONConverter.ToChar);
-        	else if (type == typeof (float))
-        		this.reader = this.BuildReader<float> (JSONConverter.ToFloat4);
-        	else if (type == typeof (double))
-        		this.reader = this.BuildReader<double> (JSONConverter.ToFloat8);
-        	else if (type == typeof (sbyte))
-        		this.reader = this.BuildReader<sbyte> (JSONConverter.ToInt1s);
-        	else if (type == typeof (byte))
-        		this.reader = this.BuildReader<byte> (JSONConverter.ToInt1u);
-        	else if (type == typeof (short))
-        		this.reader = this.BuildReader<short> (JSONConverter.ToInt2s);
-        	else if (type == typeof (ushort))
-        		this.reader = this.BuildReader<ushort> (JSONConverter.ToInt2u);
-        	else if (type == typeof (int))
-        		this.reader = this.BuildReader<int> (JSONConverter.ToInt4s);
-        	else if (type == typeof (uint))
-        		this.reader = this.BuildReader<uint> (JSONConverter.ToInt4u);
-        	else if (type == typeof (long))
-        		this.reader = this.BuildReader<long> (JSONConverter.ToInt8s);
-        	else if (type == typeof (ulong))
-        		this.reader = this.BuildReader<ulong> (JSONConverter.ToInt8u);
-        	else if (type == typeof (string))
-        		this.reader = this.BuildReader<string> (JSONConverter.ToString);
-        	else
-        		throw new BindTypeException (type, "no converter for this type has been defined");
-        }
 
         public override bool	Decode (Stream stream, out T instance)
         {
@@ -116,6 +65,16 @@ namespace Verse.Models.JSON
             }
 
 			return true;
+        }
+
+        public override void	Fake (Func<T> builder)
+        {
+        	this.reader = (JSONLexer lexer, out T value) =>
+        	{
+        		value = builder ();
+
+        		return this.Ignore (lexer);
+        	};
         }
 
         public override IDecoder<U>	HasField<U> (string name, Func<U> builder, DecoderValueSetter<T, U> setter)
@@ -222,45 +181,108 @@ namespace Verse.Models.JSON
 
         #endregion
 
+		#region Methods / Protected
+
+        protected override void	BindConvert (StringSchema.DecoderConverter<T> converter)
+        {
+        	this.reader = (JSONLexer lexer, out T value) =>
+        	{
+        		if (lexer.Lexem == JSONLexem.String && converter (lexer.AsString, out value))
+        			return this.Ignore (lexer);
+
+        		value = default (T);
+
+				return false;
+        	};
+        }
+        
+		protected override void	BindNative ()
+		{
+        	Type	type;
+
+        	type = typeof (T);
+
+        	if (type == typeof (bool))
+        		this.reader = this.BuildReader<bool> (JSONConverter.ToBoolean);
+        	else if (type == typeof (char))
+        		this.reader = this.BuildReader<char> (JSONConverter.ToChar);
+        	else if (type == typeof (float))
+        		this.reader = this.BuildReader<float> (JSONConverter.ToFloat4);
+        	else if (type == typeof (double))
+        		this.reader = this.BuildReader<double> (JSONConverter.ToFloat8);
+        	else if (type == typeof (sbyte))
+        		this.reader = this.BuildReader<sbyte> (JSONConverter.ToInt1s);
+        	else if (type == typeof (byte))
+        		this.reader = this.BuildReader<byte> (JSONConverter.ToInt1u);
+        	else if (type == typeof (short))
+        		this.reader = this.BuildReader<short> (JSONConverter.ToInt2s);
+        	else if (type == typeof (ushort))
+        		this.reader = this.BuildReader<ushort> (JSONConverter.ToInt2u);
+        	else if (type == typeof (int))
+        		this.reader = this.BuildReader<int> (JSONConverter.ToInt4s);
+        	else if (type == typeof (uint))
+        		this.reader = this.BuildReader<uint> (JSONConverter.ToInt4u);
+        	else if (type == typeof (long))
+        		this.reader = this.BuildReader<long> (JSONConverter.ToInt8s);
+        	else if (type == typeof (ulong))
+        		this.reader = this.BuildReader<ulong> (JSONConverter.ToInt8u);
+        	else if (type == typeof (string))
+        		this.reader = this.BuildReader<string> (JSONConverter.ToString);
+        	else
+        		throw new BindTypeException (type, "no converter for this type has been defined");
+        }
+
+		#endregion
+
         #region Methods / Private
 
         private JSONDecoder<U>	BuildDecoder<U> (Func<U> builder)
         {
         	JSONDecoder<U>	decoder;
 
-        	decoder = new JSONDecoder<U> (builder, this.encoding, this.converters);
+        	decoder = new JSONDecoder<U> (this.converters, this.encoding, builder);
         	decoder.OnStreamError += this.EventStreamError;
         	decoder.OnTypeError += this.EventTypeError;
 
         	return decoder;
         }
 
-        private Reader	BuildReader (object converter)
-        {
-			DynamicMethod			method;
-        	ReaderConverterWrapper	wrapper;
-
-        	method = new DynamicMethod (string.Empty, typeof (bool), new Type[] {typeof (string), typeof (object), typeof (T).MakeByRefType ()}, this.GetType ());
-
-        	#warning FIXME: this method should not be common to both BuildReader signatures
-        	this.GenerateReader (method, typeof (T), typeof (StringSchema.DecoderConverter<>).MakeGenericType (typeof (T)).GetMethod ("Invoke"));
-
-			wrapper = (ReaderConverterWrapper)method.CreateDelegate (typeof (ReaderConverterWrapper));
-
-			return (JSONLexer lexer, out T target) => wrapper (lexer.AsString, converter, out target) && this.Ignore (lexer);
-        }
-
         private Reader	BuildReader<U> (ReaderExtractor<U> extractor)
         {
-			DynamicMethod				method;
-        	ReaderExtractorWrapper<U>	wrapper;
+        	Label				assign;
+        	ILGenerator			generator;
+			DynamicMethod		method;
+        	LocalBuilder		output;
+        	ReaderWrapper<U>	wrapper;
 
         	method = new DynamicMethod (string.Empty, typeof (bool), new Type[] {typeof (JSONLexer), typeof (ReaderExtractor<U>), typeof (T).MakeByRefType ()}, this.GetType ());
 
-        	#warning FIXME: this method should not be common to both BuildReader signatures
-        	this.GenerateReader (method, typeof (U), extractor.GetType ().GetMethod ("Invoke"));
+			generator = method.GetILGenerator ();
 
-			wrapper = (ReaderExtractorWrapper<U>)method.CreateDelegate (typeof (ReaderExtractorWrapper<U>));
+			assign = generator.DefineLabel ();
+			output = generator.DeclareLocal (typeof (U));
+
+			generator.Emit (OpCodes.Ldarg_1);
+			generator.Emit (OpCodes.Ldarg_0);
+			generator.Emit (OpCodes.Ldloca_S, output);
+			generator.Emit (OpCodes.Callvirt, extractor.GetType ().GetMethod ("Invoke"));
+			generator.Emit (OpCodes.Brtrue_S, assign);
+			generator.Emit (OpCodes.Ldc_I4_0);
+			generator.Emit (OpCodes.Ret);
+
+			generator.MarkLabel (assign);
+			generator.Emit (OpCodes.Ldarg_2);
+			generator.Emit (OpCodes.Ldloc, output);
+
+			if (typeof (U).IsValueType)
+				generator.Emit (OpCodes.Stobj, typeof (U));
+			else
+				generator.Emit (OpCodes.Stind_Ref);
+
+			generator.Emit (OpCodes.Ldc_I4_1);
+			generator.Emit (OpCodes.Ret);
+
+			wrapper = (ReaderWrapper<U>)method.CreateDelegate (typeof (ReaderWrapper<U>));
 
 			return (JSONLexer lexer, out T target) => wrapper (lexer, extractor, out target) && this.Ignore (lexer);
         }
@@ -277,38 +299,6 @@ namespace Verse.Models.JSON
         	lexer.Next ();
 
         	return true;
-        }
-
-        private void	GenerateReader (DynamicMethod method, Type type, MethodInfo extractor)
-        {
-        	Label			assign;
-        	ILGenerator		generator;
-        	LocalBuilder	output;
-
-			generator = method.GetILGenerator ();
-
-			assign = generator.DefineLabel ();
-			output = generator.DeclareLocal (type);
-
-			generator.Emit (OpCodes.Ldarg_1);
-			generator.Emit (OpCodes.Ldarg_0);
-			generator.Emit (OpCodes.Ldloca_S, output);
-			generator.Emit (OpCodes.Callvirt, extractor);
-			generator.Emit (OpCodes.Brtrue_S, assign);
-			generator.Emit (OpCodes.Ldc_I4_0);
-			generator.Emit (OpCodes.Ret);
-
-			generator.MarkLabel (assign);
-			generator.Emit (OpCodes.Ldarg_2);
-			generator.Emit (OpCodes.Ldloc, output);
-
-			if (type.IsValueType)
-				generator.Emit (OpCodes.Stobj, type);
-			else
-				generator.Emit (OpCodes.Stind_Ref);
-
-			generator.Emit (OpCodes.Ldc_I4_1);
-			generator.Emit (OpCodes.Ret);
         }
 
         private bool	Ignore (JSONLexer lexer)
@@ -463,12 +453,10 @@ namespace Verse.Models.JSON
         private delegate bool	Browser (JSONLexer lexer, ref T container);
 
         private delegate bool	Reader (JSONLexer lexer, out T value);
-
-        private delegate bool	ReaderConverterWrapper (string input, object converter, out T value);
         
         private delegate bool	ReaderExtractor<U> (JSONLexer lexer, out U value);
 
-        private delegate bool	ReaderExtractorWrapper<U> (JSONLexer lexer, ReaderExtractor<U> extractor, out T value);
+        private delegate bool	ReaderWrapper<U> (JSONLexer lexer, ReaderExtractor<U> extractor, out T value);
         
         #endregion
     }

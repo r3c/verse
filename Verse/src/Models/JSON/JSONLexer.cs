@@ -307,32 +307,32 @@ namespace Verse.Models.JSON
 		{
 			using (MemoryStream stream = new MemoryStream ())
 			{
-				using (JSONWriter writer = new JSONWriter (stream, this.reader.CurrentEncoding))
+				using (JSONPrinter printer = new JSONPrinter (stream, this.reader.CurrentEncoding))
 				{
 					switch (this.lexem)
 					{
 						case JSONLexem.False:
-							writer.WriteBoolean (false);
+							printer.PrintBoolean (false);
 
 							break;
 		
 						case JSONLexem.Null:
-							writer.WriteNull ();
+							printer.PrintNull ();
 
 							break;
 		
 						case JSONLexem.Number:
-							writer.WriteNumber (this.asDouble);
+							printer.PrintNumber (this.asDouble);
 
 							break;
 		
 						case JSONLexem.String:
-							writer.WriteString (this.asString);
+							printer.PrintString (this.asString);
 
 							break;
 		
 						case JSONLexem.True:
-							writer.WriteBoolean (true);
+							printer.PrintBoolean (true);
 
 							break;
 		

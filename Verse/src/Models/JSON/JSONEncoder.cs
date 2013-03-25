@@ -9,30 +9,28 @@ using Verse.Exceptions;
 
 namespace Verse.Models.JSON
 {
-	class JSONEncoder<T> : AbstractEncoder<T>
+	class JSONEncoder<T> : StringEncoder<T>
 	{
 		#region Attributes
-		
-		private Dictionary<Type, object>	converters;
 
-        private Encoding					encoding;
+        private Encoding							encoding;
 
-        private Dictionary<string, Writer>	fieldWriters;
+        private Dictionary<string, Writer>			fieldWriters;
 
-        private IFormatter					formatter;
+		private Func<Stream, Encoding, JSONPrinter>	printer;
 
-		private Writer						writer;
+		private Writer								writer;
 
         #endregion
 
         #region Constructors
 
-        public	JSONEncoder (Encoding encoding, Dictionary<Type, object> converters, IFormatter formatter)
+        public	JSONEncoder (Dictionary<Type, object> converters, Encoding encoding, Func<Stream, Encoding, JSONPrinter> printer) :
+        	base (converters)
 		{
-			this.converters = converters;
+			this.printer = printer;
 			this.encoding = encoding;
 			this.fieldWriters = new Dictionary<string, Writer> ();
-			this.formatter = formatter;
 			this.writer = null;
 		}
 
@@ -40,16 +38,150 @@ namespace Verse.Models.JSON
 
     	#region Methods / Public
 
-		public override void	Bind ()
+        public override bool	Encode (Stream stream, T instance)
+        {
+            using (JSONPrinter printer = this.printer (stream, this.encoding))
+            {
+            	return this.Write (printer, instance);
+            }
+        }
+
+		public override IEncoder<U>	HasField<U> (string name, EncoderValueGetter<T, U> getter)
 		{
-        	object	converter;
+        	JSONEncoder<U>	encoder;
+
+        	encoder = this.BuildEncoder<U> ();
+
+        	this.fieldWriters[name] = (printer, container) => encoder.Write (printer, getter (container));
+
+        	return encoder;
+		}
+
+		public override IEncoder<U>	HasItems<U> (EncoderArrayGetter<T, U> getter)
+		{
+        	JSONEncoder<U>	encoder;
+
+        	encoder = this.BuildEncoder<U> ();
+
+			this.writer = (printer, container) =>
+			{
+				bool			empty;
+				IEnumerable<U>	items;
+
+				empty = true;
+				items = getter (container);
+
+				foreach (U value in items)
+				{
+					if (/*ignore_null && */value == null)
+						continue;
+
+					if (empty)
+					{
+						printer.PrintArrayBegin ();
+
+						empty = false;
+					}
+					else
+						printer.PrintComma ();
+
+					encoder.Write (printer, value);
+				}
+
+				if (!empty/* || force_empty_array*/)
+				{
+					if (empty)
+						printer.PrintArrayBegin ();
+
+					printer.PrintArrayEnd ();
+				}
+				else
+					printer.PrintNull ();
+
+				return true;
+			};
+
+			return encoder;
+		}
+
+		public override IEncoder<U>	HasPairs<U> (EncoderMapGetter<T, U> getter)
+		{
+        	JSONEncoder<U>	encoder;
+
+        	encoder = this.BuildEncoder<U> ();
+
+			this.writer = (printer, container) =>
+			{
+				bool									empty;
+				IEnumerable<KeyValuePair<string, U>>	pairs;
+
+				empty = true;
+				pairs = getter (container);
+
+				foreach (KeyValuePair<string, U> pair in pairs)
+				{
+					if (/*ignore_null && */pair.Value == null)
+						continue;
+
+					if (empty)
+					{
+						printer.PrintObjectBegin ();
+
+						empty = false;
+					}
+					else
+						printer.PrintComma ();
+
+					printer.PrintString (pair.Key);
+					printer.PrintColon ();
+
+					encoder.Write (printer, pair.Value);
+				}
+
+				if (!empty/* || force_empty_object*/)
+				{
+					if (empty)
+						printer.PrintObjectBegin ();
+
+					printer.PrintObjectEnd ();
+				}
+				else
+					printer.PrintNull ();
+
+				return true;
+			};
+
+			return encoder;
+		}
+
+        #endregion
+
+		#region Methods / Protected
+
+		protected override void	BindConvert (StringSchema.EncoderConverter<T> converter)
+    	{
+			this.writer = (printer, input) =>
+			{
+				string	value;
+
+				if (converter (input, out value))
+				{
+					printer.PrintString (value);
+
+					return true;
+				}
+
+				return false;
+			};
+    	}
+
+		protected override void	BindNative ()
+		{
         	Type	type;
 
         	type = typeof (T);
 
-        	if (this.converters.TryGetValue (type, out converter))
-        		this.writer = this.BuildWriter (converter);
-        	else if (type == typeof (bool))
+        	if (type == typeof (bool))
         		this.writer = this.BuildWriter<bool> (JSONConverter.FromBoolean);
         	else if (type == typeof (char))
         		this.writer = this.BuildWriter<char> (JSONConverter.FromChar);
@@ -79,117 +211,7 @@ namespace Verse.Models.JSON
         		throw new BindTypeException (type, "no converter for this type has been defined");
 		}
 
-        public override bool	Encode (Stream stream, T instance)
-        {
-            using (JSONWriter writer = new JSONWriter (stream, this.encoding))
-            {
-            	return this.Write (writer, instance);
-            }
-        }
-
-		public override IEncoder<U>	HasField<U> (string name, EncoderValueGetter<T, U> getter)
-		{
-        	JSONEncoder<U>	encoder;
-
-        	encoder = this.BuildEncoder<U> ();
-
-        	this.fieldWriters[name] = (writer, container) => encoder.Write (writer, getter (container));
-
-        	return encoder;
-		}
-
-		public override IEncoder<U>	HasItems<U> (EncoderArrayGetter<T, U> getter)
-		{
-        	JSONEncoder<U>	encoder;
-
-        	encoder = this.BuildEncoder<U> ();
-
-			this.writer = (writer, container) =>
-			{
-				bool			empty;
-				IEnumerable<U>	items;
-
-				empty = true;
-				items = getter (container);
-
-				foreach (U value in items)
-				{
-					if (empty)
-					{
-						writer.WriteArrayBegin ();
-
-						empty = false;
-					}
-					else
-						writer.WriteComma ();
-
-					encoder.Write (writer, value);
-				}
-
-				if (!empty/* || force_empty_array*/)
-				{
-					if (empty)
-						writer.WriteArrayBegin ();
-
-					writer.WriteArrayEnd ();
-				}
-				else
-					writer.WriteNull ();
-
-				return true;
-			};
-
-			return encoder;
-		}
-
-		public override IEncoder<U>	HasPairs<U> (EncoderMapGetter<T, U> getter)
-		{
-        	JSONEncoder<U>	encoder;
-
-        	encoder = this.BuildEncoder<U> ();
-
-			this.writer = (writer, container) =>
-			{
-				bool									empty;
-				IEnumerable<KeyValuePair<string, U>>	pairs;
-
-				empty = true;
-				pairs = getter (container);
-
-				foreach (KeyValuePair<string, U> pair in pairs)
-				{
-					if (empty)
-					{
-						writer.WriteObjectBegin ();
-
-						empty = false;
-					}
-					else
-						writer.WriteComma ();
-
-					writer.WriteString (pair.Key);
-					writer.WriteColon ();
-
-					encoder.Write (writer, pair.Value);
-				}
-
-				if (!empty/* || force_empty_object*/)
-				{
-					if (empty)
-						writer.WriteObjectBegin ();
-
-					writer.WriteObjectEnd ();
-				}
-				else
-					writer.WriteNull ();
-
-				return true;
-			};
-
-			return encoder;
-		}
-
-        #endregion
+		#endregion
 
 		#region Methods / Private
 
@@ -197,39 +219,20 @@ namespace Verse.Models.JSON
         {
         	JSONEncoder<U>	encoder;
 
-        	encoder = new JSONEncoder<U> (this.encoding, this.converters, this.formatter);
+        	encoder = new JSONEncoder<U> (this.converters, this.encoding, this.printer);
         	encoder.OnStreamError += this.EventStreamError;
         	encoder.OnTypeError += this.EventTypeError;
 
         	return encoder;
         }
 
-		private Writer	BuildWriter (object converter)
-		{
-			ILGenerator				generator;
-			DynamicMethod			method;
-			WriterConverterWrapper	wrapper;
-
-			method = new DynamicMethod (string.Empty, typeof (string), new Type[] {typeof (object), typeof (T)}, this.GetType ());
-
-			generator = method.GetILGenerator ();
-			generator.Emit (OpCodes.Ldarg_0);
-			generator.Emit (OpCodes.Ldarg_1);
-			generator.Emit (OpCodes.Callvirt, typeof (StringSchema.EncoderConverter<>).MakeGenericType (typeof (T)).GetMethod ("Invoke"));
-			generator.Emit (OpCodes.Ret);
-
-			wrapper = (WriterConverterWrapper)method.CreateDelegate (typeof (WriterConverterWrapper));
-
-			return (writer, value) => writer.WriteString (wrapper (converter, value));
-		}
-
 		private Writer	BuildWriter<U> (WriterInjector<U> injector)
 		{
-			ILGenerator					generator;
-			DynamicMethod				method;
-        	WriterInjectorWrapper<U>	wrapper;
+			ILGenerator			generator;
+			DynamicMethod		method;
+        	WriterWrapper<U>	wrapper;
 
-        	method = new DynamicMethod (string.Empty, typeof (bool), new Type[] {typeof (JSONWriter), typeof (WriterInjector<U>), typeof (T)}, this.GetType ());
+        	method = new DynamicMethod (string.Empty, typeof (void), new Type[] {typeof (JSONPrinter), typeof (WriterInjector<U>), typeof (T)}, this.GetType ());
 
 			generator = method.GetILGenerator ();
 			generator.Emit (OpCodes.Ldarg_1);
@@ -238,17 +241,22 @@ namespace Verse.Models.JSON
 			generator.Emit (OpCodes.Callvirt, injector.GetType ().GetMethod ("Invoke"));
 			generator.Emit (OpCodes.Ret);
 
-			wrapper = (WriterInjectorWrapper<U>)method.CreateDelegate (typeof (WriterInjectorWrapper<U>));
+			wrapper = (WriterWrapper<U>)method.CreateDelegate (typeof (WriterWrapper<U>));
 
-			return (writer, value) => wrapper (writer, injector, value);
+			return (printer, value) =>
+			{
+				wrapper (printer, injector, value);
+
+				return true;
+			};
 		}
 
-		private bool	Write (JSONWriter writer, T value)
+		private bool	Write (JSONPrinter printer, T value)
 		{
 			bool	empty;
 
 			if (this.writer != null)
-				return this.writer (writer, value);
+				return this.writer (printer, value);
 
 			empty = true;
 
@@ -256,28 +264,28 @@ namespace Verse.Models.JSON
 			{
 				if (empty)
 				{
-					writer.WriteObjectBegin ();
+					printer.PrintObjectBegin ();
 
 					empty = false;
 				}
 				else
-					writer.WriteComma ();
+					printer.PrintComma ();
 
-				writer.WriteString (field.Key);
-				writer.WriteColon ();
+				printer.PrintString (field.Key);
+				printer.PrintColon ();
 
-				field.Value (writer, value);
+				field.Value (printer, value);
 			}
 
 			if (!empty/* || force_empty_object*/)
 			{
 				if (empty)
-					writer.WriteObjectBegin ();
+					printer.PrintObjectBegin ();
 
-				writer.WriteObjectEnd ();
+				printer.PrintObjectEnd ();
 			}
 			else
-				writer.WriteNull ();
+				printer.PrintNull ();
 
 			return true;
 		}
@@ -286,13 +294,11 @@ namespace Verse.Models.JSON
 
         #region Types
 
-        private delegate bool	Writer (JSONWriter writer, T value);
+        private delegate bool	Writer (JSONPrinter printer, T value);
 
-		private delegate string	WriterConverterWrapper (object converter, T value);
+        private delegate void	WriterInjector<U> (JSONPrinter printer, U value);
 
-        private delegate bool	WriterInjector<U> (JSONWriter writer, U value);
-
-        private delegate bool	WriterInjectorWrapper<U> (JSONWriter writer, WriterInjector<U> importer, T value);
+        private delegate void	WriterWrapper<U> (JSONPrinter printer, WriterInjector<U> importer, T value);
         
         #endregion
 	}

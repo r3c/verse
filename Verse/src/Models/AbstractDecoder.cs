@@ -20,11 +20,11 @@ namespace Verse.Models
 
 		#region Methods / Abstract
 
-		public abstract void		Bind (Func<T> builder);
-		
 		public abstract void		Bind ();
 
 		public abstract bool		Decode (Stream stream, out T instance);
+
+		public abstract void		Fake (Func<T> builder);
 
 		public abstract IDecoder<U>	HasField<U> (string name, Func<U> builder, DecoderValueSetter<T, U> setter);
 

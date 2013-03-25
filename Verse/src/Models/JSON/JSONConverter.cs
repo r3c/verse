@@ -7,69 +7,69 @@ namespace Verse.Models.JSON
 	{
 		#region Methods
 
-		public static bool	FromBoolean (JSONWriter writer, bool value)
+		public static void	FromBoolean (JSONPrinter printer, bool value)
 		{
-			return writer.WriteBoolean (value);
+			printer.PrintBoolean (value);
 		}
 
-		public static bool	FromChar (JSONWriter writer, char value)
+		public static void	FromChar (JSONPrinter printer, char value)
 		{
-			return writer.WriteString (value.ToString (CultureInfo.InvariantCulture));
+			printer.PrintString (value.ToString (CultureInfo.InvariantCulture));
 		}
 
-		public static bool	FromFloat4 (JSONWriter writer, float value)
+		public static void	FromFloat4 (JSONPrinter printer, float value)
 		{
-			return writer.WriteNumber (value);
+			printer.PrintNumber (value);
 		}
 
-		public static bool	FromFloat8 (JSONWriter writer, double value)
+		public static void	FromFloat8 (JSONPrinter printer, double value)
 		{
-			return writer.WriteNumber (value);
+			printer.PrintNumber (value);
 		}
 
-		public static bool	FromInt1s (JSONWriter writer, sbyte value)
+		public static void	FromInt1s (JSONPrinter printer, sbyte value)
 		{
-			return writer.WriteNumber (value);
+			printer.PrintNumber (value);
 		}
 
-		public static bool	FromInt1u (JSONWriter writer, byte value)
+		public static void	FromInt1u (JSONPrinter printer, byte value)
 		{
-			return writer.WriteNumber (value);
+			printer.PrintNumber (value);
 		}
 
-		public static bool	FromInt2s (JSONWriter writer, short value)
+		public static void	FromInt2s (JSONPrinter printer, short value)
 		{
-			return writer.WriteNumber (value);
+			printer.PrintNumber (value);
 		}
 
-		public static bool	FromInt2u (JSONWriter writer, ushort value)
+		public static void	FromInt2u (JSONPrinter printer, ushort value)
 		{
-			return writer.WriteNumber (value);
+			printer.PrintNumber (value);
 		}
 
-		public static bool	FromInt4s (JSONWriter writer, int value)
+		public static void	FromInt4s (JSONPrinter printer, int value)
 		{
-			return writer.WriteNumber (value);
+			printer.PrintNumber (value);
 		}
 
-		public static bool	FromInt4u (JSONWriter writer, uint value)
+		public static void	FromInt4u (JSONPrinter printer, uint value)
 		{
-			return writer.WriteNumber (value);
+			printer.PrintNumber (value);
 		}
 
-		public static bool	FromInt8s (JSONWriter writer, long value)
+		public static void	FromInt8s (JSONPrinter printer, long value)
 		{
-			return writer.WriteNumber (value);
+			printer.PrintNumber (value);
 		}
 
-		public static bool	FromInt8u (JSONWriter writer, ulong value)
+		public static void	FromInt8u (JSONPrinter printer, ulong value)
 		{
-			return writer.WriteNumber (value);
+			printer.PrintNumber (value);
 		}
 
-		public static bool	FromString (JSONWriter writer, string value)
+		public static void	FromString (JSONPrinter printer, string value)
 		{
-			return writer.WriteString (value);
+			printer.PrintString (value);
 		}
 
 		public static bool	ToBoolean (JSONLexer lexer, out bool value)

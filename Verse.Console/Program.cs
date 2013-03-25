@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 
 using Verse.Models.JSON;
+using Verse.Models.JSON.Printers;
 
 namespace Verse.Console
 {
@@ -37,11 +38,11 @@ namespace Verse.Console
 			Entity				entity1;
 			Entity				entity2;
 
-			schema = new JSONSchema ();
+			schema = new JSONSchema ((s, e) => new JSONPrettyPrinter (s, e, "    "));
 			schema.OnStreamError += (position, message) => System.Console.Error.WriteLine ("Stream error at position {0}: {1}", position, message);
 			schema.OnTypeError += (type, value) => System.Console.Error.WriteLine ("Type error: could not convert \"{1}\" to {0}", type, value);
 			schema.SetDecoderConverter<Guid> (Guid.TryParse);
-			schema.SetEncoderConverter<Guid> ((guid) => guid.ToString ());
+			schema.SetEncoderConverter<Guid> ((Guid guid, out string s) => { s = guid.ToString (); return true; });
 
 			encoder = schema.GetEncoder<Entity> ();
 			encoder
@@ -92,6 +93,8 @@ namespace Verse.Console
 
 				buffer = stream.ToArray ();
 			}
+
+			System.Console.WriteLine (schema.Encoding.GetString (buffer));
 
 			using (MemoryStream stream = new MemoryStream (buffer))
 			{
