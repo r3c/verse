@@ -13,7 +13,7 @@ namespace Verse.Models.JSON
 {
     class JSONDecoder<T> : AbstractDecoder<T>
     {
-		#region Attributes / Instance
+		#region Attributes
 		
 		private Browser						arrayBrowser;
 
@@ -54,7 +54,7 @@ namespace Verse.Models.JSON
         	{
         		value = builder ();
 
-        		return this.LexerIgnore (lexer);
+        		return this.Ignore (lexer);
         	};
         }
 
@@ -66,7 +66,7 @@ namespace Verse.Models.JSON
         	type = typeof (T);
 
         	if (this.converters.TryGetValue (type, out converter))
-        		this.reader = this.BuildReader (type, converter);
+        		this.reader = this.BuildReader (converter);
         	else if (type == typeof (bool))
         		this.reader = this.BuildReader<bool> (JSONConverter.ToBoolean);
         	else if (type == typeof (char))
@@ -105,7 +105,7 @@ namespace Verse.Models.JSON
             {
             	lexer.Next ();
 
-            	if (!this.LexerRead (lexer, out result))
+            	if (!this.Read (lexer, out result))
             	{
             		instance = default (T);
 
@@ -124,7 +124,17 @@ namespace Verse.Models.JSON
 
         	decoder = this.BuildDecoder (builder);
 
-        	this.fieldBrowsers[name] = this.GetValueBrowser (decoder, setter);
+        	this.fieldBrowsers[name] = (JSONLexer lexer, ref T container) =>
+    		{
+    			U	value;
+
+    			if (!decoder.Read (lexer, out value))
+    				return false;
+
+    			setter (ref container, value);
+
+    			return true;
+    		};
 
             return decoder;
         }
@@ -135,7 +145,30 @@ namespace Verse.Models.JSON
 
         	decoder = this.BuildDecoder (builder);
 
-        	this.arrayBrowser = this.GetArrayBrowser (decoder, setter);
+        	this.arrayBrowser = (JSONLexer lexer, ref T container) =>
+        	{
+        		List<U>	array;
+        		U		value;
+
+        		array = new List<U> ();
+
+        		for (lexer.Next (); lexer.Lexem != JSONLexem.ArrayEnd; )
+    			{
+    				if (array.Count > 0 && !this.Expect (lexer, JSONLexem.Comma, "comma or end of array"))
+    					return false;
+
+    				if (!decoder.Read (lexer, out value))
+    					return false;
+
+    				array.Add (value);
+    			}
+
+    			lexer.Next ();
+
+    			setter (ref container, array);
+
+    			return true;
+        	};
 
             return decoder;
         }
@@ -146,7 +179,43 @@ namespace Verse.Models.JSON
 
         	decoder = this.BuildDecoder (builder);
 
-        	this.objectBrowser = this.GetMapBrowser (decoder, setter);
+        	this.objectBrowser = (JSONLexer lexer, ref T container) =>
+			{
+				string							key;
+				List<KeyValuePair<string, U>>	map;
+				U								value;
+
+				map = new List<KeyValuePair<string, U>> ();
+
+				for (lexer.Next (); lexer.Lexem != JSONLexem.ObjectEnd; )
+    			{
+    				if (map.Count > 0 && !this.Expect (lexer, JSONLexem.Comma, "comma or end of object"))
+    					return false;
+
+    				if (lexer.Lexem != JSONLexem.String)
+    				{
+    					this.EventStreamError (lexer.Position, "expected object property name");
+
+    					return false;
+    				}
+
+					key = lexer.AsString;
+
+					lexer.Next ();
+
+					if (!this.Expect (lexer, JSONLexem.Colon, "colon") ||
+					    !decoder.Read (lexer, out value))
+						return false;
+
+					map.Add (new KeyValuePair<string, U> (key, value));
+    			}
+
+    			lexer.Next ();
+
+    			setter (ref container, map);
+
+    			return true;
+			};
 
             return decoder;
         }
@@ -166,18 +235,19 @@ namespace Verse.Models.JSON
         	return decoder;
         }
 
-        private Reader	BuildReader (Type type, object converter)
+        private Reader	BuildReader (object converter)
         {
 			DynamicMethod			method;
         	ReaderConverterWrapper	wrapper;
 
         	method = new DynamicMethod (string.Empty, typeof (bool), new Type[] {typeof (string), typeof (object), typeof (T).MakeByRefType ()}, this.GetType ());
 
-        	this.GenerateReader (method, type, typeof (StringSchema.DecoderConverter<>).MakeGenericType (type).GetMethod ("Invoke"));
+        	#warning FIXME: this method should not be common to both BuildReader signatures
+        	this.GenerateReader (method, typeof (T), typeof (StringSchema.DecoderConverter<>).MakeGenericType (typeof (T)).GetMethod ("Invoke"));
 
 			wrapper = (ReaderConverterWrapper)method.CreateDelegate (typeof (ReaderConverterWrapper));
 
-			return (JSONLexer lexer, out T target) => wrapper (lexer.AsString, converter, out target) && this.LexerIgnore (lexer);
+			return (JSONLexer lexer, out T target) => wrapper (lexer.AsString, converter, out target) && this.Ignore (lexer);
         }
 
         private Reader	BuildReader<U> (ReaderExtractor<U> extractor)
@@ -186,15 +256,30 @@ namespace Verse.Models.JSON
         	ReaderExtractorWrapper<U>	wrapper;
 
         	method = new DynamicMethod (string.Empty, typeof (bool), new Type[] {typeof (JSONLexer), typeof (ReaderExtractor<U>), typeof (T).MakeByRefType ()}, this.GetType ());
-        	
+
+        	#warning FIXME: this method should not be common to both BuildReader signatures
         	this.GenerateReader (method, typeof (U), extractor.GetType ().GetMethod ("Invoke"));
 
 			wrapper = (ReaderExtractorWrapper<U>)method.CreateDelegate (typeof (ReaderExtractorWrapper<U>));
 
-			return (JSONLexer lexer, out T target) => wrapper (lexer, extractor, out target) && this.LexerIgnore (lexer);
+			return (JSONLexer lexer, out T target) => wrapper (lexer, extractor, out target) && this.Ignore (lexer);
         }
 
-        private void	GenerateReader (DynamicMethod method, Type type, MethodInfo converter)
+		private bool	Expect (JSONLexer lexer, JSONLexem expected, string description)
+        {
+        	if (lexer.Lexem != expected)
+        	{
+        		this.EventStreamError (lexer.Position, "expected " + description);
+
+				return false;
+        	}
+
+        	lexer.Next ();
+
+        	return true;
+        }
+
+        private void	GenerateReader (DynamicMethod method, Type type, MethodInfo extractor)
         {
         	Label			assign;
         	ILGenerator		generator;
@@ -208,7 +293,7 @@ namespace Verse.Models.JSON
 			generator.Emit (OpCodes.Ldarg_1);
 			generator.Emit (OpCodes.Ldarg_0);
 			generator.Emit (OpCodes.Ldloca_S, output);
-			generator.Emit (OpCodes.Callvirt, converter);
+			generator.Emit (OpCodes.Callvirt, extractor);
 			generator.Emit (OpCodes.Brtrue_S, assign);
 			generator.Emit (OpCodes.Ldc_I4_0);
 			generator.Emit (OpCodes.Ret);
@@ -226,105 +311,7 @@ namespace Verse.Models.JSON
 			generator.Emit (OpCodes.Ret);
         }
 
-        private Browser	GetArrayBrowser<U> (JSONDecoder<U> decoder, DecoderArraySetter<T, U> setter)
-        {
-        	return (JSONLexer lexer, ref T container) =>
-        	{
-        		List<U>	array;
-        		U		value;
-
-        		array = new List<U> ();
-
-        		for (lexer.Next (); lexer.Lexem != JSONLexem.ArrayEnd; )
-    			{
-    				if (array.Count > 0 && !this.LexerExpect (lexer, JSONLexem.Comma, "comma or end of array"))
-    					return false;
-
-    				if (!decoder.LexerRead (lexer, out value))
-    					return false;
-
-    				array.Add (value);
-    			}
-
-    			lexer.Next ();
-
-    			setter (ref container, array);
-
-    			return true;
-        	};
-        }
-
-        private Browser	GetMapBrowser<U> (JSONDecoder<U> decoder, DecoderMapSetter<T, U> setter)
-        {
-			return (JSONLexer lexer, ref T container) =>
-			{
-				string							key;
-				List<KeyValuePair<string, U>>	map;
-				U								value;
-
-				map = new List<KeyValuePair<string, U>> ();
-
-				for (lexer.Next (); lexer.Lexem != JSONLexem.ObjectEnd; )
-    			{
-    				if (map.Count > 0 && !this.LexerExpect (lexer, JSONLexem.Comma, "comma or end of object"))
-    					return false;
-
-    				if (lexer.Lexem != JSONLexem.String)
-    				{
-    					this.EventStreamError (lexer.Position, "expected object property name");
-
-    					return false;
-    				}
-
-					key = lexer.AsString;
-
-					lexer.Next ();
-
-					if (!this.LexerExpect (lexer, JSONLexem.Colon, "colon") ||
-					    !decoder.LexerRead (lexer, out value))
-						return false;
-
-					map.Add (new KeyValuePair<string, U> (key, value));
-    			}
-
-    			lexer.Next ();
-
-    			setter (ref container, map);
-
-    			return true;
-			};
-        }
-        
-        private Browser	GetValueBrowser<U> (JSONDecoder<U> decoder, DecoderValueSetter<T, U> setter)
-        {
-			return (JSONLexer lexer, ref T container) =>
-    		{
-    			U	value;
-
-    			if (!decoder.LexerRead (lexer, out value))
-    				return false;
-
-    			setter (ref container, value);
-
-    			return true;
-    		};
-        }
-
-        private bool	LexerExpect (JSONLexer lexer, JSONLexem expected, string description)
-        {
-        	if (lexer.Lexem != expected)
-        	{
-        		this.EventStreamError (lexer.Position, "expected " + description);
-
-				return false;
-        	}
-
-        	lexer.Next ();
-
-        	return true;
-        }
-
-        private bool	LexerIgnore (JSONLexer lexer)
+        private bool	Ignore (JSONLexer lexer)
         {
         	bool	separator;
 
@@ -335,10 +322,10 @@ namespace Verse.Models.JSON
 
         			for (separator = false; lexer.Lexem != JSONLexem.ArrayEnd; separator = true)
         			{
-        				if (separator && !this.LexerExpect (lexer, JSONLexem.Comma, "comma or end of array"))
+        				if (separator && !this.Expect (lexer, JSONLexem.Comma, "comma or end of array"))
         					return false;
 
-        				if (!this.LexerIgnore (lexer))
+        				if (!this.Ignore (lexer))
         					return false;
         			}
 
@@ -360,12 +347,12 @@ namespace Verse.Models.JSON
 
         			for (separator = false; lexer.Lexem != JSONLexem.ObjectEnd; separator = true)
         			{
-        				if (separator && !this.LexerExpect (lexer, JSONLexem.Comma, "comma or end of object"))
+        				if (separator && !this.Expect (lexer, JSONLexem.Comma, "comma or end of object"))
         					return false;
 
-        				if (!this.LexerExpect (lexer, JSONLexem.String, "object property name") ||
-        				    !this.LexerExpect (lexer, JSONLexem.Colon, "colon") ||
-        				    !this.LexerIgnore (lexer))
+        				if (!this.Expect (lexer, JSONLexem.String, "object property name") ||
+        				    !this.Expect (lexer, JSONLexem.Colon, "colon") ||
+        				    !this.Ignore (lexer))
         					return false;
         			}
 
@@ -380,7 +367,7 @@ namespace Verse.Models.JSON
         	}
         }
 
-        private bool	LexerRead (JSONLexer lexer, out T value)
+        private bool	Read (JSONLexer lexer, out T value)
         {
         	Browser	browser;
         	int		index;
@@ -410,7 +397,7 @@ namespace Verse.Models.JSON
 
             		for (index = 0; lexer.Lexem != JSONLexem.ArrayEnd; ++index)
         			{
-        				if (index > 0 && !this.LexerExpect (lexer, JSONLexem.Comma, "comma or end of array"))
+        				if (index > 0 && !this.Expect (lexer, JSONLexem.Comma, "comma or end of array"))
         					return false;
 
         				if (this.fieldBrowsers.TryGetValue (index.ToString (CultureInfo.InvariantCulture), out browser))
@@ -418,7 +405,7 @@ namespace Verse.Models.JSON
         					if (!browser (lexer, ref value))
         						return false;
         				}
-        				else if (!this.LexerIgnore (lexer))
+        				else if (!this.Ignore (lexer))
         					return false;
         			}
 
@@ -434,7 +421,7 @@ namespace Verse.Models.JSON
 
             		for (index = 0; lexer.Lexem != JSONLexem.ObjectEnd; ++index)
         			{
-        				if (index > 0 && !this.LexerExpect (lexer, JSONLexem.Comma, "comma or end of object"))
+        				if (index > 0 && !this.Expect (lexer, JSONLexem.Comma, "comma or end of object"))
         					return false;
 
         				if (lexer.Lexem != JSONLexem.String)
@@ -448,7 +435,7 @@ namespace Verse.Models.JSON
 
 						lexer.Next ();
 
-						if (!this.LexerExpect (lexer, JSONLexem.Colon, "colon"))
+						if (!this.Expect (lexer, JSONLexem.Colon, "colon"))
 							return false;
 
         				if (this.fieldBrowsers.TryGetValue (key, out browser))
@@ -456,7 +443,7 @@ namespace Verse.Models.JSON
         					if (!browser (lexer, ref value))
         						return false;
         				}
-        				else if (!this.LexerIgnore (lexer))
+        				else if (!this.Ignore (lexer))
         					return false;
         			}
         			
@@ -465,7 +452,7 @@ namespace Verse.Models.JSON
             		return true;
 
             	default:
-            		return this.LexerIgnore (lexer);
+            		return this.Ignore (lexer);
             }
         }
 

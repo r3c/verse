@@ -12,10 +12,12 @@ namespace Verse.Models.JSON
 	class JSONEncoder<T> : AbstractEncoder<T>
 	{
 		#region Attributes
-
+		
 		private Dictionary<Type, object>	converters;
 
         private Encoding					encoding;
+
+        private Dictionary<string, Writer>	fieldWriters;
 
         private IFormatter					formatter;
 
@@ -29,6 +31,7 @@ namespace Verse.Models.JSON
 		{
 			this.converters = converters;
 			this.encoding = encoding;
+			this.fieldWriters = new Dictionary<string, Writer> ();
 			this.formatter = formatter;
 			this.writer = null;
 		}
@@ -45,7 +48,7 @@ namespace Verse.Models.JSON
         	type = typeof (T);
 
         	if (this.converters.TryGetValue (type, out converter))
-        		this.writer = this.BuildWriter (type, converter);
+        		this.writer = this.BuildWriter (converter);
         	else if (type == typeof (bool))
         		this.writer = this.BuildWriter<bool> (JSONConverter.FromBoolean);
         	else if (type == typeof (char))
@@ -86,62 +89,197 @@ namespace Verse.Models.JSON
 
 		public override IEncoder<U>	HasField<U> (string name, EncoderValueGetter<T, U> getter)
 		{
-			throw new NotImplementedException();
+        	JSONEncoder<U>	encoder;
+
+        	encoder = this.BuildEncoder<U> ();
+
+        	this.fieldWriters[name] = (writer, container) => encoder.Write (writer, getter (container));
+
+        	return encoder;
 		}
 
 		public override IEncoder<U>	HasItems<U> (EncoderArrayGetter<T, U> getter)
 		{
-			throw new NotImplementedException();
+        	JSONEncoder<U>	encoder;
+
+        	encoder = this.BuildEncoder<U> ();
+
+			this.writer = (writer, container) =>
+			{
+				bool			empty;
+				IEnumerable<U>	items;
+
+				empty = true;
+				items = getter (container);
+
+				foreach (U value in items)
+				{
+					if (empty)
+					{
+						writer.WriteArrayBegin ();
+
+						empty = false;
+					}
+					else
+						writer.WriteComma ();
+
+					encoder.Write (writer, value);
+				}
+
+				if (!empty/* || force_empty_array*/)
+				{
+					if (empty)
+						writer.WriteArrayBegin ();
+
+					writer.WriteArrayEnd ();
+				}
+				else
+					writer.WriteNull ();
+
+				return true;
+			};
+
+			return encoder;
 		}
 
 		public override IEncoder<U>	HasPairs<U> (EncoderMapGetter<T, U> getter)
 		{
-			throw new NotImplementedException();
+        	JSONEncoder<U>	encoder;
+
+        	encoder = this.BuildEncoder<U> ();
+
+			this.writer = (writer, container) =>
+			{
+				bool									empty;
+				IEnumerable<KeyValuePair<string, U>>	pairs;
+
+				empty = true;
+				pairs = getter (container);
+
+				foreach (KeyValuePair<string, U> pair in pairs)
+				{
+					if (empty)
+					{
+						writer.WriteObjectBegin ();
+
+						empty = false;
+					}
+					else
+						writer.WriteComma ();
+
+					writer.WriteString (pair.Key);
+					writer.WriteColon ();
+
+					encoder.Write (writer, pair.Value);
+				}
+
+				if (!empty/* || force_empty_object*/)
+				{
+					if (empty)
+						writer.WriteObjectBegin ();
+
+					writer.WriteObjectEnd ();
+				}
+				else
+					writer.WriteNull ();
+
+				return true;
+			};
+
+			return encoder;
 		}
 
         #endregion
 
 		#region Methods / Private
 
-		private Writer	BuildWriter (Type type, object converter)
-		{
-			#warning FIXME
-			throw new NotImplementedException ();
-		}
-
-		private Writer	BuildWriter<U> (WriterImporter<U> importer)
-		{
-			DynamicMethod				method;
-        	WriterImporterWrapper<U>	wrapper;
-
-        	method = new DynamicMethod (string.Empty, typeof (bool), new Type[] {typeof (JSONWriter), typeof (WriterImporter<U>), typeof (T)}, this.GetType ());
-
-        	this.GenerateWriter (method, typeof (U), importer.GetType ().GetMethod ("Invoke"));
-
-			wrapper = (WriterImporterWrapper<U>)method.CreateDelegate (typeof (WriterImporterWrapper<U>));
-
-			return (JSONWriter writer, T value) => wrapper (writer, importer, value);
-		}
-
-        private void	GenerateWriter (DynamicMethod method, Type type, MethodInfo converter)
+        private JSONEncoder<U>	BuildEncoder<U> ()
         {
-        	ILGenerator	generator;
+        	JSONEncoder<U>	encoder;
+
+        	encoder = new JSONEncoder<U> (this.encoding, this.converters, this.formatter);
+        	encoder.OnStreamError += this.EventStreamError;
+        	encoder.OnTypeError += this.EventTypeError;
+
+        	return encoder;
+        }
+
+		private Writer	BuildWriter (object converter)
+		{
+			ILGenerator				generator;
+			DynamicMethod			method;
+			WriterConverterWrapper	wrapper;
+
+			method = new DynamicMethod (string.Empty, typeof (string), new Type[] {typeof (object), typeof (T)}, this.GetType ());
 
 			generator = method.GetILGenerator ();
+			generator.Emit (OpCodes.Ldarg_0);
+			generator.Emit (OpCodes.Ldarg_1);
+			generator.Emit (OpCodes.Callvirt, typeof (StringSchema.EncoderConverter<>).MakeGenericType (typeof (T)).GetMethod ("Invoke"));
+			generator.Emit (OpCodes.Ret);
 
+			wrapper = (WriterConverterWrapper)method.CreateDelegate (typeof (WriterConverterWrapper));
+
+			return (writer, value) => writer.WriteString (wrapper (converter, value));
+		}
+
+		private Writer	BuildWriter<U> (WriterInjector<U> injector)
+		{
+			ILGenerator					generator;
+			DynamicMethod				method;
+        	WriterInjectorWrapper<U>	wrapper;
+
+        	method = new DynamicMethod (string.Empty, typeof (bool), new Type[] {typeof (JSONWriter), typeof (WriterInjector<U>), typeof (T)}, this.GetType ());
+
+			generator = method.GetILGenerator ();
 			generator.Emit (OpCodes.Ldarg_1);
 			generator.Emit (OpCodes.Ldarg_0);
 			generator.Emit (OpCodes.Ldarg_2);
-			generator.Emit (OpCodes.Callvirt, converter);
+			generator.Emit (OpCodes.Callvirt, injector.GetType ().GetMethod ("Invoke"));
 			generator.Emit (OpCodes.Ret);
-        }
+
+			wrapper = (WriterInjectorWrapper<U>)method.CreateDelegate (typeof (WriterInjectorWrapper<U>));
+
+			return (writer, value) => wrapper (writer, injector, value);
+		}
 
 		private bool	Write (JSONWriter writer, T value)
 		{
+			bool	empty;
+
 			if (this.writer != null)
 				return this.writer (writer, value);
 
-			throw new NotImplementedException ();
+			empty = true;
+
+			foreach (KeyValuePair<string, Writer> field in this.fieldWriters)
+			{
+				if (empty)
+				{
+					writer.WriteObjectBegin ();
+
+					empty = false;
+				}
+				else
+					writer.WriteComma ();
+
+				writer.WriteString (field.Key);
+				writer.WriteColon ();
+
+				field.Value (writer, value);
+			}
+
+			if (!empty/* || force_empty_object*/)
+			{
+				if (empty)
+					writer.WriteObjectBegin ();
+
+				writer.WriteObjectEnd ();
+			}
+			else
+				writer.WriteNull ();
+
+			return true;
 		}
 
 		#endregion
@@ -150,9 +288,11 @@ namespace Verse.Models.JSON
 
         private delegate bool	Writer (JSONWriter writer, T value);
 
-        private delegate bool	WriterImporter<U> (JSONWriter writer, U value);
+		private delegate string	WriterConverterWrapper (object converter, T value);
 
-        private delegate bool	WriterImporterWrapper<U> (JSONWriter writer, WriterImporter<U> importer, T value);
+        private delegate bool	WriterInjector<U> (JSONWriter writer, U value);
+
+        private delegate bool	WriterInjectorWrapper<U> (JSONWriter writer, WriterInjector<U> importer, T value);
         
         #endregion
 	}

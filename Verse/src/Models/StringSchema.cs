@@ -23,7 +23,7 @@ namespace Verse.Models
 		
 		#endregion
 		
-		#region Methods / Public
+		#region Methods
 		
 		public void	SetDecoderConverter<T> (DecoderConverter<T> converter)
 		{

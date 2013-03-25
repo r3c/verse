@@ -30,6 +30,7 @@ namespace Verse.Console
 
 		private static bool	Test ()
 		{
+			byte[]				buffer;
 			IDecoder<Entity>	decoder;
 			IEncoder<Entity>	encoder;
 			JSONSchema			schema;
@@ -42,19 +43,10 @@ namespace Verse.Console
 			schema.SetDecoderConverter<Guid> (Guid.TryParse);
 			schema.SetEncoderConverter<Guid> ((guid) => guid.ToString ());
 
-			var enc = schema.GetEncoder<string> ();
-			enc.Bind ();
-			using (MemoryStream stream = new MemoryStream ())
-			{
-				enc.Encode (stream, "Hello,\r\nWorld!");
-
-				System.Console.WriteLine (Encoding.UTF8.GetString (stream.ToArray ()));
-			}
-
 			encoder = schema.GetEncoder<Entity> ();
-/*			encoder
+			encoder
 				.HasField ("pairs", (entity) => entity.pairs)
-				.HasMap ((Dictionary<string, string> pairs) => pairs)
+				.HasPairs ((Dictionary<string, string> pairs) => pairs)
 				.Bind ();
 			encoder
 				.HasField ("int2", (entity) => entity.int2)
@@ -65,7 +57,7 @@ namespace Verse.Console
 			encoder
 				.HasField ("guid", (entity) => entity.guid)
 				.Bind ();
-*/
+
 			decoder = schema.GetDecoder<Entity> (() => new Entity ());
 			decoder
 				.HasField ("pairs", (ref Entity e, Dictionary<string, string> v) => { e.pairs = v; })
@@ -95,12 +87,14 @@ namespace Verse.Console
 					str		= "Hello, World!"
 				};
 
-/*				if (!encoder.Encode (stream, entity1))
-					return false;*/
-byte[] bytes = Encoding.UTF8.GetBytes ("{\"pairs\": {\"a\": \"aaa\", \"b\": \"bbb\"}, \"str\": \"Hello, World!\", \"int2\": 17.5, \"guid\": \"fc2706dd-ede6-4dbe-9014-9970c1931536\"}");
-stream.Write (bytes, 0, bytes.Length);
-				stream.Seek (0, SeekOrigin.Begin);
+				if (!encoder.Encode (stream, entity1))
+					return false;
 
+				buffer = stream.ToArray ();
+			}
+
+			using (MemoryStream stream = new MemoryStream (buffer))
+			{
 				if (!decoder.Decode (stream, out entity2))
 					return false;
 

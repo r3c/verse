@@ -9,93 +9,67 @@ namespace Verse.Models.JSON
 
 		public static bool	FromBoolean (JSONWriter writer, bool value)
 		{
-			writer.WriteBoolean (value);
-
-			return true;
+			return writer.WriteBoolean (value);
 		}
 
 		public static bool	FromChar (JSONWriter writer, char value)
 		{
-			writer.WriteString (value.ToString (CultureInfo.InvariantCulture));
-
-			return true;
+			return writer.WriteString (value.ToString (CultureInfo.InvariantCulture));
 		}
 
 		public static bool	FromFloat4 (JSONWriter writer, float value)
 		{
-			writer.WriteNumber (value);
-
-			return true;
+			return writer.WriteNumber (value);
 		}
 
 		public static bool	FromFloat8 (JSONWriter writer, double value)
 		{
-			writer.WriteNumber (value);
-
-			return true;
+			return writer.WriteNumber (value);
 		}
 
 		public static bool	FromInt1s (JSONWriter writer, sbyte value)
 		{
-			writer.WriteNumber (value);
-
-			return true;
+			return writer.WriteNumber (value);
 		}
 
 		public static bool	FromInt1u (JSONWriter writer, byte value)
 		{
-			writer.WriteNumber (value);
-
-			return true;
+			return writer.WriteNumber (value);
 		}
 
 		public static bool	FromInt2s (JSONWriter writer, short value)
 		{
-			writer.WriteNumber (value);
-
-			return true;
+			return writer.WriteNumber (value);
 		}
 
 		public static bool	FromInt2u (JSONWriter writer, ushort value)
 		{
-			writer.WriteNumber (value);
-
-			return true;
+			return writer.WriteNumber (value);
 		}
 
 		public static bool	FromInt4s (JSONWriter writer, int value)
 		{
-			writer.WriteNumber (value);
-
-			return true;
+			return writer.WriteNumber (value);
 		}
 
 		public static bool	FromInt4u (JSONWriter writer, uint value)
 		{
-			writer.WriteNumber (value);
-
-			return true;
+			return writer.WriteNumber (value);
 		}
 
 		public static bool	FromInt8s (JSONWriter writer, long value)
 		{
-			writer.WriteNumber (value);
-
-			return true;
+			return writer.WriteNumber (value);
 		}
 
 		public static bool	FromInt8u (JSONWriter writer, ulong value)
 		{
-			writer.WriteNumber (value);
-
-			return true;
+			return writer.WriteNumber (value);
 		}
 
 		public static bool	FromString (JSONWriter writer, string value)
 		{
-			writer.WriteString (value);
-
-			return true;
+			return writer.WriteString (value);
 		}
 
 		public static bool	ToBoolean (JSONLexer lexer, out bool value)

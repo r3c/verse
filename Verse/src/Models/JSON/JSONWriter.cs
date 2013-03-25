@@ -51,29 +51,77 @@ namespace Verse.Models.JSON
 		
 		#endregion
 
-		#region Methods / Public
+		#region Methods
 		
 		public void Dispose ()
 		{
 			this.writer.Dispose ();
 		}
 
-		public void	WriteBoolean (bool value)
+		public bool	WriteArrayBegin ()
+		{
+			this.writer.Write ('[');
+
+			return true;
+		}
+
+		public bool	WriteArrayEnd ()
+		{
+			this.writer.Write (']');
+
+			return true;
+		}
+
+		public bool	WriteBoolean (bool value)
 		{
 			this.writer.Write (value ? "true" : "false");
+
+			return true;
 		}
 
-		public void	WriteNull ()
+		public bool	WriteColon ()
+		{
+			this.writer.Write (':');
+
+			return true;
+		}
+
+		public bool	WriteComma ()
+		{
+			this.writer.Write (',');
+
+			return true;
+		}
+
+		public bool	WriteNull ()
 		{
 			this.writer.Write ("null");
+
+			return true;
 		}
 
-		public void	WriteNumber (double value)
+		public bool	WriteNumber (double value)
 		{
 			this.writer.Write (value.ToString (CultureInfo.InvariantCulture));
+
+			return true;
 		}
 
-		public void	WriteString (string value)
+		public bool	WriteObjectBegin ()
+		{
+			this.writer.Write ('{');
+
+			return true;
+		}
+
+		public bool	WriteObjectEnd ()
+		{
+			this.writer.Write ('}');
+
+			return true;
+		}
+
+		public bool	WriteString (string value)
 		{
 			this.writer.Write ('"');
 
@@ -88,6 +136,8 @@ namespace Verse.Models.JSON
 			}
 
 			this.writer.Write ('"');
+
+			return true;
 		}
 
 		#endregion
