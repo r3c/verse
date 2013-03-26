@@ -56,6 +56,8 @@
     <Compile Include="src\Events\StreamErrorEvent.cs" />
     <Compile Include="src\Events\TypeErrorEvent.cs" />
     <Compile Include="src\Exceptions\BindTypeException.cs" />
+    <Compile Include="src\Generators\ConstructorGenerator.cs" />
+    <Compile Include="src\Helpers\AutoBinder.cs" />
     <Compile Include="src\Models\AbstractDecoder.cs" />
     <Compile Include="src\Models\AbstractEncoder.cs" />
     <Compile Include="src\Models\AbstractSchema.cs" />
@@ -82,6 +84,8 @@
     <Folder Include="src\Exceptions" />
     <Folder Include="src\Events" />
     <Folder Include="src\Models\JSON\Printers" />
+    <Folder Include="src\Helpers" />
+    <Folder Include="src\Generators" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

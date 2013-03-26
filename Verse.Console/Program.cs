@@ -59,7 +59,7 @@ namespace Verse.Console
 				.HasField ("guid", (entity) => entity.guid)
 				.Bind ();
 
-			decoder = schema.GetDecoder<Entity> (() => new Entity ());
+			decoder = schema.GetDecoder<Entity> ();
 			decoder
 				.HasField ("pairs", (ref Entity e, Dictionary<string, string> v) => { e.pairs = v; })
 				.HasPairs ((ref Dictionary<string, string> pairs, IList<KeyValuePair<string, string>> input) => { foreach (var pair in input) pairs[pair.Key] = pair.Value; })

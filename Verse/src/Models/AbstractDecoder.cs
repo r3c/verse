@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
-using System.Reflection.Emit;
 
 using Verse.Events;
+using Verse.Generators;
 
 namespace Verse.Models
 {
@@ -38,17 +37,17 @@ namespace Verse.Models
 
 		public IDecoder<U>	HasField<U> (string name, DecoderValueSetter<T, U> setter)
 		{
-			return this.HasField<U> (name, this.GetConstructor<U> (), setter);
+			return this.HasField<U> (name, ConstructorGenerator.Generate<U> (), setter);
 		}
 
 		public IDecoder<U>	HasItems<U> (DecoderArraySetter<T, U> setter)
 		{
-			return this.HasItems<U> (this.GetConstructor<U> (), setter);
+			return this.HasItems<U> (ConstructorGenerator.Generate<U> (), setter);
 		}
 
 		public IDecoder<U>	HasPairs<U> (DecoderMapSetter<T, U> setter)
 		{
-			return this.HasPairs<U> (this.GetConstructor<U> (), setter);
+			return this.HasPairs<U> (ConstructorGenerator.Generate<U> (), setter);
 		}
 
 		#endregion
@@ -77,30 +76,6 @@ namespace Verse.Models
 
 		#endregion
 
-		#region Methods / Private
 
-		private Func<U>	GetConstructor<U> ()
-	    {
-	    	ConstructorInfo	constructor;
-	    	ILGenerator		generator;
-	        DynamicMethod	method;
-	        Type			type;
-
-        	type = typeof (U);
-			constructor = type.GetConstructor (Type.EmptyTypes);
-
-			if (constructor == null)
-				return () => default (U);
-
-			method = new DynamicMethod (string.Empty, type, Type.EmptyTypes, constructor.DeclaringType);
-
-	        generator = method.GetILGenerator ();
-	        generator.Emit (OpCodes.Newobj, constructor);
-	        generator.Emit (OpCodes.Ret);
-
-	        return (Func<U>)method.CreateDelegate (typeof (Func<U>));
-	    }
-
-	    #endregion
 	}
 }

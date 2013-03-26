@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 using Verse.Events;
+using Verse.Generators;
 
 namespace Verse.Models
 {
@@ -21,6 +22,15 @@ namespace Verse.Models
 
 		public abstract IEncoder<T>	GetEncoder<T> ();
 		
+		#endregion
+
+		#region Methods / Public
+
+		public IDecoder<T>	GetDecoder<T> ()
+		{
+			return this.GetDecoder (ConstructorGenerator.Generate<T> ());
+		}
+
 		#endregion
 		
 		#region Methods / Protected

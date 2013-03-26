@@ -18,6 +18,8 @@ namespace Verse
 
 		IDecoder<T>	GetDecoder<T> (Func<T> constructor);
 
+		IDecoder<T>	GetDecoder<T> ();
+
 		IEncoder<T>	GetEncoder<T> ();
 
 		#endregion
