@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace Verse.Helpers
 {
@@ -40,6 +42,28 @@ namespace Verse.Helpers
 
 		private static void	BindEncoder<T> (IEncoder<T> encoder)
 		{
+			MemberInfo[]	members;
+			Type			type;
+
+			type = typeof (T);
+
+			if (type.IsSubclassOf (typeof (IEnumerable<>)))
+			{
+				encoder.
+			}
+
+			members = typeof (T).GetMembers (BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
+			if (members.Length == 0)
+			{
+				encoder.Bind ();
+
+				return;
+			}
+
+			foreach (MemberInfo member in members)
+				encoder.HasField (member.Name, null); // FIXME
+
 			// FIXME
 			throw new NotImplementedException ();
 		}
