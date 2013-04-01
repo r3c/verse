@@ -3,5 +3,5 @@ using System.Collections.Generic;
 
 namespace Verse
 {
-	public delegate void DecoderMapSetter<T, U> (ref T container, IList<KeyValuePair<string, U>> map);
+	public delegate void DecoderMapSetter<T, U> (ref T container, ICollection<KeyValuePair<string, U>> map);
 }

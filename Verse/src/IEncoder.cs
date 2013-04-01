@@ -7,8 +7,6 @@ namespace Verse
 	{
 		#region Methods
 
-		void		Bind ();
-
 		bool		Encode (Stream stream, T instance);
 
 		IEncoder<U>	HasField<U> (string name, EncoderValueGetter<T, U> getter);
@@ -16,6 +14,8 @@ namespace Verse
 		IEncoder<U>	HasItems<U> (EncoderArrayGetter<T, U> getter);
 
 		IEncoder<U>	HasPairs<U> (EncoderMapGetter<T, U> getter);
+
+		void		Link ();
 		
 		#endregion
 	}

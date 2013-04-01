@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq.Expressions;
 using System.Net;
+using System.Reflection;
 using System.Text;
 
 using Verse.Models.JSON;
@@ -11,11 +13,20 @@ namespace Verse.Console
 {
 	class Program
 	{
-		class	Entity
+		enum	MyEnum
 		{
-			public Guid							guid;
+			A,
+			B,
+			C
+		}
+
+		class	MyValue
+		{
+			public float[]						floats;
+			public Guid							guid { get; set; }
 			public short						int2;
-			public Dictionary<string, string>	pairs;
+			public MyEnum						myEnum;
+//			public Dictionary<string, string>	pairs;
 			public string						str;
 		}
 
@@ -28,15 +39,20 @@ namespace Verse.Console
 
 			System.Console.ReadKey (true);
 		}
+		
+		private static void x (ref int[] a, IList<int> b)
+		{
+			b.CopyTo (a, 0);
+		}
 
 		private static bool	Test ()
 		{
 			byte[]				buffer;
-			IDecoder<Entity>	decoder;
-			IEncoder<Entity>	encoder;
+			IDecoder<MyValue>	decoder;
+			IEncoder<MyValue>	encoder;
 			JSONSchema			schema;
-			Entity				entity1;
-			Entity				entity2;
+			MyValue				value1;
+			MyValue				value2;
 
 			schema = new JSONSchema ((s, e) => new JSONPrettyPrinter (s, e, "    "));
 			schema.OnStreamError += (position, message) => System.Console.Error.WriteLine ("Stream error at position {0}: {1}", position, message);
@@ -44,51 +60,30 @@ namespace Verse.Console
 			schema.SetDecoderConverter<Guid> (Guid.TryParse);
 			schema.SetEncoderConverter<Guid> ((Guid guid, out string s) => { s = guid.ToString (); return true; });
 
-			encoder = schema.GetEncoder<Entity> ();
-			encoder
-				.HasField ("pairs", (entity) => entity.pairs)
-				.HasPairs ((Dictionary<string, string> pairs) => pairs)
-				.Bind ();
-			encoder
-				.HasField ("int2", (entity) => entity.int2)
-				.Bind ();
-			encoder
-				.HasField ("str", (entity) => entity.str)
-				.Bind ();
-			encoder
-				.HasField ("guid", (entity) => entity.guid)
-				.Bind ();
+			encoder = schema.GetEncoder<MyValue> ();
+			encoder.Link ();
 
-			decoder = schema.GetDecoder<Entity> ();
-			decoder
-				.HasField ("pairs", (ref Entity e, Dictionary<string, string> v) => { e.pairs = v; })
-				.HasPairs ((ref Dictionary<string, string> pairs, IList<KeyValuePair<string, string>> input) => { foreach (var pair in input) pairs[pair.Key] = pair.Value; })
-				.Bind ();
-			decoder
-				.HasField ("int2", (ref Entity e, short int2) => { e.int2 = int2; })
-				.Bind ();
-			decoder
-				.HasField ("str", (ref Entity e, string str) => { e.str = str; })
-				.Bind ();
-			decoder
-				.HasField ("guid", (ref Entity e, Guid guid) => { e.guid = guid; })
-				.Bind ();
+			decoder = schema.GetDecoder<MyValue> ();
+			decoder.Link ();
 
+//buffer = null; value1 = new MyValue (); for (int i = 0; i < 100000; ++i)
 			using (MemoryStream stream = new MemoryStream ())
 			{
-				entity1 = new Entity
+				value1 = new MyValue
 				{
+					floats	= new float[] {1.1f, 2.2f, 3.3f},
 					guid	= Guid.NewGuid (),
 					int2	= 17,
-					pairs	= new Dictionary<string, string>
+					myEnum	= MyEnum.B,
+/*					pairs	= new Dictionary<string, string>
 					{
 						{"a",	"aaa"},
 						{"b",	"bbb"}
-					},
+					},*/
 					str		= "Hello, World!"
 				};
 
-				if (!encoder.Encode (stream, entity1))
+				if (!encoder.Encode (stream, value1))
 					return false;
 
 				buffer = stream.ToArray ();
@@ -98,15 +93,18 @@ namespace Verse.Console
 
 			using (MemoryStream stream = new MemoryStream (buffer))
 			{
-				if (!decoder.Decode (stream, out entity2))
+				if (!decoder.Decode (stream, out value2))
 					return false;
 
-				Converter<IEnumerable<KeyValuePair<string, string>>, string>	converter = (pairs) => "[" + string.Join (", ", new List<KeyValuePair<string, string>> (pairs).ConvertAll ((p) => p.Key + " = " + p.Value).ToArray ()) + "]";
+				Converter<IEnumerable<float>, string>							floatsConverter = (floats) => "[" + string.Join (", ", new List<float> (floats).ConvertAll ((f) => f.ToString ()).ToArray ()) + "]";
+				Converter<IEnumerable<KeyValuePair<string, string>>, string>	pairsConverter = (pairs) => "{" + string.Join (", ", new List<KeyValuePair<string, string>> (pairs).ConvertAll ((p) => p.Key + ": " + p.Value).ToArray ()) + "}";
 
-				System.Console.WriteLine (entity1.guid + " / " + entity2.guid);
-				System.Console.WriteLine (entity1.int2 + " / " + entity2.int2);
-				System.Console.WriteLine (converter (entity1.pairs) + " / " + converter (entity2.pairs));
-				System.Console.WriteLine (entity1.str + " / " + entity2.str);
+				System.Console.WriteLine (floatsConverter (value1.floats) + " / " + floatsConverter (value2.floats));
+				System.Console.WriteLine (value1.guid + " / " + value2.guid);
+				System.Console.WriteLine (value1.int2 + " / " + value2.int2);
+				System.Console.WriteLine (value1.myEnum + " / " + value2.myEnum);
+//				System.Console.WriteLine (pairsConverter (entity1.pairs) + " / " + pairsConverter (entity2.pairs));
+				System.Console.WriteLine (value1.str + " / " + value2.str);
 			}
 
 			return true;

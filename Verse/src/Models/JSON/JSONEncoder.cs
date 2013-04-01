@@ -5,8 +5,6 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 
-using Verse.Exceptions;
-
 namespace Verse.Models.JSON
 {
 	class JSONEncoder<T> : StringEncoder<T>
@@ -65,17 +63,12 @@ namespace Verse.Models.JSON
 
 			this.writer = (printer, container) =>
 			{
-				bool			empty;
-				IEnumerable<U>	items;
+				bool	empty;
 
 				empty = true;
-				items = getter (container);
 
-				foreach (U value in items)
+				foreach (U value in getter (container))
 				{
-					if (/*ignore_null && */value == null)
-						continue;
-
 					if (empty)
 					{
 						printer.PrintArrayBegin ();
@@ -85,18 +78,14 @@ namespace Verse.Models.JSON
 					else
 						printer.PrintComma ();
 
-					encoder.Write (printer, value);
+					if (!encoder.Write (printer, value))
+						return false;
 				}
 
-				if (!empty/* || force_empty_array*/)
-				{
-					if (empty)
-						printer.PrintArrayBegin ();
+				if (empty)
+					printer.PrintArrayBegin ();
 
-					printer.PrintArrayEnd ();
-				}
-				else
-					printer.PrintNull ();
+				printer.PrintArrayEnd ();
 
 				return true;
 			};
@@ -112,17 +101,12 @@ namespace Verse.Models.JSON
 
 			this.writer = (printer, container) =>
 			{
-				bool									empty;
-				IEnumerable<KeyValuePair<string, U>>	pairs;
+				bool	empty;
 
 				empty = true;
-				pairs = getter (container);
 
-				foreach (KeyValuePair<string, U> pair in pairs)
+				foreach (KeyValuePair<string, U> pair in getter (container))
 				{
-					if (/*ignore_null && */pair.Value == null)
-						continue;
-
 					if (empty)
 					{
 						printer.PrintObjectBegin ();
@@ -135,18 +119,14 @@ namespace Verse.Models.JSON
 					printer.PrintString (pair.Key);
 					printer.PrintColon ();
 
-					encoder.Write (printer, pair.Value);
+					if (!encoder.Write (printer, pair.Value))
+						return false;
 				}
 
-				if (!empty/* || force_empty_object*/)
-				{
-					if (empty)
-						printer.PrintObjectBegin ();
+				if (empty)
+					printer.PrintObjectBegin ();
 
-					printer.PrintObjectEnd ();
-				}
-				else
-					printer.PrintNull ();
+				printer.PrintObjectEnd ();
 
 				return true;
 			};
@@ -158,30 +138,35 @@ namespace Verse.Models.JSON
 
 		#region Methods / Protected
 
-		protected override void	BindConvert (StringSchema.EncoderConverter<T> converter)
+		protected override bool	TryLinkConvert (StringSchema.EncoderConverter<T> converter)
     	{
 			this.writer = (printer, input) =>
 			{
 				string	value;
 
-				if (converter (input, out value))
-				{
+				if (!converter (input, out value))
+					return false;
+
+				if (value != null)
 					printer.PrintString (value);
+				else
+					printer.PrintNull ();
 
-					return true;
-				}
-
-				return false;
+				return true;
 			};
+
+			return true;
     	}
 
-		protected override void	BindNative ()
+		protected override bool	TryLinkNative ()
 		{
         	Type	type;
 
         	type = typeof (T);
 
-        	if (type == typeof (bool))
+        	if (type.IsEnum)
+        		this.writer = this.BuildWriter<int> (JSONConverter.FromInt4s);
+        	else if (type == typeof (bool))
         		this.writer = this.BuildWriter<bool> (JSONConverter.FromBoolean);
         	else if (type == typeof (char))
         		this.writer = this.BuildWriter<char> (JSONConverter.FromChar);
@@ -208,7 +193,9 @@ namespace Verse.Models.JSON
         	else if (type == typeof (string))
         		this.writer = this.BuildWriter<string> (JSONConverter.FromString);
         	else
-        		throw new BindTypeException (type, "no converter for this type has been defined");
+        		return false;
+
+			return true;
 		}
 
 		#endregion
@@ -232,13 +219,13 @@ namespace Verse.Models.JSON
 			DynamicMethod		method;
         	WriterWrapper<U>	wrapper;
 
-        	method = new DynamicMethod (string.Empty, typeof (void), new Type[] {typeof (JSONPrinter), typeof (WriterInjector<U>), typeof (T)}, this.GetType ());
+        	method = new DynamicMethod (string.Empty, typeof (void), new Type[] {typeof (JSONPrinter), typeof (WriterInjector<U>), typeof (T)}, typeof (JSONEncoder<T>).Module, true);
 
 			generator = method.GetILGenerator ();
 			generator.Emit (OpCodes.Ldarg_1);
 			generator.Emit (OpCodes.Ldarg_0);
 			generator.Emit (OpCodes.Ldarg_2);
-			generator.Emit (OpCodes.Callvirt, injector.GetType ().GetMethod ("Invoke"));
+			generator.Emit (OpCodes.Call, typeof (WriterInjector<U>).GetMethod ("Invoke"));
 			generator.Emit (OpCodes.Ret);
 
 			wrapper = (WriterWrapper<U>)method.CreateDelegate (typeof (WriterWrapper<U>));
@@ -254,6 +241,13 @@ namespace Verse.Models.JSON
 		private bool	Write (JSONPrinter printer, T value)
 		{
 			bool	empty;
+
+			if (value == null)
+			{
+				printer.PrintNull ();
+
+				return true;
+			}
 
 			if (this.writer != null)
 				return this.writer (printer, value);
@@ -274,18 +268,14 @@ namespace Verse.Models.JSON
 				printer.PrintString (field.Key);
 				printer.PrintColon ();
 
-				field.Value (printer, value);
+				if (!field.Value (printer, value))
+					return false;
 			}
 
-			if (!empty/* || force_empty_object*/)
-			{
-				if (empty)
-					printer.PrintObjectBegin ();
+			if (empty)
+				printer.PrintObjectBegin ();
 
-				printer.PrintObjectEnd ();
-			}
-			else
-				printer.PrintNull ();
+			printer.PrintObjectEnd ();
 
 			return true;
 		}

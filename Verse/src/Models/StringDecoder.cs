@@ -22,22 +22,22 @@ namespace Verse.Models
 
 		#region Methods / Abstract
 
-		protected abstract void	BindConvert (StringSchema.DecoderConverter<T> converter);
+		protected abstract bool	TryLinkConvert (StringSchema.DecoderConverter<T> converter);
 
-		protected abstract void	BindNative ();
+		protected abstract bool	TryLinkNative ();
 
 		#endregion
 
-		#region Methods / Public
+		#region Methods / Protected
 
-		public override void	Bind ()
+		protected override bool	TryLink ()
 		{
         	object	converter;
 
         	if (this.converters.TryGetValue (typeof (T), out converter))
-        		this.BindConvert ((StringSchema.DecoderConverter<T>)converter);
+        		return this.TryLinkConvert ((StringSchema.DecoderConverter<T>)converter);
         	else
-        		this.BindNative ();
+        		return this.TryLinkNative ();
 		}
 
 		#endregion

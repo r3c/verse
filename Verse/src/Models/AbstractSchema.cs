@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using Verse.Dynamics;
 using Verse.Events;
-using Verse.Generators;
 
 namespace Verse.Models
 {

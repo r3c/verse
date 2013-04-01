@@ -337,6 +337,12 @@ namespace Verse.Models.JSON
 							break;
 		
 						default:
+							if (this.current < 0)
+								return "<EOF>";
+
+							if (this.current < 128)
+								return ((char)this.current).ToString (CultureInfo.InvariantCulture);
+
 							return this.current.ToString (CultureInfo.InvariantCulture);
 					}
 				}

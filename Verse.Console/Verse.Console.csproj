@@ -54,5 +54,11 @@
       <Name>Verse</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="ProfilingSessions\Session20130330_160020.sdps" />
+    <Content Include="ProfilingSessions\Session20130330_160130.sdps" />
+    <Content Include="ProfilingSessions\Session20130330_160145.sdps" />
+    <Content Include="ProfilingSessions\Session20130401_131201.sdps" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

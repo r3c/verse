@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Reflection.Emit;
 
-namespace Verse.Generators
+namespace Verse.Dynamics
 {
 	static class ConstructorGenerator
 	{
@@ -27,7 +27,7 @@ namespace Verse.Generators
 			if (constructor == null)
 				return () => default (T);
 
-			method = new DynamicMethod (string.Empty, type, Type.EmptyTypes, constructor.DeclaringType);
+			method = new DynamicMethod (string.Empty, type, Type.EmptyTypes, constructor.Module, true);
 
 	        generator = method.GetILGenerator ();
 	        generator.Emit (OpCodes.Newobj, constructor);

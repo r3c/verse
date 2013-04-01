@@ -7,8 +7,6 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 
-using Verse.Exceptions;
-
 namespace Verse.Models.JSON
 {
     class JSONDecoder<T> : StringDecoder<T>
@@ -67,21 +65,11 @@ namespace Verse.Models.JSON
 			return true;
         }
 
-        public override void	Fake (Func<T> builder)
-        {
-        	this.reader = (JSONLexer lexer, out T value) =>
-        	{
-        		value = builder ();
-
-        		return this.Ignore (lexer);
-        	};
-        }
-
-        public override IDecoder<U>	HasField<U> (string name, Func<U> builder, DecoderValueSetter<T, U> setter)
+        public override IDecoder<U>	HasField<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter)
         {
         	JSONDecoder<U>	decoder;
 
-        	decoder = this.BuildDecoder (builder);
+        	decoder = this.BuildDecoder (generator);
 
         	this.fieldBrowsers[name] = (JSONLexer lexer, ref T container) =>
     		{
@@ -98,11 +86,11 @@ namespace Verse.Models.JSON
             return decoder;
         }
 
-        public override IDecoder<U>	HasItems<U> (Func<U> builder, DecoderArraySetter<T, U> setter)
+        public override IDecoder<U>	HasItems<U> (Func<U> generator, DecoderArraySetter<T, U> setter)
         {
         	JSONDecoder<U>	decoder;
 
-        	decoder = this.BuildDecoder (builder);
+        	decoder = this.BuildDecoder (generator);
 
         	this.arrayBrowser = (JSONLexer lexer, ref T container) =>
         	{
@@ -132,11 +120,11 @@ namespace Verse.Models.JSON
             return decoder;
         }
 
-        public override IDecoder<U>	HasPairs<U> (Func<U> builder, DecoderMapSetter<T, U> setter)
+        public override IDecoder<U>	HasPairs<U> (Func<U> generator, DecoderMapSetter<T, U> setter)
         {
         	JSONDecoder<U>	decoder;
 
-        	decoder = this.BuildDecoder (builder);
+        	decoder = this.BuildDecoder (generator);
 
         	this.objectBrowser = (JSONLexer lexer, ref T container) =>
 			{
@@ -183,26 +171,42 @@ namespace Verse.Models.JSON
 
 		#region Methods / Protected
 
-        protected override void	BindConvert (StringSchema.DecoderConverter<T> converter)
+        protected override bool	TryLinkConvert (StringSchema.DecoderConverter<T> converter)
         {
         	this.reader = (JSONLexer lexer, out T value) =>
         	{
-        		if (lexer.Lexem == JSONLexem.String && converter (lexer.AsString, out value))
-        			return this.Ignore (lexer);
+        		switch (lexer.Lexem)
+        		{
+        			case JSONLexem.Null:
+    					value = default (T);
 
-        		value = default (T);
+    					return this.Ignore (lexer);
 
-				return false;
+        			case JSONLexem.String:
+        				if (converter (lexer.AsString, out value))
+        					return this.Ignore (lexer);
+
+        				goto default;
+
+					default:
+						value = default (T);
+
+						return false;
+        		}
         	};
+
+			return true;
         }
         
-		protected override void	BindNative ()
+		protected override bool	TryLinkNative ()
 		{
         	Type	type;
 
         	type = typeof (T);
 
-        	if (type == typeof (bool))
+        	if (type.IsEnum)
+        		this.reader = this.BuildReader<int> (JSONConverter.ToInt4s);
+        	else if (type == typeof (bool))
         		this.reader = this.BuildReader<bool> (JSONConverter.ToBoolean);
         	else if (type == typeof (char))
         		this.reader = this.BuildReader<char> (JSONConverter.ToChar);
@@ -229,7 +233,9 @@ namespace Verse.Models.JSON
         	else if (type == typeof (string))
         		this.reader = this.BuildReader<string> (JSONConverter.ToString);
         	else
-        		throw new BindTypeException (type, "no converter for this type has been defined");
+        		return false;
+
+			return true;
         }
 
 		#endregion
@@ -249,30 +255,27 @@ namespace Verse.Models.JSON
 
         private Reader	BuildReader<U> (ReaderExtractor<U> extractor)
         {
-        	Label				assign;
         	ILGenerator			generator;
 			DynamicMethod		method;
-        	LocalBuilder		output;
+        	Label				success;
         	ReaderWrapper<U>	wrapper;
 
-        	method = new DynamicMethod (string.Empty, typeof (bool), new Type[] {typeof (JSONLexer), typeof (ReaderExtractor<U>), typeof (T).MakeByRefType ()}, this.GetType ());
-
+        	method = new DynamicMethod (string.Empty, typeof (bool), new Type[] {typeof (JSONLexer), typeof (ReaderExtractor<U>), typeof (T).MakeByRefType ()}, typeof (JSONDecoder<T>).Module, true);
 			generator = method.GetILGenerator ();
+			success = generator.DefineLabel ();
 
-			assign = generator.DefineLabel ();
-			output = generator.DeclareLocal (typeof (U));
-
+			generator.DeclareLocal (typeof (U));
 			generator.Emit (OpCodes.Ldarg_1);
 			generator.Emit (OpCodes.Ldarg_0);
-			generator.Emit (OpCodes.Ldloca_S, output);
-			generator.Emit (OpCodes.Callvirt, extractor.GetType ().GetMethod ("Invoke"));
-			generator.Emit (OpCodes.Brtrue_S, assign);
+			generator.Emit (OpCodes.Ldloca_S, 0);
+			generator.Emit (OpCodes.Call, typeof (ReaderExtractor<U>).GetMethod ("Invoke"));
+			generator.Emit (OpCodes.Brtrue_S, success);
 			generator.Emit (OpCodes.Ldc_I4_0);
 			generator.Emit (OpCodes.Ret);
 
-			generator.MarkLabel (assign);
+			generator.MarkLabel (success);
 			generator.Emit (OpCodes.Ldarg_2);
-			generator.Emit (OpCodes.Ldloc, output);
+			generator.Emit (OpCodes.Ldloc_0);
 
 			if (typeof (U).IsValueType)
 				generator.Emit (OpCodes.Stobj, typeof (U));
