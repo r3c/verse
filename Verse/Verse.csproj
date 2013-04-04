@@ -56,7 +56,7 @@
     <Compile Include="src\EncoderValueGetter.cs" />
     <Compile Include="src\Events\StreamErrorEvent.cs" />
     <Compile Include="src\Events\TypeErrorEvent.cs" />
-    <Compile Include="src\Exceptions\BindTypeException.cs" />
+    <Compile Include="src\Exceptions\LinkTypeException.cs" />
     <Compile Include="src\Dynamics\ConstructorGenerator.cs" />
     <Compile Include="src\Models\AbstractDecoder.cs" />
     <Compile Include="src\Models\AbstractEncoder.cs" />

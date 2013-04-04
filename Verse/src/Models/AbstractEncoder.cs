@@ -50,6 +50,7 @@ namespace Verse.Models
 			// Check whether type has items or pairs
 			filter = new TypeFilter ((type, criteria) => type.IsGenericType && type.GetGenericTypeDefinition () == typeof (IEnumerable<>));
 
+			#warning Search in type itself (FindInterface won't find anything if type is IEnumerable<T>)
 			foreach (Type contract in container.FindInterfaces (filter, null))
 			{
 				arguments = contract.GetGenericArguments ();

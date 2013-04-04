@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
-
 using Verse.Dynamics;
 using Verse.Events;
+using Verse.Exceptions;
 
 namespace Verse.Models
 {
@@ -50,6 +50,7 @@ namespace Verse.Models
 			// Check whether type has items or pairs
 			filter = new TypeFilter ((type, criteria) => type.IsGenericType && type.GetGenericTypeDefinition () == typeof (IEnumerable<>));
 
+			#warning Search in type itself (FindInterface won't find anything if type is IEnumerable<T>)
 			foreach (Type contract in container.FindInterfaces (filter, null))
 			{
 				arguments = contract.GetGenericArguments ();
@@ -160,11 +161,15 @@ namespace Verse.Models
 				.Invoke (decoder, null);
 		}
 
+		#warning Replace GetMethod & GetProperty calls by static resolvers
 		private static object	MakeArraySetter (Type container, Type inner)
 		{
-        	ILGenerator		generator;
+			TypeFilter		filter;
 			Type			generic;
+        	ILGenerator		generator;
+			Label			loop;
 			DynamicMethod	method;
+			Label			test;
 
 			generic = typeof (ICollection<>).MakeGenericType (inner);
 			method = new DynamicMethod (string.Empty, null, new Type[] {container.MakeByRefType (), generic}, container.Module, true);
@@ -175,19 +180,62 @@ namespace Verse.Models
 			{
 				generator.Emit (OpCodes.Ldarg_0);
 				generator.Emit (OpCodes.Ldarg_1);
+//				generator.Emit (OpCodes.Callvirt, PropertyResolver.Resolve<Func<ICollection<object>, int>> ((collection) => collection.Count).MakeGenericMethod (inner));
 				generator.Emit (OpCodes.Callvirt, generic.GetProperty ("Count", BindingFlags.Instance | BindingFlags.Public).GetGetMethod ());
 				generator.Emit (OpCodes.Call, typeof (Array).GetMethod ("Resize", BindingFlags.Public | BindingFlags.Static).MakeGenericMethod (inner));
 				generator.Emit (OpCodes.Ldarg_1);
 				generator.Emit (OpCodes.Ldarg_0);
 				generator.Emit (OpCodes.Ldind_Ref);
 				generator.Emit (OpCodes.Ldc_I4_0);
+//				generator.Emit (OpCodes.Callvirt, MethodResolver.Resolve<Action<ICollection<object>, object[], int>> ((collection, array, index) => collection.CopyTo (array, index)).MakeGenericMethod (inner));
 				generator.Emit (OpCodes.Callvirt, generic.GetMethod ("CopyTo", BindingFlags.Instance | BindingFlags.Public));
 				generator.Emit (OpCodes.Ret);
 
 				return method.CreateDelegate (typeof (DecoderArraySetter<,>).MakeGenericType (container, inner));
 			}
 
-			throw new NotImplementedException ();
+			filter = new TypeFilter ((type, criteria) => type.IsGenericType && type.GetGenericTypeDefinition () == typeof (ICollection<>));
+
+			#warning Search in type itself (FindInterface won't find anything if type is IEnumerable<T>)
+			foreach (Type contract in container.FindInterfaces (filter, null))
+			{
+				generator.DeclareLocal (container);
+				generator.DeclareLocal (typeof (IEnumerator<>).MakeGenericType (inner));
+
+				loop = generator.DefineLabel ();
+				test = generator.DefineLabel ();
+
+				generator.Emit (OpCodes.Ldarg_0);
+				generator.Emit (OpCodes.Ldind_Ref);
+				generator.Emit (OpCodes.Stloc_0);
+				generator.Emit (OpCodes.Ldloc_0);
+//				generator.Emit (OpCodes.Callvirt, MethodResolver.Resolve<Action<ICollection<object>>> ((collection) => collection.Clear ()).MakeGenericMethod (inner));
+				generator.Emit (OpCodes.Callvirt, typeof (ICollection<>).MakeGenericType (inner).GetMethod ("Clear", BindingFlags.Instance | BindingFlags.Public));
+				generator.Emit (OpCodes.Ldarg_1);
+//				generator.Emit (OpCodes.Callvirt, MethodResolver.Resolve<Func<ICollection<object>, IEnumerator<object>>> ((collection) => collection.GetEnumerator ()).MakeGenericMethod (inner));
+				generator.Emit (OpCodes.Callvirt, typeof (IEnumerable<>).MakeGenericType (inner).GetMethod ("GetEnumerator", BindingFlags.Instance | BindingFlags.Public));
+				generator.Emit (OpCodes.Stloc_1);
+				generator.Emit (OpCodes.Br, test);
+
+				generator.MarkLabel (loop);
+				generator.Emit (OpCodes.Ldloc_0);
+				generator.Emit (OpCodes.Ldloc_1);
+//				generator.Emit (OpCodes.Callvirt, PropertyResolver.Resolve<Func<IEnumerator<object>, object>> ((enumerator) => enumerator.Current).MakeGenericMethod (inner));
+				generator.Emit (OpCodes.Callvirt, typeof (IEnumerator<>).MakeGenericType (inner).GetProperty ("Current", BindingFlags.Instance | BindingFlags.Public).GetGetMethod ());
+//				generator.Emit (OpCodes.Callvirt, MethodResolver.Resolve<Action<ICollection<object>, object>> ((collection, item) => collection.Add (item)).MakeGenericMethod (inner));
+				generator.Emit (OpCodes.Callvirt, typeof (ICollection<>).MakeGenericType (inner).GetMethod ("Add", BindingFlags.Instance | BindingFlags.Public));
+
+				generator.MarkLabel (test);
+				generator.Emit (OpCodes.Ldloc_1);
+//				generator.Emit (OpCodes.Callvirt, MethodResolver.Resolve<Func<IEnumerator<object>, bool>> ((enumerator) => enumerator.MoveNext ()));
+				generator.Emit (OpCodes.Callvirt, typeof (System.Collections.IEnumerator).GetMethod ("MoveNext", BindingFlags.Instance | BindingFlags.Public));
+				generator.Emit (OpCodes.Brtrue_S, loop);
+				generator.Emit (OpCodes.Ret);
+
+				return method.CreateDelegate (typeof (DecoderArraySetter<,>).MakeGenericType (container, inner));
+			}
+
+			throw new LinkTypeException (container, "array decoder can only be auto-linked to T[] and ICollection<T> types");
 		}
 
 		private static object	MakeMapSetter (Type container, Type inner)
