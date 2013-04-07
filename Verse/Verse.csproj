@@ -50,14 +50,14 @@
     <Compile Include="src\DecoderArraySetter.cs" />
     <Compile Include="src\DecoderValueSetter.cs" />
     <Compile Include="src\DecoderMapSetter.cs" />
-    <Compile Include="src\Dynamics\MethodResolver.cs" />
+    <Compile Include="src\Dynamics\Resolver.cs" />
     <Compile Include="src\EncoderMapGetter.cs" />
     <Compile Include="src\EncoderArrayGetter.cs" />
     <Compile Include="src\EncoderValueGetter.cs" />
     <Compile Include="src\Events\StreamErrorEvent.cs" />
     <Compile Include="src\Events\TypeErrorEvent.cs" />
     <Compile Include="src\Exceptions\LinkTypeException.cs" />
-    <Compile Include="src\Dynamics\ConstructorGenerator.cs" />
+    <Compile Include="src\Dynamics\Generator.cs" />
     <Compile Include="src\Models\AbstractDecoder.cs" />
     <Compile Include="src\Models\AbstractEncoder.cs" />
     <Compile Include="src\Models\AbstractSchema.cs" />

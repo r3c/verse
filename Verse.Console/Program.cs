@@ -26,7 +26,7 @@ namespace Verse.Console
 			public Guid							guid { get; set; }
 			public short						int2;
 			public MyEnum						myEnum;
-//			public Dictionary<string, string>	pairs;
+			public Dictionary<string, string>	pairs;
 			public string						str;
 		}
 
@@ -40,11 +40,6 @@ namespace Verse.Console
 			System.Console.ReadKey (true);
 		}
 		
-		private static void x (ref int[] a, IList<int> b)
-		{
-			b.CopyTo (a, 0);
-		}
-
 		private static bool	Test ()
 		{
 			byte[]				buffer;
@@ -75,11 +70,11 @@ namespace Verse.Console
 					guid	= Guid.NewGuid (),
 					int2	= 17,
 					myEnum	= MyEnum.B,
-/*					pairs	= new Dictionary<string, string>
+					pairs	= new Dictionary<string, string>
 					{
 						{"a",	"aaa"},
 						{"b",	"bbb"}
-					},*/
+					},
 					str		= "Hello, World!"
 				};
 
@@ -103,7 +98,7 @@ namespace Verse.Console
 				System.Console.WriteLine (value1.guid + " / " + value2.guid);
 				System.Console.WriteLine (value1.int2 + " / " + value2.int2);
 				System.Console.WriteLine (value1.myEnum + " / " + value2.myEnum);
-//				System.Console.WriteLine (pairsConverter (entity1.pairs) + " / " + pairsConverter (entity2.pairs));
+				System.Console.WriteLine (pairsConverter (value1.pairs) + " / " + pairsConverter (value2.pairs));
 				System.Console.WriteLine (value1.str + " / " + value2.str);
 			}
 

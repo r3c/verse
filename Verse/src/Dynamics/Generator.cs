@@ -4,7 +4,7 @@ using System.Reflection.Emit;
 
 namespace Verse.Dynamics
 {
-	static class ConstructorGenerator
+	static class Generator
 	{
 		#region Attributes
 		
@@ -14,7 +14,7 @@ namespace Verse.Dynamics
 
 		#region Methods
 
-		public static Func<T>	Generate<T> ()
+		public static Func<T>	Constructor<T> ()
 	    {
 	    	ConstructorInfo	constructor;
 	    	ILGenerator		generator;
@@ -22,7 +22,7 @@ namespace Verse.Dynamics
 	        Type			type;
 
         	type = typeof (T);
-        	constructor = type.GetConstructor (BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, Type.DefaultBinder, Type.EmptyTypes, ConstructorGenerator.modifiers);
+        	constructor = type.GetConstructor (BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, Type.DefaultBinder, Type.EmptyTypes, Generator.modifiers);
 
 			if (constructor == null)
 				return () => default (T);

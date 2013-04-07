@@ -47,42 +47,58 @@ namespace Verse.Models
 
 			container = typeof (T);
 
-			// Check whether type has items or pairs
-			filter = new TypeFilter ((type, criteria) => type.IsGenericType && type.GetGenericTypeDefinition () == typeof (IEnumerable<>));
-
-			#warning Search in type itself (FindInterface won't find anything if type is IEnumerable<T>)
-			foreach (Type contract in container.FindInterfaces (filter, null))
+			// Check is container type is or implements IEnumerable<> interface
+			if (container.IsGenericType && container.GetGenericTypeDefinition () == typeof (IEnumerable<>))
 			{
-				arguments = contract.GetGenericArguments ();
+				arguments = container.GetGenericArguments ();
+				inner = arguments.Length == 1 ? arguments[0] : null;
+			}
+			else
+			{
+				filter = new TypeFilter ((type, criteria) => type.IsGenericType && type.GetGenericTypeDefinition () == typeof (IEnumerable<>));
+				inner = null;
 
-				if (arguments.Length == 1)
+				foreach (Type contract in container.FindInterfaces (filter, null))
 				{
-					inner = arguments[0];
+					arguments = contract.GetGenericArguments ();
 
-					if (inner.IsGenericType && inner.GetGenericTypeDefinition () == typeof (KeyValuePair<,>))
+					if (arguments.Length == 1)
 					{
-						arguments = inner.GetGenericArguments ();
-	
-						if (arguments.Length == 2 && arguments[0] == typeof (string))
-						{
-							inner = arguments[1];
+						inner = arguments[0];
 
-							AbstractEncoder<T>.LinkInvoke (inner, MethodResolver
-								.Resolve<Func<IEncoder<T>, EncoderMapGetter<T, object>, IEncoder<object>>> ((encoder, getter) => encoder.HasPairs (getter))
-								.MakeGenericMethod (inner)
-								.Invoke (this, new object[] {AbstractEncoder<T>.MakeMapGetter (container, inner)}));
-
-							return;
-						}
+						break;
 					}
-
-					AbstractEncoder<T>.LinkInvoke (inner, MethodResolver
-						.Resolve<Func<IEncoder<T>, EncoderArrayGetter<T, object>, IEncoder<object>>> ((encoder, getter) => encoder.HasItems (getter))
-						.MakeGenericMethod (inner)
-						.Invoke (this, new object[] {AbstractEncoder<T>.MakeArrayGetter (container, inner)}));
-
-					return;
 				}
+			}
+
+			// Container is an IEnumerable<> of element type "inner"
+			if (inner != null)
+			{
+				if (inner.IsGenericType && inner.GetGenericTypeDefinition () == typeof (KeyValuePair<,>))
+				{
+					arguments = inner.GetGenericArguments ();
+
+					if (arguments.Length == 2 && arguments[0] == typeof (string))
+					{
+						inner = arguments[1];
+
+						AbstractEncoder<T>.LinkInvoke (inner, Resolver
+							.Method<IEncoder<T>, EncoderMapGetter<T, object>, IEncoder<object>> ((encoder, getter) => encoder.HasPairs (getter))
+							.GetGenericMethodDefinition ()
+							.MakeGenericMethod (inner)
+							.Invoke (this, new object[] {AbstractEncoder<T>.MakeMapGetter (container, inner)}));
+
+						return;
+					}
+				}
+
+				AbstractEncoder<T>.LinkInvoke (inner, Resolver
+					.Method<IEncoder<T>, EncoderArrayGetter<T, object>, IEncoder<object>> ((encoder, getter) => encoder.HasItems (getter))
+					.GetGenericMethodDefinition ()
+					.MakeGenericMethod (inner)
+					.Invoke (this, new object[] {AbstractEncoder<T>.MakeArrayGetter (container, inner)}));
+
+				return;
 			}
 
 			// Browse public readable and writable properties
@@ -91,8 +107,9 @@ namespace Verse.Models
 				if (property.GetGetMethod () == null || property.GetSetMethod () == null || (property.Attributes & PropertyAttributes.SpecialName) == PropertyAttributes.SpecialName)
 					continue;
 
-				AbstractEncoder<T>.LinkInvoke (property.PropertyType, MethodResolver
-					.Resolve<Func<IEncoder<T>, string, EncoderValueGetter<T, object>, IEncoder<object>>> ((encoder, name, getter) => encoder.HasField (name, getter))
+				AbstractEncoder<T>.LinkInvoke (property.PropertyType, Resolver
+					.Method<IEncoder<T>, string, EncoderValueGetter<T, object>, IEncoder<object>> ((encoder, name, getter) => encoder.HasField (name, getter))
+					.GetGenericMethodDefinition ()
 					.MakeGenericMethod (property.PropertyType)
 					.Invoke (this, new object[] {property.Name, AbstractEncoder<T>.MakeValueGetter (property)}));
 			}
@@ -103,8 +120,9 @@ namespace Verse.Models
 				if ((field.Attributes & FieldAttributes.SpecialName) == FieldAttributes.SpecialName)
 					continue;
 
-				AbstractEncoder<T>.LinkInvoke (field.FieldType, MethodResolver
-					.Resolve<Func<IEncoder<T>, string, EncoderValueGetter<T, object>, IEncoder<object>>> ((encoder, name, getter) => encoder.HasField (name, getter))
+				AbstractEncoder<T>.LinkInvoke (field.FieldType, Resolver
+					.Method<IEncoder<T>, string, EncoderValueGetter<T, object>, IEncoder<object>> ((encoder, name, getter) => encoder.HasField (name, getter))
+					.GetGenericMethodDefinition ()
 					.MakeGenericMethod (field.FieldType)
 					.Invoke (this, new object[] {field.Name, AbstractEncoder<T>.MakeValueGetter (field)}));
 			}
@@ -138,12 +156,19 @@ namespace Verse.Models
 
 		#region Methods / Private
 
-		private static void	LinkInvoke (Type type, object encoder)
+		#warning Replace GetMethod calls by static resolvers
+		private static void	LinkInvoke (Type type, object target)
 		{
+//			Resolver
+//				.Method<Action<IEncoder<object>>> ((encoder) => encoder.Link ())
+//				.GetGenericMethodDefinition ()
+//				.MakeGenericMethod (type)
+//				.Invoke (target, null);
+
 			typeof (IEncoder<>)
 				.MakeGenericType (type)
 				.GetMethod ("Link", BindingFlags.Instance | BindingFlags.Public)
-				.Invoke (encoder, null);
+				.Invoke (target, null);
 		}
 
 		private static object	MakeArrayGetter (Type container, Type inner)

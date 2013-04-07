@@ -28,7 +28,7 @@ namespace Verse.Models
 
 		public IDecoder<T>	GetDecoder<T> ()
 		{
-			return this.GetDecoder (ConstructorGenerator.Generate<T> ());
+			return this.GetDecoder (Generator.Constructor<T> ());
 		}
 
 		#endregion
