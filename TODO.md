@@ -6,12 +6,13 @@ TODO
 
 - Allow encoding/decoding of recursive hierarchies
 - Add "skip null values" option to JSON encoder
-- Implement automatic linking of complex objects through reflection
 - Implement Protocol Buffers model
+- Implement BSON model
 
 DONE
 ----
 
+- Implement automatic linking of complex objects through reflection
 - Error events in ISchema, fired from IDecoder & IEncoder
 - Define IEncoder methods
 - Implement JSON model
