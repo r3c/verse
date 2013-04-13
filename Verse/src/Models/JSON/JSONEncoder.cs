@@ -5,9 +5,11 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 
+using Verse.Dynamics;
+
 namespace Verse.Models.JSON
 {
-	class JSONEncoder<T> : StringEncoder<T>
+	class JSONEncoder<T> : ConvertEncoder<string, T>
 	{
 		#region Attributes
 
@@ -138,7 +140,7 @@ namespace Verse.Models.JSON
 
 		#region Methods / Protected
 
-		protected override bool	TryLinkConvert (StringSchema.EncoderConverter<T> converter)
+		protected override bool	TryLinkConvert (ConvertSchema<string>.EncoderConverter<T> converter)
     	{
 			this.writer = (printer, input) =>
 			{
@@ -225,7 +227,7 @@ namespace Verse.Models.JSON
 			generator.Emit (OpCodes.Ldarg_1);
 			generator.Emit (OpCodes.Ldarg_0);
 			generator.Emit (OpCodes.Ldarg_2);
-			generator.Emit (OpCodes.Call, typeof (WriterInjector<U>).GetMethod ("Invoke"));
+			generator.Emit (OpCodes.Call, Resolver.Method<WriterInjector<U>, JSONPrinter, U> ((i, printer, value) => i.Invoke (printer, value)));
 			generator.Emit (OpCodes.Ret);
 
 			wrapper = (WriterWrapper<U>)method.CreateDelegate (typeof (WriterWrapper<U>));

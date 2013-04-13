@@ -83,9 +83,7 @@ namespace Verse.Models
 						inner = arguments[1];
 
 						AbstractEncoder<T>.LinkInvoke (inner, Resolver
-							.Method<IEncoder<T>, EncoderMapGetter<T, object>, IEncoder<object>> ((encoder, getter) => encoder.HasPairs (getter))
-							.GetGenericMethodDefinition ()
-							.MakeGenericMethod (inner)
+							.Method<IEncoder<T>, EncoderMapGetter<T, object>, IEncoder<object>> ((encoder, getter) => encoder.HasPairs (getter), null, new Type[] {inner})
 							.Invoke (this, new object[] {AbstractEncoder<T>.MakeMapGetter (container, inner)}));
 
 						return;
@@ -93,9 +91,7 @@ namespace Verse.Models
 				}
 
 				AbstractEncoder<T>.LinkInvoke (inner, Resolver
-					.Method<IEncoder<T>, EncoderArrayGetter<T, object>, IEncoder<object>> ((encoder, getter) => encoder.HasItems (getter))
-					.GetGenericMethodDefinition ()
-					.MakeGenericMethod (inner)
+					.Method<IEncoder<T>, EncoderArrayGetter<T, object>, IEncoder<object>> ((encoder, getter) => encoder.HasItems (getter), null, new Type[] {inner})
 					.Invoke (this, new object[] {AbstractEncoder<T>.MakeArrayGetter (container, inner)}));
 
 				return;
@@ -108,9 +104,7 @@ namespace Verse.Models
 					continue;
 
 				AbstractEncoder<T>.LinkInvoke (property.PropertyType, Resolver
-					.Method<IEncoder<T>, string, EncoderValueGetter<T, object>, IEncoder<object>> ((encoder, name, getter) => encoder.HasField (name, getter))
-					.GetGenericMethodDefinition ()
-					.MakeGenericMethod (property.PropertyType)
+					.Method<IEncoder<T>, string, EncoderValueGetter<T, object>, IEncoder<object>> ((encoder, name, getter) => encoder.HasField (name, getter), null, new Type[] {property.PropertyType})
 					.Invoke (this, new object[] {property.Name, AbstractEncoder<T>.MakeValueGetter (property)}));
 			}
 
@@ -121,9 +115,7 @@ namespace Verse.Models
 					continue;
 
 				AbstractEncoder<T>.LinkInvoke (field.FieldType, Resolver
-					.Method<IEncoder<T>, string, EncoderValueGetter<T, object>, IEncoder<object>> ((encoder, name, getter) => encoder.HasField (name, getter))
-					.GetGenericMethodDefinition ()
-					.MakeGenericMethod (field.FieldType)
+					.Method<IEncoder<T>, string, EncoderValueGetter<T, object>, IEncoder<object>> ((encoder, name, getter) => encoder.HasField (name, getter), null, new Type[] {field.FieldType})
 					.Invoke (this, new object[] {field.Name, AbstractEncoder<T>.MakeValueGetter (field)}));
 			}
 		}
@@ -156,18 +148,10 @@ namespace Verse.Models
 
 		#region Methods / Private
 
-		#warning Replace GetMethod calls by static resolvers
 		private static void	LinkInvoke (Type type, object target)
 		{
-//			Resolver
-//				.Method<Action<IEncoder<object>>> ((encoder) => encoder.Link ())
-//				.GetGenericMethodDefinition ()
-//				.MakeGenericMethod (type)
-//				.Invoke (target, null);
-
-			typeof (IEncoder<>)
-				.MakeGenericType (type)
-				.GetMethod ("Link", BindingFlags.Instance | BindingFlags.Public)
+			Resolver
+				.Method<IEncoder<object>> ((encoder) => encoder.Link (), new Type[] {type})
 				.Invoke (target, null);
 		}
 

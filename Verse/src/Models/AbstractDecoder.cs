@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
+
 using Verse.Dynamics;
 using Verse.Events;
-using Verse.Exceptions;
 
 namespace Verse.Models
 {
@@ -83,9 +83,7 @@ namespace Verse.Models
 						inner = arguments[1];
 
 						AbstractDecoder<T>.LinkInvoke (inner, Resolver
-							.Method<IDecoder<T>, DecoderMapSetter<T, object>, IDecoder<object>> ((decoder, setter) => decoder.HasPairs (setter))
-							.GetGenericMethodDefinition ()
-							.MakeGenericMethod (inner)
+							.Method<IDecoder<T>, DecoderMapSetter<T, object>, IDecoder<object>> ((decoder, setter) => decoder.HasPairs (setter), null, new Type[] {inner})
 							.Invoke (this, new object[] {AbstractDecoder<T>.MakeMapSetter (container, inner)}));
 
 						return;
@@ -93,9 +91,7 @@ namespace Verse.Models
 				}
 
 				AbstractDecoder<T>.LinkInvoke (inner, Resolver
-					.Method<IDecoder<T>, DecoderArraySetter<T, object>, IDecoder<object>> ((decoder, setter) => decoder.HasItems (setter))
-					.GetGenericMethodDefinition ()
-					.MakeGenericMethod (inner)
+					.Method<IDecoder<T>, DecoderArraySetter<T, object>, IDecoder<object>> ((decoder, setter) => decoder.HasItems (setter), null, new Type[] {inner})
 					.Invoke (this, new object[] {AbstractDecoder<T>.MakeArraySetter (container, inner)}));
 
 				return;
@@ -108,9 +104,7 @@ namespace Verse.Models
 					continue;
 
 				AbstractDecoder<T>.LinkInvoke (property.PropertyType, Resolver
-					.Method<IDecoder<T>, string, DecoderValueSetter<T, object>, IDecoder<object>> ((decoder, name, setter) => decoder.HasField (name, setter))
-					.GetGenericMethodDefinition ()
-					.MakeGenericMethod (property.PropertyType)
+					.Method<IDecoder<T>, string, DecoderValueSetter<T, object>, IDecoder<object>> ((decoder, name, setter) => decoder.HasField (name, setter), null, new Type[] {property.PropertyType})
 					.Invoke (this, new object[] {property.Name, AbstractDecoder<T>.MakeValueSetter (property)}));
 			}
 
@@ -121,9 +115,7 @@ namespace Verse.Models
 					continue;
 
 				AbstractDecoder<T>.LinkInvoke (field.FieldType, Resolver
-					.Method<IDecoder<T>, string, DecoderValueSetter<T, object>, IDecoder<object>> ((decoder, name, setter) => decoder.HasField (name, setter))
-					.GetGenericMethodDefinition ()
-					.MakeGenericMethod (field.FieldType)
+					.Method<IDecoder<T>, string, DecoderValueSetter<T, object>, IDecoder<object>> ((decoder, name, setter) => decoder.HasField (name, setter), null, new Type[] {field.FieldType})
 					.Invoke (this, new object[] {field.Name, AbstractDecoder<T>.MakeValueSetter (field)}));
 			}
 		}
@@ -171,48 +163,35 @@ namespace Verse.Models
 
 		#region Methods / Private
 
-		#warning Replace GetMethod calls by static resolvers
 		private static void	LinkInvoke (Type type, object target)
 		{
-//			Resolver
-//				.Method<Action<IDecoder<object>>> ((decoder) => decoder.Link ())
-//				.GetGenericMethodDefinition ()
-//				.MakeGenericMethod (type)
-//				.Invoke (target, null);
-
-			typeof (IDecoder<>)
-				.MakeGenericType (type)
-				.GetMethod ("Link", BindingFlags.Instance | BindingFlags.Public)
+			Resolver
+				.Method<IDecoder<object>> ((decoder) => decoder.Link (), new Type[] {type})
 				.Invoke (target, null);
 		}
 
-		#warning Replace GetMethod & GetProperty calls by static resolvers
 		private static object	MakeArraySetter (Type container, Type inner)
 		{
-			Type			collection;
         	ILGenerator		generator;
 			Label			loop;
 			DynamicMethod	method;
 			Label			test;
 
-			collection = typeof (ICollection<>).MakeGenericType (inner);
-			method = new DynamicMethod (string.Empty, null, new Type[] {container.MakeByRefType (), collection}, container.Module, true);
-
+			method = new DynamicMethod (string.Empty, null, new Type[] {container.MakeByRefType (), typeof (ICollection<>).MakeGenericType (inner)}, container.Module, true);
 			generator = method.GetILGenerator ();
 
 			if (container.IsArray)
 			{
 				generator.Emit (OpCodes.Ldarg_0);
 				generator.Emit (OpCodes.Ldarg_1);
-//				generator.Emit (OpCodes.Callvirt, Resolver.Property<Func<ICollection<object>, int>> ((collection) => collection.Count).GetGetMethod ().MakeGenericMethod (inner));
-				generator.Emit (OpCodes.Callvirt, collection.GetProperty ("Count", BindingFlags.Instance | BindingFlags.Public).GetGetMethod ());
+				generator.Emit (OpCodes.Callvirt, Resolver.Property<ICollection<object>, int> ((collection) => collection.Count, new Type[] {inner}).GetGetMethod ());
+				#warning use static reflection
 				generator.Emit (OpCodes.Call, typeof (Array).GetMethod ("Resize", BindingFlags.Public | BindingFlags.Static).MakeGenericMethod (inner));
 				generator.Emit (OpCodes.Ldarg_1);
 				generator.Emit (OpCodes.Ldarg_0);
 				generator.Emit (OpCodes.Ldind_Ref);
 				generator.Emit (OpCodes.Ldc_I4_0);
-//				generator.Emit (OpCodes.Callvirt, Resolver.Method<Action<ICollection<object>, object[], int>> ((collection, array, index) => collection.CopyTo (array, index)).MakeGenericMethod (inner));
-				generator.Emit (OpCodes.Callvirt, collection.GetMethod ("CopyTo", BindingFlags.Instance | BindingFlags.Public));
+				generator.Emit (OpCodes.Callvirt, Resolver.Method<ICollection<object>, object[], int> ((collection, array, index) => collection.CopyTo (array, index), new Type[] {inner}));
 				generator.Emit (OpCodes.Ret);
 			}
 			else
@@ -227,26 +206,21 @@ namespace Verse.Models
 				generator.Emit (OpCodes.Ldind_Ref);
 				generator.Emit (OpCodes.Stloc_0);
 				generator.Emit (OpCodes.Ldloc_0);
-//				generator.Emit (OpCodes.Callvirt, Resolver.Method<Action<ICollection<object>>> ((collection) => collection.Clear ()).MakeGenericMethod (inner));
-				generator.Emit (OpCodes.Callvirt, collection.GetMethod ("Clear", BindingFlags.Instance | BindingFlags.Public));
+				generator.Emit (OpCodes.Callvirt, Resolver.Method<ICollection<object>> ((collection) => collection.Clear (), new Type[] {inner}));
 				generator.Emit (OpCodes.Ldarg_1);
-//				generator.Emit (OpCodes.Callvirt, Resolver.Method<Func<ICollection<object>, IEnumerator<object>>> ((collection) => collection.GetEnumerator ()).MakeGenericMethod (inner));
-				generator.Emit (OpCodes.Callvirt, typeof (IEnumerable<>).MakeGenericType (inner).GetMethod ("GetEnumerator", BindingFlags.Instance | BindingFlags.Public));
+				generator.Emit (OpCodes.Callvirt, Resolver.Method<ICollection<object>, IEnumerator<object>> ((collection) => collection.GetEnumerator (), new Type[] {inner}));
 				generator.Emit (OpCodes.Stloc_1);
 				generator.Emit (OpCodes.Br, test);
 
 				generator.MarkLabel (loop);
 				generator.Emit (OpCodes.Ldloc_0);
 				generator.Emit (OpCodes.Ldloc_1);
-//				generator.Emit (OpCodes.Callvirt, Resolver.Property<Func<IEnumerator<object>, object>> ((enumerator) => enumerator.Current).MakeGenericMethod (inner));
-				generator.Emit (OpCodes.Callvirt, typeof (IEnumerator<>).MakeGenericType (inner).GetProperty ("Current", BindingFlags.Instance | BindingFlags.Public).GetGetMethod ());
-//				generator.Emit (OpCodes.Callvirt, Resolver.Method<Action<ICollection<object>, object>> ((collection, item) => collection.Add (item)).MakeGenericMethod (inner));
-				generator.Emit (OpCodes.Callvirt, collection.GetMethod ("Add", BindingFlags.Instance | BindingFlags.Public));
+				generator.Emit (OpCodes.Callvirt, Resolver.Property<IEnumerator<object>, object> ((enumerator) => enumerator.Current, new Type[] {inner}).GetGetMethod ());
+				generator.Emit (OpCodes.Callvirt, Resolver.Method<ICollection<object>, object> ((collection, item) => collection.Add (item), new Type[] {inner}));
 
 				generator.MarkLabel (test);
 				generator.Emit (OpCodes.Ldloc_1);
-//				generator.Emit (OpCodes.Callvirt, Resolver.Method<Func<IEnumerator<object>, bool>> ((enumerator) => enumerator.MoveNext ()));
-				generator.Emit (OpCodes.Callvirt, typeof (System.Collections.IEnumerator).GetMethod ("MoveNext", BindingFlags.Instance | BindingFlags.Public));
+				generator.Emit (OpCodes.Callvirt, Resolver.Method<System.Collections.IEnumerator, bool> ((enumerator) => enumerator.MoveNext ()));
 				generator.Emit (OpCodes.Brtrue_S, loop);
 				generator.Emit (OpCodes.Ret);
 			}
@@ -256,14 +230,14 @@ namespace Verse.Models
 
 		private static object	MakeMapSetter (Type container, Type inner)
 		{
-			Type			collection;
+			Type			element;
         	ILGenerator		generator;
 			Label			loop;
 			DynamicMethod	method;
 			Label			test;
 
-			collection = typeof (ICollection<>).MakeGenericType (typeof (KeyValuePair<,>).MakeGenericType (typeof (string), inner));
-			method = new DynamicMethod (string.Empty, null, new Type[] {container.MakeByRefType (), collection}, container.Module, true);
+			element = typeof (KeyValuePair<,>).MakeGenericType (typeof (string), inner);
+			method = new DynamicMethod (string.Empty, null, new Type[] {container.MakeByRefType (), typeof (ICollection<>).MakeGenericType (element)}, container.Module, true);
 
 			generator = method.GetILGenerator ();
 
@@ -271,15 +245,14 @@ namespace Verse.Models
 			{
 				generator.Emit (OpCodes.Ldarg_0);
 				generator.Emit (OpCodes.Ldarg_1);
-//				generator.Emit (OpCodes.Callvirt, Resolver.Property<Func<ICollection<object>, int>> ((collection) => collection.Count).GetGetMethod ().MakeGenericMethod (inner));
-				generator.Emit (OpCodes.Callvirt, collection.GetProperty ("Count", BindingFlags.Instance | BindingFlags.Public).GetGetMethod ());
+				generator.Emit (OpCodes.Callvirt, Resolver.Property<ICollection<object>, int> ((collection) => collection.Count, new Type[] {element}).GetGetMethod ());
+				#warning use static reflection
 				generator.Emit (OpCodes.Call, typeof (Array).GetMethod ("Resize", BindingFlags.Public | BindingFlags.Static).MakeGenericMethod (inner));
 				generator.Emit (OpCodes.Ldarg_1);
 				generator.Emit (OpCodes.Ldarg_0);
 				generator.Emit (OpCodes.Ldind_Ref);
 				generator.Emit (OpCodes.Ldc_I4_0);
-//				generator.Emit (OpCodes.Callvirt, Resolver.Method<Action<ICollection<object>, object[], int>> ((collection, array, index) => collection.CopyTo (array, index)).MakeGenericMethod (inner));
-				generator.Emit (OpCodes.Callvirt, collection.GetMethod ("CopyTo", BindingFlags.Instance | BindingFlags.Public));
+				generator.Emit (OpCodes.Callvirt, Resolver.Method<ICollection<object>, object[], int> ((collection, array, index) => collection.CopyTo (array, index), new Type[] {element}));
 				generator.Emit (OpCodes.Ret);
 			}
 			else
@@ -294,26 +267,21 @@ namespace Verse.Models
 				generator.Emit (OpCodes.Ldind_Ref);
 				generator.Emit (OpCodes.Stloc_0);
 				generator.Emit (OpCodes.Ldloc_0);
-//				generator.Emit (OpCodes.Callvirt, Resolver.Method<Action<ICollection<object>>> ((collection) => collection.Clear ()).MakeGenericMethod (inner));
-				generator.Emit (OpCodes.Callvirt, collection.GetMethod ("Clear", BindingFlags.Instance | BindingFlags.Public));
+				generator.Emit (OpCodes.Callvirt, Resolver.Method<ICollection<object>> ((collection) => collection.Clear (), new Type[] {element}));
 				generator.Emit (OpCodes.Ldarg_1);
-//				generator.Emit (OpCodes.Callvirt, Resolver.Method<Func<ICollection<object>, IEnumerator<object>>> ((collection) => collection.GetEnumerator ()).MakeGenericMethod (inner));
-				generator.Emit (OpCodes.Callvirt, typeof (IEnumerable<>).MakeGenericType (typeof (KeyValuePair<,>).MakeGenericType (typeof (string), inner)).GetMethod ("GetEnumerator", BindingFlags.Instance | BindingFlags.Public));
+				generator.Emit (OpCodes.Callvirt, Resolver.Method<ICollection<object>, IEnumerator<object>> ((collection) => collection.GetEnumerator (), new Type[] {element}));
 				generator.Emit (OpCodes.Stloc_1);
 				generator.Emit (OpCodes.Br, test);
 
 				generator.MarkLabel (loop);
 				generator.Emit (OpCodes.Ldloc_0);
 				generator.Emit (OpCodes.Ldloc_1);
-//				generator.Emit (OpCodes.Callvirt, Resolver.Property<Func<IEnumerator<object>, object>> ((enumerator) => enumerator.Current).MakeGenericMethod (inner));
-				generator.Emit (OpCodes.Callvirt, typeof (IEnumerator<>).MakeGenericType (typeof (KeyValuePair<,>).MakeGenericType (typeof (string), inner)).GetProperty ("Current", BindingFlags.Instance | BindingFlags.Public).GetGetMethod ());
-//				generator.Emit (OpCodes.Callvirt, Resolver.Method<Action<ICollection<object>, object>> ((collection, item) => collection.Add (item)).MakeGenericMethod (inner));
-				generator.Emit (OpCodes.Callvirt, collection.GetMethod ("Add", BindingFlags.Instance | BindingFlags.Public));
+				generator.Emit (OpCodes.Callvirt, Resolver.Property<IEnumerator<object>, object> ((enumerator) => enumerator.Current, new Type[] {element}).GetGetMethod ());
+				generator.Emit (OpCodes.Callvirt, Resolver.Method<ICollection<object>, object> ((collection, item) => collection.Add (item), new Type[] {element}));
 
 				generator.MarkLabel (test);
 				generator.Emit (OpCodes.Ldloc_1);
-//				generator.Emit (OpCodes.Callvirt, Resolver.Method<Func<IEnumerator<object>, bool>> ((enumerator) => enumerator.MoveNext ()));
-				generator.Emit (OpCodes.Callvirt, typeof (System.Collections.IEnumerator).GetMethod ("MoveNext", BindingFlags.Instance | BindingFlags.Public));
+				generator.Emit (OpCodes.Callvirt, Resolver.Method<System.Collections.IEnumerator, bool> ((enumerator) => enumerator.MoveNext ()));
 				generator.Emit (OpCodes.Brtrue_S, loop);
 				generator.Emit (OpCodes.Ret);
 			}

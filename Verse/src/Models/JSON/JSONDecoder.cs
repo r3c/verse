@@ -9,7 +9,7 @@ using System.Text;
 
 namespace Verse.Models.JSON
 {
-    class JSONDecoder<T> : StringDecoder<T>
+    class JSONDecoder<T> : ConvertDecoder<string, T>
     {
 		#region Attributes
 		
@@ -171,7 +171,7 @@ namespace Verse.Models.JSON
 
 		#region Methods / Protected
 
-        protected override bool	TryLinkConvert (StringSchema.DecoderConverter<T> converter)
+        protected override bool	TryLinkConvert (ConvertSchema<string>.DecoderConverter<T> converter)
         {
         	this.reader = (JSONLexer lexer, out T value) =>
         	{

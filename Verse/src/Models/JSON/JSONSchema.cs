@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Windows.Forms;
 
 namespace Verse.Models.JSON
 {
-	public class JSONSchema : StringSchema
+	public class JSONSchema : ConvertSchema<string>
 	{
 		#region Properties
 

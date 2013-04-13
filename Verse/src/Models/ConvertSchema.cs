@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Verse.Models
 {
-	public abstract class StringSchema : AbstractSchema
+	public abstract class ConvertSchema<T> : AbstractSchema
 	{
 		#region Attributes
 
@@ -15,7 +15,7 @@ namespace Verse.Models
 		
 		#region Constructors
 		
-		protected	StringSchema ()
+		protected	ConvertSchema ()
 		{
 			this.decoderConverters = new Dictionary<Type, object> ();
 			this.encoderConverters = new Dictionary<Type, object> ();
@@ -25,23 +25,23 @@ namespace Verse.Models
 		
 		#region Methods
 		
-		public void	SetDecoderConverter<T> (DecoderConverter<T> converter)
+		public void	SetDecoderConverter<U> (DecoderConverter<U> converter)
 		{
-			this.decoderConverters[typeof (T)] = converter;
+			this.decoderConverters[typeof (U)] = converter;
 		}
 
-		public void	SetEncoderConverter<T> (EncoderConverter<T> converter)
+		public void	SetEncoderConverter<U> (EncoderConverter<U> converter)
 		{
-			this.encoderConverters[typeof (T)] = converter;
+			this.encoderConverters[typeof (U)] = converter;
 		}
 
 		#endregion
 		
 		#region Types
 		
-		public delegate bool	DecoderConverter<T> (string input, out T value);
+		public delegate bool	DecoderConverter<U> (T input, out U value);
 		
-		public delegate bool	EncoderConverter<T> (T input, out string value);
+		public delegate bool	EncoderConverter<U> (U input, out T value);
 		
 		#endregion
 	}

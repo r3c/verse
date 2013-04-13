@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Verse.Models
 {
-	abstract class StringEncoder<T> : AbstractEncoder<T>
+	abstract class ConvertEncoder<T, U> : AbstractEncoder<U>
 	{
 		#region Attributes
 
@@ -13,7 +13,7 @@ namespace Verse.Models
 
 		#region Constructors
 
-		protected	StringEncoder (Dictionary<Type, object> converters)
+		protected	ConvertEncoder (Dictionary<Type, object> converters)
 		{
 			this.converters = converters;
 		}
@@ -22,7 +22,7 @@ namespace Verse.Models
 
 		#region Methods / Abstract
 
-		protected abstract bool	TryLinkConvert (StringSchema.EncoderConverter<T> converter);
+		protected abstract bool	TryLinkConvert (ConvertSchema<T>.EncoderConverter<U> converter);
 
 		protected abstract bool	TryLinkNative ();
 
@@ -34,8 +34,8 @@ namespace Verse.Models
 		{
         	object	converter;
 
-        	if (this.converters.TryGetValue (typeof (T), out converter))
-        		return this.TryLinkConvert ((StringSchema.EncoderConverter<T>)converter);
+        	if (this.converters.TryGetValue (typeof (U), out converter))
+        		return this.TryLinkConvert ((ConvertSchema<T>.EncoderConverter<U>)converter);
         	else
         		return this.TryLinkNative ();
 		}

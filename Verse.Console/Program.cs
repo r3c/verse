@@ -49,7 +49,7 @@ namespace Verse.Console
 			MyValue				value1;
 			MyValue				value2;
 
-			schema = new JSONSchema ((s, e) => new JSONPrettyPrinter (s, e, "    "));
+			schema = new JSONSchema ((s, e) => new JSONIndentPrinter (s, e));
 			schema.OnStreamError += (position, message) => System.Console.Error.WriteLine ("Stream error at position {0}: {1}", position, message);
 			schema.OnTypeError += (type, value) => System.Console.Error.WriteLine ("Type error: could not convert \"{1}\" to {0}", type, value);
 			schema.SetDecoderConverter<Guid> (Guid.TryParse);

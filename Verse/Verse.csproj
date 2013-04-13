@@ -56,16 +56,15 @@
     <Compile Include="src\EncoderValueGetter.cs" />
     <Compile Include="src\Events\StreamErrorEvent.cs" />
     <Compile Include="src\Events\TypeErrorEvent.cs" />
-    <Compile Include="src\Exceptions\LinkTypeException.cs" />
     <Compile Include="src\Dynamics\Generator.cs" />
     <Compile Include="src\Models\AbstractDecoder.cs" />
     <Compile Include="src\Models\AbstractEncoder.cs" />
     <Compile Include="src\Models\AbstractSchema.cs" />
-    <Compile Include="src\Models\JSON\Printers\JSONPrettyPrinter.cs" />
+    <Compile Include="src\Models\JSON\Printers\JSONIndentPrinter.cs" />
     <Compile Include="src\Models\JSON\JSONPrinter.cs" />
-    <Compile Include="src\Models\StringDecoder.cs" />
-    <Compile Include="src\Models\StringEncoder.cs" />
-    <Compile Include="src\Models\StringSchema.cs" />
+    <Compile Include="src\Models\ConvertDecoder.cs" />
+    <Compile Include="src\Models\ConvertEncoder.cs" />
+    <Compile Include="src\Models\ConvertSchema.cs" />
     <Compile Include="src\Models\JSON\JSONConverter.cs" />
     <Compile Include="src\Models\JSON\JSONDecoder.cs" />
     <Compile Include="src\Models\JSON\JSONLexem.cs" />
@@ -76,9 +75,9 @@
     <Compile Include="src\IDecoder.cs" />
     <Compile Include="src\ISchema.cs" />
     <Compile Include="src\IEncoder.cs" />
+    <Compile Include="src\Models\JSON\Printers\JSONSpacePrinter.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="src\Exceptions" />
     <Folder Include="src\Models" />
     <Folder Include="src\Models\JSON" />
     <Folder Include="src" />
