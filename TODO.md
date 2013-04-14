@@ -4,8 +4,6 @@ Verse TODO list
 TODO
 ----
 
-- Allow encoding/decoding of recursive hierarchies
-- Add "skip null values" option to JSON encoder
 - Implement Protocol Buffers model
 - Implement BSON model
 - Allow automatic linking of recursive hierarchies
@@ -14,6 +12,8 @@ TODO
 DONE
 ----
 
+- Add "skip null values" option to JSON encoder
+- Allow encoding/decoding of recursive hierarchies
 - Implement automatic linking of complex objects through reflection
 - Error events in ISchema, fired from IDecoder & IEncoder
 - Define IEncoder methods

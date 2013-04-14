@@ -21,17 +21,20 @@ namespace Verse.Models.JSON
 
 		private Writer								selfWriter;
 
+		private JSONSettings						settings;
+
         #endregion
 
         #region Constructors
 
-        public	JSONEncoder (Dictionary<Type, object> converters, Encoding encoding, Func<Stream, Encoding, JSONWriter> generator) :
+        public	JSONEncoder (Dictionary<Type, object> converters, JSONSettings settings, Encoding encoding, Func<Stream, Encoding, JSONWriter> generator) :
         	base (converters)
 		{
 			this.encoding = encoding;
 			this.fieldWriters = new Dictionary<string, Writer> ();
 			this.generator = generator;
 			this.selfWriter = null;
+			this.settings = settings;
 		}
 
 		#endregion
@@ -46,6 +49,11 @@ namespace Verse.Models.JSON
             }
         }
 
+		public override IEncoder<U>	HasField<U> (string name, EncoderValueGetter<T, U> getter)
+		{
+			return this.HasField (name, getter, this.BuildEncoder<U> ());
+		}
+
 		public override void	HasField<U> (string name, EncoderValueGetter<T, U> getter, IEncoder<U> encoder)
 		{
 			if (!(encoder is JSONEncoder<U>))
@@ -54,9 +62,9 @@ namespace Verse.Models.JSON
 			this.HasField (name, getter, (JSONEncoder<U>)encoder);
 		}
 
-		public override IEncoder<U>	HasField<U> (string name, EncoderValueGetter<T, U> getter)
+		public override IEncoder<U>	HasItems<U> (EncoderArrayGetter<T, U> getter)
 		{
-			return this.HasField (name, getter, this.BuildEncoder<U> ());
+			return this.HasItems (getter, this.BuildEncoder<U> ());
 		}
 
 		public override void	HasItems<U> (EncoderArrayGetter<T, U> getter, IEncoder<U> encoder)
@@ -67,9 +75,9 @@ namespace Verse.Models.JSON
 			this.HasItems (getter, (JSONEncoder<U>)encoder);
 		}
 
-		public override IEncoder<U>	HasItems<U> (EncoderArrayGetter<T, U> getter)
+		public override IEncoder<U>	HasPairs<U> (EncoderMapGetter<T, U> getter)
 		{
-			return this.HasItems (getter, this.BuildEncoder<U> ());
+			return this.HasPairs (getter, this.BuildEncoder<U> ());
 		}
 
 		public override void	HasPairs<U> (EncoderMapGetter<T, U> getter, IEncoder<U> encoder)
@@ -78,11 +86,6 @@ namespace Verse.Models.JSON
 				throw new ArgumentException ("nested encoder must be a JSON encoder", "encoder");
 
 			this.HasPairs (getter, (JSONEncoder<U>)encoder);
-		}
-
-		public override IEncoder<U>	HasPairs<U> (EncoderMapGetter<T, U> getter)
-		{
-			return this.HasPairs (getter, this.BuildEncoder<U> ());
 		}
 
         #endregion
@@ -157,7 +160,7 @@ namespace Verse.Models.JSON
         {
         	JSONEncoder<U>	encoder;
 
-        	encoder = new JSONEncoder<U> (this.converters, this.encoding, this.generator);
+        	encoder = new JSONEncoder<U> (this.converters, this.settings, this.encoding, this.generator);
         	encoder.OnStreamError += this.EventStreamError;
         	encoder.OnTypeError += this.EventTypeError;
 
@@ -206,6 +209,9 @@ namespace Verse.Models.JSON
 
 				foreach (U value in getter (container))
 				{
+					if (value == null && (this.settings & JSONSettings.OmitNullItems) == JSONSettings.OmitNullItems)
+						continue;
+
 					if (empty)
 					{
 						writer.WriteArrayBegin ();
@@ -240,6 +246,9 @@ namespace Verse.Models.JSON
 
 				foreach (KeyValuePair<string, U> pair in getter (container))
 				{
+					if (pair.Value == null && (this.settings & JSONSettings.OmitNullItems) == JSONSettings.OmitNullItems)
+						continue;
+
 					if (empty)
 					{
 						writer.WriteObjectBegin ();

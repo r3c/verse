@@ -25,11 +25,13 @@ namespace Verse.Models.JSON
 
 		private Reader						selfReader;
 
+		private JSONSettings				settings;
+
         #endregion
 
         #region Constructors
 
-        public	JSONDecoder (Dictionary<Type, object> converters, Encoding encoding, Func<T> constructor) :
+        public	JSONDecoder (Dictionary<Type, object> converters, JSONSettings settings, Encoding encoding, Func<T> constructor) :
         	base (converters)
         {
         	this.arrayBrowser = null;
@@ -38,6 +40,7 @@ namespace Verse.Models.JSON
 			this.fieldBrowsers = new Dictionary<string, Browser> ();
  			this.objectBrowser = null;
 			this.selfReader = null;
+			this.settings = settings;
         }
         
         #endregion
@@ -67,105 +70,42 @@ namespace Verse.Models.JSON
 
         public override IDecoder<U>	HasField<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter)
         {
-        	JSONDecoder<U>	decoder;
-
-        	decoder = this.BuildDecoder (generator);
-
-        	this.fieldBrowsers[name] = (JSONLexer lexer, ref T container) =>
-    		{
-    			U	value;
-
-    			if (!decoder.Read (lexer, out value))
-    				return false;
-
-    			setter (ref container, value);
-
-    			return true;
-    		};
-
-            return decoder;
+        	return this.HasField (name, generator, setter, this.BuildDecoder (generator));
         }
+
+		public override void	HasField<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter, IDecoder<U> decoder)
+		{
+			if (!(decoder is JSONDecoder<U>))
+				throw new ArgumentException ("nested decoder must be a JSON decoder", "decoder");
+
+			this.HasField (name, generator, setter, (JSONDecoder<U>)decoder);
+		}
 
         public override IDecoder<U>	HasItems<U> (Func<U> generator, DecoderArraySetter<T, U> setter)
         {
-        	JSONDecoder<U>	decoder;
-
-        	decoder = this.BuildDecoder (generator);
-
-        	this.arrayBrowser = (JSONLexer lexer, ref T container) =>
-        	{
-        		List<U>	array;
-        		U		value;
-
-        		array = new List<U> ();
-
-        		for (lexer.Next (); lexer.Lexem != JSONLexem.ArrayEnd; )
-    			{
-    				if (array.Count > 0 && !this.Expect (lexer, JSONLexem.Comma, "comma or end of array"))
-    					return false;
-
-    				if (!decoder.Read (lexer, out value))
-    					return false;
-
-    				array.Add (value);
-    			}
-
-    			lexer.Next ();
-
-    			setter (ref container, array);
-
-    			return true;
-        	};
-
-            return decoder;
+        	return this.HasItems (generator, setter, this.BuildDecoder (generator));
         }
+
+		public override void	HasItems<U> (Func<U> generator, DecoderArraySetter<T, U> setter, IDecoder<U> decoder)
+		{
+			if (!(decoder is JSONDecoder<U>))
+				throw new ArgumentException ("nested decoder must be a JSON decoder", "decoder");
+
+			this.HasItems (generator, setter, (JSONDecoder<U>)decoder);
+		}
 
         public override IDecoder<U>	HasPairs<U> (Func<U> generator, DecoderMapSetter<T, U> setter)
         {
-        	JSONDecoder<U>	decoder;
-
-        	decoder = this.BuildDecoder (generator);
-
-        	this.objectBrowser = (JSONLexer lexer, ref T container) =>
-			{
-				string							key;
-				List<KeyValuePair<string, U>>	map;
-				U								value;
-
-				map = new List<KeyValuePair<string, U>> ();
-
-				for (lexer.Next (); lexer.Lexem != JSONLexem.ObjectEnd; )
-    			{
-    				if (map.Count > 0 && !this.Expect (lexer, JSONLexem.Comma, "comma or end of object"))
-    					return false;
-
-    				if (lexer.Lexem != JSONLexem.String)
-    				{
-    					this.EventStreamError (lexer.Position, "expected object property name");
-
-    					return false;
-    				}
-
-					key = lexer.AsString;
-
-					lexer.Next ();
-
-					if (!this.Expect (lexer, JSONLexem.Colon, "colon") ||
-					    !decoder.Read (lexer, out value))
-						return false;
-
-					map.Add (new KeyValuePair<string, U> (key, value));
-    			}
-
-    			lexer.Next ();
-
-    			setter (ref container, map);
-
-    			return true;
-			};
-
-            return decoder;
+        	return this.HasPairs (generator, setter, this.BuildDecoder (generator));
         }
+
+		public override void	HasPairs<U> (Func<U> generator, DecoderMapSetter<T, U> setter, IDecoder<U> decoder)
+		{
+			if (!(decoder is JSONDecoder<U>))
+				throw new ArgumentException ("nested decoder must be a JSON decoder", "decoder");
+
+			this.HasPairs (generator, setter, (JSONDecoder<U>)decoder);
+		}
 
         #endregion
 
@@ -197,7 +137,7 @@ namespace Verse.Models.JSON
 
 			return true;
         }
-        
+
 		protected override bool	TryLinkNative ()
 		{
         	Type	type;
@@ -205,33 +145,33 @@ namespace Verse.Models.JSON
         	type = typeof (T);
 
         	if (type.IsEnum)
-        		this.selfReader = this.BuildReader<int> (JSONConverter.ToInt4s);
+        		this.selfReader = this.BuildReader<int> ((JSONLexer lexer, out int value) => { value = (int)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; });
         	else if (type == typeof (bool))
-        		this.selfReader = this.BuildReader<bool> (JSONConverter.ToBoolean);
+        		this.selfReader = this.BuildReader<bool> ((JSONLexer lexer, out bool value) => { value = lexer.Lexem != JSONLexem.False; return lexer.Lexem == JSONLexem.False || lexer.Lexem == JSONLexem.True; });
         	else if (type == typeof (char))
-        		this.selfReader = this.BuildReader<char> (JSONConverter.ToChar);
+        		this.selfReader = this.BuildReader<char> ((JSONLexer lexer, out char value) => { if (lexer.Lexem == JSONLexem.String && lexer.AsString.Length > 0) { value = lexer.AsString[0]; return true; } value = ' '; return false; });
         	else if (type == typeof (float))
-        		this.selfReader = this.BuildReader<float> (JSONConverter.ToFloat4);
+        		this.selfReader = this.BuildReader<float> ((JSONLexer lexer, out float value) => { value = (float)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; });
         	else if (type == typeof (double))
-        		this.selfReader = this.BuildReader<double> (JSONConverter.ToFloat8);
+        		this.selfReader = this.BuildReader<double> ((JSONLexer lexer, out double value) => { value = lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; });
         	else if (type == typeof (sbyte))
-        		this.selfReader = this.BuildReader<sbyte> (JSONConverter.ToInt1s);
+        		this.selfReader = this.BuildReader<sbyte> ((JSONLexer lexer, out sbyte value) => { value = (sbyte)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; });
         	else if (type == typeof (byte))
-        		this.selfReader = this.BuildReader<byte> (JSONConverter.ToInt1u);
+        		this.selfReader = this.BuildReader<byte> ((JSONLexer lexer, out byte value) => { value = (byte)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; });
         	else if (type == typeof (short))
-        		this.selfReader = this.BuildReader<short> (JSONConverter.ToInt2s);
+        		this.selfReader = this.BuildReader<short> ((JSONLexer lexer, out short value) => { value = (short)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; });
         	else if (type == typeof (ushort))
-        		this.selfReader = this.BuildReader<ushort> (JSONConverter.ToInt2u);
+        		this.selfReader = this.BuildReader<ushort> ((JSONLexer lexer, out ushort value) => { value = (ushort)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; });
         	else if (type == typeof (int))
-        		this.selfReader = this.BuildReader<int> (JSONConverter.ToInt4s);
+        		this.selfReader = this.BuildReader<int> ((JSONLexer lexer, out int value) => { value = (int)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; });
         	else if (type == typeof (uint))
-        		this.selfReader = this.BuildReader<uint> (JSONConverter.ToInt4u);
+        		this.selfReader = this.BuildReader<uint> ((JSONLexer lexer, out uint value) => { value = (uint)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; });
         	else if (type == typeof (long))
-        		this.selfReader = this.BuildReader<long> (JSONConverter.ToInt8s);
+        		this.selfReader = this.BuildReader<long> ((JSONLexer lexer, out long value) => { value = (long)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; });
         	else if (type == typeof (ulong))
-        		this.selfReader = this.BuildReader<ulong> (JSONConverter.ToInt8u);
+        		this.selfReader = this.BuildReader<ulong> ((JSONLexer lexer, out ulong value) => { value = (ulong)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; });
         	else if (type == typeof (string))
-        		this.selfReader = this.BuildReader<string> (JSONConverter.ToString);
+        		this.selfReader = this.BuildReader<string> ((JSONLexer lexer, out string value) => { value = lexer.AsString; return lexer.Lexem == JSONLexem.Null || lexer.Lexem == JSONLexem.String; });
         	else
         		return false;
 
@@ -246,7 +186,7 @@ namespace Verse.Models.JSON
         {
         	JSONDecoder<U>	decoder;
 
-        	decoder = new JSONDecoder<U> (this.converters, this.encoding, builder);
+        	decoder = new JSONDecoder<U> (this.converters, this.settings, this.encoding, builder);
         	decoder.OnStreamError += this.EventStreamError;
         	decoder.OnTypeError += this.EventTypeError;
 
@@ -302,6 +242,96 @@ namespace Verse.Models.JSON
         	lexer.Next ();
 
         	return true;
+        }
+
+		private JSONDecoder<U>	HasField<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter, JSONDecoder<U> decoder)
+		{
+        	this.fieldBrowsers[name] = (JSONLexer lexer, ref T container) =>
+    		{
+    			U	value;
+
+    			if (!decoder.Read (lexer, out value))
+    				return false;
+
+    			setter (ref container, value);
+
+    			return true;
+    		};
+
+            return decoder;
+		}
+
+        private JSONDecoder<U>	HasItems<U> (Func<U> generator, DecoderArraySetter<T, U> setter, JSONDecoder<U> decoder)
+        {
+        	this.arrayBrowser = (JSONLexer lexer, ref T container) =>
+        	{
+        		List<U>	array;
+        		U		value;
+
+        		array = new List<U> ();
+
+        		for (lexer.Next (); lexer.Lexem != JSONLexem.ArrayEnd; )
+    			{
+    				if (array.Count > 0 && !this.Expect (lexer, JSONLexem.Comma, "comma or end of array"))
+    					return false;
+					else if (!decoder.Read (lexer, out value))
+						return false;
+
+					array.Add (value);
+    			}
+
+    			lexer.Next ();
+
+    			setter (ref container, array);
+
+    			return true;
+        	};
+
+            return decoder;
+        }
+
+        private JSONDecoder<U>	HasPairs<U> (Func<U> generator, DecoderMapSetter<T, U> setter, JSONDecoder<U> decoder)
+        {
+        	this.objectBrowser = (JSONLexer lexer, ref T container) =>
+			{
+				string							key;
+				List<KeyValuePair<string, U>>	map;
+				U								value;
+
+				map = new List<KeyValuePair<string, U>> ();
+
+				for (lexer.Next (); lexer.Lexem != JSONLexem.ObjectEnd; )
+    			{
+    				if (map.Count > 0 && !this.Expect (lexer, JSONLexem.Comma, "comma or end of object"))
+    					return false;
+
+    				if (lexer.Lexem != JSONLexem.String)
+    				{
+    					this.EventStreamError (lexer.Position, "expected object property name");
+
+    					return false;
+    				}
+
+					key = lexer.AsString;
+
+					lexer.Next ();
+
+					if (!this.Expect (lexer, JSONLexem.Colon, "colon"))
+						return false;
+					else if (!decoder.Read (lexer, out value))
+						return false;
+
+					map.Add (new KeyValuePair<string, U> (key, value));
+    			}
+
+    			lexer.Next ();
+
+    			setter (ref container, map);
+
+    			return true;
+			};
+
+            return decoder;
         }
 
         private bool	Ignore (JSONLexer lexer)
@@ -378,11 +408,11 @@ namespace Verse.Models.JSON
 				return true;
         	}
 
-        	value = this.constructor ();
-
             switch (lexer.Lexem)
             {
             	case JSONLexem.ArrayBegin:
+            		value = this.constructor ();
+
             		if (this.arrayBrowser != null)
             			return this.arrayBrowser (lexer, ref value);
 
@@ -393,7 +423,7 @@ namespace Verse.Models.JSON
         				if (index > 0 && !this.Expect (lexer, JSONLexem.Comma, "comma or end of array"))
         					return false;
 
-        				if (this.fieldBrowsers.TryGetValue (index.ToString (CultureInfo.InvariantCulture), out browser))
+						if (this.fieldBrowsers.TryGetValue (index.ToString (CultureInfo.InvariantCulture), out browser))
         				{
         					if (!browser (lexer, ref value))
         						return false;
@@ -407,6 +437,8 @@ namespace Verse.Models.JSON
             		return true;
 
             	case JSONLexem.ObjectBegin:
+            		value = this.constructor ();
+
             		if (this.objectBrowser != null)
             			return this.objectBrowser (lexer, ref value);
 
@@ -431,7 +463,7 @@ namespace Verse.Models.JSON
 						if (!this.Expect (lexer, JSONLexem.Colon, "colon"))
 							return false;
 
-        				if (this.fieldBrowsers.TryGetValue (key, out browser))
+						if (this.fieldBrowsers.TryGetValue (key, out browser))
         				{
         					if (!browser (lexer, ref value))
         						return false;
@@ -439,12 +471,14 @@ namespace Verse.Models.JSON
         				else if (!this.Ignore (lexer))
         					return false;
         			}
-        			
+
         			lexer.Next ();
 
             		return true;
 
             	default:
+            		value = default (T);
+
             		return this.Ignore (lexer);
             }
         }

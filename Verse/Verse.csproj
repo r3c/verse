@@ -60,12 +60,12 @@
     <Compile Include="src\Models\AbstractDecoder.cs" />
     <Compile Include="src\Models\AbstractEncoder.cs" />
     <Compile Include="src\Models\AbstractSchema.cs" />
+    <Compile Include="src\Models\JSON\JSONSettings.cs" />
     <Compile Include="src\Models\JSON\Writers\JSONIndentWriter.cs" />
     <Compile Include="src\Models\JSON\JSONWriter.cs" />
     <Compile Include="src\Models\ConvertDecoder.cs" />
     <Compile Include="src\Models\ConvertEncoder.cs" />
     <Compile Include="src\Models\ConvertSchema.cs" />
-    <Compile Include="src\Models\JSON\JSONConverter.cs" />
     <Compile Include="src\Models\JSON\JSONDecoder.cs" />
     <Compile Include="src\Models\JSON\JSONLexem.cs" />
     <Compile Include="src\Models\JSON\JSONLexer.cs" />
@@ -84,9 +84,6 @@
     <Folder Include="src\Events" />
     <Folder Include="src\Models\JSON\Writers" />
     <Folder Include="src\Dynamics" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="ProfilingSessions\Session20130401_130923.sdps" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

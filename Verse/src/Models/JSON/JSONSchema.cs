@@ -24,12 +24,14 @@ namespace Verse.Models.JSON
 		private Encoding							encoding;
 
 		private Func<Stream, Encoding, JSONWriter>	generator;
-		
+
+		private JSONSettings						settings;
+
 		#endregion
 		
 		#region Constructors
 
-		public	JSONSchema (Func<Stream, Encoding, JSONWriter> generator, Encoding encoding)
+		public	JSONSchema (JSONSettings settings, Func<Stream, Encoding, JSONWriter> generator, Encoding encoding)
 		{
 			if (encoding == null)
 				throw new ArgumentNullException ("encoding");
@@ -39,15 +41,21 @@ namespace Verse.Models.JSON
 
 			this.encoding = encoding;
 			this.generator = generator;
+			this.settings = settings;
 		}
 
-		public	JSONSchema (Func<Stream, Encoding, JSONWriter> generator) :
-			this (generator, new UTF8Encoding (false))
+		public	JSONSchema (JSONSettings settings, Func<Stream, Encoding, JSONWriter> generator) :
+			this (settings, generator, new UTF8Encoding (false))
+		{
+		}
+
+		public	JSONSchema (JSONSettings settings) :
+			this (settings, (s, e) => new JSONWriter (s, e))
 		{
 		}
 
 		public	JSONSchema () :
-			this ((s, e) => new JSONWriter (s, e))
+			this (0)
 		{
 		}
 		
@@ -62,7 +70,7 @@ namespace Verse.Models.JSON
 			if (constructor == null)
 				throw new ArgumentNullException ("constructor");
 
-			decoder = new JSONDecoder<T> (this.decoderConverters, this.encoding, constructor);
+			decoder = new JSONDecoder<T> (this.decoderConverters, this.settings, this.encoding, constructor);
 			decoder.OnStreamError += this.EventStreamError;
 			decoder.OnTypeError += this.EventTypeError;
 
@@ -73,7 +81,7 @@ namespace Verse.Models.JSON
 		{
 			AbstractEncoder<T>	encoder;
 
-			encoder = new JSONEncoder<T> (this.encoderConverters, this.encoding, this.generator);
+			encoder = new JSONEncoder<T> (this.encoderConverters, this.settings, this.encoding, this.generator);
 			encoder.OnStreamError += this.EventStreamError;
 			encoder.OnTypeError += this.EventTypeError;
 

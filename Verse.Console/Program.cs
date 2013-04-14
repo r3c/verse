@@ -6,15 +6,15 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 
-namespace Verse.Console
+namespace Verse.Test
 {
 	class Program
 	{
 		public static void Main(string[] args)
 		{
-			RecursiveEncoding.TestContainsValue ();
-			RecursiveEncoding.TestContainsArray ();
-			SimpleEncoding.Test ();
+			RecursiveCoding.TestContainsValue ();
+			RecursiveCoding.TestContainsArray ();
+			TypeCoding.Test ();
 
 			System.Console.ReadKey (true);
 		}

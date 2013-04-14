@@ -25,9 +25,15 @@ namespace Verse.Models
 
 		public abstract IDecoder<U>	HasField<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter);
 
+		public abstract void		HasField<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter, IDecoder<U> decoder);
+
 		public abstract IDecoder<U>	HasItems<U> (Func<U> generator, DecoderArraySetter<T, U> setter);
 
+		public abstract void		HasItems<U> (Func<U> generator, DecoderArraySetter<T, U> setter, IDecoder<U> decoder);
+
 		public abstract IDecoder<U>	HasPairs<U> (Func<U> generator, DecoderMapSetter<T, U> setter);
+
+		public abstract void		HasPairs<U> (Func<U> generator, DecoderMapSetter<T, U> setter, IDecoder<U> decoder);
 
 		protected abstract bool		TryLink ();
 
@@ -122,17 +128,32 @@ namespace Verse.Models
 
 		public IDecoder<U>	HasField<U> (string name, DecoderValueSetter<T, U> setter)
 		{
-			return this.HasField<U> (name, Generator.Constructor<U> (), setter);
+			return this.HasField (name, Generator.Constructor<U> (), setter);
+		}
+
+		public void	HasField<U> (string name, DecoderValueSetter<T, U> setter, IDecoder<U> decoder)
+		{
+			this.HasField (name, Generator.Constructor<U> (), setter, decoder);
 		}
 
 		public IDecoder<U>	HasItems<U> (DecoderArraySetter<T, U> setter)
 		{
-			return this.HasItems<U> (Generator.Constructor<U> (), setter);
+			return this.HasItems (Generator.Constructor<U> (), setter);
+		}
+
+		public void	HasItems<U> (DecoderArraySetter<T, U> setter, IDecoder<U> decoder)
+		{
+			this.HasItems (Generator.Constructor<U> (), setter, decoder);
 		}
 
 		public IDecoder<U>	HasPairs<U> (DecoderMapSetter<T, U> setter)
 		{
-			return this.HasPairs<U> (Generator.Constructor<U> (), setter);
+			return this.HasPairs (Generator.Constructor<U> (), setter);
+		}
+
+		public void	HasPairs<U> (DecoderMapSetter<T, U> setter, IDecoder<U> decoder)
+		{
+			this.HasPairs (Generator.Constructor<U> (), setter, decoder);
 		}
 
 		#endregion

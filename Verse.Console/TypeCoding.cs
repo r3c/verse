@@ -5,9 +5,9 @@ using System.IO;
 using Verse.Models.JSON;
 using Verse.Models.JSON.Writers;
 
-namespace Verse.Console
+namespace Verse.Test
 {
-	public class SimpleEncoding
+	public class TypeCoding
 	{
 		enum	MyEnum
 		{
@@ -35,7 +35,7 @@ namespace Verse.Console
 			MyValue				value1;
 			MyValue				value2;
 
-			schema = new JSONSchema ((s, e) => new JSONIndentWriter (s, e, "  "));
+			schema = new JSONSchema (0, (s, e) => new JSONIndentWriter (s, e, "  "));
 			schema.OnStreamError += (position, message) => System.Console.Error.WriteLine ("Stream error at position {0}: {1}", position, message);
 			schema.OnTypeError += (type, value) => System.Console.Error.WriteLine ("Type error: could not convert \"{1}\" to {0}", type, value);
 			schema.SetDecoderConverter<Guid> (Guid.TryParse);
@@ -80,12 +80,12 @@ namespace Verse.Console
 				Converter<IEnumerable<float>, string>							floatsConverter = (floats) => "[" + string.Join (", ", new List<float> (floats).ConvertAll ((f) => f.ToString ()).ToArray ()) + "]";
 				Converter<IEnumerable<KeyValuePair<string, string>>, string>	pairsConverter = (pairs) => "{" + string.Join (", ", new List<KeyValuePair<string, string>> (pairs).ConvertAll ((p) => p.Key + ": " + p.Value).ToArray ()) + "}";
 
-				System.Console.WriteLine (floatsConverter (value1.floats) + " / " + floatsConverter (value2.floats));
-				System.Console.WriteLine (value1.guid + " / " + value2.guid);
-				System.Console.WriteLine (value1.int2 + " / " + value2.int2);
-				System.Console.WriteLine (value1.myEnum + " / " + value2.myEnum);
-				System.Console.WriteLine (pairsConverter (value1.pairs) + " / " + pairsConverter (value2.pairs));
-				System.Console.WriteLine (value1.str + " / " + value2.str);
+				Console.WriteLine (floatsConverter (value1.floats) + " / " + floatsConverter (value2.floats));
+				Console.WriteLine (value1.guid + " / " + value2.guid);
+				Console.WriteLine (value1.int2 + " / " + value2.int2);
+				Console.WriteLine (value1.myEnum + " / " + value2.myEnum);
+				Console.WriteLine (pairsConverter (value1.pairs) + " / " + pairsConverter (value2.pairs));
+				Console.WriteLine (value1.str + " / " + value2.str);
 			}
 
 			return true;
