@@ -21,6 +21,8 @@ namespace Verse.Models.JSON
 
 		private Writer								selfWriter;
 
+		private bool								settingOmitNull;
+
 		private JSONSettings						settings;
 
         #endregion
@@ -34,6 +36,7 @@ namespace Verse.Models.JSON
 			this.fieldWriters = new Dictionary<string, Writer> ();
 			this.generator = generator;
 			this.selfWriter = null;
+			this.settingOmitNull = (settings & JSONSettings.OmitNull) == JSONSettings.OmitNull;
 			this.settings = settings;
 		}
 
@@ -209,7 +212,7 @@ namespace Verse.Models.JSON
 
 				foreach (U value in getter (container))
 				{
-					if (value == null && (this.settings & JSONSettings.OmitNullItems) == JSONSettings.OmitNullItems)
+					if (value == null && this.settingOmitNull)
 						continue;
 
 					if (empty)
@@ -246,7 +249,7 @@ namespace Verse.Models.JSON
 
 				foreach (KeyValuePair<string, U> pair in getter (container))
 				{
-					if (pair.Value == null && (this.settings & JSONSettings.OmitNullItems) == JSONSettings.OmitNullItems)
+					if (pair.Value == null && this.settingOmitNull)
 						continue;
 
 					if (empty)

@@ -4,7 +4,7 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # SharpDevelop 4.3
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Verse", "Verse\Verse.csproj", "{893A0620-914F-4A39-B20F-323BD0ED5969}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Verse.Test", "Verse.Console\Verse.Test.csproj", "{97DFC44F-DACF-489C-910E-0827F68A8F30}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Verse.Test", "Verse.Test\Verse.Test.csproj", "{97DFC44F-DACF-489C-910E-0827F68A8F30}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
