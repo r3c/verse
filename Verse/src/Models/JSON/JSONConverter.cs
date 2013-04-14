@@ -3,74 +3,10 @@ using System.Globalization;
 
 namespace Verse.Models.JSON
 {
+	#warning delete me
 	static class	JSONConverter
 	{
 		#region Methods
-
-		public static void	FromBoolean (JSONPrinter printer, bool value)
-		{
-			printer.PrintBoolean (value);
-		}
-
-		public static void	FromChar (JSONPrinter printer, char value)
-		{
-			printer.PrintString (value.ToString (CultureInfo.InvariantCulture));
-		}
-
-		public static void	FromFloat4 (JSONPrinter printer, float value)
-		{
-			printer.PrintNumber (value);
-		}
-
-		public static void	FromFloat8 (JSONPrinter printer, double value)
-		{
-			printer.PrintNumber (value);
-		}
-
-		public static void	FromInt1s (JSONPrinter printer, sbyte value)
-		{
-			printer.PrintNumber (value);
-		}
-
-		public static void	FromInt1u (JSONPrinter printer, byte value)
-		{
-			printer.PrintNumber (value);
-		}
-
-		public static void	FromInt2s (JSONPrinter printer, short value)
-		{
-			printer.PrintNumber (value);
-		}
-
-		public static void	FromInt2u (JSONPrinter printer, ushort value)
-		{
-			printer.PrintNumber (value);
-		}
-
-		public static void	FromInt4s (JSONPrinter printer, int value)
-		{
-			printer.PrintNumber (value);
-		}
-
-		public static void	FromInt4u (JSONPrinter printer, uint value)
-		{
-			printer.PrintNumber (value);
-		}
-
-		public static void	FromInt8s (JSONPrinter printer, long value)
-		{
-			printer.PrintNumber (value);
-		}
-
-		public static void	FromInt8u (JSONPrinter printer, ulong value)
-		{
-			printer.PrintNumber (value);
-		}
-
-		public static void	FromString (JSONPrinter printer, string value)
-		{
-			printer.PrintString (value);
-		}
 
 		public static bool	ToBoolean (JSONLexer lexer, out bool value)
 		{

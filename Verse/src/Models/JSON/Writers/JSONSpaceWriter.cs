@@ -3,9 +3,9 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace Verse.Models.JSON.Printers
+namespace Verse.Models.JSON.Writers
 {
-	public class JSONSpacePrinter : JSONPrinter
+	public class JSONSpaceWriter : JSONWriter
 	{
 		#region Attributes
 
@@ -15,13 +15,13 @@ namespace Verse.Models.JSON.Printers
 		
 		#region Constructors
 		
-		public	JSONSpacePrinter (Stream stream, Encoding encoding, string space) :
+		public	JSONSpaceWriter (Stream stream, Encoding encoding, string space) :
 			base (stream, encoding)
 		{
 			this.space = space;
 		}
 
-		public	JSONSpacePrinter (Stream stream, Encoding encoding) :
+		public	JSONSpaceWriter (Stream stream, Encoding encoding) :
 			this (stream, encoding, " ")
 		{
 		}
@@ -30,16 +30,16 @@ namespace Verse.Models.JSON.Printers
 
 		#region Methods
 
-		public override void	PrintColon ()
+		public override void	WriteColon ()
 		{
-			base.PrintColon ();
+			base.WriteColon ();
 
 			this.writer.Write (this.space);
 		}
 
-		public override void	PrintComma()
+		public override void	WriteComma()
 		{
-			base.PrintComma ();
+			base.WriteComma ();
 
 			this.writer.Write (this.space);
 		}

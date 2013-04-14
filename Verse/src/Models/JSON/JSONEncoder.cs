@@ -17,21 +17,21 @@ namespace Verse.Models.JSON
 
         private Dictionary<string, Writer>			fieldWriters;
 
-		private Func<Stream, Encoding, JSONPrinter>	printer;
+		private Func<Stream, Encoding, JSONWriter>	generator;
 
-		private Writer								writer;
+		private Writer								selfWriter;
 
         #endregion
 
         #region Constructors
 
-        public	JSONEncoder (Dictionary<Type, object> converters, Encoding encoding, Func<Stream, Encoding, JSONPrinter> printer) :
+        public	JSONEncoder (Dictionary<Type, object> converters, Encoding encoding, Func<Stream, Encoding, JSONWriter> generator) :
         	base (converters)
 		{
-			this.printer = printer;
 			this.encoding = encoding;
 			this.fieldWriters = new Dictionary<string, Writer> ();
-			this.writer = null;
+			this.generator = generator;
+			this.selfWriter = null;
 		}
 
 		#endregion
@@ -40,100 +40,49 @@ namespace Verse.Models.JSON
 
         public override bool	Encode (Stream stream, T instance)
         {
-            using (JSONPrinter printer = this.printer (stream, this.encoding))
+            using (JSONWriter writer = this.generator (stream, this.encoding))
             {
-            	return this.Write (printer, instance);
+            	return this.Write (writer, instance);
             }
         }
 
+		public override void	HasField<U> (string name, EncoderValueGetter<T, U> getter, IEncoder<U> encoder)
+		{
+			if (!(encoder is JSONEncoder<U>))
+				throw new ArgumentException ("nested encoder must be a JSON encoder", "encoder");
+
+			this.HasField (name, getter, (JSONEncoder<U>)encoder);
+		}
+
 		public override IEncoder<U>	HasField<U> (string name, EncoderValueGetter<T, U> getter)
 		{
-        	JSONEncoder<U>	encoder;
+			return this.HasField (name, getter, this.BuildEncoder<U> ());
+		}
 
-        	encoder = this.BuildEncoder<U> ();
+		public override void	HasItems<U> (EncoderArrayGetter<T, U> getter, IEncoder<U> encoder)
+		{
+			if (!(encoder is JSONEncoder<U>))
+				throw new ArgumentException ("nested encoder must be a JSON encoder", "encoder");
 
-        	this.fieldWriters[name] = (printer, container) => encoder.Write (printer, getter (container));
-
-        	return encoder;
+			this.HasItems (getter, (JSONEncoder<U>)encoder);
 		}
 
 		public override IEncoder<U>	HasItems<U> (EncoderArrayGetter<T, U> getter)
 		{
-        	JSONEncoder<U>	encoder;
+			return this.HasItems (getter, this.BuildEncoder<U> ());
+		}
 
-        	encoder = this.BuildEncoder<U> ();
+		public override void	HasPairs<U> (EncoderMapGetter<T, U> getter, IEncoder<U> encoder)
+		{
+			if (!(encoder is JSONEncoder<U>))
+				throw new ArgumentException ("nested encoder must be a JSON encoder", "encoder");
 
-			this.writer = (printer, container) =>
-			{
-				bool	empty;
-
-				empty = true;
-
-				foreach (U value in getter (container))
-				{
-					if (empty)
-					{
-						printer.PrintArrayBegin ();
-
-						empty = false;
-					}
-					else
-						printer.PrintComma ();
-
-					if (!encoder.Write (printer, value))
-						return false;
-				}
-
-				if (empty)
-					printer.PrintArrayBegin ();
-
-				printer.PrintArrayEnd ();
-
-				return true;
-			};
-
-			return encoder;
+			this.HasPairs (getter, (JSONEncoder<U>)encoder);
 		}
 
 		public override IEncoder<U>	HasPairs<U> (EncoderMapGetter<T, U> getter)
 		{
-        	JSONEncoder<U>	encoder;
-
-        	encoder = this.BuildEncoder<U> ();
-
-			this.writer = (printer, container) =>
-			{
-				bool	empty;
-
-				empty = true;
-
-				foreach (KeyValuePair<string, U> pair in getter (container))
-				{
-					if (empty)
-					{
-						printer.PrintObjectBegin ();
-
-						empty = false;
-					}
-					else
-						printer.PrintComma ();
-
-					printer.PrintString (pair.Key);
-					printer.PrintColon ();
-
-					if (!encoder.Write (printer, pair.Value))
-						return false;
-				}
-
-				if (empty)
-					printer.PrintObjectBegin ();
-
-				printer.PrintObjectEnd ();
-
-				return true;
-			};
-
-			return encoder;
+			return this.HasPairs (getter, this.BuildEncoder<U> ());
 		}
 
         #endregion
@@ -142,7 +91,7 @@ namespace Verse.Models.JSON
 
 		protected override bool	TryLinkConvert (ConvertSchema<string>.EncoderConverter<T> converter)
     	{
-			this.writer = (printer, input) =>
+			this.selfWriter = (writer, input) =>
 			{
 				string	value;
 
@@ -150,9 +99,9 @@ namespace Verse.Models.JSON
 					return false;
 
 				if (value != null)
-					printer.PrintString (value);
+					writer.WriteString (value);
 				else
-					printer.PrintNull ();
+					writer.WriteNull ();
 
 				return true;
 			};
@@ -167,33 +116,33 @@ namespace Verse.Models.JSON
         	type = typeof (T);
 
         	if (type.IsEnum)
-        		this.writer = this.BuildWriter<int> (JSONConverter.FromInt4s);
+        		this.selfWriter = this.BuildWriter<int> ((writer, value) => writer.WriteNumber (value));
         	else if (type == typeof (bool))
-        		this.writer = this.BuildWriter<bool> (JSONConverter.FromBoolean);
+        		this.selfWriter = this.BuildWriter<bool> ((writer, value) => writer.WriteBoolean (value));
         	else if (type == typeof (char))
-        		this.writer = this.BuildWriter<char> (JSONConverter.FromChar);
+        		this.selfWriter = this.BuildWriter<char> ((writer, value) => writer.WriteString (new string (value, 1)));
         	else if (type == typeof (float))
-        		this.writer = this.BuildWriter<float> (JSONConverter.FromFloat4);
+        		this.selfWriter = this.BuildWriter<float> ((writer, value) => writer.WriteNumber (value));
         	else if (type == typeof (double))
-        		this.writer = this.BuildWriter<double> (JSONConverter.FromFloat8);
+        		this.selfWriter = this.BuildWriter<double> ((writer, value) => writer.WriteNumber (value));
         	else if (type == typeof (sbyte))
-        		this.writer = this.BuildWriter<sbyte> (JSONConverter.FromInt1s);
+        		this.selfWriter = this.BuildWriter<sbyte> ((writer, value) => writer.WriteNumber (value));
         	else if (type == typeof (byte))
-        		this.writer = this.BuildWriter<byte> (JSONConverter.FromInt1u);
+        		this.selfWriter = this.BuildWriter<byte> ((writer, value) => writer.WriteNumber (value));
         	else if (type == typeof (short))
-        		this.writer = this.BuildWriter<short> (JSONConverter.FromInt2s);
+        		this.selfWriter = this.BuildWriter<short> ((writer, value) => writer.WriteNumber (value));
         	else if (type == typeof (ushort))
-        		this.writer = this.BuildWriter<ushort> (JSONConverter.FromInt2u);
+        		this.selfWriter = this.BuildWriter<ushort> ((writer, value) => writer.WriteNumber (value));
         	else if (type == typeof (int))
-        		this.writer = this.BuildWriter<int> (JSONConverter.FromInt4s);
+        		this.selfWriter = this.BuildWriter<int> ((writer, value) => writer.WriteNumber (value));
         	else if (type == typeof (uint))
-        		this.writer = this.BuildWriter<uint> (JSONConverter.FromInt4u);
+        		this.selfWriter = this.BuildWriter<uint> ((writer, value) => writer.WriteNumber (value));
         	else if (type == typeof (long))
-        		this.writer = this.BuildWriter<long> (JSONConverter.FromInt8s);
+        		this.selfWriter = this.BuildWriter<long> ((writer, value) => writer.WriteNumber (value));
         	else if (type == typeof (ulong))
-        		this.writer = this.BuildWriter<ulong> (JSONConverter.FromInt8u);
+        		this.selfWriter = this.BuildWriter<ulong> ((writer, value) => writer.WriteNumber (value));
         	else if (type == typeof (string))
-        		this.writer = this.BuildWriter<string> (JSONConverter.FromString);
+        		this.selfWriter = this.BuildWriter<string> ((writer, value) => writer.WriteString (value));
         	else
         		return false;
 
@@ -208,7 +157,7 @@ namespace Verse.Models.JSON
         {
         	JSONEncoder<U>	encoder;
 
-        	encoder = new JSONEncoder<U> (this.converters, this.encoding, this.printer);
+        	encoder = new JSONEncoder<U> (this.converters, this.encoding, this.generator);
         	encoder.OnStreamError += this.EventStreamError;
         	encoder.OnTypeError += this.EventTypeError;
 
@@ -221,38 +170,116 @@ namespace Verse.Models.JSON
 			DynamicMethod		method;
         	WriterWrapper<U>	wrapper;
 
-        	method = new DynamicMethod (string.Empty, typeof (void), new Type[] {typeof (JSONPrinter), typeof (WriterInjector<U>), typeof (T)}, typeof (JSONEncoder<T>).Module, true);
+        	method = new DynamicMethod (string.Empty, typeof (void), new Type[] {typeof (JSONWriter), typeof (WriterInjector<U>), typeof (T)}, typeof (JSONEncoder<T>).Module, true);
 
 			generator = method.GetILGenerator ();
 			generator.Emit (OpCodes.Ldarg_1);
 			generator.Emit (OpCodes.Ldarg_0);
 			generator.Emit (OpCodes.Ldarg_2);
-			generator.Emit (OpCodes.Call, Resolver.Method<WriterInjector<U>, JSONPrinter, U> ((i, printer, value) => i.Invoke (printer, value)));
+			generator.Emit (OpCodes.Call, Resolver.Method<WriterInjector<U>, JSONWriter, U> ((i, writer, value) => i.Invoke (writer, value)));
 			generator.Emit (OpCodes.Ret);
 
 			wrapper = (WriterWrapper<U>)method.CreateDelegate (typeof (WriterWrapper<U>));
 
-			return (printer, value) =>
+			return (writer, value) =>
 			{
-				wrapper (printer, injector, value);
+				wrapper (writer, injector, value);
 
 				return true;
 			};
 		}
 
-		private bool	Write (JSONPrinter printer, T value)
+		private JSONEncoder<U>	HasField<U> (string name, EncoderValueGetter<T, U> getter, JSONEncoder<U> encoder)
+		{
+			this.fieldWriters[name] = (writer, container) => encoder.Write (writer, getter (container));
+
+			return encoder;
+		}
+
+		private JSONEncoder<U>	HasItems<U> (EncoderArrayGetter<T, U> getter, JSONEncoder<U> encoder)
+		{
+			this.selfWriter = (writer, container) =>
+			{
+				bool	empty;
+
+				empty = true;
+
+				foreach (U value in getter (container))
+				{
+					if (empty)
+					{
+						writer.WriteArrayBegin ();
+
+						empty = false;
+					}
+					else
+						writer.WriteComma ();
+
+					if (!encoder.Write (writer, value))
+						return false;
+				}
+
+				if (empty)
+					writer.WriteArrayBegin ();
+
+				writer.WriteArrayEnd ();
+
+				return true;
+			};
+
+			return encoder;
+		}
+
+		private JSONEncoder<U>	HasPairs<U> (EncoderMapGetter<T, U> getter, JSONEncoder<U> encoder)
+		{
+			this.selfWriter = (writer, container) =>
+			{
+				bool	empty;
+
+				empty = true;
+
+				foreach (KeyValuePair<string, U> pair in getter (container))
+				{
+					if (empty)
+					{
+						writer.WriteObjectBegin ();
+
+						empty = false;
+					}
+					else
+						writer.WriteComma ();
+
+					writer.WriteString (pair.Key);
+					writer.WriteColon ();
+
+					if (!encoder.Write (writer, pair.Value))
+						return false;
+				}
+
+				if (empty)
+					writer.WriteObjectBegin ();
+
+				writer.WriteObjectEnd ();
+
+				return true;
+			};
+
+			return encoder;
+		}
+
+		private bool	Write (JSONWriter writer, T value)
 		{
 			bool	empty;
 
 			if (value == null)
 			{
-				printer.PrintNull ();
+				writer.WriteNull ();
 
 				return true;
 			}
 
-			if (this.writer != null)
-				return this.writer (printer, value);
+			if (this.selfWriter != null)
+				return this.selfWriter (writer, value);
 
 			empty = true;
 
@@ -260,24 +287,24 @@ namespace Verse.Models.JSON
 			{
 				if (empty)
 				{
-					printer.PrintObjectBegin ();
+					writer.WriteObjectBegin ();
 
 					empty = false;
 				}
 				else
-					printer.PrintComma ();
+					writer.WriteComma ();
 
-				printer.PrintString (field.Key);
-				printer.PrintColon ();
+				writer.WriteString (field.Key);
+				writer.WriteColon ();
 
-				if (!field.Value (printer, value))
+				if (!field.Value (writer, value))
 					return false;
 			}
 
 			if (empty)
-				printer.PrintObjectBegin ();
+				writer.WriteObjectBegin ();
 
-			printer.PrintObjectEnd ();
+			writer.WriteObjectEnd ();
 
 			return true;
 		}
@@ -286,11 +313,11 @@ namespace Verse.Models.JSON
 
         #region Types
 
-        private delegate bool	Writer (JSONPrinter printer, T value);
+        private delegate bool	Writer (JSONWriter writer, T value);
 
-        private delegate void	WriterInjector<U> (JSONPrinter printer, U value);
+        private delegate void	WriterInjector<U> (JSONWriter writer, U value);
 
-        private delegate void	WriterWrapper<U> (JSONPrinter printer, WriterInjector<U> importer, T value);
+        private delegate void	WriterWrapper<U> (JSONWriter writer, WriterInjector<U> importer, T value);
         
         #endregion
 	}

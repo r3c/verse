@@ -12,20 +12,26 @@ namespace Verse.Models
 	abstract class	AbstractEncoder<T> : IEncoder<T>
 	{
 		#region Events
-		
+
 		public event StreamErrorEvent	OnStreamError;
 
 		public event TypeErrorEvent		OnTypeError;
-		
+
 		#endregion
 
 		#region Methods / Abstract
 
 		public abstract bool		Encode (Stream stream, T instance);
 
+		public abstract void		HasField<U> (string name, EncoderValueGetter<T, U> getter, IEncoder<U> encoder);
+
 		public abstract IEncoder<U>	HasField<U> (string name, EncoderValueGetter<T, U> getter);
 
+		public abstract void		HasItems<U> (EncoderArrayGetter<T, U> getter, IEncoder<U> encoder);
+
 		public abstract IEncoder<U>	HasItems<U> (EncoderArrayGetter<T, U> getter);
+
+		public abstract void		HasPairs<U> (EncoderMapGetter<T, U> getter, IEncoder<U> encoder);
 
 		public abstract IEncoder<U>	HasPairs<U> (EncoderMapGetter<T, U> getter);
 

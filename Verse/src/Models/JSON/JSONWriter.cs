@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Verse.Models.JSON
 {
-	public class JSONPrinter : IDisposable
+	public class JSONWriter : IDisposable
 	{
 		#region Attributes / Instance
 
@@ -23,7 +23,7 @@ namespace Verse.Models.JSON
 
 		#region Constructors / Instance
 
-		public	JSONPrinter (Stream stream, Encoding encoding)
+		public	JSONWriter (Stream stream, Encoding encoding)
 		{
 			this.writer = new StreamWriter (stream, encoding);
 		}
@@ -32,21 +32,21 @@ namespace Verse.Models.JSON
 		
 		#region Constructors / Static
 		
-		static	JSONPrinter ()
+		static	JSONWriter ()
 		{
 			for (int i = 0; i < 10; ++i)
-				JSONPrinter.strings[i] = "\\u000" + i;
+				JSONWriter.strings[i] = "\\u000" + i;
 
 			for (int i = 10; i < 128; ++i)
-				JSONPrinter.strings[i] = ((char)i).ToString ();
+				JSONWriter.strings[i] = ((char)i).ToString ();
 
-			JSONPrinter.strings[(int)'\b'] = "\\b";
-			JSONPrinter.strings[(int)'\f'] = "\\f";
-			JSONPrinter.strings[(int)'\n'] = "\\n";
-			JSONPrinter.strings[(int)'\r'] = "\\r";
-			JSONPrinter.strings[(int)'\t'] = "\\t";
-			JSONPrinter.strings[(int)'"'] = "\\\"";
-			JSONPrinter.strings[(int)'\\'] = "\\\\";
+			JSONWriter.strings[(int)'\b'] = "\\b";
+			JSONWriter.strings[(int)'\f'] = "\\f";
+			JSONWriter.strings[(int)'\n'] = "\\n";
+			JSONWriter.strings[(int)'\r'] = "\\r";
+			JSONWriter.strings[(int)'\t'] = "\\t";
+			JSONWriter.strings[(int)'"'] = "\\\"";
+			JSONWriter.strings[(int)'\\'] = "\\\\";
 		}
 		
 		#endregion
@@ -58,61 +58,61 @@ namespace Verse.Models.JSON
 			this.writer.Dispose ();
 		}
 
-		public virtual void	PrintArrayBegin ()
+		public virtual void	WriteArrayBegin ()
 		{
 			this.writer.Write ('[');
 		}
 
-		public virtual void	PrintArrayEnd ()
+		public virtual void	WriteArrayEnd ()
 		{
 			this.writer.Write (']');
 		}
 
-		public virtual void	PrintBoolean (bool value)
+		public virtual void	WriteBoolean (bool value)
 		{
 			this.writer.Write (value ? "true" : "false");
 		}
 
-		public virtual void	PrintColon ()
+		public virtual void	WriteColon ()
 		{
 			this.writer.Write (':');
 		}
 
-		public virtual void	PrintComma ()
+		public virtual void	WriteComma ()
 		{
 			this.writer.Write (',');
 		}
 
-		public virtual void	PrintNull ()
+		public virtual void	WriteNull ()
 		{
 			this.writer.Write ("null");
 		}
 
-		public virtual void	PrintNumber (double value)
+		public virtual void	WriteNumber (double value)
 		{
 			this.writer.Write (value.ToString (CultureInfo.InvariantCulture));
 		}
 
-		public virtual void	PrintObjectBegin ()
+		public virtual void	WriteObjectBegin ()
 		{
 			this.writer.Write ('{');
 		}
 
-		public virtual void	PrintObjectEnd ()
+		public virtual void	WriteObjectEnd ()
 		{
 			this.writer.Write ('}');
 		}
 
-		public virtual void	PrintString (string value)
+		public virtual void	WriteString (string value)
 		{
 			this.writer.Write ('"');
 
 			foreach (char c in value)
 			{
 				if ((int)c < 128)
-					writer.Write (JSONPrinter.strings[(int)c]);
+					writer.Write (JSONWriter.strings[(int)c]);
 				else if ((int)c < 65536)
-					writer.Write ("\\u" + JSONPrinter.hexadecimals[((int)c / 4096) % 16] + JSONPrinter.hexadecimals[((int)c / 256) % 16] + JSONPrinter.hexadecimals[((int)c / 16) % 16] + JSONPrinter.hexadecimals[(int)c % 16]);
+					writer.Write ("\\u" + JSONWriter.hexadecimals[(int)c >> 12 & 0x0F] + JSONWriter.hexadecimals[(int)c >> 8 & 0x0F] + JSONWriter.hexadecimals[(int)c >> 4 & 0x0F] + JSONWriter.hexadecimals[(int)c & 0x0F]);
 				else
 					writer.Write ('?');
 			}

@@ -60,8 +60,8 @@
     <Compile Include="src\Models\AbstractDecoder.cs" />
     <Compile Include="src\Models\AbstractEncoder.cs" />
     <Compile Include="src\Models\AbstractSchema.cs" />
-    <Compile Include="src\Models\JSON\Printers\JSONIndentPrinter.cs" />
-    <Compile Include="src\Models\JSON\JSONPrinter.cs" />
+    <Compile Include="src\Models\JSON\Writers\JSONIndentWriter.cs" />
+    <Compile Include="src\Models\JSON\JSONWriter.cs" />
     <Compile Include="src\Models\ConvertDecoder.cs" />
     <Compile Include="src\Models\ConvertEncoder.cs" />
     <Compile Include="src\Models\ConvertSchema.cs" />
@@ -75,14 +75,14 @@
     <Compile Include="src\IDecoder.cs" />
     <Compile Include="src\ISchema.cs" />
     <Compile Include="src\IEncoder.cs" />
-    <Compile Include="src\Models\JSON\Printers\JSONSpacePrinter.cs" />
+    <Compile Include="src\Models\JSON\Writers\JSONSpaceWriter.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="src\Models" />
     <Folder Include="src\Models\JSON" />
     <Folder Include="src" />
     <Folder Include="src\Events" />
-    <Folder Include="src\Models\JSON\Printers" />
+    <Folder Include="src\Models\JSON\Writers" />
     <Folder Include="src\Dynamics" />
   </ItemGroup>
   <ItemGroup>

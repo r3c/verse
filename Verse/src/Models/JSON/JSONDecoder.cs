@@ -23,7 +23,7 @@ namespace Verse.Models.JSON
         
 		private Browser						objectBrowser;
 
-		private Reader						reader;
+		private Reader						selfReader;
 
         #endregion
 
@@ -37,7 +37,7 @@ namespace Verse.Models.JSON
 			this.encoding = encoding;
 			this.fieldBrowsers = new Dictionary<string, Browser> ();
  			this.objectBrowser = null;
-			this.reader = null;
+			this.selfReader = null;
         }
         
         #endregion
@@ -173,7 +173,7 @@ namespace Verse.Models.JSON
 
         protected override bool	TryLinkConvert (ConvertSchema<string>.DecoderConverter<T> converter)
         {
-        	this.reader = (JSONLexer lexer, out T value) =>
+        	this.selfReader = (JSONLexer lexer, out T value) =>
         	{
         		switch (lexer.Lexem)
         		{
@@ -205,33 +205,33 @@ namespace Verse.Models.JSON
         	type = typeof (T);
 
         	if (type.IsEnum)
-        		this.reader = this.BuildReader<int> (JSONConverter.ToInt4s);
+        		this.selfReader = this.BuildReader<int> (JSONConverter.ToInt4s);
         	else if (type == typeof (bool))
-        		this.reader = this.BuildReader<bool> (JSONConverter.ToBoolean);
+        		this.selfReader = this.BuildReader<bool> (JSONConverter.ToBoolean);
         	else if (type == typeof (char))
-        		this.reader = this.BuildReader<char> (JSONConverter.ToChar);
+        		this.selfReader = this.BuildReader<char> (JSONConverter.ToChar);
         	else if (type == typeof (float))
-        		this.reader = this.BuildReader<float> (JSONConverter.ToFloat4);
+        		this.selfReader = this.BuildReader<float> (JSONConverter.ToFloat4);
         	else if (type == typeof (double))
-        		this.reader = this.BuildReader<double> (JSONConverter.ToFloat8);
+        		this.selfReader = this.BuildReader<double> (JSONConverter.ToFloat8);
         	else if (type == typeof (sbyte))
-        		this.reader = this.BuildReader<sbyte> (JSONConverter.ToInt1s);
+        		this.selfReader = this.BuildReader<sbyte> (JSONConverter.ToInt1s);
         	else if (type == typeof (byte))
-        		this.reader = this.BuildReader<byte> (JSONConverter.ToInt1u);
+        		this.selfReader = this.BuildReader<byte> (JSONConverter.ToInt1u);
         	else if (type == typeof (short))
-        		this.reader = this.BuildReader<short> (JSONConverter.ToInt2s);
+        		this.selfReader = this.BuildReader<short> (JSONConverter.ToInt2s);
         	else if (type == typeof (ushort))
-        		this.reader = this.BuildReader<ushort> (JSONConverter.ToInt2u);
+        		this.selfReader = this.BuildReader<ushort> (JSONConverter.ToInt2u);
         	else if (type == typeof (int))
-        		this.reader = this.BuildReader<int> (JSONConverter.ToInt4s);
+        		this.selfReader = this.BuildReader<int> (JSONConverter.ToInt4s);
         	else if (type == typeof (uint))
-        		this.reader = this.BuildReader<uint> (JSONConverter.ToInt4u);
+        		this.selfReader = this.BuildReader<uint> (JSONConverter.ToInt4u);
         	else if (type == typeof (long))
-        		this.reader = this.BuildReader<long> (JSONConverter.ToInt8s);
+        		this.selfReader = this.BuildReader<long> (JSONConverter.ToInt8s);
         	else if (type == typeof (ulong))
-        		this.reader = this.BuildReader<ulong> (JSONConverter.ToInt8u);
+        		this.selfReader = this.BuildReader<ulong> (JSONConverter.ToInt8u);
         	else if (type == typeof (string))
-        		this.reader = this.BuildReader<string> (JSONConverter.ToString);
+        		this.selfReader = this.BuildReader<string> (JSONConverter.ToString);
         	else
         		return false;
 
@@ -366,9 +366,9 @@ namespace Verse.Models.JSON
         	int		index;
         	string	key;
 
-        	if (this.reader != null)
+        	if (this.selfReader != null)
         	{
-        		if (!this.reader (lexer, out value))
+        		if (!this.selfReader (lexer, out value))
         		{
         			this.EventTypeError (typeof (T), lexer.ToString ());
 

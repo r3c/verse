@@ -3,9 +3,9 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace Verse.Models.JSON.Printers
+namespace Verse.Models.JSON.Writers
 {
-	public class JSONIndentPrinter : JSONPrinter
+	public class JSONIndentWriter : JSONWriter
 	{
 		#region Attributes
 
@@ -17,14 +17,14 @@ namespace Verse.Models.JSON.Printers
 		
 		#region Constructors
 		
-		public	JSONIndentPrinter (Stream stream, Encoding encoding, string indent) :
+		public	JSONIndentWriter (Stream stream, Encoding encoding, string indent) :
 			base (stream, encoding)
 		{
 			this.indent = indent;
 			this.level = 0;
 		}
 
-		public	JSONIndentPrinter (Stream stream, Encoding encoding) :
+		public	JSONIndentWriter (Stream stream, Encoding encoding) :
 			this (stream, encoding, "\t")
 		{
 		}
@@ -33,9 +33,9 @@ namespace Verse.Models.JSON.Printers
 
 		#region Methods / Public
 
-		public override void	PrintArrayBegin ()
+		public override void	WriteArrayBegin ()
 		{
-			base.PrintArrayBegin ();
+			base.WriteArrayBegin ();
 
 			this.writer.Write ('\n');
 
@@ -44,7 +44,7 @@ namespace Verse.Models.JSON.Printers
 			this.Indent ();
 		}
 
-		public override void	PrintArrayEnd ()
+		public override void	WriteArrayEnd ()
 		{
 			this.writer.Write ('\n');
 
@@ -52,28 +52,28 @@ namespace Verse.Models.JSON.Printers
 
 			this.Indent ();
 
-			base.PrintArrayEnd ();
+			base.WriteArrayEnd ();
 		}
 
-		public override void	PrintComma ()
+		public override void	WriteComma ()
 		{
-			base.PrintComma ();
+			base.WriteComma ();
 
 			this.writer.Write ('\n');
 
 			this.Indent ();
 		}
 
-		public override void	PrintColon ()
+		public override void	WriteColon ()
 		{
-			base.PrintColon ();
+			base.WriteColon ();
 
 			this.writer.Write (' ');
 		}
 
-		public override void	PrintObjectBegin ()
+		public override void	WriteObjectBegin ()
 		{
-			base.PrintObjectBegin ();
+			base.WriteObjectBegin ();
 
 			this.writer.Write ('\n');
 
@@ -82,7 +82,7 @@ namespace Verse.Models.JSON.Printers
 			this.Indent ();
 		}
 
-		public override void	PrintObjectEnd ()
+		public override void	WriteObjectEnd ()
 		{
 			this.writer.Write ('\n');
 
@@ -90,7 +90,7 @@ namespace Verse.Models.JSON.Printers
 
 			this.Indent ();
 
-			base.PrintObjectEnd ();
+			base.WriteObjectEnd ();
 		}
 
 		#endregion
