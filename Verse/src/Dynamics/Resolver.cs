@@ -6,78 +6,9 @@ namespace Verse.Dynamics
 {
 	public static class Resolver
 	{
-		#region Methods / Public
+		#region Methods
 
-		public static MethodInfo	Method<T> (Expression<T> lambda, Type[] targetParameters = null, Type[] methodParameters = null)
-		{
-			return Resolver.ResolveMethod<T> (lambda, targetParameters, methodParameters);
-		}
-
-		public static MethodInfo	Method<T> (Expression<Action<T>> lambda, Type[] targetParameters = null, Type[] methodParameters = null)
-		{
-			return Resolver.ResolveMethod<Action<T>> (lambda, targetParameters, methodParameters);
-		}
-
-		public static MethodInfo	Method<T, U> (Expression<Action<T, U>> lambda, Type[] targetParameters = null, Type[] methodParameters = null)
-		{
-			return Resolver.ResolveMethod<Action<T, U>> (lambda, targetParameters, methodParameters);
-		}
-
-		public static MethodInfo	Method<T, U, V> (Expression<Action<T, U, V>> lambda, Type[] targetParameters = null, Type[] methodParameters = null)
-		{
-			return Resolver.ResolveMethod<Action<T, U, V>> (lambda, targetParameters, methodParameters);
-		}
-
-		public static MethodInfo	Method<T, U, V, W> (Expression<Action<T, U, V, W>> lambda, Type[] targetParameters = null, Type[] methodParameters = null)
-		{
-			return Resolver.ResolveMethod<Action<T, U, V, W>> (lambda, targetParameters, methodParameters);
-		}
-
-		public static MethodInfo	Method<T> (Expression<Func<T>> lambda, Type[] targetParameters = null, Type[] methodParameters = null)
-		{
-			return Resolver.ResolveMethod<Func<T>> (lambda, targetParameters, methodParameters);
-		}
-
-		public static MethodInfo	Method<T, U> (Expression<Func<T, U>> lambda, Type[] targetParameters = null, Type[] methodParameters = null)
-		{
-			return Resolver.ResolveMethod<Func<T, U>> (lambda, targetParameters, methodParameters);
-		}
-
-		public static MethodInfo	Method<T, U, V> (Expression<Func<T, U, V>> lambda, Type[] targetParameters = null, Type[] methodParameters = null)
-		{
-			return Resolver.ResolveMethod<Func<T, U, V>> (lambda, targetParameters, methodParameters);
-		}
-
-		public static MethodInfo	Method<T, U, V, W> (Expression<Func<T, U, V, W>> lambda, Type[] targetParameters = null, Type[] methodParameters = null)
-		{
-			return Resolver.ResolveMethod<Func<T, U, V, W>> (lambda, targetParameters, methodParameters);
-		}
-
-		public static PropertyInfo	Property<T> (Expression<Func<T>> lambda, Type[] targetParameters = null)
-		{
-			return Resolver.ResolveProperty<Func<T>> (lambda, targetParameters);
-		}
-
-		public static PropertyInfo	Property<T, U> (Expression<Func<T, U>> lambda, Type[] targetParameters = null)
-		{
-			return Resolver.ResolveProperty<Func<T, U>> (lambda, targetParameters);
-		}
-
-		public static PropertyInfo	Property<T, U, V> (Expression<Func<T, U, V>> lambda, Type[] targetParameters = null)
-		{
-			return Resolver.ResolveProperty<Func<T, U, V>> (lambda, targetParameters);
-		}
-
-		public static PropertyInfo	Property<T, U, V, W> (Expression<Func<T, U, V, W>> lambda, Type[] targetParameters = null)
-		{
-			return Resolver.ResolveProperty<Func<T, U, V, W>> (lambda, targetParameters);
-		}
-
-		#endregion
-		
-		#region Methods / Private
-
-		private static MethodInfo	ResolveMethod<T> (Expression<T> lambda, Type[] targetParameters, Type[] methodParameters)
+		public static MethodInfo	GetMethod<T> (Expression<T> lambda, Type[] targetParameters, Type[] methodParameters)
 	    {
 	    	MethodCallExpression	expression;
 	    	MethodInfo				method;
@@ -113,7 +44,7 @@ namespace Verse.Dynamics
 	        return method;
 	    }
 
-		private static PropertyInfo	ResolveProperty<T> (Expression<T> lambda, Type[] targetParameters)
+		public static PropertyInfo	GetProperty<T> (Expression<T> lambda, Type[] targetParameters)
 		{
 	    	MemberExpression	expression;
 	    	PropertyInfo		property;
@@ -138,6 +69,78 @@ namespace Verse.Dynamics
 			}
 
 			return property;
+		}
+
+		#endregion
+	}
+
+	public static class Resolver<T>
+	{
+		#region Methods
+
+		public static MethodInfo	Method (Expression<Action<T>> lambda, Type[] targetParameters = null, Type[] methodParameters = null)
+		{
+			return Resolver.GetMethod<Action<T>> (lambda, targetParameters, methodParameters);
+		}
+
+		public static MethodInfo	Method<U0> (Expression<Action<T, U0>> lambda, Type[] targetParameters = null, Type[] methodParameters = null)
+		{
+			return Resolver.GetMethod<Action<T, U0>> (lambda, targetParameters, methodParameters);
+		}
+
+		public static MethodInfo	Method<U0, U1> (Expression<Action<T, U0, U1>> lambda, Type[] targetParameters = null, Type[] methodParameters = null)
+		{
+			return Resolver.GetMethod<Action<T, U0, U1>> (lambda, targetParameters, methodParameters);
+		}
+
+		public static MethodInfo	Method<U0, U1, U2> (Expression<Action<T, U0, U1, U2>> lambda, Type[] targetParameters = null, Type[] methodParameters = null)
+		{
+			return Resolver.GetMethod<Action<T, U0, U1, U2>> (lambda, targetParameters, methodParameters);
+		}
+
+		public static MethodInfo	Method<U0, U1, U2, U3> (Expression<Action<T, U0, U1, U2, U3>> lambda, Type[] targetParameters = null, Type[] methodParameters = null)
+		{
+			return Resolver.GetMethod<Action<T, U0, U1, U2, U3>> (lambda, targetParameters, methodParameters);
+		}
+
+		public static MethodInfo	Method<U0> (Expression<Func<T, U0>> lambda, Type[] targetParameters = null, Type[] methodParameters = null)
+		{
+			return Resolver.GetMethod<Func<T, U0>> (lambda, targetParameters, methodParameters);
+		}
+
+		public static MethodInfo	Method<U0, U1> (Expression<Func<T, U0, U1>> lambda, Type[] targetParameters = null, Type[] methodParameters = null)
+		{
+			return Resolver.GetMethod<Func<T, U0, U1>> (lambda, targetParameters, methodParameters);
+		}
+
+		public static MethodInfo	Method<U0, U1, U2> (Expression<Func<T, U0, U1, U2>> lambda, Type[] targetParameters = null, Type[] methodParameters = null)
+		{
+			return Resolver.GetMethod<Func<T, U0, U1, U2>> (lambda, targetParameters, methodParameters);
+		}
+
+		public static MethodInfo	Method<U0, U1, U2, U3> (Expression<Func<T, U0, U1, U2, U3>> lambda, Type[] targetParameters = null, Type[] methodParameters = null)
+		{
+			return Resolver.GetMethod<Func<T, U0, U1, U2, U3>> (lambda, targetParameters, methodParameters);
+		}
+
+		public static PropertyInfo	Property<U0> (Expression<Func<T, U0>> lambda, Type[] targetParameters = null)
+		{
+			return Resolver.GetProperty<Func<T, U0>> (lambda, targetParameters);
+		}
+
+		public static PropertyInfo	Property<U0, U1> (Expression<Func<T, U0, U1>> lambda, Type[] targetParameters = null)
+		{
+			return Resolver.GetProperty<Func<T, U0, U1>> (lambda, targetParameters);
+		}
+
+		public static PropertyInfo	Property<U0, U1, U2> (Expression<Func<T, U0, U1, U2>> lambda, Type[] targetParameters = null)
+		{
+			return Resolver.GetProperty<Func<T, U0, U1, U2>> (lambda, targetParameters);
+		}
+
+		public static PropertyInfo	Property<U0, U1, U2, U3> (Expression<Func<T, U0, U1, U2, U3>> lambda, Type[] targetParameters = null)
+		{
+			return Resolver.GetProperty<Func<T, U0, U1, U2, U3>> (lambda, targetParameters);
 		}
 
 		#endregion

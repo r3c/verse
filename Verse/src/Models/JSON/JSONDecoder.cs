@@ -208,6 +208,7 @@ namespace Verse.Models.JSON
 			generator.Emit (OpCodes.Ldarg_1);
 			generator.Emit (OpCodes.Ldarg_0);
 			generator.Emit (OpCodes.Ldloca_S, 0);
+			#warning use static reflection
 			generator.Emit (OpCodes.Call, typeof (ReaderExtractor<U>).GetMethod ("Invoke"));
 			generator.Emit (OpCodes.Brtrue_S, success);
 			generator.Emit (OpCodes.Ldc_I4_0);

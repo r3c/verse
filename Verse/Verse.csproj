@@ -60,6 +60,9 @@
     <Compile Include="src\Models\AbstractDecoder.cs" />
     <Compile Include="src\Models\AbstractEncoder.cs" />
     <Compile Include="src\Models\AbstractSchema.cs" />
+    <Compile Include="src\Models\BSON\BSONDecoder.cs" />
+    <Compile Include="src\Models\BSON\BSONEncoder.cs" />
+    <Compile Include="src\Models\BSON\BSONSchema.cs" />
     <Compile Include="src\Models\JSON\JSONSettings.cs" />
     <Compile Include="src\Models\JSON\Writers\JSONIndentWriter.cs" />
     <Compile Include="src\Models\JSON\JSONWriter.cs" />
@@ -84,6 +87,7 @@
     <Folder Include="src\Events" />
     <Folder Include="src\Models\JSON\Writers" />
     <Folder Include="src\Dynamics" />
+    <Folder Include="src\Models\BSON" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -46,16 +46,19 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TypeCoding.cs" />
-    <Compile Include="RecursiveCoding.cs" />
+    <Compile Include="src\Program.cs" />
+    <Compile Include="src\RecursiveCoding.cs" />
+    <Compile Include="src\TypeCoding.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Verse\Verse.csproj">
       <Project>{893A0620-914F-4A39-B20F-323BD0ED5969}</Project>
       <Name>Verse</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="src" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
