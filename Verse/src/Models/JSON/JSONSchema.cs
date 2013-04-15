@@ -63,29 +63,14 @@ namespace Verse.Models.JSON
 		
 		#region Methods
 
-		public override IDecoder<T>	GetDecoder<T> (Func<T> constructor)
+		protected override AbstractDecoder<T>	CreateDecoder<T> (Func<T> constructor)
 		{
-			AbstractDecoder<T>	decoder;
-
-			if (constructor == null)
-				throw new ArgumentNullException ("constructor");
-
-			decoder = new JSONDecoder<T> (this.decoderConverters, this.settings, this.encoding, constructor);
-			decoder.OnStreamError += this.EventStreamError;
-			decoder.OnTypeError += this.EventTypeError;
-
-			return decoder;
+			return new JSONDecoder<T> (this.decoderConverters, this.settings, this.encoding, constructor);
 		}
 		
-		public override IEncoder<T>	GetEncoder<T> ()
+		protected override AbstractEncoder<T>	CreateEncoder<T> ()
 		{
-			AbstractEncoder<T>	encoder;
-
-			encoder = new JSONEncoder<T> (this.encoderConverters, this.settings, this.encoding, this.generator);
-			encoder.OnStreamError += this.EventStreamError;
-			encoder.OnTypeError += this.EventTypeError;
-
-			return encoder;
+			return new JSONEncoder<T> (this.encoderConverters, this.settings, this.encoding, this.generator);
 		}
 
 		#endregion

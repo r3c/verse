@@ -44,29 +44,14 @@ namespace Verse.Models.BSON
 		
 		#region Methods
 
-		public override IDecoder<T>	GetDecoder<T> (Func<T> constructor)
+		protected override AbstractDecoder<T>	CreateDecoder<T> (Func<T> constructor)
 		{
-			AbstractDecoder<T>	decoder;
-
-			if (constructor == null)
-				throw new ArgumentNullException ("constructor");
-
-			decoder = new BSONDecoder<T> (this.decoderConverters, this.encoding, constructor);
-			decoder.OnStreamError += this.EventStreamError;
-			decoder.OnTypeError += this.EventTypeError;
-
-			return decoder;
+			return new BSONDecoder<T> (this.decoderConverters, this.encoding, constructor);
 		}
 		
-		public override IEncoder<T>	GetEncoder<T> ()
+		protected override AbstractEncoder<T>	CreateEncoder<T> ()
 		{
-			AbstractEncoder<T>	encoder;
-
-			encoder = new BSONEncoder<T> (this.encoderConverters, this.encoding);
-			encoder.OnStreamError += this.EventStreamError;
-			encoder.OnTypeError += this.EventTypeError;
-
-			return encoder;
+			return new BSONEncoder<T> (this.encoderConverters, this.encoding);
 		}
 
 		#endregion

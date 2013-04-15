@@ -9,7 +9,7 @@ using Verse.Events;
 
 namespace Verse.Models
 {
-	abstract class	AbstractEncoder<T> : IEncoder<T>
+	public abstract class	AbstractEncoder<T> : IEncoder<T>
 	{
 		#region Events
 

@@ -18,17 +18,42 @@ namespace Verse.Models
 		
 		#region Methods / Abstract
 
-		public abstract IDecoder<T>	GetDecoder<T> (Func<T> constructor);
+		protected abstract AbstractDecoder<T>	CreateDecoder<T> (Func<T> constructor);
 
-		public abstract IEncoder<T>	GetEncoder<T> ();
+		protected abstract AbstractEncoder<T>	CreateEncoder<T> ();
 		
 		#endregion
 
 		#region Methods / Public
 
+		public IDecoder<T>	GetDecoder<T> (Func<T> constructor)
+		{
+			AbstractDecoder<T>	decoder;
+
+			if (constructor == null)
+				throw new ArgumentNullException ("constructor");
+
+			decoder = this.CreateDecoder (constructor);
+			decoder.OnStreamError += this.EventStreamError;
+			decoder.OnTypeError += this.EventTypeError;
+
+			return decoder;
+		}
+
 		public IDecoder<T>	GetDecoder<T> ()
 		{
 			return this.GetDecoder (Generator.Constructor<T> ());
+		}
+
+		public IEncoder<T>	GetEncoder<T> ()
+		{
+			AbstractEncoder<T>	encoder;
+
+			encoder = this.CreateEncoder<T> ();
+			encoder.OnStreamError += this.EventStreamError;
+			encoder.OnTypeError += this.EventTypeError;
+
+			return encoder;
 		}
 
 		#endregion
