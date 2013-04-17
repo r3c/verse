@@ -58,12 +58,12 @@ namespace Verse.Models.JSON
 			this.writer.Dispose ();
 		}
 
-		public virtual void	WriteArrayBegin ()
+		public virtual void	WriteArrayBegin (bool empty)
 		{
 			this.writer.Write ('[');
 		}
 
-		public virtual void	WriteArrayEnd ()
+		public virtual void	WriteArrayEnd (bool empty)
 		{
 			this.writer.Write (']');
 		}
@@ -93,12 +93,12 @@ namespace Verse.Models.JSON
 			this.writer.Write (value.ToString (CultureInfo.InvariantCulture));
 		}
 
-		public virtual void	WriteObjectBegin ()
+		public virtual void	WriteObjectBegin (bool empty)
 		{
 			this.writer.Write ('{');
 		}
 
-		public virtual void	WriteObjectEnd ()
+		public virtual void	WriteObjectEnd (bool empty)
 		{
 			this.writer.Write ('}');
 		}

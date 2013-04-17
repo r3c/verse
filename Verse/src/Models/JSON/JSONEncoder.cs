@@ -217,7 +217,7 @@ namespace Verse.Models.JSON
 
 					if (empty)
 					{
-						writer.WriteArrayBegin ();
+						writer.WriteArrayBegin (false);
 
 						empty = false;
 					}
@@ -229,9 +229,9 @@ namespace Verse.Models.JSON
 				}
 
 				if (empty)
-					writer.WriteArrayBegin ();
+					writer.WriteArrayBegin (true);
 
-				writer.WriteArrayEnd ();
+				writer.WriteArrayEnd (empty);
 
 				return true;
 			};
@@ -254,7 +254,7 @@ namespace Verse.Models.JSON
 
 					if (empty)
 					{
-						writer.WriteObjectBegin ();
+						writer.WriteObjectBegin (false);
 
 						empty = false;
 					}
@@ -269,9 +269,9 @@ namespace Verse.Models.JSON
 				}
 
 				if (empty)
-					writer.WriteObjectBegin ();
+					writer.WriteObjectBegin (true);
 
-				writer.WriteObjectEnd ();
+				writer.WriteObjectEnd (empty);
 
 				return true;
 			};
@@ -299,7 +299,7 @@ namespace Verse.Models.JSON
 			{
 				if (empty)
 				{
-					writer.WriteObjectBegin ();
+					writer.WriteObjectBegin (false);
 
 					empty = false;
 				}
@@ -314,9 +314,9 @@ namespace Verse.Models.JSON
 			}
 
 			if (empty)
-				writer.WriteObjectBegin ();
+				writer.WriteObjectBegin (true);
 
-			writer.WriteObjectEnd ();
+			writer.WriteObjectEnd (empty);
 
 			return true;
 		}

@@ -33,26 +33,32 @@ namespace Verse.Models.JSON.Writers
 
 		#region Methods / Public
 
-		public override void	WriteArrayBegin ()
+		public override void	WriteArrayBegin (bool empty)
 		{
-			base.WriteArrayBegin ();
+			base.WriteArrayBegin (empty);
 
-			this.writer.Write ('\n');
+			if (!empty)
+			{
+				this.writer.Write ('\n');
 
-			++this.level;
+				++this.level;
 
-			this.Indent ();
+				this.Indent ();
+			}
 		}
 
-		public override void	WriteArrayEnd ()
+		public override void	WriteArrayEnd (bool empty)
 		{
-			this.writer.Write ('\n');
+			if (!empty)
+			{
+				this.writer.Write ('\n');
 
-			--this.level;
+				--this.level;
 
-			this.Indent ();
+				this.Indent ();
+			}
 
-			base.WriteArrayEnd ();
+			base.WriteArrayEnd (empty);
 		}
 
 		public override void	WriteComma ()
@@ -71,26 +77,32 @@ namespace Verse.Models.JSON.Writers
 			this.writer.Write (' ');
 		}
 
-		public override void	WriteObjectBegin ()
+		public override void	WriteObjectBegin (bool empty)
 		{
-			base.WriteObjectBegin ();
+			base.WriteObjectBegin (empty);
 
-			this.writer.Write ('\n');
+			if (!empty)
+			{
+				this.writer.Write ('\n');
 
-			++this.level;
+				++this.level;
 
-			this.Indent ();
+				this.Indent ();
+			}
 		}
 
-		public override void	WriteObjectEnd ()
+		public override void	WriteObjectEnd (bool empty)
 		{
-			this.writer.Write ('\n');
+			if (!empty)
+			{
+				this.writer.Write ('\n');
 
-			--this.level;
+				--this.level;
 
-			this.Indent ();
+				this.Indent ();
+			}
 
-			base.WriteObjectEnd ();
+			base.WriteObjectEnd (empty);
 		}
 
 		#endregion
