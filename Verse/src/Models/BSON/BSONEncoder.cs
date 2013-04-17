@@ -35,7 +35,7 @@ namespace Verse.Models.BSON
 			throw new NotImplementedException ();
 		}
 		
-		public override IEncoder<U>	HasPairs<U> (EncoderMapGetter<T, U> getter)
+		protected override AbstractEncoder<U>	HasPairsAbstract<U> (EncoderMapGetter<T, U> getter)
 		{
 			throw new NotImplementedException ();
 		}
@@ -45,7 +45,7 @@ namespace Verse.Models.BSON
 			throw new NotImplementedException ();
 		}
 		
-		public override IEncoder<U>	HasItems<U> (EncoderArrayGetter<T, U> getter)
+		protected override AbstractEncoder<U>	HasItemsAbstract<U> (EncoderArrayGetter<T, U> getter)
 		{
 			throw new NotImplementedException ();
 		}
@@ -55,7 +55,7 @@ namespace Verse.Models.BSON
 			throw new NotImplementedException ();
 		}
 		
-		public override IEncoder<U>	HasField<U> (string name, EncoderValueGetter<T, U> getter)
+		protected override AbstractEncoder<U>	HasFieldAbstract<U> (string name, EncoderValueGetter<T, U> getter)
 		{
 			throw new NotImplementedException ();
 		}

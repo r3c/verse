@@ -52,7 +52,7 @@ namespace Verse.Models.JSON
             }
         }
 
-		public override IEncoder<U>	HasField<U> (string name, EncoderValueGetter<T, U> getter)
+		protected override AbstractEncoder<U>	HasFieldAbstract<U> (string name, EncoderValueGetter<T, U> getter)
 		{
 			return this.HasField (name, getter, this.BuildEncoder<U> ());
 		}
@@ -65,7 +65,7 @@ namespace Verse.Models.JSON
 			this.HasField (name, getter, (JSONEncoder<U>)encoder);
 		}
 
-		public override IEncoder<U>	HasItems<U> (EncoderArrayGetter<T, U> getter)
+		protected override AbstractEncoder<U>	HasItemsAbstract<U> (EncoderArrayGetter<T, U> getter)
 		{
 			return this.HasItems (getter, this.BuildEncoder<U> ());
 		}
@@ -78,7 +78,7 @@ namespace Verse.Models.JSON
 			this.HasItems (getter, (JSONEncoder<U>)encoder);
 		}
 
-		public override IEncoder<U>	HasPairs<U> (EncoderMapGetter<T, U> getter)
+		protected override AbstractEncoder<U>	HasPairsAbstract<U> (EncoderMapGetter<T, U> getter)
 		{
 			return this.HasPairs (getter, this.BuildEncoder<U> ());
 		}

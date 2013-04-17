@@ -21,27 +21,82 @@ namespace Verse.Models
 
 		#region Methods / Abstract
 
-		public abstract bool		Encode (Stream stream, T instance);
+		public abstract bool					Encode (Stream stream, T instance);
 
-		public abstract IEncoder<U>	HasField<U> (string name, EncoderValueGetter<T, U> getter);
+		protected abstract AbstractEncoder<U>	HasFieldAbstract<U> (string name, EncoderValueGetter<T, U> getter);
 
-		public abstract void		HasField<U> (string name, EncoderValueGetter<T, U> getter, IEncoder<U> encoder);
+		public abstract void					HasField<U> (string name, EncoderValueGetter<T, U> getter, IEncoder<U> encoder);
 
-		public abstract IEncoder<U>	HasItems<U> (EncoderArrayGetter<T, U> getter);
+		protected abstract AbstractEncoder<U>	HasItemsAbstract<U> (EncoderArrayGetter<T, U> getter);
 
-		public abstract void		HasItems<U> (EncoderArrayGetter<T, U> getter, IEncoder<U> encoder);
+		public abstract void					HasItems<U> (EncoderArrayGetter<T, U> getter, IEncoder<U> encoder);
 
-		public abstract IEncoder<U>	HasPairs<U> (EncoderMapGetter<T, U> getter);
+		protected abstract AbstractEncoder<U>	HasPairsAbstract<U> (EncoderMapGetter<T, U> getter);
 
-		public abstract void		HasPairs<U> (EncoderMapGetter<T, U> getter, IEncoder<U> encoder);
+		public abstract void					HasPairs<U> (EncoderMapGetter<T, U> getter, IEncoder<U> encoder);
 
-		protected abstract bool		TryLink ();
+		protected abstract bool					TryLink ();
 
 		#endregion
 
 		#region Methods / Public
 
-		public void		Link ()
+		public IEncoder<U>	HasField<U> (string name, EncoderValueGetter<T, U> getter)
+		{
+			return this.HasFieldAbstract (name, getter);
+		}
+
+		public IEncoder<U>	HasItems<U> (EncoderArrayGetter<T, U> getter)
+		{
+			return this.HasItemsAbstract (getter);
+		}
+
+		public IEncoder<U>	HasPairs<U> (EncoderMapGetter<T, U> getter)
+		{
+			return this.HasPairsAbstract (getter);
+		}
+
+		public void	Link ()
+		{
+			this.LinkType (new Dictionary<Type, object> ());
+		}
+
+		#endregion
+
+		#region Methods / Protected
+
+		protected void	EventStreamError (long position, string message)
+		{
+			StreamErrorEvent	error;
+
+			error = this.OnStreamError;
+
+			if (error != null)
+				error (position, message);
+		}
+
+		protected void	EventTypeError (Type type, string value)
+		{
+			TypeErrorEvent	error;
+
+			error = this.OnTypeError;
+
+			if (error != null)
+				error (type, value);
+		}
+
+		#endregion
+
+		#region Methods / Private
+
+		private void	LinkInvoke (Type type, object target, Dictionary<Type, object> encoders)
+		{
+			Resolver<AbstractEncoder<object>>
+				.Method<Dictionary<Type, object>> ((encoder, e) => encoder.LinkType (e), new Type[] {type})
+				.Invoke (target, new object[] {encoders});
+		}
+
+		private void	LinkType (Dictionary<Type, object> encoders)
 		{
 			Type[]		arguments;
 			Type		container;
@@ -52,6 +107,9 @@ namespace Verse.Models
 				return;
 
 			container = typeof (T);
+
+			encoders = new Dictionary<Type, object> (encoders);
+			encoders[container] = this;
 
 			// Check is container type is or implements IEnumerable<> interface
 			if (container.IsGenericType && container.GetGenericTypeDefinition () == typeof (IEnumerable<>))
@@ -88,17 +146,17 @@ namespace Verse.Models
 					{
 						inner = arguments[1];
 
-						AbstractEncoder<T>.LinkInvoke (inner, Resolver<IEncoder<T>>
-							.Method<EncoderMapGetter<T, object>, IEncoder<object>> ((encoder, getter) => encoder.HasPairs (getter), null, new Type[] {inner})
-							.Invoke (this, new object[] {AbstractEncoder<T>.MakeMapGetter (container, inner)}));
+						this.LinkInvoke (inner, Resolver<AbstractEncoder<T>>
+							.Method<EncoderMapGetter<T, object>, AbstractEncoder<object>> ((encoder, getter) => encoder.HasPairsAbstract (getter), null, new Type[] {inner})
+							.Invoke (this, new object[] {AbstractEncoder<T>.MakeMapGetter (container, inner)}), encoders);
 
 						return;
 					}
 				}
 
-				AbstractEncoder<T>.LinkInvoke (inner, Resolver<IEncoder<T>>
-					.Method<EncoderArrayGetter<T, object>, IEncoder<object>> ((encoder, getter) => encoder.HasItems (getter), null, new Type[] {inner})
-					.Invoke (this, new object[] {AbstractEncoder<T>.MakeArrayGetter (container, inner)}));
+				this.LinkInvoke (inner, Resolver<AbstractEncoder<T>>
+					.Method<EncoderArrayGetter<T, object>, AbstractEncoder<object>> ((encoder, getter) => encoder.HasItemsAbstract (getter), null, new Type[] {inner})
+					.Invoke (this, new object[] {AbstractEncoder<T>.MakeArrayGetter (container, inner)}), encoders);
 
 				return;
 			}
@@ -109,9 +167,9 @@ namespace Verse.Models
 				if (property.GetGetMethod () == null || property.GetSetMethod () == null || (property.Attributes & PropertyAttributes.SpecialName) == PropertyAttributes.SpecialName)
 					continue;
 
-				AbstractEncoder<T>.LinkInvoke (property.PropertyType, Resolver<IEncoder<T>>
-					.Method<string, EncoderValueGetter<T, object>, IEncoder<object>> ((encoder, name, getter) => encoder.HasField (name, getter), null, new Type[] {property.PropertyType})
-					.Invoke (this, new object[] {property.Name, AbstractEncoder<T>.MakeValueGetter (property)}));
+				this.LinkInvoke (property.PropertyType, Resolver<AbstractEncoder<T>>
+					.Method<string, EncoderValueGetter<T, object>, AbstractEncoder<object>> ((encoder, name, getter) => encoder.HasFieldAbstract (name, getter), null, new Type[] {property.PropertyType})
+					.Invoke (this, new object[] {property.Name, AbstractEncoder<T>.MakeValueGetter (property)}), encoders);
 			}
 
 			// Browse public fields
@@ -120,45 +178,10 @@ namespace Verse.Models
 				if ((field.Attributes & FieldAttributes.SpecialName) == FieldAttributes.SpecialName)
 					continue;
 
-				AbstractEncoder<T>.LinkInvoke (field.FieldType, Resolver<IEncoder<T>>
-					.Method<string, EncoderValueGetter<T, object>, IEncoder<object>> ((encoder, name, getter) => encoder.HasField (name, getter), null, new Type[] {field.FieldType})
-					.Invoke (this, new object[] {field.Name, AbstractEncoder<T>.MakeValueGetter (field)}));
+				this.LinkInvoke (field.FieldType, Resolver<AbstractEncoder<T>>
+					.Method<string, EncoderValueGetter<T, object>, AbstractEncoder<object>> ((encoder, name, getter) => encoder.HasFieldAbstract (name, getter), null, new Type[] {field.FieldType})
+					.Invoke (this, new object[] {field.Name, AbstractEncoder<T>.MakeValueGetter (field)}), encoders);
 			}
-		}
-
-		#endregion
-
-		#region Methods / Protected
-
-		protected void	EventStreamError (long position, string message)
-		{
-			StreamErrorEvent	error;
-
-			error = this.OnStreamError;
-
-			if (error != null)
-				error (position, message);
-		}
-
-		protected void	EventTypeError (Type type, string value)
-		{
-			TypeErrorEvent	error;
-
-			error = this.OnTypeError;
-
-			if (error != null)
-				error (type, value);
-		}
-
-		#endregion
-
-		#region Methods / Private
-
-		private static void	LinkInvoke (Type type, object target)
-		{
-			Resolver<IEncoder<object>>
-				.Method ((encoder) => encoder.Link (), new Type[] {type})
-				.Invoke (target, null);
 		}
 
 		private static object	MakeArrayGetter (Type container, Type inner)
