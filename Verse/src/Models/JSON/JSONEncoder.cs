@@ -52,11 +52,6 @@ namespace Verse.Models.JSON
             }
         }
 
-		protected override AbstractEncoder<U>	HasAttributeAbstract<U> (string name, EncoderValueGetter<T, U> getter)
-		{
-			return this.HasAttribute (name, getter, this.BuildEncoder<U> ());
-		}
-
 		public override void	HasAttribute<U> (string name, EncoderValueGetter<T, U> getter, IEncoder<U> encoder)
 		{
 			if (!(encoder is JSONEncoder<U>))
@@ -65,22 +60,12 @@ namespace Verse.Models.JSON
 			this.HasAttribute (name, getter, (JSONEncoder<U>)encoder);
 		}
 
-		protected override AbstractEncoder<U>	HasElementsAbstract<U> (EncoderArrayGetter<T, U> getter)
-		{
-			return this.HasElements (getter, this.BuildEncoder<U> ());
-		}
-
 		public override void	HasElements<U> (EncoderArrayGetter<T, U> getter, IEncoder<U> encoder)
 		{
 			if (!(encoder is JSONEncoder<U>))
 				throw new ArgumentException ("nested encoder must be a JSON encoder", "encoder");
 
 			this.HasElements (getter, (JSONEncoder<U>)encoder);
-		}
-
-		protected override AbstractEncoder<U>	HasPairsAbstract<U> (EncoderMapGetter<T, U> getter)
-		{
-			return this.HasPairs (getter, this.BuildEncoder<U> ());
 		}
 
 		public override void	HasPairs<U> (EncoderMapGetter<T, U> getter, IEncoder<U> encoder)
@@ -94,6 +79,21 @@ namespace Verse.Models.JSON
         #endregion
 
 		#region Methods / Protected
+
+		protected override AbstractEncoder<U>	HasAttributeAbstract<U> (string name, EncoderValueGetter<T, U> getter)
+		{
+			return this.HasAttribute (name, getter, this.BuildEncoder<U> ());
+		}
+
+		protected override AbstractEncoder<U>	HasElementsAbstract<U> (EncoderArrayGetter<T, U> getter)
+		{
+			return this.HasElements (getter, this.BuildEncoder<U> ());
+		}
+
+		protected override AbstractEncoder<U>	HasPairsAbstract<U> (EncoderMapGetter<T, U> getter)
+		{
+			return this.HasPairs (getter, this.BuildEncoder<U> ());
+		}
 
 		protected override bool	TryLinkConvert (ConvertSchema<string>.EncoderConverter<T> converter)
     	{
