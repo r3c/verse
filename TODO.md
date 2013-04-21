@@ -6,6 +6,7 @@ TODO
 
 - Implement Protocol Buffers model
 - Implement BSON model
+- Cleanup recursive coding methods signatures
 
 DONE
 ----

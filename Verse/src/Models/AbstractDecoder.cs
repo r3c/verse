@@ -288,8 +288,7 @@ namespace Verse.Models
 				generator.Emit (OpCodes.Ldarg_0);
 				generator.Emit (OpCodes.Ldarg_1);
 				generator.Emit (OpCodes.Callvirt, Resolver<ICollection<object>>.Property<int> ((collection) => collection.Count, new Type[] {inner}).GetGetMethod ());
-				#warning use static reflection
-				generator.Emit (OpCodes.Call, typeof (Array).GetMethod ("Resize", BindingFlags.Public | BindingFlags.Static).MakeGenericMethod (inner));
+				generator.Emit (OpCodes.Call, typeof (Array).GetMethod ("Resize", BindingFlags.Public | BindingFlags.Static).MakeGenericMethod (inner)); // Can't use static reflection here
 				generator.Emit (OpCodes.Ldarg_1);
 				generator.Emit (OpCodes.Ldarg_0);
 				generator.Emit (OpCodes.Ldind_Ref);
@@ -349,8 +348,7 @@ namespace Verse.Models
 				generator.Emit (OpCodes.Ldarg_0);
 				generator.Emit (OpCodes.Ldarg_1);
 				generator.Emit (OpCodes.Callvirt, Resolver<ICollection<object>>.Property<int> ((collection) => collection.Count, new Type[] {element}).GetGetMethod ());
-				#warning use static reflection
-				generator.Emit (OpCodes.Call, typeof (Array).GetMethod ("Resize", BindingFlags.Public | BindingFlags.Static).MakeGenericMethod (inner));
+				generator.Emit (OpCodes.Call, typeof (Array).GetMethod ("Resize", BindingFlags.Public | BindingFlags.Static).MakeGenericMethod (inner)); // Can't use static reflection here
 				generator.Emit (OpCodes.Ldarg_1);
 				generator.Emit (OpCodes.Ldarg_0);
 				generator.Emit (OpCodes.Ldind_Ref);
