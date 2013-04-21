@@ -23,13 +23,13 @@ namespace Verse.Models
 
 		public abstract bool					Encode (Stream stream, T instance);
 
-		protected abstract AbstractEncoder<U>	HasFieldAbstract<U> (string name, EncoderValueGetter<T, U> getter);
+		protected abstract AbstractEncoder<U>	HasAttributeAbstract<U> (string name, EncoderValueGetter<T, U> getter);
 
-		public abstract void					HasField<U> (string name, EncoderValueGetter<T, U> getter, IEncoder<U> encoder);
+		public abstract void					HasAttribute<U> (string name, EncoderValueGetter<T, U> getter, IEncoder<U> encoder);
 
-		protected abstract AbstractEncoder<U>	HasItemsAbstract<U> (EncoderArrayGetter<T, U> getter);
+		protected abstract AbstractEncoder<U>	HasElementsAbstract<U> (EncoderArrayGetter<T, U> getter);
 
-		public abstract void					HasItems<U> (EncoderArrayGetter<T, U> getter, IEncoder<U> encoder);
+		public abstract void					HasElements<U> (EncoderArrayGetter<T, U> getter, IEncoder<U> encoder);
 
 		protected abstract AbstractEncoder<U>	HasPairsAbstract<U> (EncoderMapGetter<T, U> getter);
 
@@ -41,14 +41,14 @@ namespace Verse.Models
 
 		#region Methods / Public
 
-		public IEncoder<U>	HasField<U> (string name, EncoderValueGetter<T, U> getter)
+		public IEncoder<U>	HasAttribute<U> (string name, EncoderValueGetter<T, U> getter)
 		{
-			return this.HasFieldAbstract (name, getter);
+			return this.HasAttributeAbstract (name, getter);
 		}
 
-		public IEncoder<U>	HasItems<U> (EncoderArrayGetter<T, U> getter)
+		public IEncoder<U>	HasElements<U> (EncoderArrayGetter<T, U> getter)
 		{
-			return this.HasItemsAbstract (getter);
+			return this.HasElementsAbstract (getter);
 		}
 
 		public IEncoder<U>	HasPairs<U> (EncoderMapGetter<T, U> getter)
@@ -103,13 +103,13 @@ namespace Verse.Models
 			if (encoders.TryGetValue (type, out known))
 			{
 				Resolver<AbstractEncoder<T>>
-					.Method<string, EncoderValueGetter<T, object>, IEncoder<object>> ((e, n, g, r) => e.HasField (n, g, r), null, new Type[] {type})
+					.Method<string, EncoderValueGetter<T, object>, IEncoder<object>> ((e, n, g, r) => e.HasAttribute (n, g, r), null, new Type[] {type})
 					.Invoke (this, new object[] {name, getter, known});
 			}
 			else
 			{
 				AbstractEncoder<T>.InvokeLink (type, Resolver<AbstractEncoder<T>>
-					.Method<string, EncoderValueGetter<T, object>, AbstractEncoder<object>> ((e, n, g) => e.HasFieldAbstract (n, g), null, new Type[] {type})
+					.Method<string, EncoderValueGetter<T, object>, AbstractEncoder<object>> ((e, n, g) => e.HasAttributeAbstract (n, g), null, new Type[] {type})
 					.Invoke (this, new object[] {name, getter}), encoders);
 			}
 		}
@@ -121,13 +121,13 @@ namespace Verse.Models
 			if (encoders.TryGetValue (type, out known))
 			{
 				Resolver<AbstractEncoder<T>>
-					.Method<EncoderArrayGetter<T, object>, IEncoder<object>> ((e, g, r) => e.HasItems (g, r), null, new Type[] {type})
+					.Method<EncoderArrayGetter<T, object>, IEncoder<object>> ((e, g, r) => e.HasElements (g, r), null, new Type[] {type})
 					.Invoke (this, new object[] {getter, known});
 			}
 			else
 			{
 				AbstractEncoder<T>.InvokeLink (type, Resolver<AbstractEncoder<T>>
-					.Method<EncoderArrayGetter<T, object>, AbstractEncoder<object>> ((e, g) => e.HasItemsAbstract (g), null, new Type[] {type})
+					.Method<EncoderArrayGetter<T, object>, AbstractEncoder<object>> ((e, g) => e.HasElementsAbstract (g), null, new Type[] {type})
 					.Invoke (this, new object[] {getter}), encoders);
 			}
 		}

@@ -43,22 +43,22 @@ namespace Verse.Models.BSON
 			throw new NotImplementedException();
 		}
 		
-		public override void	HasItems<U> (Func<U> generator, DecoderArraySetter<T, U> setter, IDecoder<U> decoder)
+		public override void	HasElements<U> (Func<U> generator, DecoderArraySetter<T, U> setter, IDecoder<U> decoder)
 		{
 			throw new NotImplementedException ();
 		}
 		
-		protected override AbstractDecoder<U>	HasItemsAbstract<U> (Func<U> generator, DecoderArraySetter<T, U> setter)
+		protected override AbstractDecoder<U>	HasElementsAbstract<U> (Func<U> generator, DecoderArraySetter<T, U> setter)
 		{
 			throw new NotImplementedException ();
 		}
 		
-		public override void	HasField<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter, IDecoder<U> decoder)
+		public override void	HasAttribute<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter, IDecoder<U> decoder)
 		{
 			throw new NotImplementedException ();
 		}
 		
-		protected override AbstractDecoder<U>	HasFieldAbstract<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter)
+		protected override AbstractDecoder<U>	HasAttributeAbstract<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter)
 		{
 			throw new NotImplementedException ();
 		}

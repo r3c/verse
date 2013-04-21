@@ -68,30 +68,30 @@ namespace Verse.Models.JSON
 			return true;
         }
 
-        protected override AbstractDecoder<U>	HasFieldAbstract<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter)
+        protected override AbstractDecoder<U>	HasAttributeAbstract<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter)
         {
-        	return this.HasField (name, generator, setter, this.BuildDecoder (generator));
+        	return this.HasAttribute (name, generator, setter, this.BuildDecoder (generator));
         }
 
-		public override void	HasField<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter, IDecoder<U> decoder)
+		public override void	HasAttribute<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter, IDecoder<U> decoder)
 		{
 			if (!(decoder is JSONDecoder<U>))
 				throw new ArgumentException ("nested decoder must be a JSON decoder", "decoder");
 
-			this.HasField (name, generator, setter, (JSONDecoder<U>)decoder);
+			this.HasAttribute (name, generator, setter, (JSONDecoder<U>)decoder);
 		}
 
-        protected override AbstractDecoder<U>	HasItemsAbstract<U> (Func<U> generator, DecoderArraySetter<T, U> setter)
+        protected override AbstractDecoder<U>	HasElementsAbstract<U> (Func<U> generator, DecoderArraySetter<T, U> setter)
         {
-        	return this.HasItems (generator, setter, this.BuildDecoder (generator));
+        	return this.HasElements (generator, setter, this.BuildDecoder (generator));
         }
 
-		public override void	HasItems<U> (Func<U> generator, DecoderArraySetter<T, U> setter, IDecoder<U> decoder)
+		public override void	HasElements<U> (Func<U> generator, DecoderArraySetter<T, U> setter, IDecoder<U> decoder)
 		{
 			if (!(decoder is JSONDecoder<U>))
 				throw new ArgumentException ("nested decoder must be a JSON decoder", "decoder");
 
-			this.HasItems (generator, setter, (JSONDecoder<U>)decoder);
+			this.HasElements (generator, setter, (JSONDecoder<U>)decoder);
 		}
 
         protected override AbstractDecoder<U>	HasPairsAbstract<U> (Func<U> generator, DecoderMapSetter<T, U> setter)
@@ -245,7 +245,7 @@ namespace Verse.Models.JSON
         	return true;
         }
 
-		private JSONDecoder<U>	HasField<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter, JSONDecoder<U> decoder)
+		private JSONDecoder<U>	HasAttribute<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter, JSONDecoder<U> decoder)
 		{
         	this.fieldBrowsers[name] = (JSONLexer lexer, ref T container) =>
     		{
@@ -262,7 +262,7 @@ namespace Verse.Models.JSON
             return decoder;
 		}
 
-        private JSONDecoder<U>	HasItems<U> (Func<U> generator, DecoderArraySetter<T, U> setter, JSONDecoder<U> decoder)
+        private JSONDecoder<U>	HasElements<U> (Func<U> generator, DecoderArraySetter<T, U> setter, JSONDecoder<U> decoder)
         {
         	this.arrayBrowser = (JSONLexer lexer, ref T container) =>
         	{

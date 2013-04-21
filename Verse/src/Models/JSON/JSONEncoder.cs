@@ -52,30 +52,30 @@ namespace Verse.Models.JSON
             }
         }
 
-		protected override AbstractEncoder<U>	HasFieldAbstract<U> (string name, EncoderValueGetter<T, U> getter)
+		protected override AbstractEncoder<U>	HasAttributeAbstract<U> (string name, EncoderValueGetter<T, U> getter)
 		{
-			return this.HasField (name, getter, this.BuildEncoder<U> ());
+			return this.HasAttribute (name, getter, this.BuildEncoder<U> ());
 		}
 
-		public override void	HasField<U> (string name, EncoderValueGetter<T, U> getter, IEncoder<U> encoder)
+		public override void	HasAttribute<U> (string name, EncoderValueGetter<T, U> getter, IEncoder<U> encoder)
 		{
 			if (!(encoder is JSONEncoder<U>))
 				throw new ArgumentException ("nested encoder must be a JSON encoder", "encoder");
 
-			this.HasField (name, getter, (JSONEncoder<U>)encoder);
+			this.HasAttribute (name, getter, (JSONEncoder<U>)encoder);
 		}
 
-		protected override AbstractEncoder<U>	HasItemsAbstract<U> (EncoderArrayGetter<T, U> getter)
+		protected override AbstractEncoder<U>	HasElementsAbstract<U> (EncoderArrayGetter<T, U> getter)
 		{
-			return this.HasItems (getter, this.BuildEncoder<U> ());
+			return this.HasElements (getter, this.BuildEncoder<U> ());
 		}
 
-		public override void	HasItems<U> (EncoderArrayGetter<T, U> getter, IEncoder<U> encoder)
+		public override void	HasElements<U> (EncoderArrayGetter<T, U> getter, IEncoder<U> encoder)
 		{
 			if (!(encoder is JSONEncoder<U>))
 				throw new ArgumentException ("nested encoder must be a JSON encoder", "encoder");
 
-			this.HasItems (getter, (JSONEncoder<U>)encoder);
+			this.HasElements (getter, (JSONEncoder<U>)encoder);
 		}
 
 		protected override AbstractEncoder<U>	HasPairsAbstract<U> (EncoderMapGetter<T, U> getter)
@@ -195,14 +195,14 @@ namespace Verse.Models.JSON
 			};
 		}
 
-		private JSONEncoder<U>	HasField<U> (string name, EncoderValueGetter<T, U> getter, JSONEncoder<U> encoder)
+		private JSONEncoder<U>	HasAttribute<U> (string name, EncoderValueGetter<T, U> getter, JSONEncoder<U> encoder)
 		{
 			this.fieldWriters[name] = (writer, container) => encoder.Write (writer, getter (container));
 
 			return encoder;
 		}
 
-		private JSONEncoder<U>	HasItems<U> (EncoderArrayGetter<T, U> getter, JSONEncoder<U> encoder)
+		private JSONEncoder<U>	HasElements<U> (EncoderArrayGetter<T, U> getter, JSONEncoder<U> encoder)
 		{
 			this.selfWriter = (writer, container) =>
 			{

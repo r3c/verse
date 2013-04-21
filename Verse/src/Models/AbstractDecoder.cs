@@ -23,13 +23,13 @@ namespace Verse.Models
 
 		public abstract bool					Decode (Stream stream, out T instance);
 
-		protected abstract AbstractDecoder<U>	HasFieldAbstract<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter);
+		protected abstract AbstractDecoder<U>	HasAttributeAbstract<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter);
 
-		public abstract void					HasField<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter, IDecoder<U> decoder);
+		public abstract void					HasAttribute<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter, IDecoder<U> decoder);
 
-		protected abstract AbstractDecoder<U>	HasItemsAbstract<U> (Func<U> generator, DecoderArraySetter<T, U> setter);
+		protected abstract AbstractDecoder<U>	HasElementsAbstract<U> (Func<U> generator, DecoderArraySetter<T, U> setter);
 
-		public abstract void					HasItems<U> (Func<U> generator, DecoderArraySetter<T, U> setter, IDecoder<U> decoder);
+		public abstract void					HasElements<U> (Func<U> generator, DecoderArraySetter<T, U> setter, IDecoder<U> decoder);
 
 		protected abstract AbstractDecoder<U>	HasPairsAbstract<U> (Func<U> generator, DecoderMapSetter<T, U> setter);
 
@@ -41,34 +41,34 @@ namespace Verse.Models
 
 		#region Methods / Public
 
-		public IDecoder<U>	HasField<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter)
+		public IDecoder<U>	HasAttribute<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter)
 		{
-			return this.HasFieldAbstract (name, generator, setter);
+			return this.HasAttributeAbstract (name, generator, setter);
 		}
 
-		public IDecoder<U>	HasField<U> (string name, DecoderValueSetter<T, U> setter)
+		public IDecoder<U>	HasAttribute<U> (string name, DecoderValueSetter<T, U> setter)
 		{
-			return this.HasFieldAbstract (name, setter);
+			return this.HasAttributeAbstract (name, setter);
 		}
 
-		public void	HasField<U> (string name, DecoderValueSetter<T, U> setter, IDecoder<U> decoder)
+		public void	HasAttribute<U> (string name, DecoderValueSetter<T, U> setter, IDecoder<U> decoder)
 		{
-			this.HasField (name, Generator.Constructor<U> (), setter, decoder);
+			this.HasAttribute (name, Generator.Constructor<U> (), setter, decoder);
 		}
 
-		public IDecoder<U>	HasItems<U> (Func<U> generator, DecoderArraySetter<T, U> setter)
+		public IDecoder<U>	HasElements<U> (Func<U> generator, DecoderArraySetter<T, U> setter)
 		{
-			return this.HasItemsAbstract (generator, setter);
+			return this.HasElementsAbstract (generator, setter);
 		}
 
-		public IDecoder<U>	HasItems<U> (DecoderArraySetter<T, U> setter)
+		public IDecoder<U>	HasElements<U> (DecoderArraySetter<T, U> setter)
 		{
-			return this.HasItemsAbstract (setter);
+			return this.HasElementsAbstract (setter);
 		}
 
-		public void	HasItems<U> (DecoderArraySetter<T, U> setter, IDecoder<U> decoder)
+		public void	HasElements<U> (DecoderArraySetter<T, U> setter, IDecoder<U> decoder)
 		{
-			this.HasItems (Generator.Constructor<U> (), setter, decoder);
+			this.HasElements (Generator.Constructor<U> (), setter, decoder);
 		}
 
 		public IDecoder<U>	HasPairs<U> (Func<U> generator, DecoderMapSetter<T, U> setter)
@@ -115,14 +115,14 @@ namespace Verse.Models
 				error (type, value);
 		}
 
-		protected AbstractDecoder<U>	HasFieldAbstract<U> (string name, DecoderValueSetter<T, U> setter)
+		protected AbstractDecoder<U>	HasAttributeAbstract<U> (string name, DecoderValueSetter<T, U> setter)
 		{
-			return this.HasFieldAbstract (name, Generator.Constructor<U> (), setter);
+			return this.HasAttributeAbstract (name, Generator.Constructor<U> (), setter);
 		}
 
-		protected AbstractDecoder<U>	HasItemsAbstract<U> (DecoderArraySetter<T, U> setter)
+		protected AbstractDecoder<U>	HasElementsAbstract<U> (DecoderArraySetter<T, U> setter)
 		{
-			return this.HasItemsAbstract (Generator.Constructor<U> (), setter);
+			return this.HasElementsAbstract (Generator.Constructor<U> (), setter);
 		}
 
 		protected AbstractDecoder<U>	HasPairsAbstract<U> (DecoderMapSetter<T, U> setter)
@@ -148,13 +148,13 @@ namespace Verse.Models
 			if (decoders.TryGetValue (type, out known))
 			{
 				Resolver<AbstractDecoder<T>>
-					.Method<string, DecoderValueSetter<T, object>, IDecoder<object>> ((d, n, s, r) => d.HasField (n, s, r), null, new Type[] {type})
+					.Method<string, DecoderValueSetter<T, object>, IDecoder<object>> ((d, n, s, r) => d.HasAttribute (n, s, r), null, new Type[] {type})
 					.Invoke (this, new object[] {name, setter, known});
 			}
 			else
 			{
 				AbstractDecoder<T>.InvokeLink (type, Resolver<AbstractDecoder<T>>
-					.Method<string, DecoderValueSetter<T, object>, AbstractDecoder<object>> ((d, n, s) => d.HasFieldAbstract (n, s), null, new Type[] {type})
+					.Method<string, DecoderValueSetter<T, object>, AbstractDecoder<object>> ((d, n, s) => d.HasAttributeAbstract (n, s), null, new Type[] {type})
 					.Invoke (this, new object[] {name, setter}), decoders);
 			}
 		}
@@ -166,13 +166,13 @@ namespace Verse.Models
 			if (decoders.TryGetValue (type, out known))
 			{
 				Resolver<AbstractDecoder<T>>
-					.Method<DecoderArraySetter<T, object>, IDecoder<object>> ((d, s, r) => d.HasItems (s, r), null, new Type[] {type})
+					.Method<DecoderArraySetter<T, object>, IDecoder<object>> ((d, s, r) => d.HasElements (s, r), null, new Type[] {type})
 					.Invoke (this, new object[] {setter, known});
 			}
 			else
 			{
 				AbstractDecoder<T>.InvokeLink (type, Resolver<AbstractDecoder<T>>
-					.Method<DecoderArraySetter<T, object>, AbstractDecoder<object>> ((d, s) => d.HasItemsAbstract (s), null, new Type[] {type})
+					.Method<DecoderArraySetter<T, object>, AbstractDecoder<object>> ((d, s) => d.HasElementsAbstract (s), null, new Type[] {type})
 					.Invoke (this, new object[] {setter}), decoders);
 			}
 		}

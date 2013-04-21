@@ -40,22 +40,22 @@ namespace Verse.Models.BSON
 			throw new NotImplementedException ();
 		}
 		
-		public override void	HasItems<U> (EncoderArrayGetter<T, U> getter, IEncoder<U> encoder)
+		public override void	HasElements<U> (EncoderArrayGetter<T, U> getter, IEncoder<U> encoder)
 		{
 			throw new NotImplementedException ();
 		}
 		
-		protected override AbstractEncoder<U>	HasItemsAbstract<U> (EncoderArrayGetter<T, U> getter)
+		protected override AbstractEncoder<U>	HasElementsAbstract<U> (EncoderArrayGetter<T, U> getter)
 		{
 			throw new NotImplementedException ();
 		}
 		
-		public override void	HasField<U> (string name, EncoderValueGetter<T, U> getter, IEncoder<U> encoder)
+		public override void	HasAttribute<U> (string name, EncoderValueGetter<T, U> getter, IEncoder<U> encoder)
 		{
 			throw new NotImplementedException ();
 		}
 		
-		protected override AbstractEncoder<U>	HasFieldAbstract<U> (string name, EncoderValueGetter<T, U> getter)
+		protected override AbstractEncoder<U>	HasAttributeAbstract<U> (string name, EncoderValueGetter<T, U> getter)
 		{
 			throw new NotImplementedException ();
 		}
