@@ -68,7 +68,7 @@ namespace Verse.Models.JSON
 			return true;
         }
 
-        public override IDecoder<U>	HasField<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter)
+        protected override AbstractDecoder<U>	HasFieldAbstract<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter)
         {
         	return this.HasField (name, generator, setter, this.BuildDecoder (generator));
         }
@@ -81,7 +81,7 @@ namespace Verse.Models.JSON
 			this.HasField (name, generator, setter, (JSONDecoder<U>)decoder);
 		}
 
-        public override IDecoder<U>	HasItems<U> (Func<U> generator, DecoderArraySetter<T, U> setter)
+        protected override AbstractDecoder<U>	HasItemsAbstract<U> (Func<U> generator, DecoderArraySetter<T, U> setter)
         {
         	return this.HasItems (generator, setter, this.BuildDecoder (generator));
         }
@@ -94,7 +94,7 @@ namespace Verse.Models.JSON
 			this.HasItems (generator, setter, (JSONDecoder<U>)decoder);
 		}
 
-        public override IDecoder<U>	HasPairs<U> (Func<U> generator, DecoderMapSetter<T, U> setter)
+        protected override AbstractDecoder<U>	HasPairsAbstract<U> (Func<U> generator, DecoderMapSetter<T, U> setter)
         {
         	return this.HasPairs (generator, setter, this.BuildDecoder (generator));
         }

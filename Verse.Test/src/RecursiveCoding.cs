@@ -26,20 +26,10 @@ namespace Verse.Test
 			schema = RecursiveCoding.Schema ();
 
 			decoder = schema.GetDecoder<MyContainsArray> ();
-			decoder
-				.HasField ("children", (ref MyContainsArray c, MyContainsArray[] v) => c.children = v)
-				.HasItems ((ref MyContainsArray[] c, ICollection<MyContainsArray> a) => { Array.Resize (ref c, a.Count); a.CopyTo (c, 0); }, decoder);
-			decoder
-				.HasField ("value", (ref MyContainsArray c, string v) => c.value = v)
-				.Link ();
+			decoder.Link ();
 
 			encoder = schema.GetEncoder<MyContainsArray> ();
-			encoder
-				.HasField ("children", (n) => n.children)
-				.HasItems ((c) => c, encoder);
-			encoder
-				.HasField ("value", (n) => n.value)
-				.Link ();
+			encoder.Link ();
 
 			instance = new MyContainsArray
 			{

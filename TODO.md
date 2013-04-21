@@ -6,7 +6,6 @@ TODO
 
 - Implement Protocol Buffers model
 - Implement BSON model
-- Allow automatic linking of recursive hierarchies
 
 DONE
 ----
@@ -20,3 +19,4 @@ DONE
 - Allow printer customization in JSONEncoder
 - Native binding for Enums
 - Fix extra line break in JSONIndentPrinter for empty arrays/objects
+- Allow automatic linking of recursive hierarchies
