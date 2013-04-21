@@ -182,7 +182,7 @@ namespace Verse.Models.JSON
 			generator.Emit (OpCodes.Ldarg_1);
 			generator.Emit (OpCodes.Ldarg_0);
 			generator.Emit (OpCodes.Ldarg_2);
-			generator.Emit (OpCodes.Call, Resolver<WriterInjector<U>>.Method<JSONWriter, U> ((i, writer, value) => i.Invoke (writer, value)));
+			generator.Emit (OpCodes.Call, Resolver<WriterInjector<U>>.Method<JSONWriter, U> ((i, w, v) => i.Invoke (w, v)));
 			generator.Emit (OpCodes.Ret);
 
 			wrapper = (WriterWrapper<U>)method.CreateDelegate (typeof (WriterWrapper<U>));
