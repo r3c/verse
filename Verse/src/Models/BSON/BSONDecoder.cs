@@ -38,7 +38,7 @@ namespace Verse.Models.BSON
 			throw new NotImplementedException ();
 		}
 		
-		protected override AbstractDecoder<U>	HasPairsAbstract<U> (Func<U> generator, DecoderMapSetter<T, U> setter)
+		protected override AbstractDecoder<U>	DefinePairs<U> (Func<U> generator, DecoderMapSetter<T, U> setter)
 		{
 			throw new NotImplementedException();
 		}
@@ -48,7 +48,7 @@ namespace Verse.Models.BSON
 			throw new NotImplementedException ();
 		}
 		
-		protected override AbstractDecoder<U>	HasElementsAbstract<U> (Func<U> generator, DecoderArraySetter<T, U> setter)
+		protected override AbstractDecoder<U>	DefineElements<U> (Func<U> generator, DecoderArraySetter<T, U> setter)
 		{
 			throw new NotImplementedException ();
 		}
@@ -58,7 +58,7 @@ namespace Verse.Models.BSON
 			throw new NotImplementedException ();
 		}
 		
-		protected override AbstractDecoder<U>	HasAttributeAbstract<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter)
+		protected override AbstractDecoder<U>	DefineAttribute<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter)
 		{
 			throw new NotImplementedException ();
 		}

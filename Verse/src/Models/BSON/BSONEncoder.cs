@@ -58,17 +58,17 @@ namespace Verse.Models.BSON
 		
 		#region Methods / Protected
 
-		protected override AbstractEncoder<U>	HasAttributeAbstract<U> (string name, EncoderValueGetter<T, U> getter)
+		protected override AbstractEncoder<U>	DefineAttribute<U> (string name, EncoderValueGetter<T, U> getter)
 		{
 			return this.HasAttribute (name, getter, this.BuildEncoder<U> ());
 		}
 
-		protected override AbstractEncoder<U>	HasElementsAbstract<U> (EncoderArrayGetter<T, U> getter)
+		protected override AbstractEncoder<U>	DefineElements<U> (EncoderArrayGetter<T, U> getter)
 		{
 			return this.HasElements (getter, this.BuildEncoder<U> ());
 		}
 
-		protected override AbstractEncoder<U>	HasPairsAbstract<U> (EncoderMapGetter<T, U> getter)
+		protected override AbstractEncoder<U>	DefinePairs<U> (EncoderMapGetter<T, U> getter)
 		{
 			return this.HasPairs (getter, this.BuildEncoder<U> ());
 		}

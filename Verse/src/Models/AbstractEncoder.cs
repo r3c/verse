@@ -21,17 +21,17 @@ namespace Verse.Models
 
 		#region Methods / Abstract
 
-		public abstract bool					Encode (Stream stream, T instance);
+		protected abstract AbstractEncoder<U>	DefineAttribute<U> (string name, EncoderValueGetter<T, U> getter);
 
-		protected abstract AbstractEncoder<U>	HasAttributeAbstract<U> (string name, EncoderValueGetter<T, U> getter);
+		protected abstract AbstractEncoder<U>	DefineElements<U> (EncoderArrayGetter<T, U> getter);
+
+		protected abstract AbstractEncoder<U>	DefinePairs<U> (EncoderMapGetter<T, U> getter);
+
+		public abstract bool					Encode (Stream stream, T instance);
 
 		public abstract void					HasAttribute<U> (string name, EncoderValueGetter<T, U> getter, IEncoder<U> encoder);
 
-		protected abstract AbstractEncoder<U>	HasElementsAbstract<U> (EncoderArrayGetter<T, U> getter);
-
 		public abstract void					HasElements<U> (EncoderArrayGetter<T, U> getter, IEncoder<U> encoder);
-
-		protected abstract AbstractEncoder<U>	HasPairsAbstract<U> (EncoderMapGetter<T, U> getter);
 
 		public abstract void					HasPairs<U> (EncoderMapGetter<T, U> getter, IEncoder<U> encoder);
 
@@ -43,22 +43,22 @@ namespace Verse.Models
 
 		public IEncoder<U>	HasAttribute<U> (string name, EncoderValueGetter<T, U> getter)
 		{
-			return this.HasAttributeAbstract (name, getter);
+			return this.DefineAttribute (name, getter);
 		}
 
 		public IEncoder<U>	HasElements<U> (EncoderArrayGetter<T, U> getter)
 		{
-			return this.HasElementsAbstract (getter);
+			return this.DefineElements (getter);
 		}
 
 		public IEncoder<U>	HasPairs<U> (EncoderMapGetter<T, U> getter)
 		{
-			return this.HasPairsAbstract (getter);
+			return this.DefinePairs (getter);
 		}
 
 		public void	Link ()
 		{
-			this.LinkType (new Dictionary<Type, object> ());
+			this.AutoLink (new Dictionary<Type, object> ());
 		}
 
 		#endregion
@@ -89,68 +89,7 @@ namespace Verse.Models
 
 		#region Methods / Private
 
-		private static void	InvokeLink (Type type, object target, Dictionary<Type, object> encoders)
-		{
-			Resolver<AbstractEncoder<object>>
-				.Method<Dictionary<Type, object>> ((encoder, e) => encoder.LinkType (e), new Type[] {type})
-				.Invoke (target, new object[] {encoders});
-		}
-
-		private void	LinkDefineField (Dictionary<Type, object> encoders, Type type, string name, object getter)
-		{
-			object	known;
-
-			if (encoders.TryGetValue (type, out known))
-			{
-				Resolver<AbstractEncoder<T>>
-					.Method<string, EncoderValueGetter<T, object>, IEncoder<object>> ((e, n, g, r) => e.HasAttribute (n, g, r), null, new Type[] {type})
-					.Invoke (this, new object[] {name, getter, known});
-			}
-			else
-			{
-				AbstractEncoder<T>.InvokeLink (type, Resolver<AbstractEncoder<T>>
-					.Method<string, EncoderValueGetter<T, object>, AbstractEncoder<object>> ((e, n, g) => e.HasAttributeAbstract (n, g), null, new Type[] {type})
-					.Invoke (this, new object[] {name, getter}), encoders);
-			}
-		}
-
-		private void	LinkDefineItems (Dictionary<Type, object> encoders, Type type, object getter)
-		{
-			object	known;
-
-			if (encoders.TryGetValue (type, out known))
-			{
-				Resolver<AbstractEncoder<T>>
-					.Method<EncoderArrayGetter<T, object>, IEncoder<object>> ((e, g, r) => e.HasElements (g, r), null, new Type[] {type})
-					.Invoke (this, new object[] {getter, known});
-			}
-			else
-			{
-				AbstractEncoder<T>.InvokeLink (type, Resolver<AbstractEncoder<T>>
-					.Method<EncoderArrayGetter<T, object>, AbstractEncoder<object>> ((e, g) => e.HasElementsAbstract (g), null, new Type[] {type})
-					.Invoke (this, new object[] {getter}), encoders);
-			}
-		}
-
-		private void	LinkDefinePairs (Dictionary<Type, object> encoders, Type type, object getter)
-		{
-			object	known;
-
-			if (encoders.TryGetValue (type, out known))
-			{
-				Resolver<AbstractEncoder<T>>
-					.Method<EncoderMapGetter<T, object>, IEncoder<object>> ((e, g, r) => e.HasPairs (g, r), null, new Type[] {type})
-					.Invoke (this, new object[] {getter, known});
-			}
-			else
-			{
-				AbstractEncoder<T>.InvokeLink (type, Resolver<AbstractEncoder<T>>
-					.Method<EncoderMapGetter<T, object>, AbstractEncoder<object>> ((e, g) => e.HasPairsAbstract (g), null, new Type[] {type})
-					.Invoke (this, new object[] {getter}), encoders);
-			}
-		}
-
-		private void	LinkType (Dictionary<Type, object> encoders)
+		private void	AutoLink (Dictionary<Type, object> encoders)
 		{
 			Type[]		arguments;
 			Type		container;
@@ -198,13 +137,13 @@ namespace Verse.Models
 
 					if (arguments.Length == 2 && arguments[0] == typeof (string))
 					{
-						this.LinkDefinePairs (encoders, arguments[1], AbstractEncoder<T>.MakeMapGetter (container, arguments[1]));
+						this.LinkPairs (encoders, arguments[1], AbstractEncoder<T>.MakeMapGetter (container, arguments[1]));
 
 						return;
 					}
 				}
 
-				this.LinkDefineItems (encoders, inner, AbstractEncoder<T>.MakeArrayGetter (container, inner));
+				this.LinkElements (encoders, inner, AbstractEncoder<T>.MakeArrayGetter (container, inner));
 
 				return;
 			}
@@ -215,7 +154,7 @@ namespace Verse.Models
 				if (property.GetGetMethod () == null || property.GetSetMethod () == null || (property.Attributes & PropertyAttributes.SpecialName) == PropertyAttributes.SpecialName)
 					continue;
 
-				this.LinkDefineField (encoders, property.PropertyType, property.Name, AbstractEncoder<T>.MakeValueGetter (property));
+				this.LinkAttribute (encoders, property.PropertyType, property.Name, AbstractEncoder<T>.MakeValueGetter (property));
 			}
 
 			// Browse public fields
@@ -224,7 +163,68 @@ namespace Verse.Models
 				if ((field.Attributes & FieldAttributes.SpecialName) == FieldAttributes.SpecialName)
 					continue;
 
-				this.LinkDefineField (encoders, field.FieldType, field.Name, AbstractEncoder<T>.MakeValueGetter (field));
+				this.LinkAttribute (encoders, field.FieldType, field.Name, AbstractEncoder<T>.MakeValueGetter (field));
+			}
+		}
+
+		private static void	InvokeLink (Type type, object target, Dictionary<Type, object> encoders)
+		{
+			Resolver<AbstractEncoder<object>>
+				.Method<Dictionary<Type, object>> ((encoder, e) => encoder.AutoLink (e), new Type[] {type})
+				.Invoke (target, new object[] {encoders});
+		}
+
+		private void	LinkAttribute (Dictionary<Type, object> encoders, Type type, string name, object getter)
+		{
+			object	known;
+
+			if (encoders.TryGetValue (type, out known))
+			{
+				Resolver<AbstractEncoder<T>>
+					.Method<string, EncoderValueGetter<T, object>, IEncoder<object>> ((e, n, g, r) => e.HasAttribute (n, g, r), null, new Type[] {type})
+					.Invoke (this, new object[] {name, getter, known});
+			}
+			else
+			{
+				AbstractEncoder<T>.InvokeLink (type, Resolver<AbstractEncoder<T>>
+					.Method<string, EncoderValueGetter<T, object>, AbstractEncoder<object>> ((e, n, g) => e.DefineAttribute (n, g), null, new Type[] {type})
+					.Invoke (this, new object[] {name, getter}), encoders);
+			}
+		}
+
+		private void	LinkElements (Dictionary<Type, object> encoders, Type type, object getter)
+		{
+			object	known;
+
+			if (encoders.TryGetValue (type, out known))
+			{
+				Resolver<AbstractEncoder<T>>
+					.Method<EncoderArrayGetter<T, object>, IEncoder<object>> ((e, g, r) => e.HasElements (g, r), null, new Type[] {type})
+					.Invoke (this, new object[] {getter, known});
+			}
+			else
+			{
+				AbstractEncoder<T>.InvokeLink (type, Resolver<AbstractEncoder<T>>
+					.Method<EncoderArrayGetter<T, object>, AbstractEncoder<object>> ((e, g) => e.DefineElements (g), null, new Type[] {type})
+					.Invoke (this, new object[] {getter}), encoders);
+			}
+		}
+
+		private void	LinkPairs (Dictionary<Type, object> encoders, Type type, object getter)
+		{
+			object	known;
+
+			if (encoders.TryGetValue (type, out known))
+			{
+				Resolver<AbstractEncoder<T>>
+					.Method<EncoderMapGetter<T, object>, IEncoder<object>> ((e, g, r) => e.HasPairs (g, r), null, new Type[] {type})
+					.Invoke (this, new object[] {getter, known});
+			}
+			else
+			{
+				AbstractEncoder<T>.InvokeLink (type, Resolver<AbstractEncoder<T>>
+					.Method<EncoderMapGetter<T, object>, AbstractEncoder<object>> ((e, g) => e.DefinePairs (g), null, new Type[] {type})
+					.Invoke (this, new object[] {getter}), encoders);
 			}
 		}
 

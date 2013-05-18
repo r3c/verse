@@ -23,15 +23,15 @@ namespace Verse.Models
 
 		public abstract bool					Decode (Stream stream, out T instance);
 
-		protected abstract AbstractDecoder<U>	HasAttributeAbstract<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter);
+		protected abstract AbstractDecoder<U>	DefineAttribute<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter);
+
+		protected abstract AbstractDecoder<U>	DefineElements<U> (Func<U> generator, DecoderArraySetter<T, U> setter);
+
+		protected abstract AbstractDecoder<U>	DefinePairs<U> (Func<U> generator, DecoderMapSetter<T, U> setter);
 
 		public abstract void					HasAttribute<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter, IDecoder<U> decoder);
 
-		protected abstract AbstractDecoder<U>	HasElementsAbstract<U> (Func<U> generator, DecoderArraySetter<T, U> setter);
-
 		public abstract void					HasElements<U> (Func<U> generator, DecoderArraySetter<T, U> setter, IDecoder<U> decoder);
-
-		protected abstract AbstractDecoder<U>	HasPairsAbstract<U> (Func<U> generator, DecoderMapSetter<T, U> setter);
 
 		public abstract void					HasPairs<U> (Func<U> generator, DecoderMapSetter<T, U> setter, IDecoder<U> decoder);
 
@@ -43,12 +43,12 @@ namespace Verse.Models
 
 		public IDecoder<U>	HasAttribute<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter)
 		{
-			return this.HasAttributeAbstract (name, generator, setter);
+			return this.DefineAttribute (name, generator, setter);
 		}
 
 		public IDecoder<U>	HasAttribute<U> (string name, DecoderValueSetter<T, U> setter)
 		{
-			return this.HasAttributeAbstract (name, setter);
+			return this.DefineAttribute (name, Generator.Constructor<U> (), setter);
 		}
 
 		public void	HasAttribute<U> (string name, DecoderValueSetter<T, U> setter, IDecoder<U> decoder)
@@ -58,12 +58,12 @@ namespace Verse.Models
 
 		public IDecoder<U>	HasElements<U> (Func<U> generator, DecoderArraySetter<T, U> setter)
 		{
-			return this.HasElementsAbstract (generator, setter);
+			return this.DefineElements (generator, setter);
 		}
 
 		public IDecoder<U>	HasElements<U> (DecoderArraySetter<T, U> setter)
 		{
-			return this.HasElementsAbstract (setter);
+			return this.DefineElements (Generator.Constructor<U> (), setter);
 		}
 
 		public void	HasElements<U> (DecoderArraySetter<T, U> setter, IDecoder<U> decoder)
@@ -73,12 +73,12 @@ namespace Verse.Models
 
 		public IDecoder<U>	HasPairs<U> (Func<U> generator, DecoderMapSetter<T, U> setter)
 		{
-			return this.HasPairsAbstract (generator, setter);
+			return this.DefinePairs (generator, setter);
 		}
 
 		public IDecoder<U>	HasPairs<U> (DecoderMapSetter<T, U> setter)
 		{
-			return this.HasPairsAbstract (setter);
+			return this.DefinePairs (Generator.Constructor<U> (), setter);
 		}
 
 		public void	HasPairs<U> (DecoderMapSetter<T, U> setter, IDecoder<U> decoder)
@@ -88,7 +88,7 @@ namespace Verse.Models
 
 		public void	Link ()
 		{
-			this.LinkType (new Dictionary<Type, object> ());
+			this.AutoLink (new Dictionary<Type, object> ());
 		}
 
 		#endregion
@@ -115,87 +115,11 @@ namespace Verse.Models
 				error (type, value);
 		}
 
-		protected AbstractDecoder<U>	HasAttributeAbstract<U> (string name, DecoderValueSetter<T, U> setter)
-		{
-			return this.HasAttributeAbstract (name, Generator.Constructor<U> (), setter);
-		}
-
-		protected AbstractDecoder<U>	HasElementsAbstract<U> (DecoderArraySetter<T, U> setter)
-		{
-			return this.HasElementsAbstract (Generator.Constructor<U> (), setter);
-		}
-
-		protected AbstractDecoder<U>	HasPairsAbstract<U> (DecoderMapSetter<T, U> setter)
-		{
-			return this.HasPairsAbstract (Generator.Constructor<U> (), setter);
-		}
-
 		#endregion
 
 		#region Methods / Private
 
-		private static void	InvokeLink (Type type, object target, Dictionary<Type, object> decoders)
-		{
-			Resolver<AbstractDecoder<object>>
-				.Method<Dictionary<Type, object>> ((decoder, d) => decoder.LinkType (d), new Type[] {type})
-				.Invoke (target, new object[] {decoders});
-		}
-
-		private void	LinkDefineField (Dictionary<Type, object> decoders, Type type, string name, object setter)
-		{
-			object	known;
-
-			if (decoders.TryGetValue (type, out known))
-			{
-				Resolver<AbstractDecoder<T>>
-					.Method<string, DecoderValueSetter<T, object>, IDecoder<object>> ((d, n, s, r) => d.HasAttribute (n, s, r), null, new Type[] {type})
-					.Invoke (this, new object[] {name, setter, known});
-			}
-			else
-			{
-				AbstractDecoder<T>.InvokeLink (type, Resolver<AbstractDecoder<T>>
-					.Method<string, DecoderValueSetter<T, object>, AbstractDecoder<object>> ((d, n, s) => d.HasAttributeAbstract (n, s), null, new Type[] {type})
-					.Invoke (this, new object[] {name, setter}), decoders);
-			}
-		}
-
-		private void	LinkDefineItems (Dictionary<Type, object> decoders, Type type, object setter)
-		{
-			object	known;
-
-			if (decoders.TryGetValue (type, out known))
-			{
-				Resolver<AbstractDecoder<T>>
-					.Method<DecoderArraySetter<T, object>, IDecoder<object>> ((d, s, r) => d.HasElements (s, r), null, new Type[] {type})
-					.Invoke (this, new object[] {setter, known});
-			}
-			else
-			{
-				AbstractDecoder<T>.InvokeLink (type, Resolver<AbstractDecoder<T>>
-					.Method<DecoderArraySetter<T, object>, AbstractDecoder<object>> ((d, s) => d.HasElementsAbstract (s), null, new Type[] {type})
-					.Invoke (this, new object[] {setter}), decoders);
-			}
-		}
-
-		private void	LinkDefinePairs (Dictionary<Type, object> decoders, Type type, object setter)
-		{
-			object	known;
-
-			if (decoders.TryGetValue (type, out known))
-			{
-				Resolver<AbstractDecoder<T>>
-					.Method<DecoderMapSetter<T, object>, IDecoder<object>> ((d, s, r) => d.HasPairs (s, r), null, new Type[] {type})
-					.Invoke (this, new object[] {setter, known});
-			}
-			else
-			{
-				AbstractDecoder<T>.InvokeLink (type, Resolver<AbstractDecoder<T>>
-					.Method<DecoderMapSetter<T, object>, AbstractDecoder<object>> ((d, s) => d.HasPairsAbstract (s), null, new Type[] {type})
-					.Invoke (this, new object[] {setter}), decoders);
-			}
-		}
-
-		private void	LinkType (Dictionary<Type, object> decoders)
+		private void	AutoLink (Dictionary<Type, object> decoders)
 		{
 			Type[]		arguments;
 			Type		container;
@@ -243,13 +167,13 @@ namespace Verse.Models
 
 					if (arguments.Length == 2 && arguments[0] == typeof (string))
 					{
-						this.LinkDefinePairs (decoders, arguments[1], AbstractDecoder<T>.MakeMapSetter (container, arguments[1]));
+						this.LinkPairs (decoders, arguments[1], AbstractDecoder<T>.MakeMapSetter (container, arguments[1]));
 
 						return;
 					}
 				}
 
-				this.LinkDefineItems (decoders, inner, AbstractDecoder<T>.MakeArraySetter (container, inner));
+				this.LinkElements (decoders, inner, AbstractDecoder<T>.MakeArraySetter (container, inner));
 
 				return;
 			}
@@ -260,7 +184,7 @@ namespace Verse.Models
 				if (property.GetGetMethod () == null || property.GetSetMethod () == null || (property.Attributes & PropertyAttributes.SpecialName) == PropertyAttributes.SpecialName)
 					continue;
 
-				this.LinkDefineField (decoders, property.PropertyType, property.Name, AbstractDecoder<T>.MakeValueSetter (property));
+				this.LinkAttribute (decoders, property.PropertyType, property.Name, AbstractDecoder<T>.MakeValueSetter (property));
 			}
 
 			// Browse public fields
@@ -269,7 +193,83 @@ namespace Verse.Models
 				if ((field.Attributes & FieldAttributes.SpecialName) == FieldAttributes.SpecialName)
 					continue;
 
-				this.LinkDefineField (decoders, field.FieldType, field.Name, AbstractDecoder<T>.MakeValueSetter (field));
+				this.LinkAttribute (decoders, field.FieldType, field.Name, AbstractDecoder<T>.MakeValueSetter (field));
+			}
+		}
+
+		private AbstractDecoder<U>	DefineAttribute<U> (string name, DecoderValueSetter<T, U> setter)
+		{
+			return this.DefineAttribute (name, Generator.Constructor<U> (), setter);
+		}
+
+		private AbstractDecoder<U>	DefineElements<U> (DecoderArraySetter<T, U> setter)
+		{
+			return this.DefineElements (Generator.Constructor<U> (), setter);
+		}
+
+		private AbstractDecoder<U>	DefinePairs<U> (DecoderMapSetter<T, U> setter)
+		{
+			return this.DefinePairs (Generator.Constructor<U> (), setter);
+		}
+
+		private static void	InvokeLink (Type type, object target, Dictionary<Type, object> decoders)
+		{
+			Resolver<AbstractDecoder<object>>
+				.Method<Dictionary<Type, object>> ((decoder, d) => decoder.AutoLink (d), new Type[] {type})
+				.Invoke (target, new object[] {decoders});
+		}
+
+		private void	LinkAttribute (Dictionary<Type, object> decoders, Type type, string name, object setter)
+		{
+			object	known;
+
+			if (decoders.TryGetValue (type, out known))
+			{
+				Resolver<AbstractDecoder<T>>
+					.Method<string, DecoderValueSetter<T, object>, IDecoder<object>> ((d, n, s, r) => d.HasAttribute (n, s, r), null, new Type[] {type})
+					.Invoke (this, new object[] {name, setter, known});
+			}
+			else
+			{
+				AbstractDecoder<T>.InvokeLink (type, Resolver<AbstractDecoder<T>>
+					.Method<string, DecoderValueSetter<T, object>, AbstractDecoder<object>> ((d, n, s) => d.DefineAttribute (n, s), null, new Type[] {type})
+					.Invoke (this, new object[] {name, setter}), decoders);
+			}
+		}
+
+		private void	LinkElements (Dictionary<Type, object> decoders, Type type, object setter)
+		{
+			object	known;
+
+			if (decoders.TryGetValue (type, out known))
+			{
+				Resolver<AbstractDecoder<T>>
+					.Method<DecoderArraySetter<T, object>, IDecoder<object>> ((d, s, r) => d.HasElements (s, r), null, new Type[] {type})
+					.Invoke (this, new object[] {setter, known});
+			}
+			else
+			{
+				AbstractDecoder<T>.InvokeLink (type, Resolver<AbstractDecoder<T>>
+					.Method<DecoderArraySetter<T, object>, AbstractDecoder<object>> ((d, s) => d.DefineElements (s), null, new Type[] {type})
+					.Invoke (this, new object[] {setter}), decoders);
+			}
+		}
+
+		private void	LinkPairs (Dictionary<Type, object> decoders, Type type, object setter)
+		{
+			object	known;
+
+			if (decoders.TryGetValue (type, out known))
+			{
+				Resolver<AbstractDecoder<T>>
+					.Method<DecoderMapSetter<T, object>, IDecoder<object>> ((d, s, r) => d.HasPairs (s, r), null, new Type[] {type})
+					.Invoke (this, new object[] {setter, known});
+			}
+			else
+			{
+				AbstractDecoder<T>.InvokeLink (type, Resolver<AbstractDecoder<T>>
+					.Method<DecoderMapSetter<T, object>, AbstractDecoder<object>> ((d, s) => d.DefinePairs (s), null, new Type[] {type})
+					.Invoke (this, new object[] {setter}), decoders);
 			}
 		}
 

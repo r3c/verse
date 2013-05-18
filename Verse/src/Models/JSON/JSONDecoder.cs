@@ -68,11 +68,6 @@ namespace Verse.Models.JSON
 			return true;
         }
 
-        protected override AbstractDecoder<U>	HasAttributeAbstract<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter)
-        {
-        	return this.HasAttribute (name, generator, setter, this.BuildDecoder (generator));
-        }
-
 		public override void	HasAttribute<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter, IDecoder<U> decoder)
 		{
 			if (!(decoder is JSONDecoder<U>))
@@ -81,11 +76,6 @@ namespace Verse.Models.JSON
 			this.HasAttribute (name, generator, setter, (JSONDecoder<U>)decoder);
 		}
 
-        protected override AbstractDecoder<U>	HasElementsAbstract<U> (Func<U> generator, DecoderArraySetter<T, U> setter)
-        {
-        	return this.HasElements (generator, setter, this.BuildDecoder (generator));
-        }
-
 		public override void	HasElements<U> (Func<U> generator, DecoderArraySetter<T, U> setter, IDecoder<U> decoder)
 		{
 			if (!(decoder is JSONDecoder<U>))
@@ -93,11 +83,6 @@ namespace Verse.Models.JSON
 
 			this.HasElements (generator, setter, (JSONDecoder<U>)decoder);
 		}
-
-        protected override AbstractDecoder<U>	HasPairsAbstract<U> (Func<U> generator, DecoderMapSetter<T, U> setter)
-        {
-        	return this.HasPairs (generator, setter, this.BuildDecoder (generator));
-        }
 
 		public override void	HasPairs<U> (Func<U> generator, DecoderMapSetter<T, U> setter, IDecoder<U> decoder)
 		{
@@ -110,6 +95,21 @@ namespace Verse.Models.JSON
         #endregion
 
 		#region Methods / Protected
+
+        protected override AbstractDecoder<U>	DefineAttribute<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter)
+        {
+        	return this.HasAttribute (name, generator, setter, this.BuildDecoder (generator));
+        }
+
+        protected override AbstractDecoder<U>	DefineElements<U> (Func<U> generator, DecoderArraySetter<T, U> setter)
+        {
+        	return this.HasElements (generator, setter, this.BuildDecoder (generator));
+        }
+
+        protected override AbstractDecoder<U>	DefinePairs<U> (Func<U> generator, DecoderMapSetter<T, U> setter)
+        {
+        	return this.HasPairs (generator, setter, this.BuildDecoder (generator));
+        }
 
         protected override bool	TryLinkConvert (ConvertSchema<string>.DecoderConverter<T> converter)
         {

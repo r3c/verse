@@ -1,4 +1,5 @@
 Verse README file
 =================
 
-VERsatile SErializer
+VERsatile SErializer, fast generic runtime (de)serializer (only JSON supported
+currently).

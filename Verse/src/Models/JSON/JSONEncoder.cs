@@ -44,6 +44,30 @@ namespace Verse.Models.JSON
 
     	#region Methods / Public
 
+		public override void	HasAttribute<U> (string name, EncoderValueGetter<T, U> getter, IEncoder<U> encoder)
+		{
+			if (!(encoder is JSONEncoder<U>))
+				throw new ArgumentException ("nested encoder must be a JSON encoder", "encoder");
+
+			this.DefineAttribute (name, getter, (JSONEncoder<U>)encoder);
+		}
+
+		public override void	HasElements<U> (EncoderArrayGetter<T, U> getter, IEncoder<U> encoder)
+		{
+			if (!(encoder is JSONEncoder<U>))
+				throw new ArgumentException ("nested encoder must be a JSON encoder", "encoder");
+
+			this.DefineElements (getter, (JSONEncoder<U>)encoder);
+		}
+
+		public override void	HasPairs<U> (EncoderMapGetter<T, U> getter, IEncoder<U> encoder)
+		{
+			if (!(encoder is JSONEncoder<U>))
+				throw new ArgumentException ("nested encoder must be a JSON encoder", "encoder");
+
+			this.DefinePairs (getter, (JSONEncoder<U>)encoder);
+		}
+
         public override bool	Encode (Stream stream, T instance)
         {
             using (JSONWriter writer = this.generator (stream, this.encoding))
@@ -52,47 +76,23 @@ namespace Verse.Models.JSON
             }
         }
 
-		public override void	HasAttribute<U> (string name, EncoderValueGetter<T, U> getter, IEncoder<U> encoder)
-		{
-			if (!(encoder is JSONEncoder<U>))
-				throw new ArgumentException ("nested encoder must be a JSON encoder", "encoder");
-
-			this.HasAttribute (name, getter, (JSONEncoder<U>)encoder);
-		}
-
-		public override void	HasElements<U> (EncoderArrayGetter<T, U> getter, IEncoder<U> encoder)
-		{
-			if (!(encoder is JSONEncoder<U>))
-				throw new ArgumentException ("nested encoder must be a JSON encoder", "encoder");
-
-			this.HasElements (getter, (JSONEncoder<U>)encoder);
-		}
-
-		public override void	HasPairs<U> (EncoderMapGetter<T, U> getter, IEncoder<U> encoder)
-		{
-			if (!(encoder is JSONEncoder<U>))
-				throw new ArgumentException ("nested encoder must be a JSON encoder", "encoder");
-
-			this.HasPairs (getter, (JSONEncoder<U>)encoder);
-		}
-
         #endregion
 
 		#region Methods / Protected
 
-		protected override AbstractEncoder<U>	HasAttributeAbstract<U> (string name, EncoderValueGetter<T, U> getter)
+		protected override AbstractEncoder<U>	DefineAttribute<U> (string name, EncoderValueGetter<T, U> getter)
 		{
-			return this.HasAttribute (name, getter, this.BuildEncoder<U> ());
+			return this.DefineAttribute (name, getter, this.BuildEncoder<U> ());
 		}
 
-		protected override AbstractEncoder<U>	HasElementsAbstract<U> (EncoderArrayGetter<T, U> getter)
+		protected override AbstractEncoder<U>	DefineElements<U> (EncoderArrayGetter<T, U> getter)
 		{
-			return this.HasElements (getter, this.BuildEncoder<U> ());
+			return this.DefineElements (getter, this.BuildEncoder<U> ());
 		}
 
-		protected override AbstractEncoder<U>	HasPairsAbstract<U> (EncoderMapGetter<T, U> getter)
+		protected override AbstractEncoder<U>	DefinePairs<U> (EncoderMapGetter<T, U> getter)
 		{
-			return this.HasPairs (getter, this.BuildEncoder<U> ());
+			return this.DefinePairs (getter, this.BuildEncoder<U> ());
 		}
 
 		protected override bool	TryLinkConvert (ConvertSchema<string>.EncoderConverter<T> converter)
@@ -195,14 +195,14 @@ namespace Verse.Models.JSON
 			};
 		}
 
-		private JSONEncoder<U>	HasAttribute<U> (string name, EncoderValueGetter<T, U> getter, JSONEncoder<U> encoder)
+		private JSONEncoder<U>	DefineAttribute<U> (string name, EncoderValueGetter<T, U> getter, JSONEncoder<U> encoder)
 		{
 			this.fieldWriters[name] = (writer, container) => encoder.Write (writer, getter (container));
 
 			return encoder;
 		}
 
-		private JSONEncoder<U>	HasElements<U> (EncoderArrayGetter<T, U> getter, JSONEncoder<U> encoder)
+		private JSONEncoder<U>	DefineElements<U> (EncoderArrayGetter<T, U> getter, JSONEncoder<U> encoder)
 		{
 			this.selfWriter = (writer, container) =>
 			{
@@ -239,7 +239,7 @@ namespace Verse.Models.JSON
 			return encoder;
 		}
 
-		private JSONEncoder<U>	HasPairs<U> (EncoderMapGetter<T, U> getter, JSONEncoder<U> encoder)
+		private JSONEncoder<U>	DefinePairs<U> (EncoderMapGetter<T, U> getter, JSONEncoder<U> encoder)
 		{
 			this.selfWriter = (writer, container) =>
 			{
