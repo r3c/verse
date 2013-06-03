@@ -32,12 +32,12 @@ namespace Verse.Models
 
 		protected override bool	TryLink ()
 		{
-        	object	converter;
+			object	converter;
 
-        	if (this.converters.TryGetValue (typeof (U), out converter))
-        		return this.TryLinkConvert ((ConvertSchema<T>.DecoderConverter<U>)converter);
-        	else
-        		return this.TryLinkNative ();
+			if (this.converters.TryGetValue (typeof (U), out converter))
+				return this.TryLinkConvert ((ConvertSchema<T>.DecoderConverter<U>)converter);
+			else
+				return this.TryLinkNative ();
 		}
 
 		#endregion

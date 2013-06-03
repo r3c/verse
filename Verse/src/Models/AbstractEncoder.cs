@@ -131,7 +131,7 @@ namespace Verse.Models
 			// Container is an IEnumerable<> of element type "inner"
 			if (inner != null)
 			{
-				if (inner.IsGenericType && inner.GetGenericTypeDefinition () == typeof (KeyValuePair<,>))
+				if (inner.IsGenericType && inner.GetGenericTypeDefinition () == typeof (KeyValuePair<, >))
 				{
 					arguments = inner.GetGenericArguments ();
 
@@ -230,7 +230,7 @@ namespace Verse.Models
 
 		private static object	MakeArrayGetter (Type container, Type inner)
 		{
-        	ILGenerator		generator;
+			ILGenerator		generator;
 			DynamicMethod	method;
 
 			method = new DynamicMethod (string.Empty, typeof (IEnumerable<>).MakeGenericType (inner), new Type[] {container}, container.Module, true);
@@ -239,26 +239,26 @@ namespace Verse.Models
 			generator.Emit (OpCodes.Ldarg_0);
 			generator.Emit (OpCodes.Ret);
 
-			return method.CreateDelegate (typeof (EncoderArrayGetter<,>).MakeGenericType (container, inner));
+			return method.CreateDelegate (typeof (EncoderArrayGetter<, >).MakeGenericType (container, inner));
 		}
 
 		private static object	MakeMapGetter (Type container, Type inner)
 		{
-        	ILGenerator		generator;
+			ILGenerator		generator;
 			DynamicMethod	method;
 
-			method = new DynamicMethod (string.Empty, typeof (IEnumerable<>).MakeGenericType (typeof (KeyValuePair<,>).MakeGenericType (typeof (string), inner)), new Type[] {container}, container.Module, true);
+			method = new DynamicMethod (string.Empty, typeof (IEnumerable<>).MakeGenericType (typeof (KeyValuePair<, >).MakeGenericType (typeof (string), inner)), new Type[] {container}, container.Module, true);
 
 			generator = method.GetILGenerator ();
 			generator.Emit (OpCodes.Ldarg_0);
 			generator.Emit (OpCodes.Ret);
 
-			return method.CreateDelegate (typeof (EncoderMapGetter<,>).MakeGenericType (container, inner));
+			return method.CreateDelegate (typeof (EncoderMapGetter<, >).MakeGenericType (container, inner));
 		}
 
 		private static object	MakeValueGetter (FieldInfo field)
 		{
-        	ILGenerator		generator;
+			ILGenerator		generator;
 			DynamicMethod	method;
 
 			method = new DynamicMethod (string.Empty, field.FieldType, new Type[] {field.DeclaringType}, field.Module, true);
@@ -273,12 +273,12 @@ namespace Verse.Models
 			generator.Emit (OpCodes.Ldfld, field);
 			generator.Emit (OpCodes.Ret);
 
-			return method.CreateDelegate (typeof (EncoderValueGetter<,>).MakeGenericType (field.DeclaringType, field.FieldType));
+			return method.CreateDelegate (typeof (EncoderValueGetter<, >).MakeGenericType (field.DeclaringType, field.FieldType));
 		}
 
 		private static object	MakeValueGetter (PropertyInfo property)
 		{
-        	ILGenerator		generator;
+			ILGenerator		generator;
 			DynamicMethod	method;
 
 			method = new DynamicMethod (string.Empty, property.PropertyType, new Type[] {property.DeclaringType}, property.Module, true);
@@ -293,7 +293,7 @@ namespace Verse.Models
 			generator.Emit (OpCodes.Call, property.GetGetMethod ());
 			generator.Emit (OpCodes.Ret);
 
-			return method.CreateDelegate (typeof (EncoderValueGetter<,>).MakeGenericType (property.DeclaringType, property.PropertyType));
+			return method.CreateDelegate (typeof (EncoderValueGetter<, >).MakeGenericType (property.DeclaringType, property.PropertyType));
 		}
 
 		#endregion

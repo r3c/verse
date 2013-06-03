@@ -25,7 +25,7 @@ namespace Verse.Test
 			schema.OnTypeError += (type, value) => Console.Error.WriteLine ("Type error: could not convert \"{1}\" to {0}", type, value);
 
 			schema.SetDecoderConverter<Guid> (Guid.TryParse);
-			schema.SetEncoderConverter<Guid> ((Guid guid, out string s) => { s = guid.ToString (); return true; });
+			schema.SetEncoderConverter<Guid> ((g) => g.ToString ());
 
 			recursiveSchemaTester = new RecursiveSchemaTester ();
 			recursiveSchemaTester.WithNestedArray (schema);
@@ -33,6 +33,8 @@ namespace Verse.Test
 
 			typeSchemaTester = new TypeSchemaTester ();
 			typeSchemaTester.WithGuid (schema);
+			typeSchemaTester.WithMixedTypes (schema);
+			//typeSchemaTester.WithNullable (schema);
 
 			Console.WriteLine ("OK");
 			Console.ReadKey (true);

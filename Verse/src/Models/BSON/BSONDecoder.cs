@@ -6,14 +6,14 @@ using System.Text;
 namespace Verse.Models.BSON
 {
 	class BSONDecoder<T> : ConvertDecoder<byte[], T>
-    {
+	{
 		#region Attributes
 		
 		private Func<T>		constructor;
 
 		private Encoding	encoding;
 
-        #endregion
+		#endregion
 
 		#region Constructors
 

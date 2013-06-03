@@ -6,12 +6,12 @@ using System.Text;
 namespace Verse.Models.BSON
 {
 	class BSONEncoder<T> : ConvertEncoder<byte[], T>
-    {
+	{
 		#region Attributes
 
-        private Encoding	encoding;
+		private Encoding	encoding;
 
-        #endregion
+		#endregion
 
 		#region Constructors
 
@@ -87,24 +87,24 @@ namespace Verse.Models.BSON
 
 		#region Methods / Private
 
-        private BSONEncoder<U>	BuildEncoder<U> ()
-        {
-        	BSONEncoder<U>	encoder;
+		private BSONEncoder<U>	BuildEncoder<U> ()
+		{
+			BSONEncoder<U>	encoder;
 
-        	encoder = new BSONEncoder<U> (this.converters, this.encoding);
-        	encoder.OnStreamError += this.EventStreamError;
-        	encoder.OnTypeError += this.EventTypeError;
+			encoder = new BSONEncoder<U> (this.converters, this.encoding);
+			encoder.OnStreamError += this.EventStreamError;
+			encoder.OnTypeError += this.EventTypeError;
 
-        	return encoder;
-        }
+			return encoder;
+		}
 /*
 		private Writer	BuildWriter<U> (WriterInjector<U> injector)
 		{
 			ILGenerator			generator;
 			DynamicMethod		method;
-        	WriterWrapper<U>	wrapper;
+			WriterWrapper<U>	wrapper;
 
-        	method = new DynamicMethod (string.Empty, typeof (void), new Type[] {typeof (JSONWriter), typeof (WriterInjector<U>), typeof (T)}, typeof (JSONEncoder<T>).Module, true);
+			method = new DynamicMethod (string.Empty, typeof (void), new Type[] {typeof (JSONWriter), typeof (WriterInjector<U>), typeof (T)}, typeof (JSONEncoder<T>).Module, true);
 
 			generator = method.GetILGenerator ();
 			generator.Emit (OpCodes.Ldarg_1);
@@ -255,10 +255,10 @@ namespace Verse.Models.BSON
 
 		#endregion
 
-        #region Types
+		#region Types
 
-        private delegate bool	Writer (object writer, T value);
-        
-        #endregion
+		private delegate bool	Writer (object writer, T value);
+		
+		#endregion
 	}
 }

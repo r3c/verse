@@ -30,9 +30,29 @@ namespace Verse.Models
 			this.decoderConverters[typeof (U)] = converter;
 		}
 
+		public void	SetDecoderConverter<U> (Converter<T, U> converter)
+		{
+			this.SetDecoderConverter ((T input, out U output) =>
+			{
+				output = converter (input);
+
+				return true;
+			});
+		}
+
 		public void	SetEncoderConverter<U> (EncoderConverter<U> converter)
 		{
 			this.encoderConverters[typeof (U)] = converter;
+		}
+
+		public void	SetEncoderConverter<U> (Converter<U, T> converter)
+		{
+			this.SetEncoderConverter ((U input, out T output) =>
+			{
+				output = converter (input);
+
+				return true;
+			});
 		}
 
 		#endregion

@@ -161,7 +161,7 @@ namespace Verse.Models
 			// Container is an ICollection<> of element type "inner"
 			if (inner != null)
 			{
-				if (inner.IsGenericType && inner.GetGenericTypeDefinition () == typeof (KeyValuePair<,>))
+				if (inner.IsGenericType && inner.GetGenericTypeDefinition () == typeof (KeyValuePair<, >))
 				{
 					arguments = inner.GetGenericArguments ();
 
@@ -275,7 +275,7 @@ namespace Verse.Models
 
 		private static object	MakeArraySetter (Type container, Type inner)
 		{
-        	ILGenerator		generator;
+			ILGenerator		generator;
 			Label			loop;
 			DynamicMethod	method;
 			Label			test;
@@ -327,18 +327,18 @@ namespace Verse.Models
 				generator.Emit (OpCodes.Ret);
 			}
 
-			return method.CreateDelegate (typeof (DecoderArraySetter<,>).MakeGenericType (container, inner));
+			return method.CreateDelegate (typeof (DecoderArraySetter<, >).MakeGenericType (container, inner));
 		}
 
 		private static object	MakeMapSetter (Type container, Type inner)
 		{
 			Type			element;
-        	ILGenerator		generator;
+			ILGenerator		generator;
 			Label			loop;
 			DynamicMethod	method;
 			Label			test;
 
-			element = typeof (KeyValuePair<,>).MakeGenericType (typeof (string), inner);
+			element = typeof (KeyValuePair<, >).MakeGenericType (typeof (string), inner);
 			method = new DynamicMethod (string.Empty, null, new Type[] {container.MakeByRefType (), typeof (ICollection<>).MakeGenericType (element)}, container.Module, true);
 
 			generator = method.GetILGenerator ();
@@ -387,12 +387,12 @@ namespace Verse.Models
 				generator.Emit (OpCodes.Ret);
 			}
 
-			return method.CreateDelegate (typeof (DecoderMapSetter<,>).MakeGenericType (container, inner));
+			return method.CreateDelegate (typeof (DecoderMapSetter<, >).MakeGenericType (container, inner));
 		}
 
 		private static object	MakeValueSetter (FieldInfo field)
 		{
-        	ILGenerator		generator;
+			ILGenerator		generator;
 			DynamicMethod	method;
 
 			method = new DynamicMethod (string.Empty, null, new Type[] {field.DeclaringType.MakeByRefType (), field.FieldType}, field.Module, true);
@@ -407,12 +407,12 @@ namespace Verse.Models
 			generator.Emit (OpCodes.Stfld, field);
 			generator.Emit (OpCodes.Ret);
 
-			return method.CreateDelegate (typeof (DecoderValueSetter<,>).MakeGenericType (field.DeclaringType, field.FieldType));
+			return method.CreateDelegate (typeof (DecoderValueSetter<, >).MakeGenericType (field.DeclaringType, field.FieldType));
 		}
 
 		private static object	MakeValueSetter (PropertyInfo property)
 		{
-        	ILGenerator		generator;
+			ILGenerator		generator;
 			DynamicMethod	method;
 
 			method = new DynamicMethod (string.Empty, null, new Type[] {property.DeclaringType.MakeByRefType (), property.PropertyType}, property.Module, true);
@@ -427,7 +427,7 @@ namespace Verse.Models
 			generator.Emit (OpCodes.Call, property.GetSetMethod ());
 			generator.Emit (OpCodes.Ret);
 
-			return method.CreateDelegate (typeof (DecoderValueSetter<,>).MakeGenericType (property.DeclaringType, property.PropertyType));
+			return method.CreateDelegate (typeof (DecoderValueSetter<, >).MakeGenericType (property.DeclaringType, property.PropertyType));
 		}
 
 		#endregion

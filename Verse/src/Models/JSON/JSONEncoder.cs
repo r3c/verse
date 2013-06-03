@@ -13,9 +13,9 @@ namespace Verse.Models.JSON
 	{
 		#region Attributes
 
-        private Encoding							encoding;
+		private Encoding							encoding;
 
-        private Dictionary<string, Writer>			fieldWriters;
+		private Dictionary<string, Writer>			fieldWriters;
 
 		private Func<Stream, Encoding, JSONWriter>	generator;
 
@@ -25,12 +25,12 @@ namespace Verse.Models.JSON
 
 		private JSONSettings						settings;
 
-        #endregion
+		#endregion
 
-        #region Constructors
+		#region Constructors
 
-        public	JSONEncoder (Dictionary<Type, object> converters, JSONSettings settings, Encoding encoding, Func<Stream, Encoding, JSONWriter> generator) :
-        	base (converters)
+		public	JSONEncoder (Dictionary<Type, object> converters, JSONSettings settings, Encoding encoding, Func<Stream, Encoding, JSONWriter> generator) :
+			base (converters)
 		{
 			this.encoding = encoding;
 			this.fieldWriters = new Dictionary<string, Writer> ();
@@ -42,7 +42,7 @@ namespace Verse.Models.JSON
 
 		#endregion
 
-    	#region Methods / Public
+		#region Methods / Public
 
 		public override void	HasAttribute<U> (string name, EncoderValueGetter<T, U> getter, IEncoder<U> encoder)
 		{
@@ -68,15 +68,15 @@ namespace Verse.Models.JSON
 			this.DefinePairs (getter, (JSONEncoder<U>)encoder);
 		}
 
-        public override bool	Encode (Stream stream, T instance)
-        {
-            using (JSONWriter writer = this.generator (stream, this.encoding))
-            {
-            	return this.Write (writer, instance);
-            }
-        }
+		public override bool	Encode (Stream stream, T instance)
+		{
+			using (JSONWriter writer = this.generator (stream, this.encoding))
+			{
+				return this.Write (writer, instance);
+			}
+		}
 
-        #endregion
+		#endregion
 
 		#region Methods / Protected
 
@@ -96,7 +96,7 @@ namespace Verse.Models.JSON
 		}
 
 		protected override bool	TryLinkConvert (ConvertSchema<string>.EncoderConverter<T> converter)
-    	{
+		{
 			this.selfWriter = (writer, input) =>
 			{
 				string	value;
@@ -113,44 +113,44 @@ namespace Verse.Models.JSON
 			};
 
 			return true;
-    	}
+		}
 
 		protected override bool	TryLinkNative ()
 		{
-        	Type	type;
+			Type	type;
 
-        	type = typeof (T);
+			type = typeof (T);
 
-        	if (type.IsEnum)
-        		this.selfWriter = this.BuildWriter<int> ((writer, value) => writer.WriteNumber (value));
-        	else if (type == typeof (bool))
-        		this.selfWriter = this.BuildWriter<bool> ((writer, value) => writer.WriteBoolean (value));
-        	else if (type == typeof (char))
-        		this.selfWriter = this.BuildWriter<char> ((writer, value) => writer.WriteString (new string (value, 1)));
-        	else if (type == typeof (float))
-        		this.selfWriter = this.BuildWriter<float> ((writer, value) => writer.WriteNumber (value));
-        	else if (type == typeof (double))
-        		this.selfWriter = this.BuildWriter<double> ((writer, value) => writer.WriteNumber (value));
-        	else if (type == typeof (sbyte))
-        		this.selfWriter = this.BuildWriter<sbyte> ((writer, value) => writer.WriteNumber (value));
-        	else if (type == typeof (byte))
-        		this.selfWriter = this.BuildWriter<byte> ((writer, value) => writer.WriteNumber (value));
-        	else if (type == typeof (short))
-        		this.selfWriter = this.BuildWriter<short> ((writer, value) => writer.WriteNumber (value));
-        	else if (type == typeof (ushort))
-        		this.selfWriter = this.BuildWriter<ushort> ((writer, value) => writer.WriteNumber (value));
-        	else if (type == typeof (int))
-        		this.selfWriter = this.BuildWriter<int> ((writer, value) => writer.WriteNumber (value));
-        	else if (type == typeof (uint))
-        		this.selfWriter = this.BuildWriter<uint> ((writer, value) => writer.WriteNumber (value));
-        	else if (type == typeof (long))
-        		this.selfWriter = this.BuildWriter<long> ((writer, value) => writer.WriteNumber (value));
-        	else if (type == typeof (ulong))
-        		this.selfWriter = this.BuildWriter<ulong> ((writer, value) => writer.WriteNumber (value));
-        	else if (type == typeof (string))
-        		this.selfWriter = this.BuildWriter<string> ((writer, value) => writer.WriteString (value));
-        	else
-        		return false;
+			if (type.IsEnum)
+				this.selfWriter = this.BuildWriter<int> ((writer, value) => writer.WriteNumber (value));
+			else if (type == typeof (bool))
+				this.selfWriter = this.BuildWriter<bool> ((writer, value) => writer.WriteBoolean (value));
+			else if (type == typeof (char))
+				this.selfWriter = this.BuildWriter<char> ((writer, value) => writer.WriteString (new string (value, 1)));
+			else if (type == typeof (float))
+				this.selfWriter = this.BuildWriter<float> ((writer, value) => writer.WriteNumber (value));
+			else if (type == typeof (double))
+				this.selfWriter = this.BuildWriter<double> ((writer, value) => writer.WriteNumber (value));
+			else if (type == typeof (sbyte))
+				this.selfWriter = this.BuildWriter<sbyte> ((writer, value) => writer.WriteNumber (value));
+			else if (type == typeof (byte))
+				this.selfWriter = this.BuildWriter<byte> ((writer, value) => writer.WriteNumber (value));
+			else if (type == typeof (short))
+				this.selfWriter = this.BuildWriter<short> ((writer, value) => writer.WriteNumber (value));
+			else if (type == typeof (ushort))
+				this.selfWriter = this.BuildWriter<ushort> ((writer, value) => writer.WriteNumber (value));
+			else if (type == typeof (int))
+				this.selfWriter = this.BuildWriter<int> ((writer, value) => writer.WriteNumber (value));
+			else if (type == typeof (uint))
+				this.selfWriter = this.BuildWriter<uint> ((writer, value) => writer.WriteNumber (value));
+			else if (type == typeof (long))
+				this.selfWriter = this.BuildWriter<long> ((writer, value) => writer.WriteNumber (value));
+			else if (type == typeof (ulong))
+				this.selfWriter = this.BuildWriter<ulong> ((writer, value) => writer.WriteNumber (value));
+			else if (type == typeof (string))
+				this.selfWriter = this.BuildWriter<string> ((writer, value) => writer.WriteString (value));
+			else
+				return false;
 
 			return true;
 		}
@@ -159,24 +159,24 @@ namespace Verse.Models.JSON
 
 		#region Methods / Private
 
-        private JSONEncoder<U>	BuildEncoder<U> ()
-        {
-        	JSONEncoder<U>	encoder;
+		private JSONEncoder<U>	BuildEncoder<U> ()
+		{
+			JSONEncoder<U>	encoder;
 
-        	encoder = new JSONEncoder<U> (this.converters, this.settings, this.encoding, this.generator);
-        	encoder.OnStreamError += this.EventStreamError;
-        	encoder.OnTypeError += this.EventTypeError;
+			encoder = new JSONEncoder<U> (this.converters, this.settings, this.encoding, this.generator);
+			encoder.OnStreamError += this.EventStreamError;
+			encoder.OnTypeError += this.EventTypeError;
 
-        	return encoder;
-        }
+			return encoder;
+		}
 
 		private Writer	BuildWriter<U> (WriterInjector<U> injector)
 		{
 			ILGenerator			generator;
 			DynamicMethod		method;
-        	WriterWrapper<U>	wrapper;
+			WriterWrapper<U>	wrapper;
 
-        	method = new DynamicMethod (string.Empty, typeof (void), new Type[] {typeof (JSONWriter), typeof (WriterInjector<U>), typeof (T)}, typeof (JSONEncoder<T>).Module, true);
+			method = new DynamicMethod (string.Empty, typeof (void), new Type[] {typeof (JSONWriter), typeof (WriterInjector<U>), typeof (T)}, typeof (JSONEncoder<T>).Module, true);
 
 			generator = method.GetILGenerator ();
 			generator.Emit (OpCodes.Ldarg_1);
@@ -323,14 +323,14 @@ namespace Verse.Models.JSON
 
 		#endregion
 
-        #region Types
+		#region Types
 
-        private delegate bool	Writer (JSONWriter writer, T value);
+		private delegate bool	Writer (JSONWriter writer, T value);
 
-        private delegate void	WriterInjector<U> (JSONWriter writer, U value);
+		private delegate void	WriterInjector<U> (JSONWriter writer, U value);
 
-        private delegate void	WriterWrapper<U> (JSONWriter writer, WriterInjector<U> importer, T value);
-        
-        #endregion
+		private delegate void	WriterWrapper<U> (JSONWriter writer, WriterInjector<U> importer, T value);
+		
+		#endregion
 	}
 }

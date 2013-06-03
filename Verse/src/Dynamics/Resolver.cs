@@ -9,15 +9,15 @@ namespace Verse.Dynamics
 		#region Methods
 
 		public static MethodInfo	GetMethod<T> (Expression<T> lambda, Type[] targetParameters, Type[] methodParameters)
-	    {
-	    	MethodCallExpression	expression;
-	    	MethodInfo				method;
-	    	Type					type;
+		{
+			MethodCallExpression	expression;
+			MethodInfo				method;
+			Type					type;
 
-	        expression = lambda.Body as MethodCallExpression;
+			expression = lambda.Body as MethodCallExpression;
 
-	        if (expression == null)
-	        	throw new ArgumentException ("can't get method information from expression", "lambda");
+			if (expression == null)
+				throw new ArgumentException ("can't get method information from expression", "lambda");
 
 			method = expression.Method;
 
@@ -41,21 +41,21 @@ namespace Verse.Dynamics
 				method = Array.Find (type.GetMethods (BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static), (m) => m.MetadataToken == method.MetadataToken);
 			}
 
-	        return method;
-	    }
+			return method;
+		}
 
 		public static PropertyInfo	GetProperty<T> (Expression<T> lambda, Type[] targetParameters)
 		{
-	    	MemberExpression	expression;
-	    	PropertyInfo		property;
-	    	Type				type;
+			MemberExpression	expression;
+			PropertyInfo		property;
+			Type				type;
 
-	        expression = lambda.Body as MemberExpression;
+			expression = lambda.Body as MemberExpression;
 
-	        if (expression == null || expression.Member.MemberType != MemberTypes.Property)
-	        	throw new ArgumentException ("can't get property information from expression", "lambda");
+			if (expression == null || expression.Member.MemberType != MemberTypes.Property)
+				throw new ArgumentException ("can't get property information from expression", "lambda");
 
-	        property = (PropertyInfo)expression.Member;
+			property = (PropertyInfo)expression.Member;
 
 			// Change target generic parameters if requested
 			if (targetParameters != null && property.DeclaringType.IsGenericType)

@@ -15,27 +15,27 @@ namespace Verse.Dynamics
 		#region Methods
 
 		public static Func<T>	Constructor<T> ()
-	    {
-	    	ConstructorInfo	constructor;
-	    	ILGenerator		generator;
-	        DynamicMethod	method;
-	        Type			type;
+		{
+			ConstructorInfo	constructor;
+			ILGenerator		generator;
+			DynamicMethod	method;
+			Type			type;
 
-        	type = typeof (T);
-        	constructor = type.GetConstructor (BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, Type.DefaultBinder, Type.EmptyTypes, Generator.modifiers);
+			type = typeof (T);
+			constructor = type.GetConstructor (BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, Type.DefaultBinder, Type.EmptyTypes, Generator.modifiers);
 
 			if (constructor == null)
 				return () => default (T);
 
 			method = new DynamicMethod (string.Empty, type, Type.EmptyTypes, constructor.Module, true);
 
-	        generator = method.GetILGenerator ();
-	        generator.Emit (OpCodes.Newobj, constructor);
-	        generator.Emit (OpCodes.Ret);
+			generator = method.GetILGenerator ();
+			generator.Emit (OpCodes.Newobj, constructor);
+			generator.Emit (OpCodes.Ret);
 
-	        return (Func<T>)method.CreateDelegate (typeof (Func<T>));
-	    }
+			return (Func<T>)method.CreateDelegate (typeof (Func<T>));
+		}
 
-	    #endregion
+		#endregion
 	}
 }
