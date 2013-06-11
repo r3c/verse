@@ -4,10 +4,12 @@ using System.IO;
 
 using NUnit.Framework;
 
+using Verse.Test.Helpers;
+
 namespace Verse.Test.Models
 {
 	[TestFixture]
-	class TypeSchemaTester : SchemaTester
+	class TypeSchemaTester
 	{
 		private enum	MyEnum
 		{
@@ -42,7 +44,7 @@ namespace Verse.Test.Models
 			decoder = schema.GetDecoder<MyIdentifier> ();
 			decoder.Link ();
 
-			this.Validate (decoder, encoder, new MyIdentifier
+			SchemaValidator.Validate (decoder, encoder, new MyIdentifier
 			{
 				guid	= Guid.NewGuid ()
 			});
@@ -60,7 +62,7 @@ namespace Verse.Test.Models
 			decoder = schema.GetDecoder<MyValue> ();
 			decoder.Link ();
 
-			this.Validate (decoder, encoder, new MyValue
+			SchemaValidator.Validate (decoder, encoder, new MyValue
 			{
 				floats		= new float[] {1.1f, 2.2f, 3.3f},
 				int2		= 17,
@@ -86,8 +88,8 @@ namespace Verse.Test.Models
 			decoder = schema.GetDecoder<int?> ();
 			decoder.Link ();
 
-			this.Validate (decoder, encoder, null);
-			this.Validate (decoder, encoder, 42);
+			SchemaValidator.Validate (decoder, encoder, null);
+			SchemaValidator.Validate (decoder, encoder, 42);
 		}
 	}
 }

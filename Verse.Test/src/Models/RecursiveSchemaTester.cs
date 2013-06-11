@@ -5,10 +5,12 @@ using System.Text;
 
 using NUnit.Framework;
 
+using Verse.Test.Helpers;
+
 namespace Verse.Test.Models
 {
 	[TestFixture]
-	class RecursiveSchemaTester : SchemaTester
+	class RecursiveSchemaTester
 	{
 		private class	NestedArray
 		{
@@ -28,7 +30,7 @@ namespace Verse.Test.Models
 			encoder = schema.GetEncoder<NestedArray> ();
 			encoder.Link ();
 
-			this.Validate (decoder, encoder, new NestedArray
+			SchemaValidator.Validate (decoder, encoder, new NestedArray
 			{
 				children = new NestedArray[]
 				{
@@ -82,7 +84,7 @@ namespace Verse.Test.Models
 			encoder = schema.GetEncoder<NestedValue> ();
 			encoder.Link ();
 
-			this.Validate (decoder, encoder, new NestedValue
+			SchemaValidator.Validate (decoder, encoder, new NestedValue
 			{
 				child	= new NestedValue
 				{

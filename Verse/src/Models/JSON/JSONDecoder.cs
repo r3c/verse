@@ -145,11 +145,35 @@ namespace Verse.Models.JSON
 			type = typeof (T);
 
 			if (type.IsEnum)
-				this.selfReader = this.BuildReader<int> ((JSONLexer lexer, out int value) => { value = (int)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; });
-			else if (type == typeof (bool))
+				type = typeof (int);
+
+/*
+ * (JSONLexer lexer, out Nullable<U> nullable)
+ * {
+ *     U value;
+ *
+ *     if (lexer.Lexem == JSONLexem.Null)
+ *     {
+ *         nullable = null;
+ *
+ *         return true;
+ *     }
+ *
+ *     if (reader (lexer, out value))
+ *     {
+ *         nullable = new Nullable<U> (value);
+ *
+ *         return true;
+ *     }
+ *
+ *     return false;
+ * }
+*/
+
+			if (type == typeof (bool))
 				this.selfReader = this.BuildReader<bool> ((JSONLexer lexer, out bool value) => { value = lexer.Lexem != JSONLexem.False; return lexer.Lexem == JSONLexem.False || lexer.Lexem == JSONLexem.True; });
 			else if (type == typeof (char))
-				this.selfReader = this.BuildReader<char> ((JSONLexer lexer, out char value) => { if (lexer.Lexem == JSONLexem.String && lexer.AsString.Length > 0) { value = lexer.AsString[0]; return true; } value = ' '; return false; });
+				this.selfReader = this.BuildReader<char> ((JSONLexer lexer, out char value) => { value = lexer.AsString.Length > 0 ? lexer.AsString[0] : '\0'; return lexer.Lexem == JSONLexem.String; });
 			else if (type == typeof (float))
 				this.selfReader = this.BuildReader<float> ((JSONLexer lexer, out float value) => { value = (float)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; });
 			else if (type == typeof (double))
@@ -171,7 +195,7 @@ namespace Verse.Models.JSON
 			else if (type == typeof (ulong))
 				this.selfReader = this.BuildReader<ulong> ((JSONLexer lexer, out ulong value) => { value = (ulong)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; });
 			else if (type == typeof (string))
-				this.selfReader = this.BuildReader<string> ((JSONLexer lexer, out string value) => { value = lexer.AsString; return lexer.Lexem == JSONLexem.Null || lexer.Lexem == JSONLexem.String; });
+				this.selfReader = this.BuildReader<string> ((JSONLexer lexer, out string value) => { value = lexer.AsString; return lexer.Lexem == JSONLexem.String; });
 			else
 				return false;
 
@@ -195,25 +219,22 @@ namespace Verse.Models.JSON
 
 		private Reader	BuildReader<U> (ReaderExtractor<U> extractor)
 		{
+			Label				failure;
 			ILGenerator			generator;
 			DynamicMethod		method;
-			Label				success;
 			ReaderWrapper<U>	wrapper;
 
 			method = new DynamicMethod (string.Empty, typeof (bool), new Type[] {typeof (JSONLexer), typeof (ReaderExtractor<U>), typeof (T).MakeByRefType ()}, typeof (JSONDecoder<T>).Module, true);
 			generator = method.GetILGenerator ();
-			success = generator.DefineLabel ();
+			failure = generator.DefineLabel ();
 
 			generator.DeclareLocal (typeof (U));
 			generator.Emit (OpCodes.Ldarg_1);
 			generator.Emit (OpCodes.Ldarg_0);
 			generator.Emit (OpCodes.Ldloca_S, 0);
 			generator.Emit (OpCodes.Call, typeof (ReaderExtractor<U>).GetMethod ("Invoke")); // Can't use static reflection here
-			generator.Emit (OpCodes.Brtrue_S, success);
-			generator.Emit (OpCodes.Ldc_I4_0);
-			generator.Emit (OpCodes.Ret);
+			generator.Emit (OpCodes.Brfalse_S, failure);
 
-			generator.MarkLabel (success);
 			generator.Emit (OpCodes.Ldarg_2);
 			generator.Emit (OpCodes.Ldloc_0);
 
@@ -223,6 +244,10 @@ namespace Verse.Models.JSON
 				generator.Emit (OpCodes.Stind_Ref);
 
 			generator.Emit (OpCodes.Ldc_I4_1);
+			generator.Emit (OpCodes.Ret);
+
+			generator.MarkLabel (failure);
+			generator.Emit (OpCodes.Ldc_I4_0);
 			generator.Emit (OpCodes.Ret);
 
 			wrapper = (ReaderWrapper<U>)method.CreateDelegate (typeof (ReaderWrapper<U>));

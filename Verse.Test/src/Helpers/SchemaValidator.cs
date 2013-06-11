@@ -5,11 +5,11 @@ using KellermanSoftware.CompareNetObjects;
 
 using NUnit.Framework;
 
-namespace Verse.Test.Models
+namespace Verse.Test.Helpers
 {
-	class SchemaTester
+	class SchemaValidator
 	{
-		protected void	Validate<T> (IDecoder<T> decoder, IEncoder<T> encoder, T instance)
+		public static void	Validate<T> (IDecoder<T> decoder, IEncoder<T> encoder, T instance)
 		{
 			byte[]			first;
 			CompareObjects	compare;

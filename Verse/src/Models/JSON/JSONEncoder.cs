@@ -122,8 +122,9 @@ namespace Verse.Models.JSON
 			type = typeof (T);
 
 			if (type.IsEnum)
-				this.selfWriter = this.BuildWriter<int> ((writer, value) => writer.WriteNumber (value));
-			else if (type == typeof (bool))
+				type = typeof (int);
+
+			if (type == typeof (bool))
 				this.selfWriter = this.BuildWriter<bool> ((writer, value) => writer.WriteBoolean (value));
 			else if (type == typeof (char))
 				this.selfWriter = this.BuildWriter<char> ((writer, value) => writer.WriteString (new string (value, 1)));
