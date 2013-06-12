@@ -64,7 +64,9 @@
     <Compile Include="src\Models\BSON\BSONDecoder.cs" />
     <Compile Include="src\Models\BSON\BSONEncoder.cs" />
     <Compile Include="src\Models\BSON\BSONSchema.cs" />
+    <Compile Include="src\Models\JSON\JSONConverter.cs" />
     <Compile Include="src\Models\JSON\JSONExtractor.cs" />
+    <Compile Include="src\Models\JSON\JSONInjector.cs" />
     <Compile Include="src\Models\JSON\JSONSettings.cs" />
     <Compile Include="src\Models\JSON\JSONPrinter.cs" />
     <Compile Include="src\Models\ConvertDecoder.cs" />

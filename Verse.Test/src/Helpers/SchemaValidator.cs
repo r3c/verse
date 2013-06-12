@@ -29,7 +29,8 @@ namespace Verse.Test.Helpers
 			}
 
 			compare = new CompareObjects ();
-			compare.Compare (instance, other);
+
+			Assert.IsTrue (compare.Compare (instance, other));
 
 			using (MemoryStream stream = new MemoryStream ())
 			{

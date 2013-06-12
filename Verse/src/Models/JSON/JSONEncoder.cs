@@ -19,7 +19,7 @@ namespace Verse.Models.JSON
 
 		private Func<Stream, Encoding, JSONPrinter>	generator;
 
-		private Writer								selfWriter;
+		private JSONInjector<T>						injector;
 
 		private bool								settingOmitNull;
 
@@ -35,7 +35,7 @@ namespace Verse.Models.JSON
 			this.encoding = encoding;
 			this.fieldWriters = new Dictionary<string, Writer> ();
 			this.generator = generator;
-			this.selfWriter = null;
+			this.injector = null;
 			this.settingOmitNull = (settings & JSONSettings.OmitNull) == JSONSettings.OmitNull;
 			this.settings = settings;
 		}
@@ -97,7 +97,7 @@ namespace Verse.Models.JSON
 
 		protected override bool	TryLinkConvert (ConvertSchema<string>.EncoderConverter<T> converter)
 		{
-			this.selfWriter = (writer, input) =>
+			this.injector = (writer, input) =>
 			{
 				string	value;
 
@@ -117,43 +117,41 @@ namespace Verse.Models.JSON
 
 		protected override bool	TryLinkNative ()
 		{
+			Type[]	arguments;
+			object	injector;
 			Type	type;
 
 			type = typeof (T);
 
-			if (type.IsEnum)
-				type = typeof (int);
+			if (type.IsGenericType && type.GetGenericTypeDefinition () == typeof (Nullable<>))
+			{
+				arguments = type.GetGenericArguments ();
 
-			if (type == typeof (bool))
-				this.selfWriter = this.WrapWriter<bool> ((writer, value) => writer.WriteBoolean (value));
-			else if (type == typeof (char))
-				this.selfWriter = this.WrapWriter<char> ((writer, value) => writer.WriteString (new string (value, 1)));
-			else if (type == typeof (float))
-				this.selfWriter = this.WrapWriter<float> ((writer, value) => writer.WriteNumber (value));
-			else if (type == typeof (double))
-				this.selfWriter = this.WrapWriter<double> ((writer, value) => writer.WriteNumber (value));
-			else if (type == typeof (sbyte))
-				this.selfWriter = this.WrapWriter<sbyte> ((writer, value) => writer.WriteNumber (value));
-			else if (type == typeof (byte))
-				this.selfWriter = this.WrapWriter<byte> ((writer, value) => writer.WriteNumber (value));
-			else if (type == typeof (short))
-				this.selfWriter = this.WrapWriter<short> ((writer, value) => writer.WriteNumber (value));
-			else if (type == typeof (ushort))
-				this.selfWriter = this.WrapWriter<ushort> ((writer, value) => writer.WriteNumber (value));
-			else if (type == typeof (int))
-				this.selfWriter = this.WrapWriter<int> ((writer, value) => writer.WriteNumber (value));
-			else if (type == typeof (uint))
-				this.selfWriter = this.WrapWriter<uint> ((writer, value) => writer.WriteNumber (value));
-			else if (type == typeof (long))
-				this.selfWriter = this.WrapWriter<long> ((writer, value) => writer.WriteNumber (value));
-			else if (type == typeof (ulong))
-				this.selfWriter = this.WrapWriter<ulong> ((writer, value) => writer.WriteNumber (value));
-			else if (type == typeof (string))
-				this.selfWriter = this.WrapWriter<string> ((writer, value) => writer.WriteString (value));
-			else
-				return false;
+				if (arguments.Length == 1 && JSONConverter.TryGetInjector (arguments[0], out injector))
+				{
+					this.injector = (JSONInjector<T>)Resolver<JSONEncoder<T>>
+						.Method<int, JSONInjector<T>> ((e, i) => e.WrapNullable<int> (i), null, new Type[] {arguments[0]})
+						.Invoke (this, new object[] {injector});
 
-			return true;
+					return true;
+				}
+			}
+
+			if (type.IsEnum && JSONConverter.TryGetInjector (typeof (int), out injector))
+			{
+				this.injector = this.WrapCompatible<int> (injector);
+
+				return true;
+			}
+
+			if (JSONConverter.TryGetInjector (type, out injector))
+			{
+				this.injector = (JSONInjector<T>)injector;
+
+				return true;
+			}
+
+			return false;
 		}
 
 		#endregion
@@ -180,7 +178,7 @@ namespace Verse.Models.JSON
 
 		private JSONEncoder<U>	DefineElements<U> (EncoderArrayGetter<T, U> getter, JSONEncoder<U> encoder)
 		{
-			this.selfWriter = (writer, container) =>
+			this.injector = (writer, container) =>
 			{
 				bool	empty;
 
@@ -217,7 +215,7 @@ namespace Verse.Models.JSON
 
 		private JSONEncoder<U>	DefinePairs<U> (EncoderMapGetter<T, U> getter, JSONEncoder<U> encoder)
 		{
-			this.selfWriter = (writer, container) =>
+			this.injector = (writer, container) =>
 			{
 				bool	empty;
 
@@ -255,29 +253,44 @@ namespace Verse.Models.JSON
 			return encoder;
 		}
 
-		private Writer	WrapWriter<U> (WriterInjector<U> injector)
+		private JSONInjector<T>	WrapCompatible<U> (object injector)
 		{
-			ILGenerator			generator;
-			DynamicMethod		method;
-			WriterWrapper<U>	wrapper;
+			JSONInjector<U>	closure;
+			ILGenerator		generator;
+			DynamicMethod	method;
+			Wrapper<U>		wrapper;
 
-			method = new DynamicMethod (string.Empty, typeof (void), new Type[] {typeof (JSONPrinter), typeof (WriterInjector<U>), typeof (T)}, typeof (JSONEncoder<T>).Module, true);
+			method = new DynamicMethod (string.Empty, typeof (bool), new Type[] {typeof (JSONPrinter), typeof (JSONInjector<U>), typeof (T)}, typeof (JSONEncoder<T>).Module, true);
 
 			generator = method.GetILGenerator ();
 			generator.Emit (OpCodes.Ldarg_1);
 			generator.Emit (OpCodes.Ldarg_0);
 			generator.Emit (OpCodes.Ldarg_2);
-			generator.Emit (OpCodes.Call, Resolver<WriterInjector<U>>.Method<JSONPrinter, U> ((i, w, v) => i.Invoke (w, v)));
+			generator.Emit (OpCodes.Call, Resolver<JSONInjector<U>>.Method<JSONPrinter, U> ((i, p, v) => i.Invoke (p, v)));
 			generator.Emit (OpCodes.Ret);
 
-			wrapper = (WriterWrapper<U>)method.CreateDelegate (typeof (WriterWrapper<U>));
+			closure = (JSONInjector<U>)injector;
+			wrapper = (Wrapper<U>)method.CreateDelegate (typeof (Wrapper<U>));
 
-			return (writer, value) =>
+			return (writer, value) => wrapper (writer, closure, value);
+		}
+
+		private JSONInjector<T>	WrapNullable<U> (object injector) where
+			U : struct
+		{
+			JSONInjector<U>	closure;
+
+			closure = (JSONInjector<U>)injector;
+
+			return this.WrapCompatible<U?> ((JSONInjector<U?>)((JSONPrinter printer, U? nullable) =>
 			{
-				wrapper (writer, injector, value);
+				if (nullable.HasValue)
+					return closure (printer, nullable.GetValueOrDefault ());
+
+				printer.WriteNull ();
 
 				return true;
-			};
+			}));
 		}
 
 		private bool	Write (JSONPrinter printer, T value)
@@ -291,8 +304,8 @@ namespace Verse.Models.JSON
 				return true;
 			}
 
-			if (this.selfWriter != null)
-				return this.selfWriter (printer, value);
+			if (this.injector != null)
+				return this.injector (printer, value);
 
 			empty = true;
 
@@ -326,11 +339,9 @@ namespace Verse.Models.JSON
 
 		#region Types
 
+		private delegate bool	Wrapper<U> (JSONPrinter printer, JSONInjector<U> injector, T value);
+
 		private delegate bool	Writer (JSONPrinter printer, T value);
-
-		private delegate void	WriterInjector<U> (JSONPrinter printer, U value);
-
-		private delegate void	WriterWrapper<U> (JSONPrinter printer, WriterInjector<U> injector, T value);
 		
 		#endregion
 	}

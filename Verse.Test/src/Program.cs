@@ -18,23 +18,14 @@ namespace Verse.Test
 			RecursiveSchemaTester	recursiveSchemaTester;
 			TypeSchemaTester		typeSchemaTester;
 
-			JSONSchema	schema;
-
-			schema = new JSONSchema (0, (s, e) => new JSONPrinter (s, e));
-			schema.OnStreamError += (position, message) => Console.Error.WriteLine ("Stream error at position {0}: {1}", position, message);
-			schema.OnTypeError += (type, value) => Console.Error.WriteLine ("Type error: could not convert \"{1}\" to {0}", type, value);
-
-			schema.SetDecoderConverter<Guid> (Guid.TryParse);
-			schema.SetEncoderConverter<Guid> ((g) => g.ToString ());
-
 			recursiveSchemaTester = new RecursiveSchemaTester ();
-			recursiveSchemaTester.WithNestedArray (schema);
-			recursiveSchemaTester.WithNestedValue (schema);
+			recursiveSchemaTester.NestedArray ();
+			recursiveSchemaTester.NestedField ();
 
 			typeSchemaTester = new TypeSchemaTester ();
-			typeSchemaTester.WithGuid (schema);
-			typeSchemaTester.WithMixedTypes (schema);
-			//typeSchemaTester.WithNullable (schema);
+			typeSchemaTester.GuidProperty ();
+			typeSchemaTester.MixedTypes ();
+			typeSchemaTester.NullableDouble ();
 
 			Console.WriteLine ("OK");
 			Console.ReadKey (true);

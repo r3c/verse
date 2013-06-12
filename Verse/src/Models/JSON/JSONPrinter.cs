@@ -34,10 +34,10 @@ namespace Verse.Models.JSON
 		
 		static	JSONPrinter ()
 		{
-			for (int i = 0; i < 10; ++i)
-				JSONPrinter.strings[i] = "\\u000" + i;
+			for (int i = 0; i < 32; ++i)
+				JSONPrinter.strings[i] = "\\u00" + JSONPrinter.hexadecimals[i >> 4 & 0xF] + JSONPrinter.hexadecimals[i & 0xF];
 
-			for (int i = 10; i < 128; ++i)
+			for (int i = 32; i < 128; ++i)
 				JSONPrinter.strings[i] = ((char)i).ToString ();
 
 			JSONPrinter.strings[(int)'\b'] = "\\b";
@@ -112,7 +112,7 @@ namespace Verse.Models.JSON
 				if ((int)c < 128)
 					writer.Write (JSONPrinter.strings[(int)c]);
 				else if ((int)c < 65536)
-					writer.Write ("\\u" + JSONPrinter.hexadecimals[(int)c >> 12 & 0x0F] + JSONPrinter.hexadecimals[(int)c >> 8 & 0x0F] + JSONPrinter.hexadecimals[(int)c >> 4 & 0x0F] + JSONPrinter.hexadecimals[(int)c & 0x0F]);
+					writer.Write ("\\u" + JSONPrinter.hexadecimals[(int)c >> 12 & 0xF] + JSONPrinter.hexadecimals[(int)c >> 8 & 0xF] + JSONPrinter.hexadecimals[(int)c >> 4 & 0xF] + JSONPrinter.hexadecimals[(int)c & 0xF]);
 				else
 					writer.Write ('?');
 			}

@@ -4,6 +4,7 @@ using System.IO;
 
 using NUnit.Framework;
 
+using Verse.Models.JSON;
 using Verse.Test.Helpers;
 
 namespace Verse.Test.Models
@@ -11,76 +12,103 @@ namespace Verse.Test.Models
 	[TestFixture]
 	class TypeSchemaTester
 	{
-		private enum	MyEnum
+		private ISchema	GetSchema ()
+		{
+			JSONSchema	schema;
+
+			schema = new JSONSchema (0);
+			schema.OnStreamError += (position, message) => Console.Error.WriteLine ("Stream error at position {0}: {1}", position, message);
+			schema.OnTypeError += (type, value) => Console.Error.WriteLine ("Type error: could not convert \"{1}\" to {0}", type, value);
+
+			schema.SetDecoderConverter<Guid> (Guid.TryParse);
+			schema.SetEncoderConverter<Guid> ((g) => g.ToString ());
+
+			return schema;
+		}
+
+		private class	MyGuidContainer
+		{
+			public Guid	guid
+			{
+				get;
+				set;
+			}
+		}
+
+		[Test]
+		public void	GuidProperty ()
+		{
+			IDecoder<MyGuidContainer>	decoder;
+			IEncoder<MyGuidContainer>	encoder;
+			ISchema						schema;
+
+			schema = this.GetSchema ();
+
+			encoder = schema.GetEncoder<MyGuidContainer> ();
+			encoder.Link ();
+
+			decoder = schema.GetDecoder<MyGuidContainer> ();
+			decoder.Link ();
+
+			SchemaValidator.Validate (decoder, encoder, new MyGuidContainer
+			{
+				guid	= Guid.NewGuid ()
+			});
+		}
+
+		private enum	MyOptionEnum
 		{
 			A,
 			B,
 			C
 		}
 
-		private class	MyIdentifier
-		{
-			public Guid	guid { get; set; }
-		}
-
-		private class	MyValue
+		private class	MyMixedTypes
 		{
 			public float[]						floats;
-			public short						int2;
-			public MyEnum						myEnum;
+			public short						integer;
+			public MyOptionEnum					option;
 			public Dictionary<string, string>	pairs;
-			public string						str;
+			public string						text;
 		}
 
 		[Test]
-		public void	WithGuid (ISchema schema)
+		public void	MixedTypes ()
 		{
-			IDecoder<MyIdentifier>	decoder;
-			IEncoder<MyIdentifier>	encoder;
+			IDecoder<MyMixedTypes>	decoder;
+			IEncoder<MyMixedTypes>	encoder;
+			ISchema					schema;
 
-			encoder = schema.GetEncoder<MyIdentifier> ();
+			schema = this.GetSchema ();
+
+			encoder = schema.GetEncoder<MyMixedTypes> ();
 			encoder.Link ();
 
-			decoder = schema.GetDecoder<MyIdentifier> ();
+			decoder = schema.GetDecoder<MyMixedTypes> ();
 			decoder.Link ();
 
-			SchemaValidator.Validate (decoder, encoder, new MyIdentifier
-			{
-				guid	= Guid.NewGuid ()
-			});
-		}
-
-		[Test]
-		public void	WithMixedTypes (ISchema schema)
-		{
-			IDecoder<MyValue>	decoder;
-			IEncoder<MyValue>	encoder;
-
-			encoder = schema.GetEncoder<MyValue> ();
-			encoder.Link ();
-
-			decoder = schema.GetDecoder<MyValue> ();
-			decoder.Link ();
-
-			SchemaValidator.Validate (decoder, encoder, new MyValue
+			SchemaValidator.Validate (decoder, encoder, new MyMixedTypes
 			{
 				floats		= new float[] {1.1f, 2.2f, 3.3f},
-				int2		= 17,
-				myEnum		= MyEnum.B,
+				integer		= 17,
+				option		= MyOptionEnum.B,
 				pairs		= new Dictionary<string, string>
 				{
 					{"a",	"aaa"},
 					{"b",	"bbb"}
 				},
-				str			= "Hello, World!"
+				text			= "Hello, World!"
 			});
 		}
 
 		[Test]
-		public void	WithNullable (ISchema schema)
+		public void	NullableDouble ()
 		{
 			IDecoder<double?>	decoder;
 			IEncoder<double?>	encoder;
+			ISchema				schema;
+
+			schema = this.GetSchema ();
 
 			encoder = schema.GetEncoder<double?> ();
 			encoder.Link ();

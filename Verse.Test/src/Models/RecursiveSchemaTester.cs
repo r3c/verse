@@ -5,6 +5,7 @@ using System.Text;
 
 using NUnit.Framework;
 
+using Verse.Models.JSON;
 using Verse.Test.Helpers;
 
 namespace Verse.Test.Models
@@ -12,43 +13,57 @@ namespace Verse.Test.Models
 	[TestFixture]
 	class RecursiveSchemaTester
 	{
-		private class	NestedArray
+		private ISchema	GetSchema ()
 		{
-			public NestedArray[]	children;
+			JSONSchema	schema;
+
+			schema = new JSONSchema (0);
+			schema.OnStreamError += (position, message) => Console.Error.WriteLine ("Stream error at position {0}: {1}", position, message);
+			schema.OnTypeError += (type, value) => Console.Error.WriteLine ("Type error: could not convert \"{1}\" to {0}", type, value);
+
+			return schema;
+		}
+
+		private class	MyNestedArray
+		{
+			public MyNestedArray[]	children;
 			public string			value;
 		}
 
 		[Test]
-		public void	WithNestedArray (ISchema schema)
+		public void	NestedArray ()
 		{
-			IDecoder<NestedArray>	decoder;
-			IEncoder<NestedArray>	encoder;
+			IDecoder<MyNestedArray>	decoder;
+			IEncoder<MyNestedArray>	encoder;
+			ISchema					schema;
 
-			decoder = schema.GetDecoder<NestedArray> ();
+			schema = this.GetSchema ();
+
+			decoder = schema.GetDecoder<MyNestedArray> ();
 			decoder.Link ();
 
-			encoder = schema.GetEncoder<NestedArray> ();
+			encoder = schema.GetEncoder<MyNestedArray> ();
 			encoder.Link ();
 
-			SchemaValidator.Validate (decoder, encoder, new NestedArray
+			SchemaValidator.Validate (decoder, encoder, new MyNestedArray
 			{
-				children = new NestedArray[]
+				children = new MyNestedArray[]
 				{
-					new NestedArray
+					new MyNestedArray
 					{
 						children = null,
 						value = "a"
 					},
-					new NestedArray
+					new MyNestedArray
 					{
-						children = new NestedArray[]
+						children = new MyNestedArray[]
 						{
-							new NestedArray
+							new MyNestedArray
 							{
 								children = null,
 								value = "b"
 							},
-							new NestedArray
+							new MyNestedArray
 							{
 								children = null,
 								value = "c"
@@ -56,9 +71,9 @@ namespace Verse.Test.Models
 						},
 						value = "d"
 					},
-					new NestedArray
+					new MyNestedArray
 					{
-						children = new NestedArray[0],
+						children = new MyNestedArray[0],
 						value = "e"
 					}
 				},
@@ -66,29 +81,32 @@ namespace Verse.Test.Models
 			});
 		}
 
-		private class	NestedValue
+		private class	MyNestedValue
 		{
-			public NestedValue	child;
-			public int			value;
+			public MyNestedValue	child;
+			public int				value;
 		}
 
 		[Test]
-		public void	WithNestedValue (ISchema schema)
+		public void	NestedField ()
 		{
-			IDecoder<NestedValue>	decoder;
-			IEncoder<NestedValue>	encoder;
+			IDecoder<MyNestedValue>	decoder;
+			IEncoder<MyNestedValue>	encoder;
+			ISchema					schema;
 
-			decoder = schema.GetDecoder<NestedValue> ();
+			schema = this.GetSchema ();
+
+			decoder = schema.GetDecoder<MyNestedValue> ();
 			decoder.Link ();
 
-			encoder = schema.GetEncoder<NestedValue> ();
+			encoder = schema.GetEncoder<MyNestedValue> ();
 			encoder.Link ();
 
-			SchemaValidator.Validate (decoder, encoder, new NestedValue
+			SchemaValidator.Validate (decoder, encoder, new MyNestedValue
 			{
-				child	= new NestedValue
+				child	= new MyNestedValue
 				{
-					child	= new NestedValue
+					child	= new MyNestedValue
 					{
 						child	= null,
 						value	= 64

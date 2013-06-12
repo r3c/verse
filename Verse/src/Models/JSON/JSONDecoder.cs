@@ -149,7 +149,7 @@ namespace Verse.Models.JSON
 			{
 				arguments = type.GetGenericArguments ();
 
-				if (arguments.Length == 1 && JSONLexer.TryGetExtractor (arguments[0], out extractor))
+				if (arguments.Length == 1 && JSONConverter.TryGetExtractor (arguments[0], out extractor))
 				{
 					this.extractor = (JSONExtractor<T>)Resolver<JSONDecoder<T>>
 						.Method<int, JSONExtractor<T>> ((d, e) => d.WrapNullable<int> (e), null, new Type[] {arguments[0]})
@@ -159,14 +159,14 @@ namespace Verse.Models.JSON
 				}
 			}
 
-			if (type.IsEnum && JSONLexer.TryGetExtractor (typeof (int), out extractor))
+			if (type.IsEnum && JSONConverter.TryGetExtractor (typeof (int), out extractor))
 			{
 				this.extractor = this.WrapCompatible<int> (extractor);
 
 				return true;
 			}
 
-			if (JSONLexer.TryGetExtractor (type, out extractor))
+			if (JSONConverter.TryGetExtractor (type, out extractor))
 			{
 				this.extractor = (JSONExtractor<T>)extractor;
 
@@ -454,15 +454,16 @@ namespace Verse.Models.JSON
 			Wrapper<U>			wrapper;
 
 			method = new DynamicMethod (string.Empty, typeof (bool), new Type[] {typeof (JSONLexer), typeof (JSONExtractor<U>), typeof (T).MakeByRefType ()}, typeof (JSONDecoder<T>).Module, true);
-			generator = method.GetILGenerator ();
-			failure = generator.DefineLabel ();
 			type = typeof (U);
 
+			generator = method.GetILGenerator ();
 			generator.DeclareLocal (type);
 			generator.Emit (OpCodes.Ldarg_1);
 			generator.Emit (OpCodes.Ldarg_0);
 			generator.Emit (OpCodes.Ldloca_S, 0);
 			generator.Emit (OpCodes.Call, typeof (JSONExtractor<U>).GetMethod ("Invoke")); // Can't use static reflection here
+
+			failure = generator.DefineLabel ();
 			generator.Emit (OpCodes.Brfalse_S, failure);
 
 			generator.Emit (OpCodes.Ldarg_2);
