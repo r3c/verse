@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Verse.Models.JSON.Writers
 {
-	public class JSONIndentWriter : JSONWriter
+	public class JSONIndentPrinter : JSONPrinter
 	{
 		#region Attributes
 
@@ -17,14 +17,14 @@ namespace Verse.Models.JSON.Writers
 		
 		#region Constructors
 		
-		public	JSONIndentWriter (Stream stream, Encoding encoding, string indent) :
+		public	JSONIndentPrinter (Stream stream, Encoding encoding, string indent) :
 			base (stream, encoding)
 		{
 			this.indent = indent;
 			this.level = 0;
 		}
 
-		public	JSONIndentWriter (Stream stream, Encoding encoding) :
+		public	JSONIndentPrinter (Stream stream, Encoding encoding) :
 			this (stream, encoding, "\t")
 		{
 		}

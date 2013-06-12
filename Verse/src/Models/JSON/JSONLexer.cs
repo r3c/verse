@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -45,8 +46,8 @@ namespace Verse.Models.JSON
 		}
 
 		#endregion
-		
-		#region Attributes
+
+		#region Attributes / Instance
 		
 		private double			asDouble;
 
@@ -59,7 +60,28 @@ namespace Verse.Models.JSON
 		private StreamReader	reader;
 		
 		#endregion
-		
+
+		#region Attributes / Static
+
+		private static Dictionary<Type, object>	extractors = new Dictionary<Type, object>
+		{
+			{typeof (bool),		(JSONExtractor<bool>)((JSONLexer lexer, out bool value) => { value = lexer.Lexem != JSONLexem.False; return lexer.Lexem == JSONLexem.False || lexer.Lexem == JSONLexem.True; })},
+			{typeof (char),		(JSONExtractor<char>)((JSONLexer lexer, out char value) => { value = lexer.AsString.Length > 0 ? lexer.AsString[0] : '\0'; return lexer.Lexem == JSONLexem.String; })},
+			{typeof (float),	(JSONExtractor<float>)((JSONLexer lexer, out float value) => { value = (float)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; })},
+			{typeof (double),	(JSONExtractor<double>)((JSONLexer lexer, out double value) => { value = lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; })},
+			{typeof (sbyte),	(JSONExtractor<sbyte>)((JSONLexer lexer, out sbyte value) => { value = (sbyte)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; })},
+			{typeof (byte),		(JSONExtractor<byte>)((JSONLexer lexer, out byte value) => { value = (byte)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; })},
+			{typeof (short),	(JSONExtractor<short>)((JSONLexer lexer, out short value) => { value = (short)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; })},
+			{typeof (ushort),	(JSONExtractor<ushort>)((JSONLexer lexer, out ushort value) => { value = (ushort)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; })},
+			{typeof (int),		(JSONExtractor<int>)((JSONLexer lexer, out int value) => { value = (int)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; })},
+			{typeof (uint),		(JSONExtractor<uint>)((JSONLexer lexer, out uint value) => { value = (uint)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; })},
+			{typeof (long),		(JSONExtractor<long>)((JSONLexer lexer, out long value) => { value = (long)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; })},
+			{typeof (ulong),	(JSONExtractor<ulong>)((JSONLexer lexer, out ulong value) => { value = (ulong)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; })},
+			{typeof (string),	(JSONExtractor<string>)((JSONLexer lexer, out string value) => { value = lexer.AsString; return lexer.Lexem == JSONLexem.String; })},
+		};
+
+		#endregion
+
 		#region Constructors
 
 		public  JSONLexer (Stream stream, Encoding encoding)
@@ -77,7 +99,7 @@ namespace Verse.Models.JSON
 		
 		#endregion
 		
-		#region Methods
+		#region Methods / Public
 		
 		public void Dispose ()
 		{
@@ -307,32 +329,32 @@ namespace Verse.Models.JSON
 		{
 			using (MemoryStream stream = new MemoryStream ())
 			{
-				using (JSONWriter writer = new JSONWriter (stream, this.reader.CurrentEncoding))
+				using (JSONPrinter printer = new JSONPrinter (stream, this.reader.CurrentEncoding))
 				{
 					switch (this.lexem)
 					{
 						case JSONLexem.False:
-							writer.WriteBoolean (false);
+							printer.WriteBoolean (false);
 
 							break;
 		
 						case JSONLexem.Null:
-							writer.WriteNull ();
+							printer.WriteNull ();
 
 							break;
 		
 						case JSONLexem.Number:
-							writer.WriteNumber (this.asDouble);
+							printer.WriteNumber (this.asDouble);
 
 							break;
 		
 						case JSONLexem.String:
-							writer.WriteString (this.asString);
+							printer.WriteString (this.asString);
 
 							break;
 		
 						case JSONLexem.True:
-							writer.WriteBoolean (true);
+							printer.WriteBoolean (true);
 
 							break;
 		
@@ -350,8 +372,16 @@ namespace Verse.Models.JSON
 				return this.reader.CurrentEncoding.GetString (stream.ToArray ());
 			}
 		}
-
 		
+		#endregion
+
+		#region Methods / Static
+
+		public static bool	TryGetExtractor (Type type, out object extractor)
+		{
+			return JSONLexer.extractors.TryGetValue (type, out extractor);
+		}
+
 		#endregion
 	}
 }

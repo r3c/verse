@@ -23,7 +23,7 @@ namespace Verse.Models.JSON
 
 		private Encoding							encoding;
 
-		private Func<Stream, Encoding, JSONWriter>	generator;
+		private Func<Stream, Encoding, JSONPrinter>	generator;
 
 		private JSONSettings						settings;
 
@@ -31,7 +31,7 @@ namespace Verse.Models.JSON
 		
 		#region Constructors
 
-		public	JSONSchema (JSONSettings settings, Func<Stream, Encoding, JSONWriter> generator, Encoding encoding)
+		public	JSONSchema (JSONSettings settings, Func<Stream, Encoding, JSONPrinter> generator, Encoding encoding)
 		{
 			if (encoding == null)
 				throw new ArgumentNullException ("encoding");
@@ -44,13 +44,13 @@ namespace Verse.Models.JSON
 			this.settings = settings;
 		}
 
-		public	JSONSchema (JSONSettings settings, Func<Stream, Encoding, JSONWriter> generator) :
+		public	JSONSchema (JSONSettings settings, Func<Stream, Encoding, JSONPrinter> generator) :
 			this (settings, generator, new UTF8Encoding (false))
 		{
 		}
 
 		public	JSONSchema (JSONSettings settings) :
-			this (settings, (s, e) => new JSONWriter (s, e))
+			this (settings, (s, e) => new JSONPrinter (s, e))
 		{
 		}
 

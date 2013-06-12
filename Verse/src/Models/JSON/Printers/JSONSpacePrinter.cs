@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Verse.Models.JSON.Writers
 {
-	public class JSONSpaceWriter : JSONWriter
+	public class JSONSpacePrinter : JSONPrinter
 	{
 		#region Attributes
 
@@ -15,13 +15,13 @@ namespace Verse.Models.JSON.Writers
 		
 		#region Constructors
 		
-		public	JSONSpaceWriter (Stream stream, Encoding encoding, string space) :
+		public	JSONSpacePrinter (Stream stream, Encoding encoding, string space) :
 			base (stream, encoding)
 		{
 			this.space = space;
 		}
 
-		public	JSONSpaceWriter (Stream stream, Encoding encoding) :
+		public	JSONSpacePrinter (Stream stream, Encoding encoding) :
 			this (stream, encoding, " ")
 		{
 		}

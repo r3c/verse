@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Verse.Models.JSON
 {
-	public class JSONWriter : IDisposable
+	public class JSONPrinter : IDisposable
 	{
 		#region Attributes / Instance
 
@@ -23,7 +23,7 @@ namespace Verse.Models.JSON
 
 		#region Constructors / Instance
 
-		public	JSONWriter (Stream stream, Encoding encoding)
+		public	JSONPrinter (Stream stream, Encoding encoding)
 		{
 			this.writer = new StreamWriter (stream, encoding);
 		}
@@ -32,21 +32,21 @@ namespace Verse.Models.JSON
 		
 		#region Constructors / Static
 		
-		static	JSONWriter ()
+		static	JSONPrinter ()
 		{
 			for (int i = 0; i < 10; ++i)
-				JSONWriter.strings[i] = "\\u000" + i;
+				JSONPrinter.strings[i] = "\\u000" + i;
 
 			for (int i = 10; i < 128; ++i)
-				JSONWriter.strings[i] = ((char)i).ToString ();
+				JSONPrinter.strings[i] = ((char)i).ToString ();
 
-			JSONWriter.strings[(int)'\b'] = "\\b";
-			JSONWriter.strings[(int)'\f'] = "\\f";
-			JSONWriter.strings[(int)'\n'] = "\\n";
-			JSONWriter.strings[(int)'\r'] = "\\r";
-			JSONWriter.strings[(int)'\t'] = "\\t";
-			JSONWriter.strings[(int)'"'] = "\\\"";
-			JSONWriter.strings[(int)'\\'] = "\\\\";
+			JSONPrinter.strings[(int)'\b'] = "\\b";
+			JSONPrinter.strings[(int)'\f'] = "\\f";
+			JSONPrinter.strings[(int)'\n'] = "\\n";
+			JSONPrinter.strings[(int)'\r'] = "\\r";
+			JSONPrinter.strings[(int)'\t'] = "\\t";
+			JSONPrinter.strings[(int)'"'] = "\\\"";
+			JSONPrinter.strings[(int)'\\'] = "\\\\";
 		}
 		
 		#endregion
@@ -110,9 +110,9 @@ namespace Verse.Models.JSON
 			foreach (char c in value)
 			{
 				if ((int)c < 128)
-					writer.Write (JSONWriter.strings[(int)c]);
+					writer.Write (JSONPrinter.strings[(int)c]);
 				else if ((int)c < 65536)
-					writer.Write ("\\u" + JSONWriter.hexadecimals[(int)c >> 12 & 0x0F] + JSONWriter.hexadecimals[(int)c >> 8 & 0x0F] + JSONWriter.hexadecimals[(int)c >> 4 & 0x0F] + JSONWriter.hexadecimals[(int)c & 0x0F]);
+					writer.Write ("\\u" + JSONPrinter.hexadecimals[(int)c >> 12 & 0x0F] + JSONPrinter.hexadecimals[(int)c >> 8 & 0x0F] + JSONPrinter.hexadecimals[(int)c >> 4 & 0x0F] + JSONPrinter.hexadecimals[(int)c & 0x0F]);
 				else
 					writer.Write ('?');
 			}

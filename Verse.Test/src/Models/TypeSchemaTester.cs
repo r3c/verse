@@ -79,13 +79,13 @@ namespace Verse.Test.Models
 		[Test]
 		public void	WithNullable (ISchema schema)
 		{
-			IDecoder<int?>	decoder;
-			IEncoder<int?>	encoder;
+			IDecoder<double?>	decoder;
+			IEncoder<double?>	encoder;
 
-			encoder = schema.GetEncoder<int?> ();
+			encoder = schema.GetEncoder<double?> ();
 			encoder.Link ();
 
-			decoder = schema.GetDecoder<int?> ();
+			decoder = schema.GetDecoder<double?> ();
 			decoder.Link ();
 
 			SchemaValidator.Validate (decoder, encoder, null);

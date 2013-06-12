@@ -7,23 +7,25 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 
+using Verse.Dynamics;
+
 namespace Verse.Models.JSON
 {
 	class JSONDecoder<T> : ConvertDecoder<string, T>
 	{
 		#region Attributes
 		
-		private Browser						arrayBrowser;
+		private Reader						arrayReader;
 
 		private Func<T>						constructor;
 
 		private Encoding					encoding;
 
-		private Dictionary<string, Browser>	fieldBrowsers;
-		
-		private Browser						objectBrowser;
+		private JSONExtractor<T>			extractor;
 
-		private Reader						selfReader;
+		private Dictionary<string, Reader>	fieldReaders;
+		
+		private Reader						objectReader;
 
 		private JSONSettings				settings;
 
@@ -34,12 +36,12 @@ namespace Verse.Models.JSON
 		public	JSONDecoder (Dictionary<Type, object> converters, JSONSettings settings, Encoding encoding, Func<T> constructor) :
 			base (converters)
 		{
-			this.arrayBrowser = null;
+			this.arrayReader = null;
 			this.constructor = constructor;
 			this.encoding = encoding;
-			this.fieldBrowsers = new Dictionary<string, Browser> ();
- 			this.objectBrowser = null;
-			this.selfReader = null;
+			this.extractor = null;
+			this.fieldReaders = new Dictionary<string, Reader> ();
+ 			this.objectReader = null;
 			this.settings = settings;
 		}
 		
@@ -113,20 +115,17 @@ namespace Verse.Models.JSON
 
 		protected override bool	TryLinkConvert (ConvertSchema<string>.DecoderConverter<T> converter)
 		{
-			this.selfReader = (JSONLexer lexer, out T value) =>
+			this.extractor = (JSONLexer lexer, out T value) =>
 			{
 				switch (lexer.Lexem)
 				{
 					case JSONLexem.Null:
 						value = default (T);
 
-						return this.Ignore (lexer);
+						return true;
 
 					case JSONLexem.String:
-						if (converter (lexer.AsString, out value))
-							return this.Ignore (lexer);
-
-						goto default;
+						return converter (lexer.AsString, out value);
 
 					default:
 						value = default (T);
@@ -140,66 +139,41 @@ namespace Verse.Models.JSON
 
 		protected override bool	TryLinkNative ()
 		{
+			Type[]	arguments;
+			object	extractor;
 			Type	type;
 
 			type = typeof (T);
 
-			if (type.IsEnum)
-				type = typeof (int);
+			if (type.IsGenericType && type.GetGenericTypeDefinition () == typeof (Nullable<>))
+			{
+				arguments = type.GetGenericArguments ();
 
-/*
- * (JSONLexer lexer, out Nullable<U> nullable)
- * {
- *     U value;
- *
- *     if (lexer.Lexem == JSONLexem.Null)
- *     {
- *         nullable = null;
- *
- *         return true;
- *     }
- *
- *     if (reader (lexer, out value))
- *     {
- *         nullable = new Nullable<U> (value);
- *
- *         return true;
- *     }
- *
- *     return false;
- * }
-*/
+				if (arguments.Length == 1 && JSONLexer.TryGetExtractor (arguments[0], out extractor))
+				{
+					this.extractor = (JSONExtractor<T>)Resolver<JSONDecoder<T>>
+						.Method<int, JSONExtractor<T>> ((d, e) => d.WrapNullable<int> (e), null, new Type[] {arguments[0]})
+						.Invoke (this, new object[] {extractor});
 
-			if (type == typeof (bool))
-				this.selfReader = this.BuildReader<bool> ((JSONLexer lexer, out bool value) => { value = lexer.Lexem != JSONLexem.False; return lexer.Lexem == JSONLexem.False || lexer.Lexem == JSONLexem.True; });
-			else if (type == typeof (char))
-				this.selfReader = this.BuildReader<char> ((JSONLexer lexer, out char value) => { value = lexer.AsString.Length > 0 ? lexer.AsString[0] : '\0'; return lexer.Lexem == JSONLexem.String; });
-			else if (type == typeof (float))
-				this.selfReader = this.BuildReader<float> ((JSONLexer lexer, out float value) => { value = (float)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; });
-			else if (type == typeof (double))
-				this.selfReader = this.BuildReader<double> ((JSONLexer lexer, out double value) => { value = lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; });
-			else if (type == typeof (sbyte))
-				this.selfReader = this.BuildReader<sbyte> ((JSONLexer lexer, out sbyte value) => { value = (sbyte)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; });
-			else if (type == typeof (byte))
-				this.selfReader = this.BuildReader<byte> ((JSONLexer lexer, out byte value) => { value = (byte)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; });
-			else if (type == typeof (short))
-				this.selfReader = this.BuildReader<short> ((JSONLexer lexer, out short value) => { value = (short)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; });
-			else if (type == typeof (ushort))
-				this.selfReader = this.BuildReader<ushort> ((JSONLexer lexer, out ushort value) => { value = (ushort)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; });
-			else if (type == typeof (int))
-				this.selfReader = this.BuildReader<int> ((JSONLexer lexer, out int value) => { value = (int)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; });
-			else if (type == typeof (uint))
-				this.selfReader = this.BuildReader<uint> ((JSONLexer lexer, out uint value) => { value = (uint)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; });
-			else if (type == typeof (long))
-				this.selfReader = this.BuildReader<long> ((JSONLexer lexer, out long value) => { value = (long)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; });
-			else if (type == typeof (ulong))
-				this.selfReader = this.BuildReader<ulong> ((JSONLexer lexer, out ulong value) => { value = (ulong)lexer.AsDouble; return lexer.Lexem == JSONLexem.Number; });
-			else if (type == typeof (string))
-				this.selfReader = this.BuildReader<string> ((JSONLexer lexer, out string value) => { value = lexer.AsString; return lexer.Lexem == JSONLexem.String; });
-			else
-				return false;
+					return true;
+				}
+			}
 
-			return true;
+			if (type.IsEnum && JSONLexer.TryGetExtractor (typeof (int), out extractor))
+			{
+				this.extractor = this.WrapCompatible<int> (extractor);
+
+				return true;
+			}
+
+			if (JSONLexer.TryGetExtractor (type, out extractor))
+			{
+				this.extractor = (JSONExtractor<T>)extractor;
+
+				return true;
+			}
+
+			return false;
 		}
 
 		#endregion
@@ -215,44 +189,6 @@ namespace Verse.Models.JSON
 			decoder.OnTypeError += this.EventTypeError;
 
 			return decoder;
-		}
-
-		private Reader	BuildReader<U> (ReaderExtractor<U> extractor)
-		{
-			Label				failure;
-			ILGenerator			generator;
-			DynamicMethod		method;
-			ReaderWrapper<U>	wrapper;
-
-			method = new DynamicMethod (string.Empty, typeof (bool), new Type[] {typeof (JSONLexer), typeof (ReaderExtractor<U>), typeof (T).MakeByRefType ()}, typeof (JSONDecoder<T>).Module, true);
-			generator = method.GetILGenerator ();
-			failure = generator.DefineLabel ();
-
-			generator.DeclareLocal (typeof (U));
-			generator.Emit (OpCodes.Ldarg_1);
-			generator.Emit (OpCodes.Ldarg_0);
-			generator.Emit (OpCodes.Ldloca_S, 0);
-			generator.Emit (OpCodes.Call, typeof (ReaderExtractor<U>).GetMethod ("Invoke")); // Can't use static reflection here
-			generator.Emit (OpCodes.Brfalse_S, failure);
-
-			generator.Emit (OpCodes.Ldarg_2);
-			generator.Emit (OpCodes.Ldloc_0);
-
-			if (typeof (U).IsValueType)
-				generator.Emit (OpCodes.Stobj, typeof (U));
-			else
-				generator.Emit (OpCodes.Stind_Ref);
-
-			generator.Emit (OpCodes.Ldc_I4_1);
-			generator.Emit (OpCodes.Ret);
-
-			generator.MarkLabel (failure);
-			generator.Emit (OpCodes.Ldc_I4_0);
-			generator.Emit (OpCodes.Ret);
-
-			wrapper = (ReaderWrapper<U>)method.CreateDelegate (typeof (ReaderWrapper<U>));
-
-			return (JSONLexer lexer, out T target) => wrapper (lexer, extractor, out target) && this.Ignore (lexer);
 		}
 
 		private bool	Expect (JSONLexer lexer, JSONLexem expected, string description)
@@ -271,7 +207,7 @@ namespace Verse.Models.JSON
 
 		private JSONDecoder<U>	HasAttribute<U> (string name, Func<U> generator, DecoderValueSetter<T, U> setter, JSONDecoder<U> decoder)
 		{
-			this.fieldBrowsers[name] = (JSONLexer lexer, ref T container) =>
+			this.fieldReaders[name] = (JSONLexer lexer, ref T container) =>
 			{
 				U	value;
 
@@ -288,7 +224,7 @@ namespace Verse.Models.JSON
 
 		private JSONDecoder<U>	HasElements<U> (Func<U> generator, DecoderArraySetter<T, U> setter, JSONDecoder<U> decoder)
 		{
-			this.arrayBrowser = (JSONLexer lexer, ref T container) =>
+			this.arrayReader = (JSONLexer lexer, ref T container) =>
 			{
 				List<U>	array;
 				U		value;
@@ -317,7 +253,7 @@ namespace Verse.Models.JSON
 
 		private JSONDecoder<U>	HasPairs<U> (Func<U> generator, DecoderMapSetter<T, U> setter, JSONDecoder<U> decoder)
 		{
-			this.objectBrowser = (JSONLexer lexer, ref T container) =>
+			this.objectReader = (JSONLexer lexer, ref T container) =>
 			{
 				string							key;
 				List<KeyValuePair<string, U>>	map;
@@ -417,20 +353,20 @@ namespace Verse.Models.JSON
 
 		private bool	Read (JSONLexer lexer, out T value)
 		{
-			Browser	browser;
 			int		index;
 			string	key;
+			Reader	reader;
 
-			if (this.selfReader != null)
+			if (this.extractor != null)
 			{
-				if (!this.selfReader (lexer, out value))
+				if (!this.extractor (lexer, out value))
 				{
 					this.EventTypeError (typeof (T), lexer.ToString ());
 
 					return false;
 				}
 
-				return true;
+				return this.Ignore (lexer);
 			}
 
 			switch (lexer.Lexem)
@@ -438,8 +374,8 @@ namespace Verse.Models.JSON
 				case JSONLexem.ArrayBegin:
 					value = this.constructor ();
 
-					if (this.arrayBrowser != null)
-						return this.arrayBrowser (lexer, ref value);
+					if (this.arrayReader != null)
+						return this.arrayReader (lexer, ref value);
 
 					lexer.Next ();
 
@@ -448,9 +384,9 @@ namespace Verse.Models.JSON
 						if (index > 0 && !this.Expect (lexer, JSONLexem.Comma, "comma or end of array"))
 							return false;
 
-						if (this.fieldBrowsers.TryGetValue (index.ToString (CultureInfo.InvariantCulture), out browser))
+						if (this.fieldReaders.TryGetValue (index.ToString (CultureInfo.InvariantCulture), out reader))
 						{
-							if (!browser (lexer, ref value))
+							if (!reader (lexer, ref value))
 								return false;
 						}
 						else if (!this.Ignore (lexer))
@@ -464,8 +400,8 @@ namespace Verse.Models.JSON
 				case JSONLexem.ObjectBegin:
 					value = this.constructor ();
 
-					if (this.objectBrowser != null)
-						return this.objectBrowser (lexer, ref value);
+					if (this.objectReader != null)
+						return this.objectReader (lexer, ref value);
 
 					lexer.Next ();
 
@@ -488,9 +424,9 @@ namespace Verse.Models.JSON
 						if (!this.Expect (lexer, JSONLexem.Colon, "colon"))
 							return false;
 
-						if (this.fieldBrowsers.TryGetValue (key, out browser))
+						if (this.fieldReaders.TryGetValue (key, out reader))
 						{
-							if (!browser (lexer, ref value))
+							if (!reader (lexer, ref value))
 								return false;
 						}
 						else if (!this.Ignore (lexer))
@@ -508,18 +444,87 @@ namespace Verse.Models.JSON
 			}
 		}
 
+		private JSONExtractor<T>	WrapCompatible<U> (object extractor)
+		{
+			JSONExtractor<U>	closure;
+			Label				failure;
+			ILGenerator			generator;
+			DynamicMethod		method;
+			Type				type;
+			Wrapper<U>			wrapper;
+
+			method = new DynamicMethod (string.Empty, typeof (bool), new Type[] {typeof (JSONLexer), typeof (JSONExtractor<U>), typeof (T).MakeByRefType ()}, typeof (JSONDecoder<T>).Module, true);
+			generator = method.GetILGenerator ();
+			failure = generator.DefineLabel ();
+			type = typeof (U);
+
+			generator.DeclareLocal (type);
+			generator.Emit (OpCodes.Ldarg_1);
+			generator.Emit (OpCodes.Ldarg_0);
+			generator.Emit (OpCodes.Ldloca_S, 0);
+			generator.Emit (OpCodes.Call, typeof (JSONExtractor<U>).GetMethod ("Invoke")); // Can't use static reflection here
+			generator.Emit (OpCodes.Brfalse_S, failure);
+
+			generator.Emit (OpCodes.Ldarg_2);
+			generator.Emit (OpCodes.Ldloc_0);
+
+			if (type.IsValueType)
+				generator.Emit (OpCodes.Stobj, type);
+			else
+				generator.Emit (OpCodes.Stind_Ref);
+
+			generator.Emit (OpCodes.Ldc_I4_1);
+			generator.Emit (OpCodes.Ret);
+
+			generator.MarkLabel (failure);
+			generator.Emit (OpCodes.Ldc_I4_0);
+			generator.Emit (OpCodes.Ret);
+
+			closure = (JSONExtractor<U>)extractor;
+			wrapper = (Wrapper<U>)method.CreateDelegate (typeof (Wrapper<U>));
+
+			return (JSONLexer lexer, out T target) => wrapper (lexer, closure, out target);
+		}
+
+		private JSONExtractor<T>	WrapNullable<U> (object extractor) where
+			U : struct
+		{
+			JSONExtractor<U>	closure;
+
+			closure = (JSONExtractor<U>)extractor;
+
+			return this.WrapCompatible<U?> ((JSONExtractor<U?>)((JSONLexer lexer, out U? nullable) =>
+			{
+				U	value;
+
+				if (lexer.Lexem == JSONLexem.Null)
+				{
+					nullable = null;
+
+					return true;
+				}
+
+				if (closure (lexer, out value))
+				{
+					nullable = value;
+
+					return true;
+			    }
+
+				nullable = null;
+
+				return false;
+			}));
+		}
+
 		#endregion
 		
 		#region Types
 
-		private delegate bool	Browser (JSONLexer lexer, ref T container);
+		private delegate bool	Reader (JSONLexer lexer, ref T container);
 
-		private delegate bool	Reader (JSONLexer lexer, out T value);
-		
-		private delegate bool	ReaderExtractor<U> (JSONLexer lexer, out U value);
+		private delegate bool	Wrapper<U> (JSONLexer lexer, JSONExtractor<U> extractor, out T value);
 
-		private delegate bool	ReaderWrapper<U> (JSONLexer lexer, ReaderExtractor<U> extractor, out T value);
-		
 		#endregion
 	}
 }

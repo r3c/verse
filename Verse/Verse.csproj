@@ -64,9 +64,9 @@
     <Compile Include="src\Models\BSON\BSONDecoder.cs" />
     <Compile Include="src\Models\BSON\BSONEncoder.cs" />
     <Compile Include="src\Models\BSON\BSONSchema.cs" />
+    <Compile Include="src\Models\JSON\JSONExtractor.cs" />
     <Compile Include="src\Models\JSON\JSONSettings.cs" />
-    <Compile Include="src\Models\JSON\Writers\JSONIndentWriter.cs" />
-    <Compile Include="src\Models\JSON\JSONWriter.cs" />
+    <Compile Include="src\Models\JSON\JSONPrinter.cs" />
     <Compile Include="src\Models\ConvertDecoder.cs" />
     <Compile Include="src\Models\ConvertEncoder.cs" />
     <Compile Include="src\Models\ConvertSchema.cs" />
@@ -79,16 +79,17 @@
     <Compile Include="src\IDecoder.cs" />
     <Compile Include="src\ISchema.cs" />
     <Compile Include="src\IEncoder.cs" />
-    <Compile Include="src\Models\JSON\Writers\JSONSpaceWriter.cs" />
+    <Compile Include="src\Models\JSON\Printers\JSONIndentPrinter.cs" />
+    <Compile Include="src\Models\JSON\Printers\JSONSpacePrinter.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="src\Models" />
     <Folder Include="src\Models\JSON" />
     <Folder Include="src" />
     <Folder Include="src\Events" />
-    <Folder Include="src\Models\JSON\Writers" />
     <Folder Include="src\Dynamics" />
     <Folder Include="src\Models\BSON" />
+    <Folder Include="src\Models\JSON\Printers" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

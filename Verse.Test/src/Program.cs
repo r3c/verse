@@ -20,7 +20,7 @@ namespace Verse.Test
 
 			JSONSchema	schema;
 
-			schema = new JSONSchema (0, (s, e) => new JSONWriter (s, e));
+			schema = new JSONSchema (0, (s, e) => new JSONPrinter (s, e));
 			schema.OnStreamError += (position, message) => Console.Error.WriteLine ("Stream error at position {0}: {1}", position, message);
 			schema.OnTypeError += (type, value) => Console.Error.WriteLine ("Type error: could not convert \"{1}\" to {0}", type, value);
 

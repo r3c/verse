@@ -17,7 +17,7 @@ namespace Verse.Models.JSON
 
 		private Dictionary<string, Writer>			fieldWriters;
 
-		private Func<Stream, Encoding, JSONWriter>	generator;
+		private Func<Stream, Encoding, JSONPrinter>	generator;
 
 		private Writer								selfWriter;
 
@@ -29,7 +29,7 @@ namespace Verse.Models.JSON
 
 		#region Constructors
 
-		public	JSONEncoder (Dictionary<Type, object> converters, JSONSettings settings, Encoding encoding, Func<Stream, Encoding, JSONWriter> generator) :
+		public	JSONEncoder (Dictionary<Type, object> converters, JSONSettings settings, Encoding encoding, Func<Stream, Encoding, JSONPrinter> generator) :
 			base (converters)
 		{
 			this.encoding = encoding;
@@ -70,7 +70,7 @@ namespace Verse.Models.JSON
 
 		public override bool	Encode (Stream stream, T instance)
 		{
-			using (JSONWriter writer = this.generator (stream, this.encoding))
+			using (JSONPrinter writer = this.generator (stream, this.encoding))
 			{
 				return this.Write (writer, instance);
 			}
@@ -125,31 +125,31 @@ namespace Verse.Models.JSON
 				type = typeof (int);
 
 			if (type == typeof (bool))
-				this.selfWriter = this.BuildWriter<bool> ((writer, value) => writer.WriteBoolean (value));
+				this.selfWriter = this.WrapWriter<bool> ((writer, value) => writer.WriteBoolean (value));
 			else if (type == typeof (char))
-				this.selfWriter = this.BuildWriter<char> ((writer, value) => writer.WriteString (new string (value, 1)));
+				this.selfWriter = this.WrapWriter<char> ((writer, value) => writer.WriteString (new string (value, 1)));
 			else if (type == typeof (float))
-				this.selfWriter = this.BuildWriter<float> ((writer, value) => writer.WriteNumber (value));
+				this.selfWriter = this.WrapWriter<float> ((writer, value) => writer.WriteNumber (value));
 			else if (type == typeof (double))
-				this.selfWriter = this.BuildWriter<double> ((writer, value) => writer.WriteNumber (value));
+				this.selfWriter = this.WrapWriter<double> ((writer, value) => writer.WriteNumber (value));
 			else if (type == typeof (sbyte))
-				this.selfWriter = this.BuildWriter<sbyte> ((writer, value) => writer.WriteNumber (value));
+				this.selfWriter = this.WrapWriter<sbyte> ((writer, value) => writer.WriteNumber (value));
 			else if (type == typeof (byte))
-				this.selfWriter = this.BuildWriter<byte> ((writer, value) => writer.WriteNumber (value));
+				this.selfWriter = this.WrapWriter<byte> ((writer, value) => writer.WriteNumber (value));
 			else if (type == typeof (short))
-				this.selfWriter = this.BuildWriter<short> ((writer, value) => writer.WriteNumber (value));
+				this.selfWriter = this.WrapWriter<short> ((writer, value) => writer.WriteNumber (value));
 			else if (type == typeof (ushort))
-				this.selfWriter = this.BuildWriter<ushort> ((writer, value) => writer.WriteNumber (value));
+				this.selfWriter = this.WrapWriter<ushort> ((writer, value) => writer.WriteNumber (value));
 			else if (type == typeof (int))
-				this.selfWriter = this.BuildWriter<int> ((writer, value) => writer.WriteNumber (value));
+				this.selfWriter = this.WrapWriter<int> ((writer, value) => writer.WriteNumber (value));
 			else if (type == typeof (uint))
-				this.selfWriter = this.BuildWriter<uint> ((writer, value) => writer.WriteNumber (value));
+				this.selfWriter = this.WrapWriter<uint> ((writer, value) => writer.WriteNumber (value));
 			else if (type == typeof (long))
-				this.selfWriter = this.BuildWriter<long> ((writer, value) => writer.WriteNumber (value));
+				this.selfWriter = this.WrapWriter<long> ((writer, value) => writer.WriteNumber (value));
 			else if (type == typeof (ulong))
-				this.selfWriter = this.BuildWriter<ulong> ((writer, value) => writer.WriteNumber (value));
+				this.selfWriter = this.WrapWriter<ulong> ((writer, value) => writer.WriteNumber (value));
 			else if (type == typeof (string))
-				this.selfWriter = this.BuildWriter<string> ((writer, value) => writer.WriteString (value));
+				this.selfWriter = this.WrapWriter<string> ((writer, value) => writer.WriteString (value));
 			else
 				return false;
 
@@ -169,31 +169,6 @@ namespace Verse.Models.JSON
 			encoder.OnTypeError += this.EventTypeError;
 
 			return encoder;
-		}
-
-		private Writer	BuildWriter<U> (WriterInjector<U> injector)
-		{
-			ILGenerator			generator;
-			DynamicMethod		method;
-			WriterWrapper<U>	wrapper;
-
-			method = new DynamicMethod (string.Empty, typeof (void), new Type[] {typeof (JSONWriter), typeof (WriterInjector<U>), typeof (T)}, typeof (JSONEncoder<T>).Module, true);
-
-			generator = method.GetILGenerator ();
-			generator.Emit (OpCodes.Ldarg_1);
-			generator.Emit (OpCodes.Ldarg_0);
-			generator.Emit (OpCodes.Ldarg_2);
-			generator.Emit (OpCodes.Call, Resolver<WriterInjector<U>>.Method<JSONWriter, U> ((i, w, v) => i.Invoke (w, v)));
-			generator.Emit (OpCodes.Ret);
-
-			wrapper = (WriterWrapper<U>)method.CreateDelegate (typeof (WriterWrapper<U>));
-
-			return (writer, value) =>
-			{
-				wrapper (writer, injector, value);
-
-				return true;
-			};
 		}
 
 		private JSONEncoder<U>	DefineAttribute<U> (string name, EncoderValueGetter<T, U> getter, JSONEncoder<U> encoder)
@@ -280,19 +255,44 @@ namespace Verse.Models.JSON
 			return encoder;
 		}
 
-		private bool	Write (JSONWriter writer, T value)
+		private Writer	WrapWriter<U> (WriterInjector<U> injector)
+		{
+			ILGenerator			generator;
+			DynamicMethod		method;
+			WriterWrapper<U>	wrapper;
+
+			method = new DynamicMethod (string.Empty, typeof (void), new Type[] {typeof (JSONPrinter), typeof (WriterInjector<U>), typeof (T)}, typeof (JSONEncoder<T>).Module, true);
+
+			generator = method.GetILGenerator ();
+			generator.Emit (OpCodes.Ldarg_1);
+			generator.Emit (OpCodes.Ldarg_0);
+			generator.Emit (OpCodes.Ldarg_2);
+			generator.Emit (OpCodes.Call, Resolver<WriterInjector<U>>.Method<JSONPrinter, U> ((i, w, v) => i.Invoke (w, v)));
+			generator.Emit (OpCodes.Ret);
+
+			wrapper = (WriterWrapper<U>)method.CreateDelegate (typeof (WriterWrapper<U>));
+
+			return (writer, value) =>
+			{
+				wrapper (writer, injector, value);
+
+				return true;
+			};
+		}
+
+		private bool	Write (JSONPrinter printer, T value)
 		{
 			bool	empty;
 
 			if (value == null)
 			{
-				writer.WriteNull ();
+				printer.WriteNull ();
 
 				return true;
 			}
 
 			if (this.selfWriter != null)
-				return this.selfWriter (writer, value);
+				return this.selfWriter (printer, value);
 
 			empty = true;
 
@@ -300,24 +300,24 @@ namespace Verse.Models.JSON
 			{
 				if (empty)
 				{
-					writer.WriteObjectBegin (false);
+					printer.WriteObjectBegin (false);
 
 					empty = false;
 				}
 				else
-					writer.WriteComma ();
+					printer.WriteComma ();
 
-				writer.WriteString (field.Key);
-				writer.WriteColon ();
+				printer.WriteString (field.Key);
+				printer.WriteColon ();
 
-				if (!field.Value (writer, value))
+				if (!field.Value (printer, value))
 					return false;
 			}
 
 			if (empty)
-				writer.WriteObjectBegin (true);
+				printer.WriteObjectBegin (true);
 
-			writer.WriteObjectEnd (empty);
+			printer.WriteObjectEnd (empty);
 
 			return true;
 		}
@@ -326,11 +326,11 @@ namespace Verse.Models.JSON
 
 		#region Types
 
-		private delegate bool	Writer (JSONWriter writer, T value);
+		private delegate bool	Writer (JSONPrinter printer, T value);
 
-		private delegate void	WriterInjector<U> (JSONWriter writer, U value);
+		private delegate void	WriterInjector<U> (JSONPrinter printer, U value);
 
-		private delegate void	WriterWrapper<U> (JSONWriter writer, WriterInjector<U> importer, T value);
+		private delegate void	WriterWrapper<U> (JSONPrinter printer, WriterInjector<U> injector, T value);
 		
 		#endregion
 	}
