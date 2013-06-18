@@ -58,6 +58,7 @@
     <Compile Include="src\Helpers\EncoderValidator.cs" />
     <Compile Include="src\Helpers\SchemaValidator.cs" />
     <Compile Include="src\Models\RecursiveSchemaTester.cs" />
+    <Compile Include="src\Models\SettingsTester.cs" />
     <Compile Include="src\Models\TypeSchemaTester.cs" />
     <Compile Include="src\Program.cs" />
   </ItemGroup>

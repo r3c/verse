@@ -7,7 +7,6 @@ TODO
 - Implement Protocol Buffers model
 - Implement BSON model
 - Cleanup recursive coding methods signatures
-- Make "omit null" setting work on attributes
 
 DONE
 ----
@@ -23,3 +22,4 @@ DONE
 - Fix extra line break in JSONIndentPrinter for empty arrays/objects
 - Allow automatic linking of recursive hierarchies
 - Handle nullable types
+- Make "omit null" setting work on attributes

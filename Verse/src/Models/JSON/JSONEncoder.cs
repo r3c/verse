@@ -21,7 +21,9 @@ namespace Verse.Models.JSON
 
 		private JSONInjector<T>						injector;
 
-		private bool								settingOmitNull;
+		private bool								settingNoNullAttribute;
+
+		private bool								settingNoNullValue;
 
 		private JSONSettings						settings;
 
@@ -36,7 +38,8 @@ namespace Verse.Models.JSON
 			this.fieldWriters = new Dictionary<string, Writer> ();
 			this.generator = generator;
 			this.injector = null;
-			this.settingOmitNull = (settings & JSONSettings.OmitNull) == JSONSettings.OmitNull;
+			this.settingNoNullAttribute = (settings & JSONSettings.NoNullAttribute) == JSONSettings.NoNullAttribute;
+			this.settingNoNullValue = (settings & JSONSettings.NoNullValue) == JSONSettings.NoNullValue;
 			this.settings = settings;
 		}
 
@@ -171,14 +174,33 @@ namespace Verse.Models.JSON
 
 		private JSONEncoder<U>	DefineAttribute<U> (string name, EncoderValueGetter<T, U> getter, JSONEncoder<U> encoder)
 		{
-			this.fieldWriters[name] = (writer, container) => encoder.Write (writer, getter (container));
+			this.fieldWriters[name] = (JSONPrinter printer, string key, T container, out bool wrote) =>
+			{
+				U	value;
+
+				value = getter (container);
+
+				if (value == null && this.settingNoNullAttribute)
+				{
+					wrote = false;
+
+					return true;
+				}
+
+				wrote = true;
+
+				printer.WriteString (key);
+				printer.WriteColon ();
+
+				return encoder.Write (printer, value);
+			};
 
 			return encoder;
 		}
 
 		private JSONEncoder<U>	DefineElements<U> (EncoderArrayGetter<T, U> getter, JSONEncoder<U> encoder)
 		{
-			this.injector = (writer, container) =>
+			this.injector = (printer, container) =>
 			{
 				bool	empty;
 
@@ -186,26 +208,26 @@ namespace Verse.Models.JSON
 
 				foreach (U value in getter (container))
 				{
-					if (value == null && this.settingOmitNull)
+					if (value == null && this.settingNoNullValue)
 						continue;
 
 					if (empty)
 					{
-						writer.WriteArrayBegin (false);
+						printer.WriteArrayBegin (false);
 
 						empty = false;
 					}
 					else
-						writer.WriteComma ();
+						printer.WriteComma ();
 
-					if (!encoder.Write (writer, value))
+					if (!encoder.Write (printer, value))
 						return false;
 				}
 
 				if (empty)
-					writer.WriteArrayBegin (true);
+					printer.WriteArrayBegin (true);
 
-				writer.WriteArrayEnd (empty);
+				printer.WriteArrayEnd (empty);
 
 				return true;
 			};
@@ -215,7 +237,7 @@ namespace Verse.Models.JSON
 
 		private JSONEncoder<U>	DefinePairs<U> (EncoderMapGetter<T, U> getter, JSONEncoder<U> encoder)
 		{
-			this.injector = (writer, container) =>
+			this.injector = (printer, container) =>
 			{
 				bool	empty;
 
@@ -223,29 +245,29 @@ namespace Verse.Models.JSON
 
 				foreach (KeyValuePair<string, U> pair in getter (container))
 				{
-					if (pair.Value == null && this.settingOmitNull)
+					if (pair.Value == null && this.settingNoNullValue)
 						continue;
 
 					if (empty)
 					{
-						writer.WriteObjectBegin (false);
+						printer.WriteObjectBegin (false);
 
 						empty = false;
 					}
 					else
-						writer.WriteComma ();
+						printer.WriteComma ();
 
-					writer.WriteString (pair.Key);
-					writer.WriteColon ();
+					printer.WriteString (pair.Key);
+					printer.WriteColon ();
 
-					if (!encoder.Write (writer, pair.Value))
+					if (!encoder.Write (printer, pair.Value))
 						return false;
 				}
 
 				if (empty)
-					writer.WriteObjectBegin (true);
+					printer.WriteObjectBegin (true);
 
-				writer.WriteObjectEnd (empty);
+				printer.WriteObjectEnd (empty);
 
 				return true;
 			};
@@ -296,6 +318,7 @@ namespace Verse.Models.JSON
 		private bool	Write (JSONPrinter printer, T value)
 		{
 			bool	empty;
+			bool	wrote;
 
 			if (value == null)
 			{
@@ -308,6 +331,7 @@ namespace Verse.Models.JSON
 				return this.injector (printer, value);
 
 			empty = true;
+			wrote = false;
 
 			foreach (KeyValuePair<string, Writer> field in this.fieldWriters)
 			{
@@ -317,13 +341,10 @@ namespace Verse.Models.JSON
 
 					empty = false;
 				}
-				else
+				else if (wrote)
 					printer.WriteComma ();
 
-				printer.WriteString (field.Key);
-				printer.WriteColon ();
-
-				if (!field.Value (printer, value))
+				if (!field.Value (printer, field.Key, value, out wrote))
 					return false;
 			}
 
@@ -341,7 +362,7 @@ namespace Verse.Models.JSON
 
 		private delegate bool	Wrapper<U> (JSONPrinter printer, JSONInjector<U> injector, T value);
 
-		private delegate bool	Writer (JSONPrinter printer, T value);
+		private delegate bool	Writer (JSONPrinter printer, string key, T value, out bool wrote);
 		
 		#endregion
 	}

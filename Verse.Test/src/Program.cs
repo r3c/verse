@@ -16,11 +16,17 @@ namespace Verse.Test
 		public static void Main(string[] args)
 		{
 			RecursiveSchemaTester	recursiveSchemaTester;
+			SettingsTester			settingsTester;
 			TypeSchemaTester		typeSchemaTester;
 
 			recursiveSchemaTester = new RecursiveSchemaTester ();
 			recursiveSchemaTester.NestedArray ();
 			recursiveSchemaTester.NestedField ();
+
+			settingsTester = new SettingsTester ();
+			settingsTester.EncoderNoNullAttribute ();
+			settingsTester.EncoderNoNullAttributeNoNullValue ();
+			settingsTester.EncoderNoNullValue ();
 
 			typeSchemaTester = new TypeSchemaTester ();
 			typeSchemaTester.GuidProperty ();
