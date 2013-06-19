@@ -199,6 +199,7 @@ namespace Verse.Models.JSON
 					
 					break;
 
+				case '-':
 				case '.':
 				case '0':
 				case '1':
@@ -212,13 +213,14 @@ namespace Verse.Models.JSON
 				case '9':
 					buffer = new StringBuilder (16);
 
-					while ((this.current >= (int)'0' && this.current <= (int)'9') ||
-					       (this.current == (int)'.'))
+					do
 					{
 						buffer.Append ((char)this.current);
 
 						this.current = this.reader.Read ();
 					}
+					while ((this.current >= (int)'0' && this.current <= (int)'9') ||
+					       (this.current == (int)'.'));
 
 					if (double.TryParse (buffer.ToString (), NumberStyles.Float, CultureInfo.InvariantCulture, out this.asDouble))
 						this.lexem = JSONLexem.Number;

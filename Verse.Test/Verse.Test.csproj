@@ -36,6 +36,9 @@
     <Reference Include="KellermanSoftware.Compare-NET-Objects">
       <HintPath>..\packages\CompareNETObjects.1.6.0.0\lib\KellermanSoftware.Compare-NET-Objects.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.5.0.6\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.2\lib\nunit.framework.dll</HintPath>
     </Reference>
@@ -54,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="src\Benches\NewtonsoftBench.cs" />
     <Compile Include="src\Helpers\DecoderValidator.cs" />
     <Compile Include="src\Helpers\EncoderValidator.cs" />
     <Compile Include="src\Helpers\SchemaValidator.cs" />
@@ -72,6 +76,7 @@
     <Folder Include="src" />
     <Folder Include="src\Models" />
     <Folder Include="src\Helpers" />
+    <Folder Include="src\Benches" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

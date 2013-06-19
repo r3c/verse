@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 
 using Verse.Models.JSON;
+using Verse.Test.Benches;
 using Verse.Test.Models;
 
 namespace Verse.Test
@@ -15,6 +16,7 @@ namespace Verse.Test
 	{
 		public static void Main(string[] args)
 		{
+			NewtonsoftBench			newtonsoftBench;
 			RecursiveSchemaTester	recursiveSchemaTester;
 			SettingsTester			settingsTester;
 			TypeSchemaTester		typeSchemaTester;
@@ -32,6 +34,12 @@ namespace Verse.Test
 			typeSchemaTester.GuidProperty ();
 			typeSchemaTester.MixedTypes ();
 			typeSchemaTester.NullableDouble ();
+
+			newtonsoftBench = new NewtonsoftBench ();
+			newtonsoftBench.FlatStructureDecode ();
+			newtonsoftBench.FlatStructureEncode ();
+			newtonsoftBench.NestedArrayDecode ();
+			newtonsoftBench.NestedArrayEncode ();
 
 			Console.WriteLine ("OK");
 			Console.ReadKey (true);

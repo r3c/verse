@@ -7,7 +7,25 @@ namespace Verse.Models.JSON
 {
 	public class JSONPrinter : IDisposable
 	{
+		#region Properties
+
+		public string	FloatFormat
+		{
+			get
+			{
+				return this.floatFormat;
+			}
+			set
+			{
+				this.floatFormat = value;
+			}
+		}
+
+		#endregion
+
 		#region Attributes / Instance
+
+		private string			floatFormat;
 
 		protected StreamWriter	writer;
 
@@ -25,6 +43,7 @@ namespace Verse.Models.JSON
 
 		public	JSONPrinter (Stream stream, Encoding encoding)
 		{
+			this.floatFormat = "R";
 			this.writer = new StreamWriter (stream, encoding);
 		}
 
@@ -90,7 +109,7 @@ namespace Verse.Models.JSON
 
 		public virtual void	WriteNumber (double value)
 		{
-			this.writer.Write (value.ToString (CultureInfo.InvariantCulture));
+			this.writer.Write (value.ToString (this.floatFormat, CultureInfo.InvariantCulture));
 		}
 
 		public virtual void	WriteObjectBegin (bool empty)
