@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if false
+using System;
 using System.IO;
 using System.Text;
 
@@ -23,3 +24,4 @@ namespace Verse.Test.Helpers
 		}
 	}
 }
+#endif

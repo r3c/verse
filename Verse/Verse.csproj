@@ -11,9 +11,19 @@
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
     <AppDesignerFolder>Properties</AppDesignerFolder>
+    <NoWin32Manifest>False</NoWin32Manifest>
+    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+    <NoStdLib>False</NoStdLib>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Platform)' == 'AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x86</PlatformTarget>
+    <BaseAddress>4194304</BaseAddress>
+    <RegisterForComInterop>False</RegisterForComInterop>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+    <FileAlignment>4096</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <OutputPath>bin\Debug\</OutputPath>
@@ -22,6 +32,7 @@
     <Optimize>False</Optimize>
     <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <OutputPath>bin\Release\</OutputPath>
@@ -48,22 +59,29 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="src\DescriptorAssign.cs" />
-    <Compile Include="src\DescriptorCreate.cs" />
-    <Compile Include="src\Descriptors\AbstractDescriptor.cs" />
-    <Compile Include="src\Descriptors\TreeDescriptor.cs" />
+    <Compile Include="src\DescriptorSet.cs" />
+    <Compile Include="src\DescriptorGet.cs" />
+    <Compile Include="src\ParserDescriptors\AbstractParserDescriptor.cs" />
+    <Compile Include="src\ParserDescriptors\RecurseParserDescriptor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="src\IDescriptor.cs" />
+    <Compile Include="src\Dynamics\Generator.cs" />
+    <Compile Include="src\IParserDescriptor.cs" />
     <Compile Include="src\IParser.cs" />
     <Compile Include="src\ISchema.cs" />
     <Compile Include="src\Schemas\JSONSchema.cs" />
+    <Compile Include="src\Schemas\JSON\Context.cs" />
+    <Compile Include="src\Schemas\JSON\Adapter.cs" />
+    <Compile Include="src\Schemas\JSON\Reader.cs" />
+    <Compile Include="src\Schemas\JSON\Value.cs" />
+    <Compile Include="src\Schemas\JSON\FieldType.cs" />
     <Compile Include="src\Schemas\TreeSchema.cs" />
-    <Compile Include="Variant.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="src\Descriptors" />
+    <Folder Include="src\ParserDescriptors" />
     <Folder Include="src" />
+    <Folder Include="src\Dynamics" />
     <Folder Include="src\Schemas" />
+    <Folder Include="src\Schemas\JSON" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if false
+using System;
 using System.IO;
 
 using KellermanSoftware.CompareNetObjects;
@@ -46,3 +47,4 @@ namespace Verse.Test.Helpers
 		}
 	}
 }
+#endif

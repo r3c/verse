@@ -6,7 +6,7 @@ namespace Verse
     {
         #region Methods
 
-        bool Parse(Stream input, out T output);
+        bool Parse (Stream input, out T output);
 
         #endregion
     }

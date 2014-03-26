@@ -1,11 +1,14 @@
-﻿
+﻿using System;
+
 namespace Verse
 {
-    public interface ISchema<T> : IDescriptor<T>
+    public interface ISchema<T> : IParserDescriptor<T>
     {
         #region Methods
 
-        bool Generate(out IParser<T> parser);
+        IParser<T>	GetParser (Func<T> constructor);
+
+        IParser<T>	GetParser ();
 
         #endregion
     }

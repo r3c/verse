@@ -3,8 +3,8 @@
   <PropertyGroup>
     <ProjectGuid>{97DFC44F-DACF-489C-910E-0827F68A8F30}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <OutputType>Exe</OutputType>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <OutputType>Library</OutputType>
     <RootNamespace>Verse.Test</RootNamespace>
     <AssemblyName>Verse.Test</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
@@ -12,9 +12,21 @@
     </TargetFrameworkProfile>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <NoWin32Manifest>False</NoWin32Manifest>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+    <NoStdLib>False</NoStdLib>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+    <WarningLevel>4</WarningLevel>
+    <SignAssembly>False</SignAssembly>
+    <DelaySign>False</DelaySign>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Platform)' == 'x86' ">
+  <PropertyGroup Condition=" '$(Platform)' == 'AnyCPU' ">
     <PlatformTarget>x86</PlatformTarget>
+    <BaseAddress>4194304</BaseAddress>
+    <RegisterForComInterop>False</RegisterForComInterop>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+    <FileAlignment>4096</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <OutputPath>bin\Debug\</OutputPath>
@@ -23,6 +35,7 @@
     <Optimize>False</Optimize>
     <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <OutputPath>bin\Release\</OutputPath>
@@ -64,7 +77,7 @@
     <Compile Include="src\Models\RecursiveSchemaTester.cs" />
     <Compile Include="src\Models\SettingsTester.cs" />
     <Compile Include="src\Models\TypeSchemaTester.cs" />
-    <Compile Include="src\Program.cs" />
+    <Compile Include="src\Schemas\JSONSchemaTester.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Verse\Verse.csproj">
@@ -77,6 +90,7 @@
     <Folder Include="src\Models" />
     <Folder Include="src\Helpers" />
     <Folder Include="src\Benches" />
+    <Folder Include="src\Schemas" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
