@@ -4,23 +4,23 @@
     {
         #region Methods
 
-        IParserDescriptor<U>	ForChildren<U> (DescriptorSet<T, U> store, DescriptorGet<T, U> create);
+        IParserDescriptor<U>	HasChildren<U> (DescriptorSet<T, U> store, DescriptorGet<T, U> create, IParserDescriptor<U> recurse);
 
-        IParserDescriptor<U>	ForChildren<U> (DescriptorSet<T, U> store);
+        IParserDescriptor<U>	HasChildren<U> (DescriptorSet<T, U> store, DescriptorGet<T, U> create);
 
-        IParserDescriptor<T>	ForChildren (IParserDescriptor<T> descriptor);
+        IParserDescriptor<U>	HasChildren<U> (DescriptorSet<T, U> store);
 
-        IParserDescriptor<T>	ForChildren ();
+        IParserDescriptor<T>	HasChildren ();
 
-        IParserDescriptor<U>	ForField<U> (string name, DescriptorSet<T, U> store, DescriptorGet<T, U> create);
+        IParserDescriptor<U>	HasField<U> (string name, DescriptorSet<T, U> store, DescriptorGet<T, U> create, IParserDescriptor<U> recurse);
 
-        IParserDescriptor<U>	ForField<U> (string name, DescriptorSet<T, U> store);
+        IParserDescriptor<U>	HasField<U> (string name, DescriptorSet<T, U> store, DescriptorGet<T, U> create);
 
-        IParserDescriptor<T>	ForField (string name, IParserDescriptor<T> descriptor);
+        IParserDescriptor<U>	HasField<U> (string name, DescriptorSet<T, U> store);
 
-        IParserDescriptor<T>	ForField (string name);
+        IParserDescriptor<T>	HasField (string name);
 
-        void					ForValue<U> (DescriptorSet<T, U> store);
+        void					IsValue ();
 
         #endregion
     }

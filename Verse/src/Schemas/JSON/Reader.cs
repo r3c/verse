@@ -2,415 +2,415 @@
 using System.Globalization;
 using System.IO;
 using System.Text;
-using Verse.ParserDescriptors;
+using Verse.ParserDescriptors.Recurse;
 
 namespace Verse.Schemas.JSON
 {
-    class Reader : RecurseParserDescriptor.IReader<Context, Value>
-    {
-    	#region Attributes
-
-        private readonly Encoding   encoding;
-
-        #endregion
-
-        #region Constructors
-
-        public Reader (Encoding encoding)
-        {
-            this.encoding = encoding;
-        }
-
-        #endregion
-
-        #region Methods / Public
-
-        public bool Begin (Stream stream, out Context context)
-        {
-            context = new Context (new StreamReader (stream, this.encoding));
-
-            if (context.Current < 0 || !this.ReadBlank (context))
-                return false;
-
-            return true;
-        }
-
-        public void End (Context context)
-        {
-        }
-
-        public bool Read<U> (ref U target, RecurseParserDescriptor.IPointer<U, Context, Value> builder, Context context)
-        {
-            StringBuilder	    buffer;
-            char			    current;
-            RecurseParserDescriptor.IPointer<U, Context, Value>	field;
-            long                numberDecimal;
-            int                 numberDecimalPower;
-            int                 numberExponent;
-            sbyte               numberExponentSign;
-            long                numberIntegral;
-            sbyte               numberSign;
-            Value				value;
-
-            switch (context.Current)
-            {
-                case (int)'"':
-                    if (!context.Next ())
-                        return false;
-
-                    if (builder.CanAssign)
-                    {
-                        buffer = new StringBuilder (32);
-
-                        while (context.Current != (int)'"')
-                        {
-                            if (!this.ReadCharacter (context, out current))
-                                return false;
-
-                            buffer.Append (current);
-                        }
-
-                        context.Next ();
-
-                        builder.Assign (ref target, new Value {str = buffer.ToString (), type = FieldType.String});
-                    }
-                    else
-                    {
-                        while (context.Current != (int)'"')
-                        {
-                            if (!this.ReadCharacter (context, out current))
-                                return false;
-                        }
-
-                        context.Next ();
-                    }
-
-                    return true;
-
-                case (int)'-':
-                case (int)'.':
-                case (int)'0':
-                case (int)'1':
-                case (int)'2':
-                case (int)'3':
-                case (int)'4':
-                case (int)'5':
-                case (int)'6':
-                case (int)'7':
-                case (int)'8':
-                case (int)'9':
-                    unchecked
-                    {
-                        // Read sign
-                        if (context.Current == (int)'-')
-                        {
-                            context.Next();
-
-                            numberSign = -1;
-                        }
-                        else
-                            numberSign = 1;
+	class Reader : IReader<Context, Value>
+	{
+		#region Attributes
+
+		private readonly Encoding	encoding;
+
+		#endregion
+
+		#region Constructors
+
+		public Reader (Encoding encoding)
+		{
+			this.encoding = encoding;
+		}
+
+		#endregion
+
+		#region Methods / Public
+
+		public bool Begin (Stream stream, out Context context)
+		{
+			context = new Context (new StreamReader (stream, this.encoding));
+
+			if (context.Current < 0 || !this.ReadBlank (context))
+				return false;
+
+			return true;
+		}
+
+		public void End (Context context)
+		{
+		}
+
+		public bool Read<U> (ref U target, IPointer<U, Context, Value> builder, Context context)
+		{
+			StringBuilder				buffer;
+			char						current;
+			IPointer<U, Context, Value>	field;
+			long						numberDecimal;
+			int							numberDecimalPower;
+			int							numberExponent;
+			sbyte						numberExponentSign;
+			long						numberIntegral;
+			sbyte						numberSign;
+			Value						value;
+
+			switch (context.Current)
+			{
+				case (int)'"':
+					if (!context.Next ())
+						return false;
+
+					if (builder.CanAssign)
+					{
+						buffer = new StringBuilder (32);
+
+						while (context.Current != (int)'"')
+						{
+							if (!this.ReadCharacter (context, out current))
+								return false;
+
+							buffer.Append (current);
+						}
+
+						context.Next ();
+
+						builder.Assign (ref target, new Value {str = buffer.ToString (), type = Content.String});
+					}
+					else
+					{
+						while (context.Current != (int)'"')
+						{
+							if (!this.ReadCharacter (context, out current))
+								return false;
+						}
+
+						context.Next ();
+					}
+
+					return true;
+
+				case (int)'-':
+				case (int)'.':
+				case (int)'0':
+				case (int)'1':
+				case (int)'2':
+				case (int)'3':
+				case (int)'4':
+				case (int)'5':
+				case (int)'6':
+				case (int)'7':
+				case (int)'8':
+				case (int)'9':
+					unchecked
+					{
+						// Read sign
+						if (context.Current == (int)'-')
+						{
+							context.Next();
+
+							numberSign = -1;
+						}
+						else
+							numberSign = 1;
 
-                        // Read integral part
-                        for (numberIntegral = 0; context.Current >= (int)'0' && context.Current <= (int)'9'; context.Next ())
-                            numberIntegral = numberIntegral * 10 + (context.Current - (int)'0');
+						// Read integral part
+						for (numberIntegral = 0; context.Current >= (int)'0' && context.Current <= (int)'9'; context.Next ())
+							numberIntegral = numberIntegral * 10 + (context.Current - (int)'0');
 
-                        // Read decimal part
-                        if (context.Current == (int)'.')
-                        {
-                            context.Next();
+						// Read decimal part
+						if (context.Current == (int)'.')
+						{
+							context.Next();
 
-                            numberDecimalPower = 0;
+							numberDecimalPower = 0;
 
-                            for (numberDecimal = 0; context.Current >= (int)'0' && context.Current <= (int)'9'; context.Next ())
-                            {
-                                numberDecimal = numberDecimal * 10 + (context.Current - (int)'0');
-                                numberDecimalPower -= 1;
-                            }
-                        }
-                        else
-                        {
-                            numberDecimal = 0;
-                            numberDecimalPower = 0;
-                        }
+							for (numberDecimal = 0; context.Current >= (int)'0' && context.Current <= (int)'9'; context.Next ())
+							{
+								numberDecimal = numberDecimal * 10 + (context.Current - (int)'0');
+								numberDecimalPower -= 1;
+							}
+						}
+						else
+						{
+							numberDecimal = 0;
+							numberDecimalPower = 0;
+						}
 
-                        // Read exponent
-                        if (context.Current == (int)'E' || context.Current == (int)'e')
-                        {
-                            context.Next ();
+						// Read exponent
+						if (context.Current == (int)'E' || context.Current == (int)'e')
+						{
+							context.Next ();
 
-                            switch (context.Current)
-                            {
-                                case (int)'+':
-                                    context.Next ();
+							switch (context.Current)
+							{
+								case (int)'+':
+									context.Next ();
 
-                                    numberExponentSign = 1;
+									numberExponentSign = 1;
 
-                                    break;
+									break;
 
-                                case (int)'-':
-                                    context.Next ();
+								case (int)'-':
+									context.Next ();
 
-                                    numberExponentSign = -1;
+									numberExponentSign = -1;
 
-                                    break;
+									break;
 
-                                default:
-                                    numberExponentSign = 1;
+								default:
+									numberExponentSign = 1;
 
-                                    break;
-                            }
+									break;
+							}
 
-                            for (numberExponent = 0; context.Current >= (int)'0' && context.Current <= (int)'9'; context.Next ())
-                                numberExponent = numberExponent * 10 + (context.Current - (int)'0');
+							for (numberExponent = 0; context.Current >= (int)'0' && context.Current <= (int)'9'; context.Next ())
+								numberExponent = numberExponent * 10 + (context.Current - (int)'0');
 
-                            numberExponent *= numberExponentSign;
-                        }
-                        else
-                            numberExponent = 0;
+							numberExponent *= numberExponentSign;
+						}
+						else
+							numberExponent = 0;
 
-                        if (numberDecimal != 0 || numberExponent < 0) // Decimal value with either decimal part or negative exponent
-                        	value = new Value {number = numberSign * (numberIntegral + numberDecimal * Math.Pow (10, numberDecimalPower)) * Math.Pow (10, numberExponent), type = FieldType.Number};
-                        else if (numberExponent > 0) // Integer value with positive exponent
-                        	value = new Value {number = numberSign * numberIntegral * (long)Math.Pow (10, numberExponent), type = FieldType.Number};
-                        else // Simple integer value
-                        	value = new Value {number = numberSign * numberIntegral, type = FieldType.Number};
-                    }
+						if (numberDecimal != 0 || numberExponent < 0) // Decimal value with either decimal part or negative exponent
+							value = new Value {number = numberSign * (numberIntegral + numberDecimal * Math.Pow (10, numberDecimalPower)) * Math.Pow (10, numberExponent), type = Content.Number};
+						else if (numberExponent > 0) // Integer value with positive exponent
+							value = new Value {number = numberSign * numberIntegral * (long)Math.Pow (10, numberExponent), type = Content.Number};
+						else // Simple integer value
+							value = new Value {number = numberSign * numberIntegral, type = Content.Number};
+					}
 
-                    builder.Assign(ref target, value);
+					builder.Assign(ref target, value);
 
-                    return true;
+					return true;
 
-                case (int)'f':
-                    if (!context.Next () || !context.Skip ('a') || !context.Skip ('l') || !context.Skip ('s') || context.Current != (int)'e')
-                        return false;
+				case (int)'f':
+					if (!context.Next () || !context.Skip ('a') || !context.Skip ('l') || !context.Skip ('s') || context.Current != (int)'e')
+						return false;
 
-                    context.Next ();
+					context.Next ();
 
-                    builder.Assign (ref target, new Value {boolean = false, type = FieldType.Boolean});
+					builder.Assign (ref target, new Value {boolean = false, type = Content.Boolean});
 
-                    return true;
+					return true;
 
-                case (int)'n':
-                    if (!context.Next () || !context.Skip ('u') || !context.Skip ('l') || context.Current != (int)'l')
-                        return false;
+				case (int)'n':
+					if (!context.Next () || !context.Skip ('u') || !context.Skip ('l') || context.Current != (int)'l')
+						return false;
 
-                    context.Next ();
+					context.Next ();
 
-                    builder.Assign (ref target, new Value {type = FieldType.Void});
+					builder.Assign (ref target, new Value {type = Content.Void});
 
-                    return true;
+					return true;
 
-                case (int)'t':
-                    if (!context.Next () || !context.Skip ('r') || !context.Skip ('u') || context.Current != (int)'e')
-                        return false;
+				case (int)'t':
+					if (!context.Next () || !context.Skip ('r') || !context.Skip ('u') || context.Current != (int)'e')
+						return false;
 
-                    context.Next ();
+					context.Next ();
 
-                    builder.Assign (ref target, new Value {boolean = true, type = FieldType.Boolean});
+					builder.Assign (ref target, new Value {boolean = true, type = Content.Boolean});
 
-                    return true;
+					return true;
 
-                case (int)'[':
-                    if (!context.Next ())
-                        return false;
+				case (int)'[':
+					if (!context.Next ())
+						return false;
 
-                    for (int index = 0; true; ++index)
-                    {
-                        if (!this.ReadBlank (context))
-                            return false;
+					for (int index = 0; true; ++index)
+					{
+						if (!this.ReadBlank (context))
+							return false;
 
-                        if (context.Current == (int)']')
-                            break;
+						if (context.Current == (int)']')
+							break;
 
-                        if (index > 0 && (!context.Skip (',') || !this.ReadBlank (context)))
-                            return false;
+						if (index > 0 && (!context.Skip (',') || !this.ReadBlank (context)))
+							return false;
 
-                        // Build and move to array index
-                        field = builder;
+						// Build and move to array index
+						field = builder;
 
-                        if (index > 9)
-                        {
-                            foreach (char digit in index.ToString (CultureInfo.InvariantCulture))
-                                field = field.Next (digit);
-                        }
-                        else
-                            field = field.Next ((char)('0' + index));
+						if (index > 9)
+						{
+							foreach (char digit in index.ToString (CultureInfo.InvariantCulture))
+								field = field.Next (digit);
+						}
+						else
+							field = field.Next ((char)('0' + index));
 
-                        // Read array value
-                        if (!field.Enter (ref target, this, context))
-                            return false;
-                    }
+						// Read array value
+						if (!field.Enter (ref target, this, context))
+							return false;
+					}
 
-                    context.Next();
+					context.Next();
 
-                    return true;
+					return true;
 
-                case (int)'{':
-                    if (!context.Next ())
-                        return false;
+				case (int)'{':
+					if (!context.Next ())
+						return false;
 
-                    for (int index = 0; true; ++index)
-                    {
-                        if (!this.ReadBlank (context))
-                            return false;
+					for (int index = 0; true; ++index)
+					{
+						if (!this.ReadBlank (context))
+							return false;
 
-                        if (context.Current == (int)'}')
-                            break;
+						if (context.Current == (int)'}')
+							break;
 
-                        if (index > 0 && (!context.Skip (',') || !this.ReadBlank (context)))
-                            return false;
+						if (index > 0 && (!context.Skip (',') || !this.ReadBlank (context)))
+							return false;
 
-                        if (context.Current != (int)'"' || !context.Next ())
-                            return false;
+						if (context.Current != (int)'"' || !context.Next ())
+							return false;
 
-                        // Read and move to object key
-                        field = builder;
+						// Read and move to object key
+						field = builder;
 
-                        while (context.Current != (int)'"')
-                        {
-                            if (!this.ReadCharacter (context, out current))
-                                return false;
+						while (context.Current != (int)'"')
+						{
+							if (!this.ReadCharacter (context, out current))
+								return false;
 
-                            field = field.Next (current);
-                        }
+							field = field.Next (current);
+						}
 
-                        // Read object separator
-                        if (!context.Next () || !this.ReadBlank (context) || !context.Skip (':') || !this.ReadBlank (context))
-                            return false;
+						// Read object separator
+						if (!context.Next () || !this.ReadBlank (context) || !context.Skip (':') || !this.ReadBlank (context))
+							return false;
 
-                        // Read object value
-                        if (!field.Enter (ref target, this, context))
-                            return false;
-                    }
+						// Read object value
+						if (!field.Enter (ref target, this, context))
+							return false;
+					}
 
-                    context.Next ();
+					context.Next ();
 
-                    return true;
+					return true;
 
-                default:
-                    return false;
-            }
-        }
+				default:
+					return false;
+			}
+		}
 
-        #endregion
+		#endregion
 
-        #region Methods / Private
+		#region Methods / Private
 
-        private bool ReadBlank (Context source)
-        {
-            int current;
+		private bool ReadBlank (Context source)
+		{
+			int current;
 
-            while (true)
-            {
-                current = source.Current;
+			while (true)
+			{
+				current = source.Current;
 
-                if (current < 0)
-                    return false;
+				if (current < 0)
+					return false;
 
-                if (current > (int)' ')
-                    return true;
+				if (current > (int)' ')
+					return true;
 
-                source.Next();
-            }
-        }
+				source.Next();
+			}
+		}
 
-        private bool ReadCharacter (Context source, out char character)
-        {
-            int	nibble;
-            int previous;
-            int	value;
+		private bool ReadCharacter (Context source, out char character)
+		{
+			int	nibble;
+			int previous;
+			int	value;
 
-            previous = source.Current;
+			previous = source.Current;
 
-            source.Next();
+			source.Next();
 
-            if (previous < 0)
-            {
-                character = default(char);
+			if (previous < 0)
+			{
+				character = default(char);
 
-                return false;
-            }
+				return false;
+			}
 
-            if (previous != (int)'\\')
-            {
-                character = (char)previous;
+			if (previous != (int)'\\')
+			{
+				character = (char)previous;
 
-                return true;
-            }
+				return true;
+			}
 
-            previous = source.Current;
+			previous = source.Current;
 
-            source.Next();
+			source.Next();
 
-            switch (previous)
-            {
-                case -1:
-                    character = default(char);
+			switch (previous)
+			{
+				case -1:
+					character = default(char);
 
-                    return false;
+					return false;
 
-                case (int)'b':
-                    character = '\b';
+				case (int)'b':
+					character = '\b';
 
-                    return true;
+					return true;
 
-                case (int)'f':
-                    character = '\f';
+				case (int)'f':
+					character = '\f';
 
-                    return true;
+					return true;
 
-                case (int)'n':
-                    character = '\n';
+				case (int)'n':
+					character = '\n';
 
-                    return true;
+					return true;
 
-                case (int)'r':
-                    character = '\r';
+				case (int)'r':
+					character = '\r';
 
-                    return true;
+					return true;
 
-                case (int)'t':
-                    character = '\t';
+				case (int)'t':
+					character = '\t';
 
-                    return true;
+					return true;
 
-                case (int)'u':
-                    value = 0;
+				case (int)'u':
+					value = 0;
 
-                    for (int i = 0; i < 4; ++i)
-                    {
-                        previous = source.Current;
+					for (int i = 0; i < 4; ++i)
+					{
+						previous = source.Current;
 
-                        source.Next();
+						source.Next();
 
-                        if (previous >= (int)'0' && previous <= (int)'9')
-                            nibble = previous - (int)'0';
-                        else if (previous >= (int)'A' && previous <= (int)'F')
-                            nibble = previous - (int)'A' + 10;
-                        else if (previous >= (int)'a' && previous <= (int)'f')
-                            nibble = previous - (int)'a' + 10;
-                        else
-                        {
-                            character = default(char);
+						if (previous >= (int)'0' && previous <= (int)'9')
+							nibble = previous - (int)'0';
+						else if (previous >= (int)'A' && previous <= (int)'F')
+							nibble = previous - (int)'A' + 10;
+						else if (previous >= (int)'a' && previous <= (int)'f')
+							nibble = previous - (int)'a' + 10;
+						else
+						{
+							character = default (char);
 
-                            return false;
-                        }
+							return false;
+						}
 
-                        value = (value << 4) + nibble;
-                    }
+						value = (value << 4) + nibble;
+					}
 
-                    character = (char)value;
+					character = (char)value;
 
-                    return true;
+					return true;
 
-                default:
-                    character = (char)previous;
+				default:
+					character = (char)previous;
 
-                    return true;
-            }
-        }
+					return true;
+			}
+		}
 
-        #endregion
-    }
+		#endregion
+	}
 }

@@ -2,87 +2,68 @@
 using System.IO;
 using Verse.Dynamics;
 using Verse.ParserDescriptors;
+using Verse.ParserDescriptors.Recurse;
 
 namespace Verse.Schemas
 {
     public abstract class TreeSchema<T, C, V> : ISchema<T>
     {
+    	#region Properties
+
+    	public IBuilderDescriptor<T> BuilderDescriptor
+    	{
+    		get
+    		{
+    			throw new NotImplementedException ();
+    		}
+    	}
+
+        public IParserDescriptor<T> ParserDescriptor
+        {
+        	get
+        	{
+        		return this.parserDescriptor;
+        	}
+        }
+
+    	#endregion
+
         #region Attributes
 
-        private readonly RecurseParserDescriptor<T, C, V>	descriptor;
+        private readonly RecurseParserDescriptor<T, C, V>	parserDescriptor;
 
         #endregion
 
         #region Constructors
 
-        protected TreeSchema (RecurseParserDescriptor.IAdapter<V> adapter)
+        protected TreeSchema (IAdapter<V> adapter)
         {
-        	this.descriptor = new RecurseParserDescriptor<T, C, V> (adapter);
+        	this.parserDescriptor = new RecurseParserDescriptor<T, C, V> (adapter);
         }
 
         #endregion
 
         #region Methods / Abstract
 
-        protected abstract RecurseParserDescriptor.IReader<C, V>	GetReader ();
+        protected abstract IReader<C, V> GetReader ();
 
         #endregion
 
         #region Methods / Public
 
-        public IParser<T> GetParser (Func<T> constructor)
+        public IBuilder<T> GenerateBuilder ()
         {
-            return new TreeParser (constructor, this.descriptor.Pointer, this.GetReader ());
+        	throw new NotImplementedException ();
         }
 
-        public IParser<T> GetParser ()
+        public IParser<T> GenerateParser (Func<T> constructor)
         {
-        	return this.GetParser (Generator.Constructor<T> ());
+            return new TreeParser (constructor, this.parserDescriptor.Pointer, this.GetReader ());
         }
 
-        public IParserDescriptor<U> ForChildren<U> (DescriptorSet<T, U> assign, DescriptorGet<T, U> create)
+        public IParser<T> GenerateParser ()
         {
-            return this.descriptor.ForChildren (assign, create);
-        }
-
-        public IParserDescriptor<T> ForChildren (IParserDescriptor<T> descriptor)
-        {
-            return this.descriptor.ForChildren (descriptor);
-        }
-
-		public IParserDescriptor<U> ForChildren<U> (DescriptorSet<T, U> store)
-		{
-            return this.descriptor.ForChildren (store);
-		}
-
-		public IParserDescriptor<T> ForChildren ()
-		{
-			return this.descriptor.ForChildren ();
-		}
-
-        public IParserDescriptor<U> ForField<U> (string name, DescriptorSet<T, U> assign, DescriptorGet<T, U> create)
-        {
-            return this.descriptor.ForField (name, assign, create);
-        }
-
-        public IParserDescriptor<T> ForField (string name, IParserDescriptor<T> descriptor)
-        {
-            return this.descriptor.ForField (name, descriptor);
-        }
-
-		public IParserDescriptor<U> ForField<U> (string name, DescriptorSet<T, U> store)
-		{
-			return this.descriptor.ForField (name, store);
-		}
-
-		public IParserDescriptor<T> ForField (string name)
-		{
-			return this.descriptor.ForField (name);
-		}
-
-        public void ForValue<U> (DescriptorSet<T, U> store)
-        {
-            this.descriptor.ForValue (store);
+        	return this.GenerateParser (Generator.Constructor<T> ());
         }
 
         #endregion
@@ -91,13 +72,13 @@ namespace Verse.Schemas
 
         private class TreeParser : IParser<T>
         {
-            private readonly Func<T>									constructor;
+            private readonly Func<T>			constructor;
 
-            private readonly RecurseParserDescriptor.IPointer<T, C, V>	pointer;
+            private readonly IPointer<T, C, V>	pointer;
 
-            private readonly RecurseParserDescriptor.IReader<C, V>		reader;
+            private readonly IReader<C, V>		reader;
 
-            public TreeParser (Func<T> constructor, RecurseParserDescriptor.IPointer<T, C, V> pointer, RecurseParserDescriptor.IReader<C, V> reader)
+            public TreeParser (Func<T> constructor, IPointer<T, C, V> pointer, IReader<C, V> reader)
             {
                 this.constructor = constructor;
                 this.pointer = pointer;

@@ -7,46 +7,40 @@ namespace Verse.ParserDescriptors
     {
         #region Methods / Abstract
 
-        public abstract IParserDescriptor<U> ForChildren<U> (DescriptorSet<T, U> assign, DescriptorGet<T, U> create);
+        public abstract IParserDescriptor<U> HasChildren<U> (DescriptorSet<T, U> store, DescriptorGet<T, U> create, IParserDescriptor<U> recurse);
 
-        public abstract IParserDescriptor<T> ForChildren (IParserDescriptor<T> descriptor);
+        public abstract IParserDescriptor<U> HasChildren<U> (DescriptorSet<T, U> store, DescriptorGet<T, U> create);
 
-        public abstract IParserDescriptor<U> ForField<U> (string name, DescriptorSet<T, U> assign, DescriptorGet<T, U> create);
+        public abstract IParserDescriptor<T> HasChildren ();
 
-        public abstract IParserDescriptor<T> ForField (string name, IParserDescriptor<T> descriptor);
+        public abstract IParserDescriptor<U> HasField<U> (string name, DescriptorSet<T, U> store, DescriptorGet<T, U> create, IParserDescriptor<U> recurse);
 
-        public abstract void ForValue<U> (DescriptorSet<T, U> store);
+        public abstract IParserDescriptor<U> HasField<U> (string name, DescriptorSet<T, U> store, DescriptorGet<T, U> create);
+
+        public abstract IParserDescriptor<T> HasField (string name);
+
+        public abstract void IsValue ();
 
         #endregion
 
         #region Methods / Public
 
-        public IParserDescriptor<U> ForChildren<U> (DescriptorSet<T, U> store)
+        public IParserDescriptor<U> HasChildren<U> (DescriptorSet<T, U> store)
         {
             Func<U>	create;
 
             create = Generator.Constructor<U> ();
 
-            return this.ForChildren (store, (ref T target) => create ());
+            return this.HasChildren (store, (ref T target) => create ());
         }
 
-        public IParserDescriptor<T> ForChildren ()
-        {
-        	return this.ForChildren (this);
-        }
-
-        public IParserDescriptor<U> ForField<U> (string name, DescriptorSet<T, U> store)
+        public IParserDescriptor<U> HasField<U> (string name, DescriptorSet<T, U> store)
         {
             Func<U>	create;
 
             create = Generator.Constructor<U> ();
 
-            return this.ForField (name, store, (ref T target) => create ());
-        }
-
-        public IParserDescriptor<T> ForField (string name)
-        {
-        	return this.ForField (name, this);
+            return this.HasField (name, store, (ref T target) => create ());
         }
 
         #endregion

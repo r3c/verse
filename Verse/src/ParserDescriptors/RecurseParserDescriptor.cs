@@ -1,50 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using Verse.ParserDescriptors.Recurse;
 
 namespace Verse.ParserDescriptors
 {
-	// FIXME: may be moved to namespace Verse.ParserDescriptors.Recurse
-    public static class RecurseParserDescriptor
-    {
-        #region Types
-
-        public interface IAdapter<V>
-        {
-        	Converter<V, T>	Get<T> ();
-        }
-
-        public interface IPointer<T, C, V>
-        {
-            bool	CanAssign
-            {
-                get;
-            }
-
-            void				Assign (ref T target, V value);
-
-            bool				Enter (ref T target, IReader<C, V> reader, C context);
-
-            IPointer<T, C, V>	Next (char c);
-        }
-
-        public interface IReader<C, V>
-        {
-            bool    Begin (Stream stream, out C context);
-
-            void	End (C context);
-
-            bool    Read<T> (ref T target, IPointer<T, C, V> pointer, C context);
-        }
-
-        #endregion
-    }
-
     sealed class RecurseParserDescriptor<T, C, V> : AbstractParserDescriptor<T>
     {
     	#region Properties
 
-        public RecurseParserDescriptor.IPointer<T, C, V> Pointer
+        public IPointer<T, C, V> Pointer
         {
             get
             {
@@ -56,15 +20,15 @@ namespace Verse.ParserDescriptors
 
         #region Attributes
 
-        private readonly RecurseParserDescriptor.IAdapter<V>	adapter;
+        private readonly IAdapter<V>	adapter;
 
-        private readonly NodePointer							pointer;
+        private readonly NodePointer	pointer;
 
         #endregion
 
         #region Constructors
 
-        public RecurseParserDescriptor (RecurseParserDescriptor.IAdapter<V> adapter)
+        public RecurseParserDescriptor (IAdapter<V> adapter)
         {
         	this.adapter = adapter;
             this.pointer = new NodePointer ();
@@ -74,66 +38,88 @@ namespace Verse.ParserDescriptors
 
         #region Methods / Public
 
-        public override IParserDescriptor<U> ForChildren<U> (DescriptorSet<T, U> assign, DescriptorGet<T, U> create)
+        public override IParserDescriptor<U> HasChildren<U> (DescriptorSet<T, U> store, DescriptorGet<T, U> create, IParserDescriptor<U> recurse)
+        {
+        	RecurseParserDescriptor<U, C, V>	descriptor;
+
+        	descriptor = recurse as RecurseParserDescriptor<U, C, V>;
+
+        	if (descriptor == null)
+        		throw new ArgumentOutOfRangeException ("recurse", "invalid target descriptor type");
+
+        	this.ConnectChildren<T> (this.EnterInner (descriptor.pointer, store, create));
+
+        	return descriptor;
+        }
+
+        public override IParserDescriptor<U> HasChildren<U> (DescriptorSet<T, U> store, DescriptorGet<T, U> create)
         {
         	RecurseParserDescriptor<U, C, V>	recurse;
 
         	recurse = new RecurseParserDescriptor<U, C, V> (this.adapter);
 
-        	this.ConnectChildren<U> (this.EnterInner (recurse.pointer, assign, create));
+        	this.ConnectChildren<U> (this.EnterInner (recurse.pointer, store, create));
 
         	return recurse;
         }
 
-        public override IParserDescriptor<T> ForChildren (IParserDescriptor<T> descriptor)
+        public override IParserDescriptor<T> HasChildren ()
         {
-        	RecurseParserDescriptor<T, C, V>	recurse;
+        	RecurseParserDescriptor<T, C, V>	descriptor;
 
-        	recurse = descriptor as RecurseParserDescriptor<T, C, V>;
+        	descriptor = new RecurseParserDescriptor<T, C, V> (this.adapter);
 
-        	if (recurse == null)
-        		throw new ArgumentOutOfRangeException ("descriptor", "invalid target descriptor type");
-
-        	this.ConnectChildren<T> (this.EnterSelf (recurse.pointer));
+        	this.ConnectChildren<T> (this.EnterSelf (descriptor.pointer));
 
         	return descriptor;
         }
 
-        public override IParserDescriptor<U> ForField<U> (string name, DescriptorSet<T, U> assign, DescriptorGet<T, U> create)
+        public override IParserDescriptor<U> HasField<U> (string name, DescriptorSet<T, U> store, DescriptorGet<T, U> create, IParserDescriptor<U> recurse)
         {
-        	RecurseParserDescriptor<U, C, V>	recurse;
+        	RecurseParserDescriptor<U, C, V>	descriptor;
 
-        	recurse = new RecurseParserDescriptor<U, C, V> (this.adapter);
+        	descriptor = recurse as RecurseParserDescriptor<U, C, V>;
 
-        	this.ConnectField<U> (name, this.EnterInner (recurse.pointer, assign, create));
+        	if (descriptor == null)
+        		throw new ArgumentOutOfRangeException ("recurse", "invalid target descriptor type");
+
+        	this.ConnectField<T> (name, this.EnterInner (descriptor.pointer, store, create));
 
         	return recurse;
         }
 
-        public override IParserDescriptor<T> ForField (string name, IParserDescriptor<T> descriptor)
+        public override IParserDescriptor<U> HasField<U> (string name, DescriptorSet<T, U> store, DescriptorGet<T, U> create)
         {
-        	RecurseParserDescriptor<T, C, V>	recurse;
+        	RecurseParserDescriptor<U, C, V>	descriptor;
 
-        	recurse = descriptor as RecurseParserDescriptor<T, C, V>;
+        	descriptor = new RecurseParserDescriptor<U, C, V> (this.adapter);
 
-        	if (recurse == null)
-        		throw new ArgumentOutOfRangeException ("descriptor", "invalid target descriptor type");
-
-        	this.ConnectField<T> (name, this.EnterSelf (recurse.pointer));
+        	this.ConnectField<U> (name, this.EnterInner (descriptor.pointer, store, create));
 
         	return descriptor;
         }
 
-        public override void ForValue<U> (DescriptorSet<T, U> store)
+        public override IParserDescriptor<T> HasField (string name)
         {
-        	Converter<V, U>	convert;
+        	RecurseParserDescriptor<T, C, V>	descriptor;
+
+        	descriptor = new RecurseParserDescriptor<T, C, V> (this.adapter);
+
+        	this.ConnectField<T> (name, this.EnterSelf (descriptor.pointer));
+
+        	return descriptor;
+        }
+
+        public override void IsValue ()
+        {
+        	Converter<V, T>	convert;
 
             if (this.pointer.assign != null)
                 throw new InvalidOperationException ("cannot create value assignment twice on same descriptor");
 
-            convert = this.adapter.Get<U> ();
+            convert = this.adapter.Get<T> ();
 
-            this.pointer.assign = (ref T target, V value) => store (ref target, convert (value));
+            this.pointer.assign = (ref T target, V value) => target = convert (value);
         }
 
         #endregion
@@ -199,9 +185,9 @@ namespace Verse.ParserDescriptors
             current.enter = enter;
         }
 
-        private NodeCallback EnterInner<U> (RecurseParserDescriptor.IPointer<U, C, V> child, DescriptorSet<T, U> assign, DescriptorGet<T, U> create)
+        private NodeCallback EnterInner<U> (IPointer<U, C, V> child, DescriptorSet<T, U> store, DescriptorGet<T, U> create)
         {
-            return (ref T target, RecurseParserDescriptor.IReader<C, V> reader, C context) =>
+            return (ref T target, IReader<C, V> reader, C context) =>
             {
                 U   inner;
 
@@ -210,24 +196,24 @@ namespace Verse.ParserDescriptors
                 if (!reader.Read (ref inner, child, context))
 					return false;
 
-                assign (ref target, inner);
+                store (ref target, inner);
 
                 return true;
             };
         }
 
-        private NodeCallback EnterSelf (RecurseParserDescriptor.IPointer<T, C, V> child)
+        private NodeCallback EnterSelf (IPointer<T, C, V> child)
         {
-        	return (ref T target, RecurseParserDescriptor.IReader<C, V> reader, C context) => reader.Read (ref target, child, context);
+        	return (ref T target, IReader<C, V> reader, C context) => reader.Read (ref target, child, context);
         }
 
         #endregion
 
         #region Types
 
-        private delegate bool NodeCallback (ref T target, RecurseParserDescriptor.IReader<C, V> reader, C context);
+        private delegate bool NodeCallback (ref T target, IReader<C, V> reader, C context);
 
-        private class NodePointer : RecurseParserDescriptor.IPointer<T, C, V>
+        private class NodePointer : IPointer<T, C, V>
         {
             public bool CanAssign
             {
@@ -253,7 +239,7 @@ namespace Verse.ParserDescriptors
             		this.assign (ref target, value);
             }
 
-            public bool Enter (ref T target, RecurseParserDescriptor.IReader<C, V> reader, C context)
+            public bool Enter (ref T target, IReader<C, V> reader, C context)
             {
                 if (this.enter != null)
                     return this.enter (ref target, reader, context);
@@ -261,7 +247,7 @@ namespace Verse.ParserDescriptors
                 return reader.Read (ref target, VoidPointer.instance, context);
             }
             
-            public RecurseParserDescriptor.IPointer<T, C, V> Next (char c)
+            public IPointer<T, C, V> Next (char c)
             {
                 NodePointer next;
 
@@ -283,7 +269,7 @@ namespace Verse.ParserDescriptors
             }
         }
 
-        private class VoidPointer : RecurseParserDescriptor.IPointer<T, C, V>
+        private class VoidPointer : IPointer<T, C, V>
         {
             public bool CanAssign
             {
@@ -299,12 +285,12 @@ namespace Verse.ParserDescriptors
             {
             }
 
-            public bool Enter (ref T target, RecurseParserDescriptor.IReader<C, V> reader, C context)
+            public bool Enter (ref T target, IReader<C, V> reader, C context)
             {
                 return reader.Read (ref target, this, context);
             }
 
-            public RecurseParserDescriptor.IPointer<T, C, V> Next (char c)
+            public IPointer<T, C, V> Next (char c)
             {
                 return this;
             }

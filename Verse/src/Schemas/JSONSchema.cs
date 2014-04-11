@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Text;
-using Verse.ParserDescriptors;
+using Verse.ParserDescriptors.Recurse;
 using Verse.Schemas.JSON;
 
 namespace Verse.Schemas
@@ -42,7 +42,7 @@ namespace Verse.Schemas
 
         #region Methods / Public
 
-        public void Register<U> (Converter<Value, U> converter)
+        public void RegisterDecoder<U> (Converter<Value, U> converter)
         {
         	this.adapter.Set (converter);
         }
@@ -51,7 +51,7 @@ namespace Verse.Schemas
 
         #region Methods / Protected
 
-        protected override RecurseParserDescriptor.IReader<Context, Value> GetReader ()
+        protected override IReader<Context, Value> GetReader ()
         {
             return new Reader (this.encoding);
         }
