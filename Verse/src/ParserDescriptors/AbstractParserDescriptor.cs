@@ -19,7 +19,7 @@ namespace Verse.ParserDescriptors
 
         public abstract IParserDescriptor<T> HasField (string name);
 
-        public abstract void IsValue ();
+		public abstract void IsValue<U> (DescriptorSet<T, U> store);
 
         #endregion
 
@@ -42,6 +42,11 @@ namespace Verse.ParserDescriptors
 
             return this.HasField (name, store, (ref T target) => create ());
         }
+
+		public void IsValue ()
+		{
+			this.IsValue ((ref T target, T value) => target = value);
+		}
 
         #endregion
     }

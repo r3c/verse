@@ -110,17 +110,17 @@ namespace Verse.ParserDescriptors
         	return descriptor;
         }
 
-        public override void IsValue ()
-        {
-        	Converter<V, T>	convert;
+		public override void IsValue<U> (DescriptorSet<T, U> store)
+		{
+        	Converter<V, U>	convert;
 
             if (this.pointer.assign != null)
                 throw new InvalidOperationException ("cannot create value assignment twice on same descriptor");
 
-            convert = this.adapter.Get<T> ();
+            convert = this.adapter.Get<U> ();
 
-            this.pointer.assign = (ref T target, V value) => target = convert (value);
-        }
+			this.pointer.assign = (ref T target, V value) => store (ref target, convert (value));
+		}
 
         #endregion
 

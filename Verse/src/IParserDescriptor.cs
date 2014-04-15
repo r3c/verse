@@ -20,6 +20,8 @@
 
         IParserDescriptor<T>	HasField (string name);
 
+		void					IsValue<U> (DescriptorSet<T, U> store);
+
         void					IsValue ();
 
         #endregion

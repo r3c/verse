@@ -55,16 +55,16 @@ namespace Verse.Schemas.JSON
 
 		private static bool ToBoolean (Value value)
 		{
-			switch (value.type)
+			switch (value.Type)
 			{
 				case Content.Boolean:
-					return value.boolean;
+					return value.Boolean;
 
 				case Content.Number:
-					return value.number != 0;
+					return value.Number != 0;
 
 				case Content.String:
-					return !string.IsNullOrEmpty(value.str);
+					return !string.IsNullOrEmpty(value.String);
 
 				default:
 					return false;
@@ -73,16 +73,16 @@ namespace Verse.Schemas.JSON
 
 		private static char ToCharacter (Value value)
 		{
-			switch (value.type)
+			switch (value.Type)
 			{
 				case Content.Boolean:
-					return value.boolean ? '1' : '\0';
+					return value.Boolean ? '1' : '\0';
 
 				case Content.Number:
-					return value.number != 0 ? '1' : '\0';
+					return value.Number != 0 ? '1' : '\0';
 
 				case Content.String:
-					return value.str.Length > 0 ? value.str[0] : '\0';
+					return value.String.Length > 0 ? value.String[0] : '\0';
 
 				default:
 					return '\0';
@@ -93,16 +93,16 @@ namespace Verse.Schemas.JSON
 		{
 			decimal	number;
 
-			switch (value.type)
+			switch (value.Type)
 			{
 				case Content.Boolean:
-					return value.boolean ? 1 : 0;
+					return value.Boolean ? 1 : 0;
 
 				case Content.Number:
-					return (decimal)value.number;
+					return (decimal)value.Number;
 
 				case Content.String:
-					if (decimal.TryParse (value.str, NumberStyles.Float, CultureInfo.InvariantCulture, out number))
+					if (decimal.TryParse (value.String, NumberStyles.Float, CultureInfo.InvariantCulture, out number))
 						return number;
 
 					return 0;
@@ -116,16 +116,16 @@ namespace Verse.Schemas.JSON
 		{
 			float	number;
 
-			switch (value.type)
+			switch (value.Type)
 			{
 				case Content.Boolean:
-					return value.boolean ? 1 : 0;
+					return value.Boolean ? 1 : 0;
 
 				case Content.Number:
-					return (float)value.number;
+					return (float)value.Number;
 
 				case Content.String:
-					if (float.TryParse (value.str, NumberStyles.Float, CultureInfo.InvariantCulture, out number))
+					if (float.TryParse (value.String, NumberStyles.Float, CultureInfo.InvariantCulture, out number))
 						return number;
 
 					return 0;
@@ -139,16 +139,16 @@ namespace Verse.Schemas.JSON
 		{
 			double	number;
 
-			switch (value.type)
+			switch (value.Type)
 			{
 				case Content.Boolean:
-					return value.boolean ? 1 : 0;
+					return value.Boolean ? 1 : 0;
 
 				case Content.Number:
-					return (double)value.number;
+					return (double)value.Number;
 
 				case Content.String:
-					if (double.TryParse (value.str, NumberStyles.Float, CultureInfo.InvariantCulture, out number))
+					if (double.TryParse (value.String, NumberStyles.Float, CultureInfo.InvariantCulture, out number))
 						return number;
 
 					return 0;
@@ -162,16 +162,16 @@ namespace Verse.Schemas.JSON
 		{
 			sbyte	number;
 
-			switch (value.type)
+			switch (value.Type)
 			{
 				case Content.Boolean:
-					return value.boolean ? (sbyte)1 : (sbyte)0;
+					return value.Boolean ? (sbyte)1 : (sbyte)0;
 
 				case Content.Number:
-					return (sbyte)value.number;
+					return (sbyte)value.Number;
 
 				case Content.String:
-					if (sbyte.TryParse (value.str, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+					if (sbyte.TryParse (value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
 						return number;
 
 					return 0;
@@ -185,16 +185,16 @@ namespace Verse.Schemas.JSON
 		{
 			byte	number;
 
-			switch (value.type)
+			switch (value.Type)
 			{
 				case Content.Boolean:
-					return value.boolean ? (byte)1 : (byte)0;
+					return value.Boolean ? (byte)1 : (byte)0;
 
 				case Content.Number:
-					return (byte)value.number;
+					return (byte)value.Number;
 
 				case Content.String:
-					if (byte.TryParse (value.str, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+					if (byte.TryParse (value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
 						return number;
 
 					return 0;
@@ -208,16 +208,16 @@ namespace Verse.Schemas.JSON
 		{
 			short	number;
 
-			switch (value.type)
+			switch (value.Type)
 			{
 				case Content.Boolean:
-					return value.boolean ? (short)1 : (short)0;
+					return value.Boolean ? (short)1 : (short)0;
 
 				case Content.Number:
-					return (short)value.number;
+					return (short)value.Number;
 
 				case Content.String:
-					if (short.TryParse (value.str, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+					if (short.TryParse (value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
 						return number;
 
 					return 0;
@@ -231,16 +231,16 @@ namespace Verse.Schemas.JSON
 		{
 			ushort	number;
 
-			switch (value.type)
+			switch (value.Type)
 			{
 				case Content.Boolean:
-					return value.boolean ? (ushort)1 : (ushort)0;
+					return value.Boolean ? (ushort)1 : (ushort)0;
 
 				case Content.Number:
-					return (ushort)value.number;
+					return (ushort)value.Number;
 
 				case Content.String:
-					if (ushort.TryParse (value.str, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+					if (ushort.TryParse (value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
 						return number;
 
 					return 0;
@@ -254,16 +254,16 @@ namespace Verse.Schemas.JSON
 		{
 			int	number;
 
-			switch (value.type)
+			switch (value.Type)
 			{
 				case Content.Boolean:
-					return value.boolean ? 1 : 0;
+					return value.Boolean ? 1 : 0;
 
 				case Content.Number:
-					return (int)value.number;
+					return (int)value.Number;
 
 				case Content.String:
-					if (int.TryParse (value.str, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+					if (int.TryParse (value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
 						return number;
 
 					return 0;
@@ -277,16 +277,16 @@ namespace Verse.Schemas.JSON
 		{
 			uint	number;
 
-			switch (value.type)
+			switch (value.Type)
 			{
 				case Content.Boolean:
-					return value.boolean ? 1u : 0;
+					return value.Boolean ? 1u : 0;
 
 				case Content.Number:
-					return (uint)value.number;
+					return (uint)value.Number;
 
 				case Content.String:
-					if (uint.TryParse (value.str, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+					if (uint.TryParse (value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
 						return number;
 
 					return 0;
@@ -300,16 +300,16 @@ namespace Verse.Schemas.JSON
 		{
 			long	number;
 
-			switch (value.type)
+			switch (value.Type)
 			{
 				case Content.Boolean:
-					return value.boolean ? 1 : 0;
+					return value.Boolean ? 1 : 0;
 
 				case Content.Number:
-					return (long)value.number;
+					return (long)value.Number;
 
 				case Content.String:
-					if (long.TryParse (value.str, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+					if (long.TryParse (value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
 						return number;
 
 					return 0;
@@ -323,16 +323,16 @@ namespace Verse.Schemas.JSON
 		{
 			ulong	number;
 
-			switch (value.type)
+			switch (value.Type)
 			{
 				case Content.Boolean:
-					return value.boolean ? 1u : 0;
+					return value.Boolean ? 1u : 0;
 
 				case Content.Number:
-					return (ulong)value.number;
+					return (ulong)value.Number;
 
 				case Content.String:
-					if (ulong.TryParse (value.str, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+					if (ulong.TryParse (value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
 						return number;
 
 					return 0;
@@ -344,16 +344,16 @@ namespace Verse.Schemas.JSON
 
 		private static string ToString (Value value)
 		{
-			switch (value.type)
+			switch (value.Type)
 			{
 				case Content.Boolean:
-					return value.boolean ? "1" : string.Empty;
+					return value.Boolean ? "1" : string.Empty;
 
 				case Content.Number:
-					return value.number.ToString (CultureInfo.InvariantCulture);
+					return value.Number.ToString (CultureInfo.InvariantCulture);
 
 				case Content.String:
-					return value.str;
+					return value.String;
 
 				default:
 					return string.Empty;

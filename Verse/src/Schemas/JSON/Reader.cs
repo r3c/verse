@@ -72,7 +72,7 @@ namespace Verse.Schemas.JSON
 
 						context.Next ();
 
-						builder.Assign (ref target, new Value {str = buffer.ToString (), type = Content.String});
+						builder.Assign (ref target, new Value {String = buffer.ToString (), Type = Content.String});
 					}
 					else
 					{
@@ -170,11 +170,11 @@ namespace Verse.Schemas.JSON
 							numberExponent = 0;
 
 						if (numberDecimal != 0 || numberExponent < 0) // Decimal value with either decimal part or negative exponent
-							value = new Value {number = numberSign * (numberIntegral + numberDecimal * Math.Pow (10, numberDecimalPower)) * Math.Pow (10, numberExponent), type = Content.Number};
+							value = new Value {Number = numberSign * (numberIntegral + numberDecimal * Math.Pow (10, numberDecimalPower)) * Math.Pow (10, numberExponent), Type = Content.Number};
 						else if (numberExponent > 0) // Integer value with positive exponent
-							value = new Value {number = numberSign * numberIntegral * (long)Math.Pow (10, numberExponent), type = Content.Number};
+							value = new Value {Number = numberSign * numberIntegral * (long)Math.Pow (10, numberExponent), Type = Content.Number};
 						else // Simple integer value
-							value = new Value {number = numberSign * numberIntegral, type = Content.Number};
+							value = new Value {Number = numberSign * numberIntegral, Type = Content.Number};
 					}
 
 					builder.Assign(ref target, value);
@@ -187,7 +187,7 @@ namespace Verse.Schemas.JSON
 
 					context.Next ();
 
-					builder.Assign (ref target, new Value {boolean = false, type = Content.Boolean});
+					builder.Assign (ref target, new Value {Boolean = false, Type = Content.Boolean});
 
 					return true;
 
@@ -197,7 +197,7 @@ namespace Verse.Schemas.JSON
 
 					context.Next ();
 
-					builder.Assign (ref target, new Value {type = Content.Void});
+					builder.Assign (ref target, new Value {Type = Content.Void});
 
 					return true;
 
@@ -207,7 +207,7 @@ namespace Verse.Schemas.JSON
 
 					context.Next ();
 
-					builder.Assign (ref target, new Value {boolean = true, type = Content.Boolean});
+					builder.Assign (ref target, new Value {Boolean = true, Type = Content.Boolean});
 
 					return true;
 
