@@ -6,12 +6,12 @@ namespace Verse
     {
     	#region Properties
 
-    	IBuilderDescriptor<T>	BuilderDescriptor
+    	IParserDescriptor<T>	ParserDescriptor
     	{
     		get;
     	}
 
-    	IParserDescriptor<T>	ParserDescriptor
+    	IWriterDescriptor<T>	WriterDescriptor
     	{
     		get;
     	}
@@ -20,11 +20,11 @@ namespace Verse
 
         #region Methods
 
-        IBuilder<T>	GenerateBuilder ();
-
         IParser<T>	GenerateParser (Func<T> constructor);
 
         IParser<T>	GenerateParser ();
+
+        IWriter<T>	GenerateWriter ();
 
         #endregion
     }

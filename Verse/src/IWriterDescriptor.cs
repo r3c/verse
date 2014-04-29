@@ -2,8 +2,7 @@
 
 namespace Verse
 {
-	public interface IBuilderDescriptor<T>
+	public interface IWriterDescriptor<T>
 	{
-		
 	}
 }

@@ -61,9 +61,9 @@
   <ItemGroup>
     <Compile Include="src\DescriptorSet.cs" />
     <Compile Include="src\DescriptorGet.cs" />
-    <Compile Include="src\Helpers\Prout.cs" />
-    <Compile Include="src\IBuilder.cs" />
-    <Compile Include="src\IBuilderDescriptor.cs" />
+    <Compile Include="src\Tools\Linker.cs" />
+    <Compile Include="src\IWriter.cs" />
+    <Compile Include="src\IWriterDescriptor.cs" />
     <Compile Include="src\ParserDescriptors\AbstractParserDescriptor.cs" />
     <Compile Include="src\ParserDescriptors\RecurseParserDescriptor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -74,6 +74,7 @@
     <Compile Include="src\ParserDescriptors\Recurse\IAdapter.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\IPointer.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\IReader.cs" />
+    <Compile Include="src\ParseError.cs" />
     <Compile Include="src\Schemas\JSONSchema.cs" />
     <Compile Include="src\Schemas\JSON\Context.cs" />
     <Compile Include="src\Schemas\JSON\Adapter.cs" />
@@ -81,9 +82,10 @@
     <Compile Include="src\Schemas\JSON\Value.cs" />
     <Compile Include="src\Schemas\JSON\Content.cs" />
     <Compile Include="src\Schemas\TreeSchema.cs" />
+    <Compile Include="src\WriteError.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="src\Helpers" />
+    <Folder Include="src\Tools" />
     <Folder Include="src\ParserDescriptors" />
     <Folder Include="src" />
     <Folder Include="src\Dynamics" />

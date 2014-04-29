@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Verse.Schemas.JSON
 {
-    public class Context : IDisposable
+    public sealed class Context : IDisposable
     {
     	#region Properties
 
@@ -11,15 +11,25 @@ namespace Verse.Schemas.JSON
         {
             get
             {
-                return current;
+                return this.current;
             }
         }
+
+		public int	Position
+		{
+			get
+			{
+				return this.position;
+			}
+		}
 
         #endregion
 
         #region Attributes
 
         private int             		current;
+
+		private int						position;
 
         private readonly StreamReader	reader;
 
@@ -30,6 +40,7 @@ namespace Verse.Schemas.JSON
         public Context (StreamReader reader)
         {
             this.current = reader.Read ();
+			this.position = 0;
             this.reader = reader;
         }
 
@@ -42,20 +53,16 @@ namespace Verse.Schemas.JSON
             this.reader.Dispose ();
         }
 
-        public bool Next ()
+        public void Next ()
         {
             int c;
 
             c = this.reader.Read ();
 
+			if (this.current >= 0)
+				++this.position;
+
             this.current = c;
-
-            return c >= 0;
-        }
-
-        public bool Skip (char character)
-        {
-            return this.current == (int)character && this.Next ();
         }
 
         #endregion

@@ -12,6 +12,7 @@ TestResults
 *.suo
 *.user
 *.sln.docstates
+*.sdsettings
 
 # Build results
 [Dd]ebug/

@@ -6,8 +6,14 @@ using Verse.ParserDescriptors.Recurse;
 
 namespace Verse.Schemas.JSON
 {
-	class Reader : IReader<Context, Value>
+	sealed class Reader : IReader<Context, Value>
 	{
+		#region Events
+
+		public event ParseError	Error;
+
+		#endregion
+
 		#region Attributes
 
 		private readonly Encoding	encoding;
@@ -25,20 +31,6 @@ namespace Verse.Schemas.JSON
 
 		#region Methods / Public
 
-		public bool Begin (Stream stream, out Context context)
-		{
-			context = new Context (new StreamReader (stream, this.encoding));
-
-			if (context.Current < 0 || !this.ReadBlank (context))
-				return false;
-
-			return true;
-		}
-
-		public void End (Context context)
-		{
-		}
-
 		public bool Read<U> (ref U target, IPointer<U, Context, Value> builder, Context context)
 		{
 			StringBuilder				buffer;
@@ -55,8 +47,7 @@ namespace Verse.Schemas.JSON
 			switch (context.Current)
 			{
 				case (int)'"':
-					if (!context.Next ())
-						return false;
+					context.Next ();
 
 					if (builder.CanAssign)
 					{
@@ -104,7 +95,7 @@ namespace Verse.Schemas.JSON
 						// Read sign
 						if (context.Current == (int)'-')
 						{
-							context.Next();
+							context.Next ();
 
 							numberSign = -1;
 						}
@@ -118,7 +109,7 @@ namespace Verse.Schemas.JSON
 						// Read decimal part
 						if (context.Current == (int)'.')
 						{
-							context.Next();
+							context.Next ();
 
 							numberDecimalPower = 0;
 
@@ -182,49 +173,53 @@ namespace Verse.Schemas.JSON
 					return true;
 
 				case (int)'f':
-					if (!context.Next () || !context.Skip ('a') || !context.Skip ('l') || !context.Skip ('s') || context.Current != (int)'e')
-						return false;
-
 					context.Next ();
+
+					if (!this.ReadExpected (context, 'a') || !this.ReadExpected (context, 'l') || !this.ReadExpected (context, 's') || !this.ReadExpected (context, 'e'))
+						return false;
 
 					builder.Assign (ref target, new Value {Boolean = false, Type = Content.Boolean});
 
 					return true;
 
 				case (int)'n':
-					if (!context.Next () || !context.Skip ('u') || !context.Skip ('l') || context.Current != (int)'l')
-						return false;
-
 					context.Next ();
+
+					if (!this.ReadExpected (context, 'u') || !this.ReadExpected (context, 'l') || !this.ReadExpected (context, 'l'))
+						return false;
 
 					builder.Assign (ref target, new Value {Type = Content.Void});
 
 					return true;
 
 				case (int)'t':
-					if (!context.Next () || !context.Skip ('r') || !context.Skip ('u') || context.Current != (int)'e')
-						return false;
-
 					context.Next ();
+
+					if (!this.ReadExpected (context, 'r') || !this.ReadExpected (context, 'u') || !this.ReadExpected (context, 'e'))
+						return false;
 
 					builder.Assign (ref target, new Value {Boolean = true, Type = Content.Boolean});
 
 					return true;
 
 				case (int)'[':
-					if (!context.Next ())
-						return false;
+					context.Next ();
 
 					for (int index = 0; true; ++index)
 					{
-						if (!this.ReadBlank (context))
-							return false;
+						this.SkipBlank (context);
 
 						if (context.Current == (int)']')
 							break;
 
-						if (index > 0 && (!context.Skip (',') || !this.ReadBlank (context)))
-							return false;
+						// Read comma separator if any
+						if (index > 0)
+						{
+							if (!this.ReadExpected (context, ','))
+								return false;
+
+							this.SkipBlank (context);
+						}
 
 						// Build and move to array index
 						field = builder;
@@ -247,21 +242,25 @@ namespace Verse.Schemas.JSON
 					return true;
 
 				case (int)'{':
-					if (!context.Next ())
-						return false;
+					context.Next ();
 
 					for (int index = 0; true; ++index)
 					{
-						if (!this.ReadBlank (context))
-							return false;
+						this.SkipBlank (context);
 
 						if (context.Current == (int)'}')
 							break;
 
-						if (index > 0 && (!context.Skip (',') || !this.ReadBlank (context)))
-							return false;
+						// Read comma separator if any
+						if (index > 0)
+						{
+							if (!this.ReadExpected (context, ','))
+								return false;
 
-						if (context.Current != (int)'"' || !context.Next ())
+							this.SkipBlank (context);
+						}
+
+						if (!this.ReadExpected (context, '"'))
 							return false;
 
 						// Read and move to object key
@@ -275,11 +274,17 @@ namespace Verse.Schemas.JSON
 							field = field.Next (current);
 						}
 
+						context.Next ();
+
 						// Read object separator
-						if (!context.Next () || !this.ReadBlank (context) || !context.Skip (':') || !this.ReadBlank (context))
+						this.SkipBlank (context);
+
+						if (!this.ReadExpected (context, ':'))
 							return false;
 
 						// Read object value
+						this.SkipBlank (context);
+
 						if (!field.Enter (ref target, this, context))
 							return false;
 					}
@@ -289,45 +294,61 @@ namespace Verse.Schemas.JSON
 					return true;
 
 				default:
+					this.OnError (context.Position, "unexpected character");
+
 					return false;
 			}
+		}
+
+		public bool Start (Stream stream, out Context context)
+		{
+			context = new Context (new StreamReader (stream, this.encoding));
+
+			this.SkipBlank (context);
+
+			if (context.Current < 0)
+			{
+				this.OnError (context.Position, "empty input stream");
+
+				return false;
+			}
+
+			return true;
+		}
+
+		public void Stop (Context context)
+		{
 		}
 
 		#endregion
 
 		#region Methods / Private
 
-		private bool ReadBlank (Context source)
+		private void OnError (int position, string message)
 		{
-			int current;
+			ParseError	error;
 
-			while (true)
-			{
-				current = source.Current;
+			error = this.Error;
 
-				if (current < 0)
-					return false;
-
-				if (current > (int)' ')
-					return true;
-
-				source.Next();
-			}
+			if (error != null)
+				error (position, message);
 		}
 
-		private bool ReadCharacter (Context source, out char character)
+		private bool ReadCharacter (Context context, out char character)
 		{
 			int	nibble;
 			int previous;
 			int	value;
 
-			previous = source.Current;
+			previous = context.Current;
 
-			source.Next();
+			context.Next ();
 
 			if (previous < 0)
 			{
-				character = default(char);
+				this.OnError (context.Position, "expected character, found end of stream");
+
+				character = default (char);
 
 				return false;
 			}
@@ -339,14 +360,16 @@ namespace Verse.Schemas.JSON
 				return true;
 			}
 
-			previous = source.Current;
+			previous = context.Current;
 
-			source.Next();
+			context.Next ();
 
 			switch (previous)
 			{
 				case -1:
-					character = default(char);
+					this.OnError (context.Position, "expected escaped character, found end of stream");
+
+					character = default (char);
 
 					return false;
 
@@ -380,9 +403,9 @@ namespace Verse.Schemas.JSON
 
 					for (int i = 0; i < 4; ++i)
 					{
-						previous = source.Current;
+						previous = context.Current;
 
-						source.Next();
+						context.Next ();
 
 						if (previous >= (int)'0' && previous <= (int)'9')
 							nibble = previous - (int)'0';
@@ -392,6 +415,8 @@ namespace Verse.Schemas.JSON
 							nibble = previous - (int)'a' + 10;
 						else
 						{
+							this.OnError (context.Position, "expected unicode character");
+
 							character = default (char);
 
 							return false;
@@ -408,6 +433,35 @@ namespace Verse.Schemas.JSON
 					character = (char)previous;
 
 					return true;
+			}
+		}
+
+		private bool ReadExpected (Context context, char expected)
+		{
+			if (context.Current != (int)expected)
+			{
+				this.OnError (context.Position, "unexpected character");
+
+				return false;
+			}
+
+			context.Next ();
+
+			return true;
+		}
+
+		private void SkipBlank (Context source)
+		{
+			int current;
+
+			while (true)
+			{
+				current = source.Current;
+
+				if (current < 0 || current > (int)' ')
+					return;
+
+				source.Next ();
 			}
 		}
 

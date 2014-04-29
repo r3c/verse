@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace Verse.Helpers
+namespace Verse.Tools
 {
-	public class Prout
+	public static class Linker
 	{
 #if false
 		public static bool Link<T> (Dictionary<Type, object> descriptors, IParserDescriptor<T> descriptor)

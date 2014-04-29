@@ -2,18 +2,18 @@
 
 namespace Verse
 {
-    public interface IParser<T>
-    {
+	public interface IWriter<T>
+	{
 		#region Events
 
-		event ParseError	Error;
+		event WriteError	Error;
 
 		#endregion
 
         #region Methods
 
-        bool Parse (Stream input, out T output);
+        bool Write (T input, Stream output);
 
         #endregion
-    }
+	}
 }

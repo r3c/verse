@@ -5,7 +5,7 @@ using Verse.ParserDescriptors.Recurse;
 
 namespace Verse.Schemas.JSON
 {
-    class Adapter : IAdapter<Value>
+    sealed class Adapter : IAdapter<Value>
     {
     	#region Attributes
 
@@ -24,7 +24,8 @@ namespace Verse.Schemas.JSON
     		{typeof (uint),		new Converter<Value, uint> (Adapter.ToInteger32u)},
     		{typeof (long),		new Converter<Value, long> (Adapter.ToInteger64s)},
     		{typeof (ulong),	new Converter<Value, ulong> (Adapter.ToInteger64u)},
-            {typeof (string),	new Converter<Value, string> (Adapter.ToString)}
+            {typeof (string),	new Converter<Value, string> (Adapter.ToString)},
+			{typeof (Value),	new Converter<Value, Value> ((v) => v)}
     	};
 
     	#endregion

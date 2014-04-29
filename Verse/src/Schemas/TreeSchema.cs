@@ -10,21 +10,21 @@ namespace Verse.Schemas
     {
     	#region Properties
 
-    	public IBuilderDescriptor<T> BuilderDescriptor
-    	{
-    		get
-    		{
-    			throw new NotImplementedException ();
-    		}
-    	}
-
-        public IParserDescriptor<T> ParserDescriptor
+        public IParserDescriptor<T>	ParserDescriptor
         {
         	get
         	{
         		return this.parserDescriptor;
         	}
         }
+
+    	public IWriterDescriptor<T>	WriterDescriptor
+    	{
+    		get
+    		{
+    			throw new NotImplementedException ();
+    		}
+    	}
 
     	#endregion
 
@@ -51,11 +51,6 @@ namespace Verse.Schemas
 
         #region Methods / Public
 
-        public IBuilder<T> GenerateBuilder ()
-        {
-        	throw new NotImplementedException ();
-        }
-
         public IParser<T> GenerateParser (Func<T> constructor)
         {
             return new TreeParser (constructor, this.parserDescriptor.Pointer, this.GetReader ());
@@ -66,12 +61,19 @@ namespace Verse.Schemas
         	return this.GenerateParser (Generator.Constructor<T> ());
         }
 
+        public IWriter<T> GenerateWriter ()
+        {
+        	throw new NotImplementedException ();
+        }
+
         #endregion
 
         #region Types
 
         private class TreeParser : IParser<T>
         {
+			public event ParseError	Error;
+
             private readonly Func<T>			constructor;
 
             private readonly IPointer<T, C, V>	pointer;
@@ -80,6 +82,8 @@ namespace Verse.Schemas
 
             public TreeParser (Func<T> constructor, IPointer<T, C, V> pointer, IReader<C, V> reader)
             {
+				reader.Error += this.OnError;
+
                 this.constructor = constructor;
                 this.pointer = pointer;
                 this.reader = reader;
@@ -90,7 +94,7 @@ namespace Verse.Schemas
                 C		context;
                 bool	result;
 
-                if (!this.reader.Begin (input, out context))
+                if (!this.reader.Start (input, out context))
                 {
                     output = default (T);
 
@@ -104,11 +108,21 @@ namespace Verse.Schemas
                 }
                 finally
                 {
-                	this.reader.End (context);
+                	this.reader.Stop (context);
                 }
 
                 return result;
             }
+
+			private void OnError (int position, string message)
+			{
+				ParseError	error;
+
+				error = this.Error;
+
+				if (error != null)
+					error (position, message);
+			}
         }
 
         #endregion
