@@ -2,17 +2,17 @@
 
 namespace Verse
 {
-	public interface IParser<T>
+	public interface IBuilder<T>
 	{
 		#region Events
 
-		event ParseError	Error;
+		event BuildError	Error;
 
 		#endregion
 
 		#region Methods
 
-		bool Parse (Stream input, out T output);
+		bool Build (T input, Stream output);
 
 		#endregion
 	}

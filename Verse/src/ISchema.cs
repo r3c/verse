@@ -2,30 +2,30 @@
 
 namespace Verse
 {
-    public interface ISchema<T>
-    {
-    	#region Properties
+	public interface ISchema<T>
+	{
+		#region Properties
 
-    	IParserDescriptor<T>	ParserDescriptor
-    	{
-    		get;
-    	}
+		IBuilderDescriptor<T>	BuilderDescriptor
+		{
+			get;
+		}
 
-    	IWriterDescriptor<T>	WriterDescriptor
-    	{
-    		get;
-    	}
+		IParserDescriptor<T>	ParserDescriptor
+		{
+			get;
+		}
 
-    	#endregion
+		#endregion
 
-        #region Methods
+		#region Methods
 
-        IParser<T>	GenerateParser (Func<T> constructor);
+		IBuilder<T>	GenerateBuilder ();
 
-        IParser<T>	GenerateParser ();
+		IParser<T>	GenerateParser (Func<T> constructor);
 
-        IWriter<T>	GenerateWriter ();
+		IParser<T>	GenerateParser ();
 
-        #endregion
-    }
+		#endregion
+	}
 }

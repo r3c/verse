@@ -1,29 +1,29 @@
-﻿namespace Verse
+﻿using System;
+
+namespace Verse
 {
-    public interface IParserDescriptor<T>
-    {
-        #region Methods
+	public interface IParserDescriptor<T>
+	{
+		#region Methods
 
-        IParserDescriptor<U>	HasChildren<U> (DescriptorSet<T, U> store, DescriptorGet<T, U> create, IParserDescriptor<U> recurse);
+		void					CanCreate<U> (DescriptorGet<T, U> constructor);
 
-        IParserDescriptor<U>	HasChildren<U> (DescriptorSet<T, U> store, DescriptorGet<T, U> create);
+		IParserDescriptor<U>	HasField<U> (string name, DescriptorSet<T, U> assign, IParserDescriptor<U> recurse);
 
-        IParserDescriptor<U>	HasChildren<U> (DescriptorSet<T, U> store);
+		IParserDescriptor<U>	HasField<U> (string name, DescriptorSet<T, U> assign);
 
-        IParserDescriptor<T>	HasChildren ();
+		IParserDescriptor<T>	HasField (string name);
 
-        IParserDescriptor<U>	HasField<U> (string name, DescriptorSet<T, U> store, DescriptorGet<T, U> create, IParserDescriptor<U> recurse);
+		IParserDescriptor<U>	HasItems<U> (DescriptorSet<T, U> append, IParserDescriptor<U> recurse); // FIXME: Descriptor<T, IEnumerable<U>> assign?
 
-        IParserDescriptor<U>	HasField<U> (string name, DescriptorSet<T, U> store, DescriptorGet<T, U> create);
+		IParserDescriptor<U>	HasItems<U> (DescriptorSet<T, U> append); // FIXME: Descriptor<T, IEnumerable<U>> assign?
 
-        IParserDescriptor<U>	HasField<U> (string name, DescriptorSet<T, U> store);
+		IParserDescriptor<T>	HasItems (); // FIXME: delete?
 
-        IParserDescriptor<T>	HasField (string name);
+		void					IsValue<U> (DescriptorSet<T, U> assign);
 
-		void					IsValue<U> (DescriptorSet<T, U> store);
+		void					IsValue ();
 
-        void					IsValue ();
-
-        #endregion
-    }
+		#endregion
+	}
 }

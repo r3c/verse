@@ -1,53 +1,74 @@
 ﻿using System;
-using Verse.Dynamics;
+using System.Collections.Generic;
+using Verse.Tools;
 
 namespace Verse.ParserDescriptors
 {
-    public abstract class AbstractParserDescriptor<T> : IParserDescriptor<T>
-    {
-        #region Methods / Abstract
+	abstract class AbstractParserDescriptor<T> : IParserDescriptor<T>
+	{
+		#region Attributes
 
-        public abstract IParserDescriptor<U> HasChildren<U> (DescriptorSet<T, U> store, DescriptorGet<T, U> create, IParserDescriptor<U> recurse);
+		private readonly Dictionary<Type, object>	constructors = new Dictionary<Type, object> ();
 
-        public abstract IParserDescriptor<U> HasChildren<U> (DescriptorSet<T, U> store, DescriptorGet<T, U> create);
+		#endregion
 
-        public abstract IParserDescriptor<T> HasChildren ();
+		#region Methods / Abstract
 
-        public abstract IParserDescriptor<U> HasField<U> (string name, DescriptorSet<T, U> store, DescriptorGet<T, U> create, IParserDescriptor<U> recurse);
+		public abstract IParserDescriptor<U> HasField<U> (string name, DescriptorSet<T, U> assign, IParserDescriptor<U> recurse);
 
-        public abstract IParserDescriptor<U> HasField<U> (string name, DescriptorSet<T, U> store, DescriptorGet<T, U> create);
+		public abstract IParserDescriptor<U> HasField<U> (string name, DescriptorSet<T, U> assign);
 
-        public abstract IParserDescriptor<T> HasField (string name);
+		public abstract IParserDescriptor<T> HasField (string name);
 
-		public abstract void IsValue<U> (DescriptorSet<T, U> store);
+		public abstract IParserDescriptor<U> HasItems<U> (DescriptorSet<T, U> append, IParserDescriptor<U> recurse);
 
-        #endregion
+		public abstract IParserDescriptor<U> HasItems<U> (DescriptorSet<T, U> append);
 
-        #region Methods / Public
+		public abstract IParserDescriptor<T> HasItems ();
 
-        public IParserDescriptor<U> HasChildren<U> (DescriptorSet<T, U> store)
-        {
-            Func<U>	create;
+		public abstract void IsValue<U> (DescriptorSet<T, U> assign);
 
-            create = Generator.Constructor<U> ();
+		#endregion
 
-            return this.HasChildren (store, (ref T target) => create ());
-        }
+		#region Methods / Public
 
-        public IParserDescriptor<U> HasField<U> (string name, DescriptorSet<T, U> store)
-        {
-            Func<U>	create;
+		public void CanCreate<U> (DescriptorGet<T, U> constructor)
+		{
+			if (constructor == null)
+				throw new ArgumentNullException ("constructor");
 
-            create = Generator.Constructor<U> ();
-
-            return this.HasField (name, store, (ref T target) => create ());
-        }
-
+			this.constructors[typeof (U)] = constructor;
+		}
+/*
+		public IParserDescriptor<T> HasKey (string name)
+		{
+			return this.HasKey (name, (ref T target, T value) => {});
+		}
+*/
 		public void IsValue ()
 		{
 			this.IsValue ((ref T target, T value) => target = value);
 		}
 
-        #endregion
-    }
+		#endregion
+
+		#region Methods / Protected
+
+		protected DescriptorGet<T, U> GetConstructor<U> ()
+		{
+			object	box;
+			Func<U>	constructor;
+
+			if (!this.constructors.TryGetValue (typeof (T), out box))
+			{
+				constructor = Generator.Constructor<U> ();
+
+				return (ref T source) => constructor ();
+			}
+
+			return (DescriptorGet<T, U>)box;
+		}
+
+		#endregion
+	}
 }

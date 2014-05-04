@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Reflection.Emit;
 
-namespace Verse.Dynamics
+namespace Verse.Tools
 {
 	static class Generator
 	{

@@ -59,39 +59,58 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="src\DescriptorSet.cs" />
+    <Compile Include="src\BuilderDescriptors\Recurse\EnterCallback.cs" />
     <Compile Include="src\DescriptorGet.cs" />
+    <Compile Include="src\DescriptorSet.cs" />
+    <Compile Include="src\ParserDescriptors\Recurse\EnterCallback.cs" />
+    <Compile Include="src\ParserDescriptors\Recurse\Pointers\NodePointer.cs" />
+    <Compile Include="src\ParserDescriptors\Recurse\Pointers\VoidPointer.cs" />
+    <Compile Include="src\BuilderDescriptors\Recurse\IEncoder.cs" />
+    <Compile Include="src\BuilderDescriptors\Recurse\IPointer.cs" />
+    <Compile Include="src\BuilderDescriptors\Recurse\Pointers\NodePointer.cs" />
+    <Compile Include="src\Schemas\JSON\Encoder.cs" />
+    <Compile Include="src\Schemas\JSON\Writer.cs" />
+    <Compile Include="src\Schemas\JSON\WriterContext.cs" />
+    <Compile Include="src\Schemas\Tree\Parser.cs" />
+    <Compile Include="src\Schemas\Tree\Builder.cs" />
+    <Compile Include="src\Tools\Generator.cs" />
     <Compile Include="src\Tools\Linker.cs" />
-    <Compile Include="src\IWriter.cs" />
-    <Compile Include="src\IWriterDescriptor.cs" />
+    <Compile Include="src\IBuilder.cs" />
+    <Compile Include="src\IBuilderDescriptor.cs" />
     <Compile Include="src\ParserDescriptors\AbstractParserDescriptor.cs" />
     <Compile Include="src\ParserDescriptors\RecurseParserDescriptor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="src\Dynamics\Generator.cs" />
     <Compile Include="src\IParserDescriptor.cs" />
     <Compile Include="src\IParser.cs" />
     <Compile Include="src\ISchema.cs" />
-    <Compile Include="src\ParserDescriptors\Recurse\IAdapter.cs" />
+    <Compile Include="src\ParserDescriptors\Recurse\IDecoder.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\IPointer.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\IReader.cs" />
     <Compile Include="src\ParseError.cs" />
     <Compile Include="src\Schemas\JSONSchema.cs" />
-    <Compile Include="src\Schemas\JSON\Context.cs" />
-    <Compile Include="src\Schemas\JSON\Adapter.cs" />
+    <Compile Include="src\Schemas\JSON\ReaderContext.cs" />
+    <Compile Include="src\Schemas\JSON\Decoder.cs" />
     <Compile Include="src\Schemas\JSON\Reader.cs" />
     <Compile Include="src\Schemas\JSON\Value.cs" />
     <Compile Include="src\Schemas\JSON\Content.cs" />
     <Compile Include="src\Schemas\TreeSchema.cs" />
-    <Compile Include="src\WriteError.cs" />
+    <Compile Include="src\BuildError.cs" />
+    <Compile Include="src\BuilderDescriptors\AbstractBuilderDescriptor.cs" />
+    <Compile Include="src\BuilderDescriptors\RecurseBuilderDescriptor.cs" />
+    <Compile Include="src\BuilderDescriptors\Recurse\IWriter.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="src\ParserDescriptors\Recurse\Pointers" />
+    <Folder Include="src\BuilderDescriptors" />
+    <Folder Include="src\BuilderDescriptors\Recurse\Pointers" />
+    <Folder Include="src\Schemas\Tree" />
     <Folder Include="src\Tools" />
     <Folder Include="src\ParserDescriptors" />
     <Folder Include="src" />
-    <Folder Include="src\Dynamics" />
     <Folder Include="src\ParserDescriptors\Recurse" />
     <Folder Include="src\Schemas" />
     <Folder Include="src\Schemas\JSON" />
+    <Folder Include="src\BuilderDescriptors\Recurse" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

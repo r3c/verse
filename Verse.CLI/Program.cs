@@ -21,7 +21,7 @@ namespace Verse.CLI
 			parser1 = schema.GenerateParser ();
 
 			schema = new JSONSchema<A> ();
-			schema.ParserDescriptor.HasField ("b", (ref A a, int b) => a.b = b).IsValue ();
+			schema.ParserDescriptor.HasField ("b").IsValue ((ref A a, int b) => a.b = b);
 
 			parser2 = schema.GenerateParser ();
 
@@ -42,6 +42,7 @@ namespace Verse.CLI
 			for (int i = 0; i < 100000; ++i)
 				parser2.Parse (new MemoryStream (j2), out value);
 			Console.WriteLine ("p2: " + s2.Elapsed);
+			Console.Read ();
 		}
 
 		struct A

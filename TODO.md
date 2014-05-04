@@ -4,9 +4,11 @@ Verse TODO list
 TODO
 ----
 
+- Implement "CanCreate<T>"
+- Switch "HasItems" to IEnumerable<T>?
+- Allow IBuilder output customization
 - Implement Protocol Buffers model
 - Implement BSON model
-- Cleanup recursive coding methods signatures
 
 DONE
 ----

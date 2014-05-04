@@ -2,11 +2,11 @@
 
 namespace Verse.Schemas.JSON
 {
-    public enum Content
-    {
-    	Boolean,
-    	Number,
-    	String,
-    	Void
-    }
+	public enum Content
+	{
+		Boolean,
+		Number,
+		String,
+		Void
+	}
 }

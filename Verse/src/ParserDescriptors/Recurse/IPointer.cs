@@ -2,25 +2,25 @@
 
 namespace Verse.ParserDescriptors.Recurse
 {
-    public interface IPointer<T, C, V>
-    {
-    	#region Properties
+	public interface IPointer<T, C, V>
+	{
+		#region Properties
 
-        bool	CanAssign
-        {
-            get;
-        }
+		bool	CanAssign
+		{
+			get;
+		}
 
-        #endregion
+		#endregion
 
-        #region Methods
+		#region Methods
 
-        void				Assign (ref T target, V value);
+		void				Assign (ref T target, V value);
 
-        bool				Enter (ref T target, IReader<C, V> reader, C context);
+		bool				Enter (ref T target, IReader<C, V> reader, C context);
 
-        IPointer<T, C, V>	Next (char c);
+		IPointer<T, C, V>	Follow (char c);
 
-        #endregion
-    }
+		#endregion
+	}
 }

@@ -6,7 +6,7 @@ using Verse.ParserDescriptors.Recurse;
 
 namespace Verse.Schemas.JSON
 {
-	sealed class Reader : IReader<Context, Value>
+	sealed class Reader : IReader<ReaderContext, Value>
 	{
 		#region Events
 
@@ -31,25 +31,24 @@ namespace Verse.Schemas.JSON
 
 		#region Methods / Public
 
-		public bool Read<U> (ref U target, IPointer<U, Context, Value> builder, Context context)
+		public bool Read<U> (ref U target, IPointer<U, ReaderContext, Value> pointer, ReaderContext context)
 		{
-			StringBuilder				buffer;
-			char						current;
-			IPointer<U, Context, Value>	field;
-			long						numberDecimal;
-			int							numberDecimalPower;
-			int							numberExponent;
-			sbyte						numberExponentSign;
-			long						numberIntegral;
-			sbyte						numberSign;
-			Value						value;
+			StringBuilder	buffer;
+			char			current;
+			long			numberDecimal;
+			int				numberDecimalPower;
+			int				numberExponent;
+			sbyte			numberExponentSign;
+			long			numberIntegral;
+			sbyte			numberSign;
+			Value			value;
 
 			switch (context.Current)
 			{
 				case (int)'"':
-					context.Next ();
+					context.Pull ();
 
-					if (builder.CanAssign)
+					if (pointer.CanAssign)
 					{
 						buffer = new StringBuilder (32);
 
@@ -61,9 +60,9 @@ namespace Verse.Schemas.JSON
 							buffer.Append (current);
 						}
 
-						context.Next ();
+						context.Pull ();
 
-						builder.Assign (ref target, new Value {String = buffer.ToString (), Type = Content.String});
+						pointer.Assign (ref target, new Value {String = buffer.ToString (), Type = Content.String});
 					}
 					else
 					{
@@ -73,7 +72,7 @@ namespace Verse.Schemas.JSON
 								return false;
 						}
 
-						context.Next ();
+						context.Pull ();
 					}
 
 					return true;
@@ -95,7 +94,7 @@ namespace Verse.Schemas.JSON
 						// Read sign
 						if (context.Current == (int)'-')
 						{
-							context.Next ();
+							context.Pull ();
 
 							numberSign = -1;
 						}
@@ -103,17 +102,17 @@ namespace Verse.Schemas.JSON
 							numberSign = 1;
 
 						// Read integral part
-						for (numberIntegral = 0; context.Current >= (int)'0' && context.Current <= (int)'9'; context.Next ())
+						for (numberIntegral = 0; context.Current >= (int)'0' && context.Current <= (int)'9'; context.Pull ())
 							numberIntegral = numberIntegral * 10 + (context.Current - (int)'0');
 
 						// Read decimal part
 						if (context.Current == (int)'.')
 						{
-							context.Next ();
+							context.Pull ();
 
 							numberDecimalPower = 0;
 
-							for (numberDecimal = 0; context.Current >= (int)'0' && context.Current <= (int)'9'; context.Next ())
+							for (numberDecimal = 0; context.Current >= (int)'0' && context.Current <= (int)'9'; context.Pull ())
 							{
 								numberDecimal = numberDecimal * 10 + (context.Current - (int)'0');
 								numberDecimalPower -= 1;
@@ -128,19 +127,19 @@ namespace Verse.Schemas.JSON
 						// Read exponent
 						if (context.Current == (int)'E' || context.Current == (int)'e')
 						{
-							context.Next ();
+							context.Pull ();
 
 							switch (context.Current)
 							{
 								case (int)'+':
-									context.Next ();
+									context.Pull ();
 
 									numberExponentSign = 1;
 
 									break;
 
 								case (int)'-':
-									context.Next ();
+									context.Pull ();
 
 									numberExponentSign = -1;
 
@@ -152,7 +151,7 @@ namespace Verse.Schemas.JSON
 									break;
 							}
 
-							for (numberExponent = 0; context.Current >= (int)'0' && context.Current <= (int)'9'; context.Next ())
+							for (numberExponent = 0; context.Current >= (int)'0' && context.Current <= (int)'9'; context.Pull ())
 								numberExponent = numberExponent * 10 + (context.Current - (int)'0');
 
 							numberExponent *= numberExponentSign;
@@ -168,42 +167,42 @@ namespace Verse.Schemas.JSON
 							value = new Value {Number = numberSign * numberIntegral, Type = Content.Number};
 					}
 
-					builder.Assign(ref target, value);
+					pointer.Assign (ref target, value);
 
 					return true;
 
 				case (int)'f':
-					context.Next ();
+					context.Pull ();
 
 					if (!this.ReadExpected (context, 'a') || !this.ReadExpected (context, 'l') || !this.ReadExpected (context, 's') || !this.ReadExpected (context, 'e'))
 						return false;
 
-					builder.Assign (ref target, new Value {Boolean = false, Type = Content.Boolean});
+					pointer.Assign (ref target, new Value {Boolean = false, Type = Content.Boolean});
 
 					return true;
 
 				case (int)'n':
-					context.Next ();
+					context.Pull ();
 
 					if (!this.ReadExpected (context, 'u') || !this.ReadExpected (context, 'l') || !this.ReadExpected (context, 'l'))
 						return false;
 
-					builder.Assign (ref target, new Value {Type = Content.Void});
+					pointer.Assign (ref target, new Value {Type = Content.Void});
 
 					return true;
 
 				case (int)'t':
-					context.Next ();
+					context.Pull ();
 
 					if (!this.ReadExpected (context, 'r') || !this.ReadExpected (context, 'u') || !this.ReadExpected (context, 'e'))
 						return false;
 
-					builder.Assign (ref target, new Value {Boolean = true, Type = Content.Boolean});
+					pointer.Assign (ref target, new Value {Boolean = true, Type = Content.Boolean});
 
 					return true;
 
 				case (int)'[':
-					context.Next ();
+					context.Pull ();
 
 					for (int index = 0; true; ++index)
 					{
@@ -222,27 +221,27 @@ namespace Verse.Schemas.JSON
 						}
 
 						// Build and move to array index
-						field = builder;
+						var field = pointer;
 
 						if (index > 9)
 						{
 							foreach (char digit in index.ToString (CultureInfo.InvariantCulture))
-								field = field.Next (digit);
+								field = field.Follow (digit);
 						}
 						else
-							field = field.Next ((char)('0' + index));
+							field = field.Follow ((char)('0' + index));
 
 						// Read array value
 						if (!field.Enter (ref target, this, context))
 							return false;
 					}
 
-					context.Next();
+					context.Pull ();
 
 					return true;
 
 				case (int)'{':
-					context.Next ();
+					context.Pull ();
 
 					for (int index = 0; true; ++index)
 					{
@@ -264,17 +263,17 @@ namespace Verse.Schemas.JSON
 							return false;
 
 						// Read and move to object key
-						field = builder;
+						var field = pointer;
 
 						while (context.Current != (int)'"')
 						{
 							if (!this.ReadCharacter (context, out current))
 								return false;
 
-							field = field.Next (current);
+							field = field.Follow (current);
 						}
 
-						context.Next ();
+						context.Pull ();
 
 						// Read object separator
 						this.SkipBlank (context);
@@ -289,20 +288,20 @@ namespace Verse.Schemas.JSON
 							return false;
 					}
 
-					context.Next ();
+					context.Pull ();
 
 					return true;
 
 				default:
-					this.OnError (context.Position, "unexpected character");
+					this.OnError (context.Position, "expected value");
 
 					return false;
 			}
 		}
 
-		public bool Start (Stream stream, out Context context)
+		public bool Start (Stream stream, out ReaderContext context)
 		{
-			context = new Context (new StreamReader (stream, this.encoding));
+			context = new ReaderContext (stream, this.encoding);
 
 			this.SkipBlank (context);
 
@@ -316,7 +315,7 @@ namespace Verse.Schemas.JSON
 			return true;
 		}
 
-		public void Stop (Context context)
+		public void Stop (ReaderContext context)
 		{
 		}
 
@@ -334,7 +333,7 @@ namespace Verse.Schemas.JSON
 				error (position, message);
 		}
 
-		private bool ReadCharacter (Context context, out char character)
+		private bool ReadCharacter (ReaderContext context, out char character)
 		{
 			int	nibble;
 			int previous;
@@ -342,11 +341,11 @@ namespace Verse.Schemas.JSON
 
 			previous = context.Current;
 
-			context.Next ();
+			context.Pull ();
 
 			if (previous < 0)
 			{
-				this.OnError (context.Position, "expected character, found end of stream");
+				this.OnError (context.Position, "expected character");
 
 				character = default (char);
 
@@ -362,12 +361,12 @@ namespace Verse.Schemas.JSON
 
 			previous = context.Current;
 
-			context.Next ();
+			context.Pull ();
 
 			switch (previous)
 			{
 				case -1:
-					this.OnError (context.Position, "expected escaped character, found end of stream");
+					this.OnError (context.Position, "expected escaped character");
 
 					character = default (char);
 
@@ -405,7 +404,7 @@ namespace Verse.Schemas.JSON
 					{
 						previous = context.Current;
 
-						context.Next ();
+						context.Pull ();
 
 						if (previous >= (int)'0' && previous <= (int)'9')
 							nibble = previous - (int)'0';
@@ -415,7 +414,7 @@ namespace Verse.Schemas.JSON
 							nibble = previous - (int)'a' + 10;
 						else
 						{
-							this.OnError (context.Position, "expected unicode character");
+							this.OnError (context.Position, "expected unicode code point");
 
 							character = default (char);
 
@@ -436,21 +435,21 @@ namespace Verse.Schemas.JSON
 			}
 		}
 
-		private bool ReadExpected (Context context, char expected)
+		private bool ReadExpected (ReaderContext context, char expected)
 		{
 			if (context.Current != (int)expected)
 			{
-				this.OnError (context.Position, "unexpected character");
+				this.OnError (context.Position, string.Format (CultureInfo.InvariantCulture, "expected '{0}'", expected));
 
 				return false;
 			}
 
-			context.Next ();
+			context.Pull ();
 
 			return true;
 		}
 
-		private void SkipBlank (Context source)
+		private void SkipBlank (ReaderContext source)
 		{
 			int current;
 
@@ -461,7 +460,7 @@ namespace Verse.Schemas.JSON
 				if (current < 0 || current > (int)' ')
 					return;
 
-				source.Next ();
+				source.Pull ();
 			}
 		}
 

@@ -5,32 +5,32 @@ using Verse.ParserDescriptors.Recurse;
 
 namespace Verse.Schemas.JSON
 {
-    sealed class Adapter : IAdapter<Value>
-    {
-    	#region Attributes
+	class Decoder : IDecoder<Value>
+	{
+		#region Attributes
 
-    	private readonly Dictionary<Type, object>	converters = new Dictionary<Type, object>
-    	{
-    		{typeof (bool),		new Converter<Value, bool> (Adapter.ToBoolean)},
-    		{typeof (char),		new Converter<Value, char> (Adapter.ToCharacter)},
-    		{typeof (decimal),	new Converter<Value, decimal> (Adapter.ToDecimal)},
-    		{typeof (float),	new Converter<Value, float> (Adapter.ToFloat32)},
-    		{typeof (double),	new Converter<Value, double> (Adapter.ToFloat64)},
-    		{typeof (sbyte),	new Converter<Value, sbyte> (Adapter.ToInteger8s)},
-    		{typeof (byte),		new Converter<Value, byte> (Adapter.ToInteger8u)},
-    		{typeof (short),	new Converter<Value, short> (Adapter.ToInteger16s)},
-    		{typeof (ushort),	new Converter<Value, ushort> (Adapter.ToInteger16u)},
-    		{typeof (int),		new Converter<Value, int> (Adapter.ToInteger32s)},
-    		{typeof (uint),		new Converter<Value, uint> (Adapter.ToInteger32u)},
-    		{typeof (long),		new Converter<Value, long> (Adapter.ToInteger64s)},
-    		{typeof (ulong),	new Converter<Value, ulong> (Adapter.ToInteger64u)},
-            {typeof (string),	new Converter<Value, string> (Adapter.ToString)},
+		private readonly Dictionary<Type, object>	converters = new Dictionary<Type, object>
+		{
+			{typeof (bool),		new Converter<Value, bool> (Decoder.ToBoolean)},
+			{typeof (char),		new Converter<Value, char> (Decoder.ToCharacter)},
+			{typeof (decimal),	new Converter<Value, decimal> (Decoder.ToDecimal)},
+			{typeof (float),	new Converter<Value, float> (Decoder.ToFloat32)},
+			{typeof (double),	new Converter<Value, double> (Decoder.ToFloat64)},
+			{typeof (sbyte),	new Converter<Value, sbyte> (Decoder.ToInteger8s)},
+			{typeof (byte),		new Converter<Value, byte> (Decoder.ToInteger8u)},
+			{typeof (short),	new Converter<Value, short> (Decoder.ToInteger16s)},
+			{typeof (ushort),	new Converter<Value, ushort> (Decoder.ToInteger16u)},
+			{typeof (int),		new Converter<Value, int> (Decoder.ToInteger32s)},
+			{typeof (uint),		new Converter<Value, uint> (Decoder.ToInteger32u)},
+			{typeof (long),		new Converter<Value, long> (Decoder.ToInteger64s)},
+			{typeof (ulong),	new Converter<Value, ulong> (Decoder.ToInteger64u)},
+			{typeof (string),	new Converter<Value, string> (Decoder.ToString)},
 			{typeof (Value),	new Converter<Value, Value> ((v) => v)}
-    	};
+		};
 
-    	#endregion
+		#endregion
 
-    	#region Methods / Public
+		#region Methods / Public
 
 		public Converter<Value, T> Get<T> ()
 		{
@@ -362,5 +362,5 @@ namespace Verse.Schemas.JSON
 		}
 
 		#endregion
-    }
+	}
 }

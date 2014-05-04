@@ -1,61 +1,75 @@
 ﻿using System;
 using System.Text;
+using Verse.BuilderDescriptors.Recurse;
 using Verse.ParserDescriptors.Recurse;
 using Verse.Schemas.JSON;
 
 namespace Verse.Schemas
 {
-    public class JSONSchema<T> : TreeSchema<T, Context, Value>
-    {
-        #region Attributes
+	public class JSONSchema<T> : TreeSchema<T, ReaderContext, WriterContext, Value>
+	{
+		#region Attributes
 
-        private readonly Adapter	adapter;
+		private readonly JSON.Decoder	decoder;
 
-        private readonly Encoding	encoding;
+		private readonly JSON.Encoder	encoder;
 
-        #endregion
+		private readonly Encoding		encoding;
 
-        #region Constructors / Public
+		#endregion
 
-        public JSONSchema (Encoding encoding) :
-        	this (new Adapter (), encoding)
-        {
-        }
+		#region Constructors / Public
 
-        public JSONSchema () :
-            this (Encoding.UTF8)
-        {
-        }
+		public JSONSchema (Encoding encoding) :
+			this (new JSON.Decoder (), new JSON.Encoder (), encoding)
+		{
+		}
 
-        #endregion
+		public JSONSchema () :
+			this (new UTF8Encoding (false))
+		{
+		}
 
-        #region Constructors / Private
+		#endregion
 
-        private JSONSchema (Adapter adapter, Encoding encoding) :
-        	base (adapter)
-        {
-        	this.adapter = adapter;
-        	this.encoding = encoding;
-        }
+		#region Constructors / Private
 
-        #endregion
+		private JSONSchema (JSON.Decoder decoder, JSON.Encoder encoder, Encoding encoding) :
+			base (decoder, encoder)
+		{
+			this.decoder = decoder;
+			this.encoder = encoder;
+			this.encoding = encoding;
+		}
 
-        #region Methods / Public
+		#endregion
 
-        public void RegisterDecoder<U> (Converter<Value, U> converter)
-        {
-        	this.adapter.Set (converter);
-        }
+		#region Methods / Public
 
-        #endregion
+		public void SetDecoder<U> (Converter<Value, U> converter)
+		{
+			this.decoder.Set (converter);
+		}
 
-        #region Methods / Protected
+		public void SetEncoder<U> (Converter<U, Value> converter)
+		{
+			this.encoder.Set (converter);
+		}
 
-        protected override IReader<Context, Value> GetReader ()
-        {
-            return new Reader (this.encoding);
-        }
+		#endregion
 
-        #endregion
-    }
+		#region Methods / Protected
+
+		protected override IReader<ReaderContext, Value> GetReader ()
+		{
+			return new Reader (this.encoding);
+		}
+
+		protected override IWriter<WriterContext, Value> GetWriter()
+		{
+			return new Writer (this.encoding);
+		}
+
+		#endregion
+	}
 }
