@@ -50,82 +50,39 @@ namespace Verse.Schemas.JSON
 			context.Flush ();
 		}
 
-		public void WriteItems<T> (IEnumerable<T> items, IPointer<T, WriterContext, Value> pointer, WriterContext context)
+		public void Write<T> (T source, Pointer<T, WriterContext, Value> pointer, WriterContext context)
 		{
-			IEnumerator<T>	enumerator;
+			int	index;
 
-			context.Push ('[');
-			enumerator = items.GetEnumerator ();
+			index = 0;
 
-			if (enumerator.MoveNext ())
+			if (pointer.value != null)
+				this.WriteValue (pointer.value (source), context);
+			else if (pointer.items != null)
 			{
-				pointer.Enter (enumerator.Current, this, context);
+				context.Push ('[');
 
-				while (enumerator.MoveNext ())
-				{
-					context.Push (',');
+				pointer.items (source, this, context);
 
-					pointer.Enter (enumerator.Current, this, context);
-				}
+				context.Push (']');
 			}
-
-			context.Push (']');
-		}
-
-		public void WriteKey<T> (T source, string name, IPointer<T, WriterContext, Value> pointer, WriterContext context)
-		{
-			//context.Push ('{');
-
-			this.WriteString (context, name);
-
-			context.Push (':');
-
-			pointer.Enter (source, this, context);
-
-			//context.Push ('}');
-		}
-
-		public void WriteValue (Value value, WriterContext context)
-		{
-			switch (value.Type)
+			else
 			{
-				case Content.Boolean:
-					if (value.Boolean)
-					{
-						context.Push ('t');
-						context.Push ('r');
-						context.Push ('u');
-						context.Push ('e');
-					}
-					else
-					{
-						context.Push ('f');
-						context.Push ('a');
-						context.Push ('l');
-						context.Push ('s');
-						context.Push ('e');
-					}
+				context.Push ('{');
 
-					break;
+				foreach (KeyValuePair<string, Follow<T, WriterContext, Value>> field in pointer.fields)
+				{
+					if (index++ > 0)
+						context.Push (',');
 
-				case Content.Number:
-					foreach (char c in value.Number.ToString (CultureInfo.InvariantCulture))
-						context.Push (c);
+					this.WriteString (context, field.Key);
 
-					break;
+					context.Push (':');
 
-				case Content.String:
-					this.WriteString (context, value.String);
-
-					break;
-
-				default:
-					context.Push ('n');
-					context.Push ('u');
-					context.Push ('l');
-					context.Push ('l');
-
-					break;
+					field.Value (source, this, context);
+				}
+	
+				context.Push ('}');
 			}
 		}
 
@@ -163,6 +120,32 @@ namespace Verse.Schemas.JSON
 			}
 
 			context.Push ('"');
+		}
+
+		private void WriteValue (Value value, WriterContext context)
+		{
+			switch (value.Type)
+			{
+				case Content.Boolean:
+					context.Push (value.Boolean ? "true" : "false");
+
+					break;
+
+				case Content.Number:
+					context.Push (value.Number.ToString (CultureInfo.InvariantCulture));
+
+					break;
+
+				case Content.String:
+					this.WriteString (context, value.String);
+
+					break;
+
+				default:
+					context.Push ("null");
+
+					break;
+			}
 		}
 
 		#endregion

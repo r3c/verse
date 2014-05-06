@@ -59,15 +59,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="src\BuilderDescriptors\Recurse\EnterCallback.cs" />
+    <Compile Include="src\BuilderDescriptors\Recurse\Follow.cs" />
     <Compile Include="src\DescriptorGet.cs" />
     <Compile Include="src\DescriptorSet.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\EnterCallback.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\Pointers\NodePointer.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\Pointers\VoidPointer.cs" />
     <Compile Include="src\BuilderDescriptors\Recurse\IEncoder.cs" />
-    <Compile Include="src\BuilderDescriptors\Recurse\IPointer.cs" />
-    <Compile Include="src\BuilderDescriptors\Recurse\Pointers\NodePointer.cs" />
+    <Compile Include="src\BuilderDescriptors\Recurse\Pointer.cs" />
     <Compile Include="src\Schemas\JSON\Encoder.cs" />
     <Compile Include="src\Schemas\JSON\Writer.cs" />
     <Compile Include="src\Schemas\JSON\WriterContext.cs" />
@@ -102,7 +101,6 @@
   <ItemGroup>
     <Folder Include="src\ParserDescriptors\Recurse\Pointers" />
     <Folder Include="src\BuilderDescriptors" />
-    <Folder Include="src\BuilderDescriptors\Recurse\Pointers" />
     <Folder Include="src\Schemas\Tree" />
     <Folder Include="src\Tools" />
     <Folder Include="src\ParserDescriptors" />

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 
 namespace Verse.BuilderDescriptors.Recurse
@@ -18,11 +17,7 @@ namespace Verse.BuilderDescriptors.Recurse
 
 		void	Stop (C context);
 
-		void	WriteItems<T> (IEnumerable<T> items, IPointer<T, C, V> pointer, C context);
-
-		void	WriteKey<T> (T source, string name, IPointer<T, C, V> pointer, C context);
-
-		void	WriteValue (V value, C context); 
+		void	Write<T> (T source, Pointer<T, C, V> pointer, C context);
 
 		#endregion
 	}

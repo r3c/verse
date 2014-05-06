@@ -50,6 +50,13 @@ namespace Verse.Schemas.JSON
 			++this.position;
 		}
 
+		public void Push (string s)
+		{
+			this.writer.Write (s);
+
+			this.position += s.Length;
+		}
+
 		#endregion
 	}
 }

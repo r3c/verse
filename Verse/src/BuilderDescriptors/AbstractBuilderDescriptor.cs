@@ -7,11 +7,11 @@ namespace Verse.BuilderDescriptors
 	{
 		#region Methods / Abstract
 
-		public abstract IBuilderDescriptor<U> HasField<U> (string name, Func<T, U> access, IBuilderDescriptor<U> recurse);
+		public abstract IBuilderDescriptor<U> HasField<U> (string name, Func<T, U> access, IBuilderDescriptor<U> parent);
 
 		public abstract IBuilderDescriptor<U> HasField<U> (string name, Func<T, U> access);		
 
-		public abstract IBuilderDescriptor<U> HasItems<U> (Func<T, IEnumerable<U>> access, IBuilderDescriptor<U> recurse);
+		public abstract IBuilderDescriptor<U> HasItems<U> (Func<T, IEnumerable<U>> access, IBuilderDescriptor<U> parent);
 		
 		public abstract IBuilderDescriptor<U> HasItems<U> (Func<T, IEnumerable<U>> access);
 

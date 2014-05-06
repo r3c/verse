@@ -14,7 +14,7 @@ namespace Verse.Schemas.Tree
 
 		#region Attributes
 
-		private readonly IPointer<T, C, V>	pointer;
+		private readonly Pointer<T, C, V>	pointer;
 
 		private readonly IWriter<C, V>		writer;
 
@@ -22,7 +22,7 @@ namespace Verse.Schemas.Tree
 
 		#region Constructors
 
-		public Builder (IPointer<T, C, V> pointer, IWriter<C, V> writer)
+		public Builder (Pointer<T, C, V> pointer, IWriter<C, V> writer)
 		{
 			writer.Error += this.OnError;
 
@@ -36,14 +36,14 @@ namespace Verse.Schemas.Tree
 
 		public bool Build (T input, Stream output)
 		{
-			C		context;
+			C	context;
 
 			if (!this.writer.Start (output, out context))
 				return false;
 
 			try
 			{
-				this.pointer.Enter (input, writer, context);
+				this.writer.Write (input, this.pointer, context);
 			}
 			finally
 			{

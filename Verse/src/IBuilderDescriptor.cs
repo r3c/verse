@@ -7,13 +7,13 @@ namespace Verse
 	{
 		#region Methods
 
-		IBuilderDescriptor<U>	HasField<U> (string name, Func<T, U> access, IBuilderDescriptor<U> recurse);
+		IBuilderDescriptor<U>	HasField<U> (string name, Func<T, U> access, IBuilderDescriptor<U> parent);
 
 		IBuilderDescriptor<U>	HasField<U> (string name, Func<T, U> access);
 
 		IBuilderDescriptor<T>	HasField (string name);
 
-		IBuilderDescriptor<U>	HasItems<U> (Func<T, IEnumerable<U>> access, IBuilderDescriptor<U> recurse);
+		IBuilderDescriptor<U>	HasItems<U> (Func<T, IEnumerable<U>> access, IBuilderDescriptor<U> parent);
 
 		IBuilderDescriptor<U>	HasItems<U> (Func<T, IEnumerable<U>> access);
 
