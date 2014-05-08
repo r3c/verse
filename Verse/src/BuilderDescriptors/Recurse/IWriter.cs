@@ -18,9 +18,9 @@ namespace Verse.BuilderDescriptors.Recurse
 
 		void	Stop (C context);
 
-		void	Write<T> (T source, Pointer<T, C, V> pointer, C context);
+		void	Write<T> (T source, Container<T, C, V> container, C context);
 
-		void	WriteItems<T> (IEnumerable<T> items, Pointer<T, C, V> pointer, C context);
+		void	WriteItems<T> (IEnumerable<T> items, Container<T, C, V> container, C context);
 
 		void	WriteValue (V value, C context);
 

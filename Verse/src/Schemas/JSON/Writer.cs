@@ -51,17 +51,17 @@ namespace Verse.Schemas.JSON
 			context.Flush ();
 		}
 
-		public void Write<T> (T source, Pointer<T, WriterContext, Value> pointer, WriterContext context)
+		public void Write<T> (T source, Container<T, WriterContext, Value> container, WriterContext context)
 		{
-			if (pointer.value != null)
-				pointer.value (source, this, context);
-			else if (pointer.items != null)
-				pointer.items (source, this, context);
+			if (container.value != null)
+				container.value (source, this, context);
+			else if (container.items != null)
+				container.items (source, this, context);
 			else
-				this.WriteFields (source, pointer.fields, pointer, context);
+				this.WriteFields (source, container.fields, context);
 		}
 
-		public void WriteFields<T> (T source, IEnumerable<KeyValuePair<string, Follow<T, WriterContext, Value>>> fields, Pointer<T, WriterContext, Value> pointer, WriterContext context)
+		public void WriteFields<T> (T source, IEnumerable<KeyValuePair<string, Follow<T, WriterContext, Value>>> fields, WriterContext context)
 		{
 			IEnumerator<KeyValuePair<string, Follow<T, WriterContext, Value>>>	field;
 
@@ -86,7 +86,7 @@ namespace Verse.Schemas.JSON
 			context.ObjectEnd ();
 		}
 
-		public void WriteItems<T> (IEnumerable<T> items, Pointer<T, WriterContext, Value> pointer, WriterContext context)
+		public void WriteItems<T> (IEnumerable<T> items, Container<T, WriterContext, Value> container, WriterContext context)
 		{
 			IEnumerator<T>	item;
 
@@ -97,7 +97,7 @@ namespace Verse.Schemas.JSON
 			{
 				while (true)
 				{
-					this.Write (item.Current, pointer, context);
+					this.Write (item.Current, container, context);
 
 					if (!item.MoveNext ())
 						break;

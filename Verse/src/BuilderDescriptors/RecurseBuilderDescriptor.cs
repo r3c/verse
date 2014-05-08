@@ -8,9 +8,9 @@ namespace Verse.BuilderDescriptors
 	{
 		#region Attributes
 
-		private readonly IEncoder<V>		encoder;
+		private readonly Container<T, C, V>	container;
 
-		private readonly Pointer<T, C, V>	pointer;
+		private readonly IEncoder<V>		encoder;
 
 		#endregion
 
@@ -18,8 +18,8 @@ namespace Verse.BuilderDescriptors
 
 		public RecurseBuilderDescriptor (IEncoder<V> encoder)
 		{
+			this.container = new Container<T, C, V> ();
 			this.encoder = encoder;
-			this.pointer = new Pointer<T, C, V> ();
 		}
 
 		#endregion
@@ -28,7 +28,7 @@ namespace Verse.BuilderDescriptors
 
 		public IBuilder<T> GetBuilder (IWriter<C, V> writer)
 		{
-			return new Builder<T, C, V> (this.pointer, writer);
+			return new Builder<T, C, V> (this.container, writer);
 		}
 
 		public override IBuilderDescriptor<U> HasField<U> (string name, Func<T, U> access, IBuilderDescriptor<U> parent)
@@ -69,12 +69,12 @@ namespace Verse.BuilderDescriptors
 		{
 			Converter<U, V>	convert;
 
-			if (this.pointer.value != null)
+			if (this.container.value != null)
 				throw new InvalidOperationException ("can't declare value twice on same descriptor");
 
 			convert = this.encoder.Get<U> ();
 
-			this.pointer.value = (source, writer, context) => writer.WriteValue (convert (access (source)), context);
+			this.container.value = (source, writer, context) => writer.WriteValue (convert (access (source)), context);
 		}
 
 		#endregion
@@ -83,25 +83,25 @@ namespace Verse.BuilderDescriptors
 
 		private RecurseBuilderDescriptor<U, C, V> HasField<U> (string name, Func<T, U> access, RecurseBuilderDescriptor<U, C, V> descriptor)
 		{
-			Pointer<U, C, V>	recurse;
+			Container<U, C, V>	recurse;
 
-			recurse = descriptor.pointer;
+			recurse = descriptor.container;
 
-			this.pointer.fields[name] = (source, writer, context) => writer.Write (access (source), recurse, context);
+			this.container.fields[name] = (source, writer, context) => writer.Write (access (source), recurse, context);
 
 			return descriptor;
 		}
 
 		private RecurseBuilderDescriptor<U, C, V> HasItems<U> (Func<T, IEnumerable<U>> access, RecurseBuilderDescriptor<U, C, V> descriptor)
 		{
-			Pointer<U, C, V>	recurse;
+			Container<U, C, V>	recurse;
 
-			if (this.pointer.items != null)
+			if (this.container.items != null)
 				throw new InvalidOperationException ("can't declare items twice on same descriptor");
 
-			recurse = descriptor.pointer;
+			recurse = descriptor.container;
 			
-			this.pointer.items = (source, writer, context) => writer.WriteItems (access (source), recurse, context);
+			this.container.items = (source, writer, context) => writer.WriteItems (access (source), recurse, context);
 
 			return descriptor;
 		}

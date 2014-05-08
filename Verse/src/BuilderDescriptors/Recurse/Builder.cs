@@ -13,7 +13,7 @@ namespace Verse.BuilderDescriptors.Recurse
 
 		#region Attributes
 
-		private readonly Pointer<T, C, V>	pointer;
+		private readonly Container<T, C, V>	container;
 
 		private readonly IWriter<C, V>		writer;
 
@@ -21,11 +21,11 @@ namespace Verse.BuilderDescriptors.Recurse
 
 		#region Constructors
 
-		public Builder (Pointer<T, C, V> pointer, IWriter<C, V> writer)
+		public Builder (Container<T, C, V> container, IWriter<C, V> writer)
 		{
 			writer.Error += this.OnError;
 
-			this.pointer = pointer;
+			this.container = container;
 			this.writer = writer;
 		}
 
@@ -42,7 +42,7 @@ namespace Verse.BuilderDescriptors.Recurse
 
 			try
 			{
-				this.writer.Write (input, this.pointer, context);
+				this.writer.Write (input, this.container, context);
 			}
 			finally
 			{

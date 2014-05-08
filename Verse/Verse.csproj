@@ -68,7 +68,7 @@
     <Compile Include="src\ParserDescriptors\Recurse\Pointers\NodePointer.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\Pointers\VoidPointer.cs" />
     <Compile Include="src\BuilderDescriptors\Recurse\IEncoder.cs" />
-    <Compile Include="src\BuilderDescriptors\Recurse\Pointer.cs" />
+    <Compile Include="src\BuilderDescriptors\Recurse\Container.cs" />
     <Compile Include="src\Schemas\AbstractSchema.cs" />
     <Compile Include="src\Schemas\JSON\Encoder.cs" />
     <Compile Include="src\Schemas\JSON\Writer.cs" />
