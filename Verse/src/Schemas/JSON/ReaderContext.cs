@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Verse.Schemas.JSON
 {
-	public sealed class ReaderContext
+	class ReaderContext
 	{
 		#region Properties
 

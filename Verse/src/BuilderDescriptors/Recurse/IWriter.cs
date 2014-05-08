@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace Verse.BuilderDescriptors.Recurse
 {
-	public interface IWriter<C, V>
+	interface IWriter<C, V>
 	{
 		#region Events
 
@@ -18,6 +19,10 @@ namespace Verse.BuilderDescriptors.Recurse
 		void	Stop (C context);
 
 		void	Write<T> (T source, Pointer<T, C, V> pointer, C context);
+
+		void	WriteItems<T> (IEnumerable<T> items, Pointer<T, C, V> pointer, C context);
+
+		void	WriteValue (V value, C context);
 
 		#endregion
 	}

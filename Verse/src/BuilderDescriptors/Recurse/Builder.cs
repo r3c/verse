@@ -1,8 +1,7 @@
 ﻿using System;
 using System.IO;
-using Verse.BuilderDescriptors.Recurse;
 
-namespace Verse.Schemas.Tree
+namespace Verse.BuilderDescriptors.Recurse
 {
 	class Builder<T, C, V> : IBuilder<T>
 	{

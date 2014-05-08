@@ -6,7 +6,7 @@ using Verse.ParserDescriptors.Recurse;
 
 namespace Verse.Schemas.JSON
 {
-	sealed class Reader : IReader<ReaderContext, Value>
+	class Reader : IReader<ReaderContext, Value>
 	{
 		#region Events
 

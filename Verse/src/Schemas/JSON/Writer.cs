@@ -1,29 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Text;
 using Verse.BuilderDescriptors.Recurse;
 
 namespace Verse.Schemas.JSON
 {
-	sealed class Writer : IWriter<WriterContext, Value>
+	class Writer : IWriter<WriterContext, Value>
 	{
 		#region Events
 
-		public event BuildError	Error;
+		public event BuildError	Error
+		{
+			add
+			{
+			}
+			remove
+			{
+			}
+		}
 
 		#endregion
 
-		#region Attributes / Instance
+		#region Attributes
 
 		private readonly Encoding	encoding;
-
-		#endregion
-
-		#region Attributes / Static
-
-		private static readonly char[]	hexadecimal = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
 		#endregion
 
@@ -36,7 +37,7 @@ namespace Verse.Schemas.JSON
 
 		#endregion
 
-		#region Methods / Public
+		#region Methods
 
 		public bool Start (Stream stream, out WriterContext context)
 		{
@@ -52,97 +53,83 @@ namespace Verse.Schemas.JSON
 
 		public void Write<T> (T source, Pointer<T, WriterContext, Value> pointer, WriterContext context)
 		{
-			int	index;
-
-			index = 0;
-
 			if (pointer.value != null)
-				this.WriteValue (pointer.value (source), context);
+				pointer.value (source, this, context);
 			else if (pointer.items != null)
-			{
-				context.Push ('[');
-
 				pointer.items (source, this, context);
-
-				context.Push (']');
-			}
 			else
-			{
-				context.Push ('{');
-
-				foreach (KeyValuePair<string, Follow<T, WriterContext, Value>> field in pointer.fields)
-				{
-					if (index++ > 0)
-						context.Push (',');
-
-					this.WriteString (context, field.Key);
-
-					context.Push (':');
-
-					field.Value (source, this, context);
-				}
-	
-				context.Push ('}');
-			}
+				this.WriteFields (source, pointer.fields, pointer, context);
 		}
 
-		#endregion
-
-		#region Methods / Private
-
-		private void OnError (int position, string message)
+		public void WriteFields<T> (T source, IEnumerable<KeyValuePair<string, Follow<T, WriterContext, Value>>> fields, Pointer<T, WriterContext, Value> pointer, WriterContext context)
 		{
-			BuildError	error;
+			IEnumerator<KeyValuePair<string, Follow<T, WriterContext, Value>>>	field;
 
-			error = this.Error;
+			context.ObjectBegin ();
+			field = fields.GetEnumerator ();
 
-			if (error != null)
-				error (position, message);
-		}
-
-		private void WriteString (WriterContext context, string value)
-		{
-			context.Push ('"');
-
-			foreach (char c in value)
+			if (field.MoveNext ())
 			{
-				if (c >= ' ' && c < 128)
-					context.Push (c);
-				else
+				while (true)
 				{
-					context.Push ('\\');
-					context.Push ('u');
-					context.Push (Writer.hexadecimal[(c >> 12) & 0xF]);
-					context.Push (Writer.hexadecimal[(c >> 8) & 0xF]);
-					context.Push (Writer.hexadecimal[(c >> 4) & 0xF]);
-					context.Push (Writer.hexadecimal[(c >> 0) & 0xF]); 
+					context.Key (field.Current.Key);
+
+					field.Current.Value (source, this, context);
+
+					if (!field.MoveNext ())
+						break;
+
+					context.Next ();
 				}
 			}
 
-			context.Push ('"');
+			context.ObjectEnd ();
 		}
 
-		private void WriteValue (Value value, WriterContext context)
+		public void WriteItems<T> (IEnumerable<T> items, Pointer<T, WriterContext, Value> pointer, WriterContext context)
+		{
+			IEnumerator<T>	item;
+
+			context.ArrayBegin ();
+			item = items.GetEnumerator ();
+
+			if (item.MoveNext ())
+			{
+				while (true)
+				{
+					this.Write (item.Current, pointer, context);
+
+					if (!item.MoveNext ())
+						break;
+
+					context.Next ();
+				}
+			}
+
+			context.ArrayEnd ();
+		}
+
+		public void WriteValue (Value value, WriterContext context)
 		{
 			switch (value.Type)
 			{
 				case Content.Boolean:
-					context.Push (value.Boolean ? "true" : "false");
+					context.Boolean (value.Boolean);
 
 					break;
 
 				case Content.Number:
-					context.Push (value.Number.ToString (CultureInfo.InvariantCulture));
+					context.Number (value.Number);
 
 					break;
 
 				case Content.String:
-					this.WriteString (context, value.String);
+					context.String (value.String);
 
 					break;
 
 				default:
-					context.Push ("null");
+					context.Null ();
 
 					break;
 			}

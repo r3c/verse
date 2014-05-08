@@ -1,8 +1,7 @@
 ﻿using System;
 using System.IO;
-using Verse.ParserDescriptors.Recurse;
 
-namespace Verse.Schemas.Tree
+namespace Verse.ParserDescriptors.Recurse
 {
 	class Parser<T, C, V> : IParser<T>
 	{

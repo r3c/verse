@@ -6,18 +6,6 @@ namespace Verse.ParserDescriptors
 {
 	class RecurseParserDescriptor<T, C, V> : AbstractParserDescriptor<T>
 	{
-		#region Properties
-
-		public IPointer<T, C, V> Pointer
-		{
-			get
-			{
-				return this.pointer;
-			}
-		}
-
-		#endregion
-
 		#region Attributes
 
 		private readonly IDecoder<V>			decoder;
@@ -37,6 +25,11 @@ namespace Verse.ParserDescriptors
 		#endregion
 
 		#region Methods / Public
+
+		public IParser<T> GetParser (Func<T> constructor, IReader<C, V> reader)
+		{
+			return new Parser<T, C, V> (constructor, this.pointer, reader);
+		}
 
 		public override IParserDescriptor<U> HasField<U> (string name, DescriptorSet<T, U> assign, IParserDescriptor<U> recurse)
 		{

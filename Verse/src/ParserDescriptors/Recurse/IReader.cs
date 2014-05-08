@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Verse.ParserDescriptors.Recurse
 {
-	public interface IReader<C, V>
+	interface IReader<C, V>
 	{
 		#region Events
 

@@ -6,18 +6,6 @@ namespace Verse.BuilderDescriptors
 {
 	class RecurseBuilderDescriptor<T, C, V> : AbstractBuilderDescriptor<T>
 	{
-		#region Properties
-
-		public Pointer<T, C, V>	Pointer
-		{
-			get
-			{
-				return this.pointer;
-			}
-		}
-
-		#endregion
-
 		#region Attributes
 
 		private readonly IEncoder<V>		encoder;
@@ -37,6 +25,11 @@ namespace Verse.BuilderDescriptors
 		#endregion
 
 		#region Methods
+
+		public IBuilder<T> GetBuilder (IWriter<C, V> writer)
+		{
+			return new Builder<T, C, V> (this.pointer, writer);
+		}
 
 		public override IBuilderDescriptor<U> HasField<U> (string name, Func<T, U> access, IBuilderDescriptor<U> parent)
 		{
@@ -81,7 +74,7 @@ namespace Verse.BuilderDescriptors
 
 			convert = this.encoder.Get<U> ();
 
-			this.pointer.value = (source) => convert (access (source));
+			this.pointer.value = (source, writer, context) => writer.WriteValue (convert (access (source)), context);
 		}
 
 		#endregion
@@ -108,11 +101,7 @@ namespace Verse.BuilderDescriptors
 
 			recurse = descriptor.pointer;
 			
-			this.pointer.items = (source, writer, context) =>
-			{
-				foreach (U item in access (source))
-					writer.Write (item, recurse, context);
-			};
+			this.pointer.items = (source, writer, context) => writer.WriteItems (access (source), recurse, context);
 
 			return descriptor;
 		}

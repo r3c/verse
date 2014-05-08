@@ -2,7 +2,7 @@
 
 namespace Verse.ParserDescriptors.Recurse
 {
-	public interface IPointer<T, C, V>
+	interface IPointer<T, C, V>
 	{
 		#region Properties
 

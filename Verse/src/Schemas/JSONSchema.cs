@@ -1,28 +1,62 @@
 ﻿using System;
 using System.Text;
-using Verse.BuilderDescriptors.Recurse;
-using Verse.ParserDescriptors.Recurse;
+using Verse.BuilderDescriptors;
+using Verse.ParserDescriptors;
 using Verse.Schemas.JSON;
 
 namespace Verse.Schemas
 {
-	public class JSONSchema<T> : TreeSchema<T, ReaderContext, WriterContext, Value>
+	public class JSONSchema<T> : AbstractSchema<T>
 	{
-		#region Attributes
+		#region Properties
 
-		private readonly JSON.Decoder	decoder;
+		public override IBuilderDescriptor<T> BuilderDescriptor
+		{
+			get
+			{
+				return this.builderDescriptor;
+			}
+		}
 
-		private readonly JSON.Encoder	encoder;
-
-		private readonly Encoding		encoding;
+		public override IParserDescriptor<T> ParserDescriptor
+		{
+			get
+			{
+				return this.parserDescriptor;
+			}
+		}
 
 		#endregion
 
-		#region Constructors / Public
+		#region Attributes
 
-		public JSONSchema (Encoding encoding) :
-			this (new JSON.Decoder (), new JSON.Encoder (), encoding)
+		private readonly RecurseBuilderDescriptor<T, WriterContext, Value>	builderDescriptor;
+
+		private readonly Encoding											encoding;
+
+		private readonly JSON.Decoder										jsonDecoder;
+
+		private readonly JSON.Encoder										jsonDncoder;
+
+		private readonly RecurseParserDescriptor<T, ReaderContext, Value>	parserDescriptor;
+
+		#endregion
+
+		#region Constructors
+
+		public JSONSchema (Encoding encoding)
 		{
+			JSON.Decoder	decoder;
+			JSON.Encoder	encoder;
+
+			decoder = new JSON.Decoder ();
+			encoder = new JSON.Encoder ();
+
+			this.builderDescriptor = new RecurseBuilderDescriptor<T, WriterContext, Value> (encoder);
+			this.encoding = encoding;
+			this.jsonDecoder = decoder;
+			this.jsonDncoder = encoder;
+			this.parserDescriptor = new RecurseParserDescriptor<T, ReaderContext, Value> (decoder);
 		}
 
 		public JSONSchema () :
@@ -32,42 +66,26 @@ namespace Verse.Schemas
 
 		#endregion
 
-		#region Constructors / Private
+		#region Methods
 
-		private JSONSchema (JSON.Decoder decoder, JSON.Encoder encoder, Encoding encoding) :
-			base (decoder, encoder)
+		public override IBuilder<T> GenerateBuilder ()
 		{
-			this.decoder = decoder;
-			this.encoder = encoder;
-			this.encoding = encoding;
+			return this.builderDescriptor.GetBuilder (new Writer (this.encoding));
 		}
 
-		#endregion
-
-		#region Methods / Public
+		public override IParser<T> GenerateParser (Func<T> constructor)
+		{
+			return this.parserDescriptor.GetParser (constructor, new Reader (this.encoding));
+		}
 
 		public void SetDecoder<U> (Converter<Value, U> converter)
 		{
-			this.decoder.Set (converter);
+			this.jsonDecoder.Set (converter);
 		}
 
 		public void SetEncoder<U> (Converter<U, Value> converter)
 		{
-			this.encoder.Set (converter);
-		}
-
-		#endregion
-
-		#region Methods / Protected
-
-		protected override IReader<ReaderContext, Value> GetReader ()
-		{
-			return new Reader (this.encoding);
-		}
-
-		protected override IWriter<WriterContext, Value> GetWriter()
-		{
-			return new Writer (this.encoding);
+			this.jsonDncoder.Set (converter);
 		}
 
 		#endregion
