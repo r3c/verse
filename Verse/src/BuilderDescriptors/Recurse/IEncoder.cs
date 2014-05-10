@@ -2,7 +2,7 @@
 
 namespace Verse.BuilderDescriptors.Recurse
 {
-	public interface IEncoder<V>
+	interface IEncoder<V>
 	{
 		#region Methods
 

@@ -4,11 +4,13 @@ using System.Text;
 using NUnit.Framework;
 using Verse.Schemas;
 
-namespace Verse.CLI
+namespace Verse.Bench
 {
-	class Program
+	class AlternativeIsValue
 	{
-		public static void Main(string[] args)
+		[Test]
+		[TestCase (100000)]
+		public void Bench(int repeat)
 		{
 			IParser<A>		parser1;
 			IParser<A>		parser2;
@@ -35,14 +37,13 @@ namespace Verse.CLI
 			Assert.AreEqual (7, value.b);
 
 			var s1 = System.Diagnostics.Stopwatch.StartNew ();
-			for (int i = 0; i < 100000; ++i)
+			for (int i = 0; i < repeat; ++i)
 				parser1.Parse (new MemoryStream (j1), out value);
 			Console.WriteLine ("p1: " + s1.Elapsed);
 			var s2 = System.Diagnostics.Stopwatch.StartNew ();
-			for (int i = 0; i < 100000; ++i)
+			for (int i = 0; i < repeat; ++i)
 				parser2.Parse (new MemoryStream (j2), out value);
 			Console.WriteLine ("p2: " + s2.Elapsed);
-			Console.Read ();
 		}
 
 		struct A

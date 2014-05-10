@@ -2,7 +2,7 @@
 
 namespace Verse.ParserDescriptors.Recurse
 {
-	public interface IDecoder<V>
+	interface IDecoder<V>
 	{
 		#region Methods
 

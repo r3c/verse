@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using NUnit.Framework;
@@ -118,6 +119,25 @@ namespace Verse.Test.Schemas
 
 			Assert.IsFalse (parser.Parse (new MemoryStream (Encoding.UTF8.GetBytes (json)), out value));
 			Assert.AreEqual (expected, position);
+		}
+
+		[Test]
+		[TestCase ("[]", new double[0])]
+		[TestCase ("[-42.1]", new [] {-42.1})]
+		[TestCase ("[0, 5, 90, 23, -9, 5.3]", new [] {0, 5, 90, 23, -9, 5.3})]
+		public void ParseItems (string json, double[] expected)
+		{
+			IParser<List<double>>		parser;
+			List<double>				result;
+			JSONSchema<List<double>>	schema;
+
+			schema = new JSONSchema<List<double>> ();
+			schema.ParserDescriptor.HasItems ((ref List<double> target, double value) => target.Add(value)).IsValue ();
+
+			parser = schema.GenerateParser ();
+
+			Assert.IsTrue (parser.Parse (new MemoryStream (Encoding.UTF8.GetBytes (json)), out result));
+			CollectionAssert.AreEqual (expected, result);
 		}
 
 		[Test]
