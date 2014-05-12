@@ -20,11 +20,11 @@ namespace Verse
 
 		#region Methods
 
-		IBuilder<T>	GenerateBuilder ();
+		IBuilder<T>	CreateBuilder ();
 
-		IParser<T>	GenerateParser (Func<T> constructor);
+		IParser<T>	CreateParser (Func<T> constructor);
 
-		IParser<T>	GenerateParser ();
+		IParser<T>	CreateParser ();
 
 		#endregion
 	}

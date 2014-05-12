@@ -20,12 +20,12 @@ namespace Verse.Bench
 			schema = new JSONSchema<A> ();
 			schema.ParserDescriptor.HasField ("b", (ref A a, int b) => a.b = b).IsValue ();
 
-			parser1 = schema.GenerateParser ();
+			parser1 = schema.CreateParser ();
 
 			schema = new JSONSchema<A> ();
 			schema.ParserDescriptor.HasField ("b").IsValue ((ref A a, int b) => a.b = b);
 
-			parser2 = schema.GenerateParser ();
+			parser2 = schema.CreateParser ();
 
 			var j1 = Encoding.UTF8.GetBytes ("{\"b\": 5}");
 			var j2 = Encoding.UTF8.GetBytes ("{\"b\": 7}");

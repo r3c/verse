@@ -8,7 +8,7 @@ namespace Verse.Schemas.JSON
 	{
 		#region Properties
 
-		public int  Current
+		public int	Current
 		{
 			get
 			{

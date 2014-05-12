@@ -74,6 +74,7 @@
     <Compile Include="src\Helpers\DecoderValidator.cs" />
     <Compile Include="src\Helpers\EncoderValidator.cs" />
     <Compile Include="src\Helpers\SchemaValidator.cs" />
+    <Compile Include="src\LinkerTester.cs" />
     <Compile Include="src\Models\RecursiveSchemaTester.cs" />
     <Compile Include="src\Models\SettingsTester.cs" />
     <Compile Include="src\Models\TypeSchemaTester.cs" />

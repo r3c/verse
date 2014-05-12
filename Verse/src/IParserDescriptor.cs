@@ -15,10 +15,14 @@ namespace Verse
 
 		IParserDescriptor<T>	HasField (string name);
 
-		IParserDescriptor<U>	HasItems<U> (ParserAssign<T, IEnumerable<U>> assign, IParserDescriptor<U> parent);
+		IParserDescriptor<U>	IsArray<U> (ParserAssign<T, IEnumerable<U>> assign, IParserDescriptor<U> parent);
 
-		IParserDescriptor<U>	HasItems<U> (ParserAssign<T, IEnumerable<U>> assign);
+		IParserDescriptor<U>	IsArray<U> (ParserAssign<T, IEnumerable<U>> assign);
+/*
+		IParserDescriptor<U>	IsMap<U> (ParserAssign<T, IEnumerable<KeyValuePair<string, U>>> assign, IParserDescriptor<U> parent);
 
+		IParserDescriptor<U>	IsMap<U> (ParserAssign<T, IEnumerable<KeyValuePair<string, U>>> assign);
+*/
 		void					IsValue<U> (ParserAssign<T, U> assign);
 
 		void					IsValue ();

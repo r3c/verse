@@ -20,9 +20,9 @@ namespace Verse.ParserDescriptors
 
 		public abstract IParserDescriptor<T> HasField (string name);
 
-		public abstract IParserDescriptor<U> HasItems<U> (ParserAssign<T, IEnumerable<U>> assign, IParserDescriptor<U> parent);
+		public abstract IParserDescriptor<U> IsArray<U> (ParserAssign<T, IEnumerable<U>> assign, IParserDescriptor<U> parent);
 
-		public abstract IParserDescriptor<U> HasItems<U> (ParserAssign<T, IEnumerable<U>> assign);
+		public abstract IParserDescriptor<U> IsArray<U> (ParserAssign<T, IEnumerable<U>> assign);
 
 		public abstract void IsValue<U> (ParserAssign<T, U> assign);
 
@@ -37,12 +37,7 @@ namespace Verse.ParserDescriptors
 
 			this.constructors[typeof (U)] = constructor;
 		}
-/*
-		public IParserDescriptor<T> HasKey (string name)
-		{
-			return this.HasKey (name, (ref T target, T value) => {});
-		}
-*/
+
 		public void IsValue ()
 		{
 			this.IsValue ((ref T target, T value) => target = value);

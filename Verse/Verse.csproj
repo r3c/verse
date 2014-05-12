@@ -68,6 +68,7 @@
   <ItemGroup>
     <Compile Include="src\BuilderDescriptors\Recurse\Builder.cs" />
     <Compile Include="src\BuilderDescriptors\Recurse\Follow.cs" />
+    <Compile Include="src\Linker.cs" />
     <Compile Include="src\ParserAssign.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\Container.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\Follow.cs" />
@@ -85,8 +86,8 @@
     <Compile Include="src\Schemas\JSON\Writer.cs" />
     <Compile Include="src\Schemas\JSON\WriterContext.cs" />
     <Compile Include="src\Tools\Generator.cs" />
-    <Compile Include="src\Tools\Iterator.cs" />
-    <Compile Include="src\Tools\Linker.cs" />
+    <Compile Include="src\Tools\Resolver.cs" />
+    <Compile Include="src\Tools\Walker.cs" />
     <Compile Include="src\IBuilder.cs" />
     <Compile Include="src\IBuilderDescriptor.cs" />
     <Compile Include="src\ParserDescriptors\AbstractParserDescriptor.cs" />

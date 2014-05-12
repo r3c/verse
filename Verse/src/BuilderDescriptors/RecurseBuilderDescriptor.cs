@@ -26,7 +26,7 @@ namespace Verse.BuilderDescriptors
 
 		#region Methods
 
-		public IBuilder<T> GetBuilder (IWriter<C, V> writer)
+		public IBuilder<T> CreateBuilder (IWriter<C, V> writer)
 		{
 			return new Builder<T, C, V> (this.container, writer);
 		}
@@ -48,7 +48,7 @@ namespace Verse.BuilderDescriptors
 			return this.HasField (name, access, new RecurseBuilderDescriptor<U, C, V> (this.encoder));
 		}
 
-		public override IBuilderDescriptor<U> HasItems<U> (Func<T, IEnumerable<U>> access, IBuilderDescriptor<U> parent)
+		public override IBuilderDescriptor<U> IsArray<U> (Func<T, IEnumerable<U>> access, IBuilderDescriptor<U> parent)
 		{
 			RecurseBuilderDescriptor<U, C, V>	descriptor;
 
@@ -57,12 +57,12 @@ namespace Verse.BuilderDescriptors
 			if (descriptor == null)
 				throw new ArgumentOutOfRangeException ("parent", "incompatible descriptor type");
 
-			return this.HasItems (access, descriptor);
+			return this.IsArray (access, descriptor);
 		}
 
-		public override IBuilderDescriptor<U> HasItems<U> (Func<T, IEnumerable<U>> access)
+		public override IBuilderDescriptor<U> IsArray<U> (Func<T, IEnumerable<U>> access)
 		{
-			return this.HasItems (access, new RecurseBuilderDescriptor<U, C, V> (this.encoder));
+			return this.IsArray (access, new RecurseBuilderDescriptor<U, C, V> (this.encoder));
 		}
 
 		public override void IsValue<U> (Func<T, U> access)
@@ -89,7 +89,7 @@ namespace Verse.BuilderDescriptors
 			return descriptor;
 		}
 
-		private RecurseBuilderDescriptor<U, C, V> HasItems<U> (Func<T, IEnumerable<U>> access, RecurseBuilderDescriptor<U, C, V> descriptor)
+		private RecurseBuilderDescriptor<U, C, V> IsArray<U> (Func<T, IEnumerable<U>> access, RecurseBuilderDescriptor<U, C, V> descriptor)
 		{
 			Container<U, C, V>	recurse;
 

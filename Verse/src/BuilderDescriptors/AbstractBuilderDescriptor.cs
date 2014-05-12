@@ -11,9 +11,9 @@ namespace Verse.BuilderDescriptors
 
 		public abstract IBuilderDescriptor<U> HasField<U> (string name, Func<T, U> access);
 
-		public abstract IBuilderDescriptor<U> HasItems<U> (Func<T, IEnumerable<U>> access, IBuilderDescriptor<U> parent);
+		public abstract IBuilderDescriptor<U> IsArray<U> (Func<T, IEnumerable<U>> access, IBuilderDescriptor<U> parent);
 
-		public abstract IBuilderDescriptor<U> HasItems<U> (Func<T, IEnumerable<U>> access);
+		public abstract IBuilderDescriptor<U> IsArray<U> (Func<T, IEnumerable<U>> access);
 
 		public abstract void IsValue<U> (Func<T, U> access);
 

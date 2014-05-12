@@ -16,40 +16,26 @@ namespace Verse.Test.Schemas
 		[TestCase ("", "pwic", "{\"\":\"pwic\"}")]
 		public void BuildFieldValue<T> (string name, T value, string expected)
 		{
-			IBuilder<T>		builder;
 			JSONSchema<T>	schema;
 
 			schema = new JSONSchema<T> ();
 			schema.BuilderDescriptor.HasField (name).IsValue ();
 
-			builder = schema.GenerateBuilder ();
-
-			using (var stream = new MemoryStream ())
-			{
-				Assert.IsTrue (builder.Build (value, stream));
-				Assert.AreEqual (expected, Encoding.UTF8.GetString (stream.ToArray ()));
-			}
+			this.AssertBuildAndEqual (schema, value, expected);
 		}
 
 		[Test]
 		[TestCase (new int[0], "[]")]
 		[TestCase (new [] {21}, "[21]")]
 		[TestCase (new [] {54, 90, -3, 34, 0, 49}, "[54,90,-3,34,0,49]")]
-		public void BuildItems (int[] values, string expected)
+		public void BuildItems (int[] value, string expected)
 		{
-			IBuilder<int[]>		builder;
 			JSONSchema<int[]>	schema;
 
 			schema = new JSONSchema<int[]> ();
-			schema.BuilderDescriptor.HasItems ((source) => source).IsValue ();
+			schema.BuilderDescriptor.IsArray ((source) => source).IsValue ();
 
-			builder = schema.GenerateBuilder ();
-
-			using (var stream = new MemoryStream ())
-			{
-				Assert.IsTrue (builder.Build (values, stream));
-				Assert.AreEqual (expected, Encoding.UTF8.GetString (stream.ToArray ()));
-			}
+			this.AssertBuildAndEqual (schema, value, expected);
 		}
 
 		[Test]
@@ -61,19 +47,12 @@ namespace Verse.Test.Schemas
 		[TestCase ("\xFF \u0066 \uB3A8", "\"\\u00FF f \\uB3A8\"")]
 		public void BuildValueNative<T> (T value, string expected)
 		{
- 			IBuilder<T>		builder;
 			JSONSchema<T>	schema;
 
 			schema = new JSONSchema<T> ();
 			schema.BuilderDescriptor.IsValue ();
 
-			builder = schema.GenerateBuilder ();
-
-			using (var stream = new MemoryStream ())
-			{
-				Assert.IsTrue (builder.Build (value, stream));
-				Assert.AreEqual (expected, Encoding.UTF8.GetString (stream.ToArray ()));
-			}
+			this.AssertBuildAndEqual (schema, value, expected);
 		}
 
 		[Test]
@@ -123,7 +102,7 @@ namespace Verse.Test.Schemas
 
 			position = -1;
 
-			parser = schema.GenerateParser ();
+			parser = schema.CreateParser ();
 			parser.Error += (p, m) => position = p;
 
 			Assert.IsFalse (parser.Parse (new MemoryStream (Encoding.UTF8.GetBytes (json)), out value));
@@ -142,9 +121,9 @@ namespace Verse.Test.Schemas
 			JSONSchema<double[]>	schema;
 
 			schema = new JSONSchema<double[]> ();
-			schema.ParserDescriptor.HasItems ((ref double[] target, IEnumerable<double> value) => target = value.ToArray ()).IsValue ();
+			schema.ParserDescriptor.IsArray ((ref double[] target, IEnumerable<double> value) => target = value.ToArray ()).IsValue ();
 
-			parser = schema.GenerateParser ();
+			parser = schema.CreateParser ();
 
 			Assert.IsTrue (parser.Parse (new MemoryStream (Encoding.UTF8.GetBytes (json)), out result));
 			CollectionAssert.AreEqual (expected, result);
@@ -198,7 +177,7 @@ namespace Verse.Test.Schemas
 			descriptor.HasField ("f", (ref RecursiveEntity r, RecursiveEntity v) => r.field = v, descriptor);
 			descriptor.HasField ("v", (ref RecursiveEntity r, int v) => r.value = v).IsValue ();
 
-			parser = schema.GenerateParser ();
+			parser = schema.CreateParser ();
 
 			Assert.IsTrue (parser.Parse (new MemoryStream (Encoding.UTF8.GetBytes ("{\"f\": {\"f\": {\"v\": 42}, \"v\": 17}, \"v\": 3}")), out value));
 
@@ -207,12 +186,25 @@ namespace Verse.Test.Schemas
 			Assert.AreEqual (3, value.value);
 		}
 
+		private void AssertBuildAndEqual<T> (ISchema<T> schema, T value, string expected)
+		{
+			IBuilder<T>	builder;
+
+			builder = schema.CreateBuilder ();
+
+			using (var stream = new MemoryStream ())
+			{
+				Assert.IsTrue (builder.Build (value, stream));
+				Assert.AreEqual (expected, Encoding.UTF8.GetString (stream.ToArray ()));
+			}
+		}
+
 		private void AssertParseAndEqual<T> (ISchema<T> schema, string json, T expected)
 		{
 			IParser<T>	parser;
 			T			value;
 
-			parser = schema.GenerateParser ();
+			parser = schema.CreateParser ();
 
 			Assert.IsTrue (parser.Parse (new MemoryStream (Encoding.UTF8.GetBytes (json)), out value));
 			Assert.AreEqual (expected, value);

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Verse.Tools
 {
-	class Iterator<T> : IEnumerable<T>
+	class Walker<T> : IEnumerable<T>
 	{
 		#region Attributes
 
@@ -14,7 +14,7 @@ namespace Verse.Tools
 
 		#region Constructors
 
-		public Iterator(IEnumerator<T> enumerator)
+		public Walker (IEnumerator<T> enumerator)
 		{
 			this.enumerator = enumerator;
 		}

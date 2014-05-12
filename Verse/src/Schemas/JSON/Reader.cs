@@ -128,11 +128,12 @@ namespace Verse.Schemas.JSON
 					break;
 
 				default:
-					// FIXME: ignore
-
 					move = (int index, out T current) =>
 					{
 						current = default (T);
+
+						if (!this.Read (ref current, container, context))
+							return BrowserState.Failure;
 
 						return BrowserState.Success;
 					};
@@ -148,6 +149,7 @@ namespace Verse.Schemas.JSON
 			StringBuilder					buffer;
 			char							current;
 			INode<T, ReaderContext, Value>	node;
+			double							number;
 			long							numberDecimal;
 			int								numberDecimalPower;
 			int								numberExponent;
@@ -163,6 +165,7 @@ namespace Verse.Schemas.JSON
 				case (int)'"':
 					context.Pull ();
 
+					// Read and store string in a buffer if its value is needed
 					if (container.value != null)
 					{
 						buffer = new StringBuilder (32);
@@ -175,10 +178,10 @@ namespace Verse.Schemas.JSON
 							buffer.Append (current);
 						}
 
-						context.Pull ();
-
 						container.value (ref target, new Value {String = buffer.ToString (), Type = Content.String});
 					}
+
+					// Read and discard string otherwise
 					else
 					{
 						while (context.Current != (int)'"')
@@ -186,9 +189,9 @@ namespace Verse.Schemas.JSON
 							if (!this.ReadCharacter (context, out current))
 								return false;
 						}
-
-						context.Pull ();
 					}
+
+					context.Pull ();
 
 					return true;
 
@@ -206,7 +209,7 @@ namespace Verse.Schemas.JSON
 				case (int)'9':
 					unchecked
 					{
-						// Read sign
+						// Read number sign
 						if (context.Current == (int)'-')
 						{
 							context.Pull ();
@@ -230,7 +233,8 @@ namespace Verse.Schemas.JSON
 							for (numberDecimal = 0; context.Current >= (int)'0' && context.Current <= (int)'9'; context.Pull ())
 							{
 								numberDecimal = numberDecimal * 10 + (context.Current - (int)'0');
-								numberDecimalPower -= 1;
+
+								--numberDecimalPower;
 							}
 						}
 						else
@@ -268,20 +272,25 @@ namespace Verse.Schemas.JSON
 
 							for (numberExponent = 0; context.Current >= (int)'0' && context.Current <= (int)'9'; context.Pull ())
 								numberExponent = numberExponent * 10 + (context.Current - (int)'0');
-
-							numberExponent *= numberExponentSign;
 						}
 						else
+						{
 							numberExponent = 0;
+							numberExponentSign = 0;
+						}
 
+						// Compute result number and assign if needed
 						if (container.value != null)
 						{
-							if (numberDecimal != 0 || numberExponent < 0) // Decimal value with either decimal part or negative exponent
-								container.value (ref target, new Value {Number = numberSign * (numberIntegral + numberDecimal * Math.Pow (10, numberDecimalPower)) * Math.Pow (10, numberExponent), Type = Content.Number});
-							else if (numberExponent > 0) // Integer value with positive exponent
-								container.value (ref target, new Value {Number = numberSign * numberIntegral * (long)Math.Pow (10, numberExponent), Type = Content.Number});
-							else // Simple integer value
-								container.value (ref target, new Value {Number = numberSign * numberIntegral, Type = Content.Number});
+							number = numberIntegral * numberSign;
+
+							if (numberDecimal != 0)
+								number += numberDecimal * Math.Pow (10, numberDecimalPower) * numberSign;
+
+							if (numberExponent != 0)
+								number *= Math.Pow (10, numberExponent * numberExponentSign);
+
+							container.value (ref target, new Value {Number = number, Type = Content.Number});
 						}
 					}
 
@@ -412,7 +421,7 @@ namespace Verse.Schemas.JSON
 					return true;
 
 				default:
-					this.OnError (context.Position, "expected value");
+					this.OnError (context.Position, "expected array, object or value");
 
 					return false;
 			}

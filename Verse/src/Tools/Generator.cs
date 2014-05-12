@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -14,7 +14,7 @@ namespace Verse.Tools
 
 		#region Methods
 
-		public static Func<T>	Constructor<T> ()
+		public static Func<T> Constructor<T> ()
 		{
 			ConstructorInfo	constructor;
 			ILGenerator		generator;

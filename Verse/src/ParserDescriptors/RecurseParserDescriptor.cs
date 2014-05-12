@@ -28,7 +28,7 @@ namespace Verse.ParserDescriptors
 
 		#region Methods / Public
 
-		public IParser<T> GetParser (Func<T> constructor, IReader<C, V> reader)
+		public IParser<T> CreateParser (Func<T> constructor, IReader<C, V> reader)
 		{
 			return new Parser<T, C, V> (constructor, this.container, reader);
 		}
@@ -42,34 +42,28 @@ namespace Verse.ParserDescriptors
 			if (descriptor == null)
 				throw new ArgumentOutOfRangeException ("parent", "invalid target descriptor type");
 
-			this.ConnectField (name, this.EnterInner (descriptor.container, assign));
-
-			return parent;
+			return this.HasField (name, assign, descriptor);
 		}
 
 		public override IParserDescriptor<U> HasField<U> (string name, ParserAssign<T, U> assign)
 		{
-			RecurseParserDescriptor<U, C, V>	descriptor;
-
-			descriptor = new RecurseParserDescriptor<U, C, V> (this.decoder);
-
-			this.ConnectField (name, this.EnterInner (descriptor.container, assign));
-
-			return descriptor;
+			return this.HasField (name, assign, new RecurseParserDescriptor<U, C, V> (this.decoder));
 		}
 
 		public override IParserDescriptor<T> HasField (string name)
 		{
 			RecurseParserDescriptor<T, C, V>	descriptor;
+			Container<T, C, V>					recurse;
 
 			descriptor = new RecurseParserDescriptor<T, C, V> (this.decoder);
+			recurse = descriptor.container;
 
-			this.ConnectField (name, this.EnterSelf (descriptor.container));
+			this.Connect (name, (ref T target, IReader<C, V> reader, C context) => reader.Read (ref target, recurse, context));
 
 			return descriptor;
 		}
 
-		public override IParserDescriptor<U> HasItems<U> (ParserAssign<T, IEnumerable<U>> assign, IParserDescriptor<U> parent)
+		public override IParserDescriptor<U> IsArray<U> (ParserAssign<T, IEnumerable<U>> assign, IParserDescriptor<U> parent)
 		{
 			RecurseParserDescriptor<U, C, V>	descriptor;
 
@@ -78,12 +72,12 @@ namespace Verse.ParserDescriptors
 			if (descriptor == null)
 				throw new ArgumentOutOfRangeException ("parent", "incompatible descriptor type");
 
-			return this.HasItems (assign, descriptor);
+			return this.IsArray (assign, descriptor);
 		}
 
-		public override IParserDescriptor<U> HasItems<U> (ParserAssign<T, IEnumerable<U>> assign)
+		public override IParserDescriptor<U> IsArray<U> (ParserAssign<T, IEnumerable<U>> assign)
 		{
-			return this.HasItems (assign, new RecurseParserDescriptor<U, C, V> (this.decoder));
+			return this.IsArray (assign, new RecurseParserDescriptor<U, C, V> (this.decoder));
 		}
 
 		public override void IsValue<U> (ParserAssign<T, U> assign)
@@ -99,7 +93,7 @@ namespace Verse.ParserDescriptors
 
 		#region Methods / Private
 
-		private void ConnectField (string name, Follow<T, C, V> enter)
+		private void Connect (string name, Follow<T, C, V> enter)
 		{
 			BranchNode<T, C, V>	next;
 
@@ -111,33 +105,32 @@ namespace Verse.ParserDescriptors
 			next.enter = enter;
 		}
 
-		private Follow<T, C, V> EnterInner<U> (Container<U, C, V> child, ParserAssign<T, U> assign)
+		private IParserDescriptor<U> HasField<U> (string name, ParserAssign<T, U> assign, RecurseParserDescriptor<U, C, V> descriptor)
 		{
-			Func<T, U>	constructor;
+			Func<T, U>			constructor;
+			Container<U, C, V>	recurse;
 
 			constructor = this.GetConstructor<U> ();
+			recurse = descriptor.container;
 
-			return (ref T target, IReader<C, V> reader, C context) =>
+			this.Connect (name, (ref T target, IReader<C, V> reader, C context) =>
 			{
-				U   inner;
+				U	inner;
 
 				inner = constructor (target);
 
-				if (!reader.Read (ref inner, child, context))
+				if (!reader.Read (ref inner, recurse, context))
 					return false;
 
 				assign (ref target, inner);
 
 				return true;
-			};
+			});
+
+			return descriptor;
 		}
 
-		private Follow<T, C, V> EnterSelf (Container<T, C, V> child)
-		{
-			return (ref T target, IReader<C, V> reader, C context) => reader.Read (ref target, child, context);
-		}
-
-		private IParserDescriptor<U> HasItems<U> (ParserAssign<T, IEnumerable<U>> assign, RecurseParserDescriptor<U, C, V> parent)
+		private IParserDescriptor<U> IsArray<U> (ParserAssign<T, IEnumerable<U>> assign, RecurseParserDescriptor<U, C, V> descriptor)
 		{
 			Func<T, U>			constructor;
 			Container<U, C, V>	recurse;
@@ -146,7 +139,7 @@ namespace Verse.ParserDescriptors
 				throw new InvalidOperationException ("can't declare items twice on same descriptor");
 
 			constructor = this.GetConstructor<U> ();
-			recurse = parent.container;
+			recurse = descriptor.container;
 
 			this.container.items = (ref T target, IReader<C, V> reader, C context) =>
 			{
@@ -155,7 +148,7 @@ namespace Verse.ParserDescriptors
 
 				source = target;
 				browser = reader.ReadItems (() => constructor (source), recurse, context);
-				assign (ref target, new Iterator<U> (browser));
+				assign (ref target, new Walker<U> (browser));
 
 				while (browser.MoveNext ())
 					;
@@ -163,7 +156,7 @@ namespace Verse.ParserDescriptors
 				return browser.Success;
 			};
 
-			return parent;
+			return descriptor;
 		}
 
 		#endregion

@@ -15,16 +15,13 @@ namespace Verse.Bench
 	public class CompareNewtonsoft
 	{
 		[Test]
-		public void	FlatStructureBuild ()
+		public void	BuildFlatStructure ()
 		{
 			IBuilder<MyFlatStructure>	builder;
 			MyFlatStructure				instance;
-			ISchema<MyFlatStructure>	schema;
 
-			schema = new JSONSchema<MyFlatStructure> ();
-			//Linker.Link (schema);
+			builder = Linker.CreateBuilder (new JSONSchema<MyFlatStructure> ());
 
-			builder = schema.GenerateBuilder ();
 			instance = new MyFlatStructure
 			{
 				adipiscing	= 64,
@@ -44,67 +41,16 @@ namespace Verse.Bench
 		}
 
 		[Test]
-		public void	FlatStructureParse ()
-		{
-			IParser<MyFlatStructure>	parser;
-			ISchema<MyFlatStructure>	schema;
-			string						source;
-
-			schema = new JSONSchema<MyFlatStructure> ();
-			//Linker.Link (schema);
-
-			parser = schema.GenerateParser ();
-			source = "{\"lorem\":0,\"ipsum\":65464658634633,\"sit\":1.1,\"amet\":\"Hello, World!\",\"consectetur\":255,\"adipiscing\":64,\"elit\":\"z\",\"sed\":53.25,\"pulvinar\":\"I sense a soul in search of answers\",\"fermentum\":6553,\"hendrerit\":-32768}";
-
-			this.BenchParse (parser, source, 10000);
-		}
-
-		[Test]
-		public void LargeArrayParse ()
-		{
-			StringBuilder	builder;
-			IParser<long[]>	parser;
-			Random			random;
-			ISchema<long[]>	schema;
-
-			builder = new StringBuilder ();
-			random = new Random ();
-
-			builder.Append ("[");
-
-			for (int i = 0; true; )
-			{
-				builder.Append (random.Next ().ToString (CultureInfo.InvariantCulture));
-
-				if (++i >= 1000000)
-					break;
-
-				builder.Append (",");
-			}
-
-			builder.Append ("]");
-
-			schema = new JSONSchema<long[]> ();
-			schema.ParserDescriptor.HasItems ((ref long[] target, IEnumerable<long> value) => target = value.ToArray ()).IsValue ();
-			parser = schema.GenerateParser ();
-
-			this.BenchParse (parser, builder.ToString (), 1);
-		}
-
-		[Test]
-		public void	NestedArrayBuild ()
+		public void	BuildNestedArray ()
 		{
 			IBuilder<MyNestedArray>	builder;
 			MyNestedArray			instance;
-			ISchema<MyNestedArray>	schema;
 
-			schema = new JSONSchema<MyNestedArray> ();
-			//Linker.Link (schema);
+			builder = Linker.CreateBuilder (new JSONSchema<MyNestedArray> ());
 
-			builder = schema.GenerateBuilder ();
 			instance = new MyNestedArray
 			{
-				children = new MyNestedArray[]
+				children = new []
 				{
 					new MyNestedArray
 					{
@@ -113,7 +59,7 @@ namespace Verse.Bench
 					},
 					new MyNestedArray
 					{
-						children = new MyNestedArray[]
+						children = new []
 						{
 							new MyNestedArray
 							{
@@ -141,18 +87,63 @@ namespace Verse.Bench
 		}
 
 		[Test]
-		public void	NestedArrayParse ()
+		public void	ParseFlatStructure ()
+		{
+			IParser<MyFlatStructure>	parser;
+			string						source;
+
+			parser = Linker.CreateParser (new JSONSchema<MyFlatStructure> ());
+			source = "{\"lorem\":0,\"ipsum\":65464658634633,\"sit\":1.1,\"amet\":\"Hello, World!\",\"consectetur\":255,\"adipiscing\":64,\"elit\":\"z\",\"sed\":53.25,\"pulvinar\":\"I sense a soul in search of answers\",\"fermentum\":6553,\"hendrerit\":-32768}";
+
+			this.BenchParse (parser, source, 10000);
+		}
+
+		[Test]
+		[TestCase (10, 10000)]
+		[TestCase (1000, 100)]
+		[TestCase (10000, 10)]
+		[TestCase (100000, 1)]
+		public void ParseLargeArray (int length, int count)
+		{
+			StringBuilder	builder;
+			IParser<long[]>	parser;
+			Random			random;
+			ISchema<long[]>	schema;
+
+			builder = new StringBuilder ();
+			random = new Random ();
+
+			builder.Append ("[");
+
+			if (length > 0)
+			{
+				for (int i = 0; true; )
+				{
+					builder.Append (random.Next ().ToString (CultureInfo.InvariantCulture));
+	
+					if (++i >= length)
+						break;
+	
+					builder.Append (",");
+				}
+			}
+
+			builder.Append ("]");
+
+			schema = new JSONSchema<long[]> ();
+			schema.ParserDescriptor.IsArray ((ref long[] target, IEnumerable<long> value) => target = value.ToArray ()).IsValue ();
+			parser = schema.CreateParser ();
+
+			this.BenchParse (parser, builder.ToString (), count);
+		}
+
+		[Test]
+		public void	ParseNestedArray ()
 		{
 			IParser<MyNestedArray>	parser;
-			ISchema<MyNestedArray>	schema;
 			string					source;
 
-			schema = new JSONSchema<MyNestedArray> ();
-			//Linker.Link (schema);
-			schema.ParserDescriptor.HasField ("children").HasItems ((ref MyNestedArray target, IEnumerable<MyNestedArray> items) => target.children = items.ToArray (), schema.ParserDescriptor);
-			schema.ParserDescriptor.HasField ("value").IsValue ((ref MyNestedArray target, string value) => target.value = value);
-
-			parser = schema.GenerateParser ();
+			parser = Linker.CreateParser (new JSONSchema<MyNestedArray> ());
 			source = "{\"children\":[{\"children\":null,\"value\":\"a\"},{\"children\":[{\"children\":null,\"value\":\"b\"},{\"children\":null,\"value\":\"c\"}],\"value\":\"d\"},{\"children\":[],\"value\":\"e\"}],\"value\":\"f\"}";
 
 			this.BenchParse (parser, source, 10000);
@@ -210,7 +201,7 @@ namespace Verse.Bench
 			watch = Stopwatch.StartNew ();
 
 			for (int i = count; i-- > 0; )
-				JsonConvert.DeserializeObject<T> (source);
+				Assert.NotNull (JsonConvert.DeserializeObject<T> (source));
 
 			timeNewton = watch.Elapsed;
 

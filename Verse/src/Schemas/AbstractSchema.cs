@@ -21,17 +21,17 @@ namespace Verse.Schemas
 
 		#region Methods / Abstract
 
-		public abstract IBuilder<T>	GenerateBuilder ();
+		public abstract IBuilder<T>	CreateBuilder ();
 
-		public abstract IParser<T>	GenerateParser (Func<T> constructor);
+		public abstract IParser<T>	CreateParser (Func<T> constructor);
 
 		#endregion
 
 		#region Methods / Public
 
-		public IParser<T> GenerateParser ()
+		public IParser<T> CreateParser ()
 		{
-			return this.GenerateParser (Generator.Constructor<T> ());
+			return this.CreateParser (Generator.Constructor<T> ());
 		}
 
 		#endregion

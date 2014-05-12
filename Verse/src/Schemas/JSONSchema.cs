@@ -68,14 +68,14 @@ namespace Verse.Schemas
 
 		#region Methods
 
-		public override IBuilder<T> GenerateBuilder ()
+		public override IBuilder<T> CreateBuilder ()
 		{
-			return this.builderDescriptor.GetBuilder (new Writer (this.encoding));
+			return this.builderDescriptor.CreateBuilder (new Writer (this.encoding));
 		}
 
-		public override IParser<T> GenerateParser (Func<T> constructor)
+		public override IParser<T> CreateParser (Func<T> constructor)
 		{
-			return this.parserDescriptor.GetParser (constructor, new Reader (this.encoding));
+			return this.parserDescriptor.CreateParser (constructor, new Reader (this.encoding));
 		}
 
 		public void SetDecoder<U> (Converter<Value, U> converter)
