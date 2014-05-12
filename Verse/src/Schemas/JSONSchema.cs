@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using Verse.BuilderDescriptors;
 using Verse.ParserDescriptors;

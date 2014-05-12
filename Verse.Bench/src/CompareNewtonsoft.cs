@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -85,9 +85,9 @@ namespace Verse.Bench
 			builder.Append ("]");
 
 			schema = new JSONSchema<long[]> ();
-			schema.ParserDescriptor.HasItems ((ref long[] target, IEnumerable<long> value) => target = value.ToArray ()).IsValue ();  
+			schema.ParserDescriptor.HasItems ((ref long[] target, IEnumerable<long> value) => target = value.ToArray ()).IsValue ();
 			parser = schema.GenerateParser ();
-			
+
 			this.BenchParse (parser, builder.ToString (), 1);
 		}
 

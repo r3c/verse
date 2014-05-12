@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Verse.Tools;
 
 namespace Verse.Schemas
@@ -32,7 +32,7 @@ namespace Verse.Schemas
 		public IParser<T> GenerateParser ()
 		{
 			return this.GenerateParser (Generator.Constructor<T> ());
-		}	
+		}
 
 		#endregion
 	}

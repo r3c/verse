@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -7,7 +7,7 @@ namespace Verse.Tools
 	static class Generator
 	{
 		#region Attributes
-		
+
 		private static readonly ParameterModifier[]	modifiers = new ParameterModifier[0];
 
 		#endregion

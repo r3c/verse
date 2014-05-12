@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace Verse.BuilderDescriptors
@@ -9,10 +9,10 @@ namespace Verse.BuilderDescriptors
 
 		public abstract IBuilderDescriptor<U> HasField<U> (string name, Func<T, U> access, IBuilderDescriptor<U> parent);
 
-		public abstract IBuilderDescriptor<U> HasField<U> (string name, Func<T, U> access);		
+		public abstract IBuilderDescriptor<U> HasField<U> (string name, Func<T, U> access);
 
 		public abstract IBuilderDescriptor<U> HasItems<U> (Func<T, IEnumerable<U>> access, IBuilderDescriptor<U> parent);
-		
+
 		public abstract IBuilderDescriptor<U> HasItems<U> (Func<T, IEnumerable<U>> access);
 
 		public abstract void IsValue<U> (Func<T, U> access);
@@ -23,7 +23,7 @@ namespace Verse.BuilderDescriptors
 
 		public IBuilderDescriptor<T> HasField (string name)
 		{
-			return this.HasField (name, (source) => source); 
+			return this.HasField (name, (source) => source);
 		}
 
 		public void IsValue ()

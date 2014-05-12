@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -85,7 +85,7 @@ namespace Verse.Schemas.JSON
 		public void Next ()
 		{
 			this.writer.Write (',');
-		}		
+		}
 
 		public void ObjectBegin ()
 		{
@@ -111,7 +111,7 @@ namespace Verse.Schemas.JSON
 					this.writer.Write (WriterContext.hexadecimal[(c >> 12) & 0xF]);
 					this.writer.Write (WriterContext.hexadecimal[(c >> 8) & 0xF]);
 					this.writer.Write (WriterContext.hexadecimal[(c >> 4) & 0xF]);
-					this.writer.Write (WriterContext.hexadecimal[(c >> 0) & 0xF]); 
+					this.writer.Write (WriterContext.hexadecimal[(c >> 0) & 0xF]);
 				}
 			}
 

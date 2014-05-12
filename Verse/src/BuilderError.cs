@@ -1,5 +1,5 @@
-﻿
+
 namespace Verse
 {
-	public delegate void BuilderError (int position, string message); 
+	public delegate void BuilderError (int position, string message);
 }

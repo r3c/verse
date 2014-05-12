@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Verse.BuilderDescriptors.Recurse;
 
@@ -97,7 +97,7 @@ namespace Verse.BuilderDescriptors
 				throw new InvalidOperationException ("can't declare items twice on same descriptor");
 
 			recurse = descriptor.container;
-			
+
 			this.container.items = (source, writer, context) => writer.WriteItems (access (source), recurse, context);
 
 			return descriptor;

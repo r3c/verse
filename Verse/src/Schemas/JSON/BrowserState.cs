@@ -1,4 +1,4 @@
-﻿
+
 namespace Verse.Schemas.JSON
 {
 	enum BrowserState

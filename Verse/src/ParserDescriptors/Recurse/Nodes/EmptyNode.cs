@@ -1,4 +1,4 @@
-﻿
+
 namespace Verse.ParserDescriptors.Recurse.Nodes
 {
 	class EmptyNode<T, C, V> : INode<T, C, V>

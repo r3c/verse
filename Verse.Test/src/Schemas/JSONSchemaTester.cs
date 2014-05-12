@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -49,7 +49,7 @@ namespace Verse.Test.Schemas
 			{
 				Assert.IsTrue (builder.Build (values, stream));
 				Assert.AreEqual (expected, Encoding.UTF8.GetString (stream.ToArray ()));
-			}			
+			}
 		}
 
 		[Test]
@@ -110,7 +110,7 @@ namespace Verse.Test.Schemas
 		[TestCase ("[0 0]", 4)]
 		[TestCase ("{0}", 2)]
 		[TestCase ("{\"\" 0}", 5)]
-		[TestCase ("fail", 3)]  
+		[TestCase ("fail", 3)]
 		public void ParseInvalidStream (string json, int expected)
 		{
 			IParser<string>		parser;
