@@ -6,7 +6,7 @@ namespace Verse
 	{
 		#region Events
 
-		event ParseError	Error;
+		event ParserError	Error;
 
 		#endregion
 

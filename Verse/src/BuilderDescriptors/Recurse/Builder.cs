@@ -7,7 +7,7 @@ namespace Verse.BuilderDescriptors.Recurse
 	{
 		#region Events
 
-		public event BuildError	Error;
+		public event BuilderError	Error;
 
 		#endregion
 
@@ -58,7 +58,7 @@ namespace Verse.BuilderDescriptors.Recurse
 
 		private void OnError (int position, string message)
 		{
-			BuildError	error;
+			BuilderError	error;
 
 			error = this.Error;
 

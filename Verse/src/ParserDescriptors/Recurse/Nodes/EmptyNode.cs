@@ -1,11 +1,11 @@
 ﻿
-namespace Verse.ParserDescriptors.Recurse.Pointers
+namespace Verse.ParserDescriptors.Recurse.Nodes
 {
-	class VoidPointer<T, C, V> : IPointer<T, C, V>
+	class EmptyNode<T, C, V> : INode<T, C, V>
 	{
 		#region Properties
 
-		public bool CanAssign
+		public bool	CanAssign
 		{
 			get
 			{
@@ -17,7 +17,7 @@ namespace Verse.ParserDescriptors.Recurse.Pointers
 
 		#region Attributes
 
-		public static readonly VoidPointer<T, C, V>  instance = new VoidPointer<T, C, V> ();
+		private static readonly Container<T, C, V>	blank = new Container<T, C, V> ();
 
 		#endregion
 
@@ -29,10 +29,10 @@ namespace Verse.ParserDescriptors.Recurse.Pointers
 
 		public bool Enter (ref T target, IReader<C, V> reader, C context)
 		{
-			return reader.Read (ref target, this, context);
+			return reader.Read (ref target, EmptyNode<T, C, V>.blank, context);
 		}
 
-		public IPointer<T, C, V> Follow (char c)
+		public INode<T, C, V> Follow (char c)
 		{
 			return this;
 		}

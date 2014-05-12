@@ -10,7 +10,7 @@ namespace Verse.Schemas.JSON
 	{
 		#region Events
 
-		public event BuildError	Error
+		public event BuilderError	Error
 		{
 			add
 			{
@@ -37,7 +37,7 @@ namespace Verse.Schemas.JSON
 
 		#endregion
 
-		#region Methods
+		#region Methods / Public
 
 		public bool Start (Stream stream, out WriterContext context)
 		{
@@ -53,37 +53,12 @@ namespace Verse.Schemas.JSON
 
 		public void Write<T> (T source, Container<T, WriterContext, Value> container, WriterContext context)
 		{
-			if (container.value != null)
-				container.value (source, this, context);
-			else if (container.items != null)
+			if (container.items != null)
 				container.items (source, this, context);
+			else if (container.value != null)
+				this.WriteValue (container.value (source), context);
 			else
 				this.WriteFields (source, container.fields, context);
-		}
-
-		public void WriteFields<T> (T source, IEnumerable<KeyValuePair<string, Follow<T, WriterContext, Value>>> fields, WriterContext context)
-		{
-			IEnumerator<KeyValuePair<string, Follow<T, WriterContext, Value>>>	field;
-
-			context.ObjectBegin ();
-			field = fields.GetEnumerator ();
-
-			if (field.MoveNext ())
-			{
-				while (true)
-				{
-					context.Key (field.Current.Key);
-
-					field.Current.Value (source, this, context);
-
-					if (!field.MoveNext ())
-						break;
-
-					context.Next ();
-				}
-			}
-
-			context.ObjectEnd ();
 		}
 
 		public void WriteItems<T> (IEnumerable<T> items, Container<T, WriterContext, Value> container, WriterContext context)
@@ -109,7 +84,36 @@ namespace Verse.Schemas.JSON
 			context.ArrayEnd ();
 		}
 
-		public void WriteValue (Value value, WriterContext context)
+		#endregion
+
+		#region Methods / Private
+
+		private void WriteFields<T> (T source, IEnumerable<KeyValuePair<string, Follow<T, WriterContext, Value>>> fields, WriterContext context)
+		{
+			IEnumerator<KeyValuePair<string, Follow<T, WriterContext, Value>>>	field;
+
+			context.ObjectBegin ();
+			field = fields.GetEnumerator ();
+
+			if (field.MoveNext ())
+			{
+				while (true)
+				{
+					context.Key (field.Current.Key);
+
+					field.Current.Value (source, this, context);
+
+					if (!field.MoveNext ())
+						break;
+
+					context.Next ();
+				}
+			}
+
+			context.ObjectEnd ();
+		}
+
+		private void WriteValue (Value value, WriterContext context)
 		{
 			switch (value.Type)
 			{

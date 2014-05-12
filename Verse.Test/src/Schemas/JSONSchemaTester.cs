@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using NUnit.Framework;
 using Verse.Schemas;
@@ -81,17 +82,25 @@ namespace Verse.Test.Schemas
 		[TestCase ("1", "[\"hey!\", \"take me!\", \"not me!\"]", "take me!")]
 		public void ParseFieldValue<T> (string name, string json, T expected)
 		{
-			IParser<T>		parser;
 			JSONSchema<T>	schema;
-			T				value;
 
 			schema = new JSONSchema<T> ();
 			schema.ParserDescriptor.HasField (name).IsValue ();
 
-			parser = schema.GenerateParser ();
+			this.AssertParseAndEqual (schema, json, expected);
+		}
 
-			Assert.IsTrue (parser.Parse (new MemoryStream (Encoding.UTF8.GetBytes (json)), out value));
-			Assert.AreEqual (expected, value);
+		[Test]
+		[TestCase ("b", "{\"a\": 50, \"b\": 43, \"c\": [1, 5, 9]}", 43)]
+		[TestCase ("b", "{\"a\": {\"x\": 1, \"y\": 2}, \"b\": \"OK\", \"c\": 21.6}", "OK")]
+		public void ParseGarbage<T> (string name, string json, T expected)
+		{
+			JSONSchema<T>	schema;
+
+			schema = new JSONSchema<T> ();
+			schema.ParserDescriptor.HasField (name).IsValue ();
+
+			this.AssertParseAndEqual (schema, json, expected);
 		}
 
 		[Test]
@@ -125,14 +134,15 @@ namespace Verse.Test.Schemas
 		[TestCase ("[]", new double[0])]
 		[TestCase ("[-42.1]", new [] {-42.1})]
 		[TestCase ("[0, 5, 90, 23, -9, 5.3]", new [] {0, 5, 90, 23, -9, 5.3})]
+		[TestCase ("{\"key1\": 27.5, \"key2\": 19}", new [] {27.5, 19})]
 		public void ParseItems (string json, double[] expected)
 		{
-			IParser<List<double>>		parser;
-			List<double>				result;
-			JSONSchema<List<double>>	schema;
+			IParser<double[]>		parser;
+			double[]				result;
+			JSONSchema<double[]>	schema;
 
-			schema = new JSONSchema<List<double>> ();
-			schema.ParserDescriptor.HasItems ((ref List<double> target, double value) => target.Add(value)).IsValue ();
+			schema = new JSONSchema<double[]> ();
+			schema.ParserDescriptor.HasItems ((ref double[] target, IEnumerable<double> value) => target = value.ToArray ()).IsValue ();
 
 			parser = schema.GenerateParser ();
 
@@ -145,18 +155,13 @@ namespace Verse.Test.Schemas
 		[TestCase ("\"c566a1c7-d89e-4e3f-8c5f-d4bcd0b82025\"", "c566a1c7-d89e-4e3f-8c5f-d4bcd0b82025")]
 		public void ParseValueCustom (string json, string expected)
 		{
-			IParser<Guid>		parser;
 			JSONSchema<Guid>	schema;
-			Guid				value;
 
 			schema = new JSONSchema<Guid> ();
 			schema.SetDecoder ((v) => Guid.Parse (v.String));
 			schema.ParserDescriptor.IsValue ();
 
-			parser = schema.GenerateParser ();
-
-			Assert.IsTrue (parser.Parse (new MemoryStream (Encoding.UTF8.GetBytes (json)), out value));
-			Assert.AreEqual (Guid.Parse (expected), value);
+			this.AssertParseAndEqual (schema, json, Guid.Parse (expected));
 		}
 
 		[Test]
@@ -171,18 +176,12 @@ namespace Verse.Test.Schemas
 		[TestCase ("\"\\u00FF \\u0066 \\uB3A8\"", "\xFF f \uB3A8")]
 		public void ParseValueNative<T> (string json, T expected)
 		{
-			IParser<T>		parser;
 			JSONSchema<T>	schema;
-			T				value;
 
 			schema = new JSONSchema<T> ();
 			schema.ParserDescriptor.IsValue ();
 
-			parser = schema.GenerateParser ();
-
-			Assert.IsTrue (parser.Parse (new MemoryStream (Encoding.UTF8.GetBytes (json)), out value));
-
-			Assert.AreEqual (expected, value);
+			this.AssertParseAndEqual (schema, json, expected);
 		}
 
 		[Test]
@@ -206,6 +205,17 @@ namespace Verse.Test.Schemas
 			Assert.AreEqual (42, value.field.field.value);
 			Assert.AreEqual (17, value.field.value);
 			Assert.AreEqual (3, value.value);
+		}
+
+		private void AssertParseAndEqual<T> (ISchema<T> schema, string json, T expected)
+		{
+			IParser<T>	parser;
+			T			value;
+
+			parser = schema.GenerateParser ();
+
+			Assert.IsTrue (parser.Parse (new MemoryStream (Encoding.UTF8.GetBytes (json)), out value));
+			Assert.AreEqual (expected, value);
 		}
 
 		private class RecursiveEntity

@@ -7,17 +7,19 @@ namespace Verse.ParserDescriptors.Recurse
 	{
 		#region Events
 
-		event ParseError	Error;
+		event ParserError	Error;
 
 		#endregion
 
 		#region Methods
 
-		bool	Read<T> (ref T target, IPointer<T, C, V> pointer, C context);
+		bool		Read<T> (ref T target, Container<T, C, V> container, C context);
 
-		bool	Start (Stream stream, out C context);
+		IBrowser<T>	ReadItems<T> (Func<T> constructor, Container<T, C, V> container, C context);
 
-		void	Stop (C context);
+		bool		Start (Stream stream, out C context);
+
+		void		Stop (C context);
 
 		#endregion
 	}

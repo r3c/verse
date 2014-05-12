@@ -69,12 +69,9 @@ namespace Verse.BuilderDescriptors
 		{
 			Converter<U, V>	convert;
 
-			if (this.container.value != null)
-				throw new InvalidOperationException ("can't declare value twice on same descriptor");
-
 			convert = this.encoder.Get<U> ();
 
-			this.container.value = (source, writer, context) => writer.WriteValue (convert (access (source)), context);
+			this.container.value = (source) => convert (access (source));
 		}
 
 		#endregion

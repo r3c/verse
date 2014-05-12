@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using KellermanSoftware.CompareNetObjects;
 using Newtonsoft.Json;
@@ -19,10 +22,9 @@ namespace Verse.Bench
 			ISchema<MyFlatStructure>	schema;
 
 			schema = new JSONSchema<MyFlatStructure> ();
+			//Linker.Link (schema);
+
 			builder = schema.GenerateBuilder ();
-
-			//Linker.Link (builder);
-
 			instance = new MyFlatStructure
 			{
 				adipiscing	= 64,
@@ -49,13 +51,44 @@ namespace Verse.Bench
 			string						source;
 
 			schema = new JSONSchema<MyFlatStructure> ();
+			//Linker.Link (schema);
+
 			parser = schema.GenerateParser ();
-
-			//Linker.Link (parser);
-
 			source = "{\"lorem\":0,\"ipsum\":65464658634633,\"sit\":1.1,\"amet\":\"Hello, World!\",\"consectetur\":255,\"adipiscing\":64,\"elit\":\"z\",\"sed\":53.25,\"pulvinar\":\"I sense a soul in search of answers\",\"fermentum\":6553,\"hendrerit\":-32768}";
 
 			this.BenchParse (parser, source, 10000);
+		}
+
+		[Test]
+		public void LargeArrayParse ()
+		{
+			StringBuilder	builder;
+			IParser<long[]>	parser;
+			Random			random;
+			ISchema<long[]>	schema;
+
+			builder = new StringBuilder ();
+			random = new Random ();
+
+			builder.Append ("[");
+
+			for (int i = 0; true; )
+			{
+				builder.Append (random.Next ().ToString (CultureInfo.InvariantCulture));
+
+				if (++i >= 1000000)
+					break;
+
+				builder.Append (",");
+			}
+
+			builder.Append ("]");
+
+			schema = new JSONSchema<long[]> ();
+			schema.ParserDescriptor.HasItems ((ref long[] target, IEnumerable<long> value) => target = value.ToArray ()).IsValue ();  
+			parser = schema.GenerateParser ();
+			
+			this.BenchParse (parser, builder.ToString (), 1);
 		}
 
 		[Test]
@@ -66,10 +99,9 @@ namespace Verse.Bench
 			ISchema<MyNestedArray>	schema;
 
 			schema = new JSONSchema<MyNestedArray> ();
+			//Linker.Link (schema);
+
 			builder = schema.GenerateBuilder ();
-
-			//Linker.Link (builder);
-
 			instance = new MyNestedArray
 			{
 				children = new MyNestedArray[]
@@ -116,10 +148,11 @@ namespace Verse.Bench
 			string					source;
 
 			schema = new JSONSchema<MyNestedArray> ();
+			//Linker.Link (schema);
+			schema.ParserDescriptor.HasField ("children").HasItems ((ref MyNestedArray target, IEnumerable<MyNestedArray> items) => target.children = items.ToArray (), schema.ParserDescriptor);
+			schema.ParserDescriptor.HasField ("value").IsValue ((ref MyNestedArray target, string value) => target.value = value);
+
 			parser = schema.GenerateParser ();
-
-			//Linker.Link (parser);
-
 			source = "{\"children\":[{\"children\":null,\"value\":\"a\"},{\"children\":[{\"children\":null,\"value\":\"b\"},{\"children\":null,\"value\":\"c\"}],\"value\":\"d\"},{\"children\":[],\"value\":\"e\"}],\"value\":\"f\"}";
 
 			this.BenchParse (parser, source, 10000);

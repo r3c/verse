@@ -6,7 +6,7 @@ namespace Verse
 	{
 		#region Events
 
-		event BuildError	Error;
+		event BuilderError	Error;
 
 		#endregion
 

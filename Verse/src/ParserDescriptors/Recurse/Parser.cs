@@ -7,7 +7,7 @@ namespace Verse.ParserDescriptors.Recurse
 	{
 		#region Events
 
-		public event ParseError	Error;
+		public event ParserError	Error;
 
 		#endregion
 
@@ -15,7 +15,7 @@ namespace Verse.ParserDescriptors.Recurse
 
 		private readonly Func<T>			constructor;
 
-		private readonly IPointer<T, C, V>	pointer;
+		private readonly Container<T, C, V>	container;
 
 		private readonly IReader<C, V>		reader;
 
@@ -23,12 +23,12 @@ namespace Verse.ParserDescriptors.Recurse
 
 		#region Constructors
 
-		public Parser (Func<T> constructor, IPointer<T, C, V> pointer, IReader<C, V> reader)
+		public Parser (Func<T> constructor, Container<T, C, V> container, IReader<C, V> reader)
 		{
 			reader.Error += this.OnError;
 
 			this.constructor = constructor;
-			this.pointer = pointer;
+			this.container = container;
 			this.reader = reader;
 		}
 
@@ -51,7 +51,7 @@ namespace Verse.ParserDescriptors.Recurse
 			{
 				output = this.constructor ();
 
-				return this.reader.Read (ref output, this.pointer, context);
+				return this.reader.Read (ref output, this.container, context);
 			}
 			finally
 			{
@@ -65,7 +65,7 @@ namespace Verse.ParserDescriptors.Recurse
 
 		private void OnError (int position, string message)
 		{
-			ParseError	error;
+			ParserError	error;
 
 			error = this.Error;
 

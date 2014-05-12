@@ -9,6 +9,6 @@ namespace Verse.BuilderDescriptors.Recurse
 
 		public Follow<T, C, V>						items = null;
 
-		public Follow<T, C, V>						value = null;
+		public Func<T, V>							value = null;
 	}
 }

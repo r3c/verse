@@ -14,25 +14,23 @@ namespace Verse.ParserDescriptors
 
 		#region Methods / Abstract
 
-		public abstract IParserDescriptor<U> HasField<U> (string name, DescriptorSet<T, U> assign, IParserDescriptor<U> recurse);
+		public abstract IParserDescriptor<U> HasField<U> (string name, ParserAssign<T, U> assign, IParserDescriptor<U> parent);
 
-		public abstract IParserDescriptor<U> HasField<U> (string name, DescriptorSet<T, U> assign);
+		public abstract IParserDescriptor<U> HasField<U> (string name, ParserAssign<T, U> assign);
 
 		public abstract IParserDescriptor<T> HasField (string name);
 
-		public abstract IParserDescriptor<U> HasItems<U> (DescriptorSet<T, U> append, IParserDescriptor<U> recurse);
+		public abstract IParserDescriptor<U> HasItems<U> (ParserAssign<T, IEnumerable<U>> assign, IParserDescriptor<U> parent);
 
-		public abstract IParserDescriptor<U> HasItems<U> (DescriptorSet<T, U> append);
+		public abstract IParserDescriptor<U> HasItems<U> (ParserAssign<T, IEnumerable<U>> assign);
 
-		public abstract IParserDescriptor<T> HasItems ();
-
-		public abstract void IsValue<U> (DescriptorSet<T, U> assign);
+		public abstract void IsValue<U> (ParserAssign<T, U> assign);
 
 		#endregion
 
 		#region Methods / Public
 
-		public void CanCreate<U> (DescriptorGet<T, U> constructor)
+		public void CanCreate<U> (Func<T, U> constructor)
 		{
 			if (constructor == null)
 				throw new ArgumentNullException ("constructor");
@@ -54,7 +52,7 @@ namespace Verse.ParserDescriptors
 
 		#region Methods / Protected
 
-		protected DescriptorGet<T, U> GetConstructor<U> ()
+		protected Func<T, U> GetConstructor<U> ()
 		{
 			object	box;
 			Func<U>	constructor;
@@ -63,10 +61,10 @@ namespace Verse.ParserDescriptors
 			{
 				constructor = Generator.Constructor<U> ();
 
-				return (ref T source) => constructor ();
+				return (source) => constructor ();
 			}
 
-			return (DescriptorGet<T, U>)box;
+			return (Func<T, U>)box;
 		}
 
 		#endregion

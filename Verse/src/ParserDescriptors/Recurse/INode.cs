@@ -2,7 +2,7 @@
 
 namespace Verse.ParserDescriptors.Recurse
 {
-	interface IPointer<T, C, V>
+	interface INode<T, C, V>
 	{
 		#region Properties
 
@@ -15,11 +15,11 @@ namespace Verse.ParserDescriptors.Recurse
 
 		#region Methods
 
-		void				Assign (ref T target, V value);
+		void			Assign (ref T target, V value);
 
-		bool				Enter (ref T target, IReader<C, V> reader, C context);
+		bool			Enter (ref T target, IReader<C, V> reader, C context);
 
-		IPointer<T, C, V>	Follow (char c);
+		INode<T, C, V>	Follow (char c);
 
 		#endregion
 	}

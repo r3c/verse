@@ -10,7 +10,7 @@ namespace Verse.Schemas.JSON
 	{
 		#region Events
 
-		public event ParseError	Error;
+		public event ParserError	Error;
 
 		#endregion
 
@@ -31,24 +31,139 @@ namespace Verse.Schemas.JSON
 
 		#region Methods / Public
 
-		public bool Read<U> (ref U target, IPointer<U, ReaderContext, Value> pointer, ReaderContext context)
+		public IBrowser<T> ReadItems<T> (Func<T> constructor, Container<T, ReaderContext, Value> container, ReaderContext context)
 		{
-			StringBuilder	buffer;
-			char			current;
-			long			numberDecimal;
-			int				numberDecimalPower;
-			int				numberExponent;
-			sbyte			numberExponentSign;
-			long			numberIntegral;
-			sbyte			numberSign;
-			Value			value;
+			char			ignore;
+			BrowserMove<T>	move;
+
+			switch (context.Current)
+			{
+				case (int)'[':
+					context.Pull ();
+
+					move = (int index, out T current) =>
+					{
+						current = constructor ();
+
+						this.SkipBlank (context);
+
+						if (context.Current == (int)']')
+						{
+							context.Pull ();
+
+							return BrowserState.Success;
+						}
+
+						// Read comma separator if any
+						if (index > 0)
+						{
+							if (!this.ReadExpected (context, ','))
+								return BrowserState.Failure;
+
+							this.SkipBlank (context);
+						}
+
+						// Read array value
+						if (!this.Read (ref current, container, context))
+							return BrowserState.Failure;
+
+						return BrowserState.Continue;
+					};
+
+					break;
+
+				case (int)'{':
+					context.Pull ();
+
+					move = (int index, out T current) =>
+					{
+						current = constructor ();
+
+						this.SkipBlank (context);
+
+						if (context.Current == (int)'}')
+						{
+							context.Pull ();
+
+							return BrowserState.Success;
+						}
+
+						// Read comma separator if any
+						if (index > 0)
+						{
+							if (!this.ReadExpected (context, ','))
+								return BrowserState.Failure;
+
+							this.SkipBlank (context);
+						}
+
+						if (!this.ReadExpected (context, '"'))
+							return BrowserState.Failure;
+
+						// Read and move to object key
+						while (context.Current != (int)'"')
+						{
+							if (!this.ReadCharacter (context, out ignore))
+								return BrowserState.Failure;
+						}
+
+						context.Pull ();
+
+						// Read object separator
+						this.SkipBlank (context);
+
+						if (!this.ReadExpected (context, ':'))
+							return BrowserState.Failure;
+
+						// Read object value
+						this.SkipBlank (context);
+
+						// Read array value
+						if (!this.Read (ref current, container, context))
+							return BrowserState.Failure;
+
+						return BrowserState.Continue;
+					};
+
+					break;
+
+				default:
+					// FIXME: ignore
+
+					move = (int index, out T current) =>
+					{
+						current = default (T);
+
+						return BrowserState.Success;
+					};
+
+					break;
+			}
+
+			return new Browser<T> (move);
+		}
+
+		public bool Read<T> (ref T target, Container<T, ReaderContext, Value> container, ReaderContext context)
+		{
+			StringBuilder					buffer;
+			char							current;
+			INode<T, ReaderContext, Value>	node;
+			long							numberDecimal;
+			int								numberDecimalPower;
+			int								numberExponent;
+			sbyte							numberExponentSign;
+			long							numberIntegral;
+			sbyte							numberSign;
+
+			if (container.items != null)
+				return container.items (ref target, this, context);
 
 			switch (context.Current)
 			{
 				case (int)'"':
 					context.Pull ();
 
-					if (pointer.CanAssign)
+					if (container.value != null)
 					{
 						buffer = new StringBuilder (32);
 
@@ -62,7 +177,7 @@ namespace Verse.Schemas.JSON
 
 						context.Pull ();
 
-						pointer.Assign (ref target, new Value {String = buffer.ToString (), Type = Content.String});
+						container.value (ref target, new Value {String = buffer.ToString (), Type = Content.String});
 					}
 					else
 					{
@@ -159,15 +274,16 @@ namespace Verse.Schemas.JSON
 						else
 							numberExponent = 0;
 
-						if (numberDecimal != 0 || numberExponent < 0) // Decimal value with either decimal part or negative exponent
-							value = new Value {Number = numberSign * (numberIntegral + numberDecimal * Math.Pow (10, numberDecimalPower)) * Math.Pow (10, numberExponent), Type = Content.Number};
-						else if (numberExponent > 0) // Integer value with positive exponent
-							value = new Value {Number = numberSign * numberIntegral * (long)Math.Pow (10, numberExponent), Type = Content.Number};
-						else // Simple integer value
-							value = new Value {Number = numberSign * numberIntegral, Type = Content.Number};
+						if (container.value != null)
+						{
+							if (numberDecimal != 0 || numberExponent < 0) // Decimal value with either decimal part or negative exponent
+								container.value (ref target, new Value {Number = numberSign * (numberIntegral + numberDecimal * Math.Pow (10, numberDecimalPower)) * Math.Pow (10, numberExponent), Type = Content.Number});
+							else if (numberExponent > 0) // Integer value with positive exponent
+								container.value (ref target, new Value {Number = numberSign * numberIntegral * (long)Math.Pow (10, numberExponent), Type = Content.Number});
+							else // Simple integer value
+								container.value (ref target, new Value {Number = numberSign * numberIntegral, Type = Content.Number});
+						}
 					}
-
-					pointer.Assign (ref target, value);
 
 					return true;
 
@@ -177,7 +293,8 @@ namespace Verse.Schemas.JSON
 					if (!this.ReadExpected (context, 'a') || !this.ReadExpected (context, 'l') || !this.ReadExpected (context, 's') || !this.ReadExpected (context, 'e'))
 						return false;
 
-					pointer.Assign (ref target, new Value {Boolean = false, Type = Content.Boolean});
+					if (container.value != null)
+						container.value (ref target, new Value {Boolean = false, Type = Content.Boolean});
 
 					return true;
 
@@ -187,7 +304,8 @@ namespace Verse.Schemas.JSON
 					if (!this.ReadExpected (context, 'u') || !this.ReadExpected (context, 'l') || !this.ReadExpected (context, 'l'))
 						return false;
 
-					pointer.Assign (ref target, new Value {Type = Content.Void});
+					if (container.value != null)
+						container.value (ref target, new Value {Type = Content.Void});
 
 					return true;
 
@@ -197,7 +315,8 @@ namespace Verse.Schemas.JSON
 					if (!this.ReadExpected (context, 'r') || !this.ReadExpected (context, 'u') || !this.ReadExpected (context, 'e'))
 						return false;
 
-					pointer.Assign (ref target, new Value {Boolean = true, Type = Content.Boolean});
+					if (container.value != null)
+						container.value (ref target, new Value {Boolean = true, Type = Content.Boolean});
 
 					return true;
 
@@ -221,18 +340,18 @@ namespace Verse.Schemas.JSON
 						}
 
 						// Build and move to array index
-						var field = pointer;
+						node = container.fields;
 
 						if (index > 9)
 						{
 							foreach (char digit in index.ToString (CultureInfo.InvariantCulture))
-								field = field.Follow (digit);
+								node = node.Follow (digit);
 						}
 						else
-							field = field.Follow ((char)('0' + index));
+							node = node.Follow ((char)('0' + index));
 
 						// Read array value
-						if (!field.Enter (ref target, this, context))
+						if (!node.Enter (ref target, this, context))
 							return false;
 					}
 
@@ -263,14 +382,14 @@ namespace Verse.Schemas.JSON
 							return false;
 
 						// Read and move to object key
-						var field = pointer;
+						node = container.fields;
 
 						while (context.Current != (int)'"')
 						{
 							if (!this.ReadCharacter (context, out current))
 								return false;
 
-							field = field.Follow (current);
+							node = node.Follow (current);
 						}
 
 						context.Pull ();
@@ -284,7 +403,7 @@ namespace Verse.Schemas.JSON
 						// Read object value
 						this.SkipBlank (context);
 
-						if (!field.Enter (ref target, this, context))
+						if (!node.Enter (ref target, this, context))
 							return false;
 					}
 
@@ -325,7 +444,7 @@ namespace Verse.Schemas.JSON
 
 		private void OnError (int position, string message)
 		{
-			ParseError	error;
+			ParserError	error;
 
 			error = this.Error;
 
