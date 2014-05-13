@@ -31,7 +31,7 @@ namespace Verse.Schemas
 
 		public IParser<T> CreateParser ()
 		{
-			return this.CreateParser (Generator.Constructor<T> ());
+			return this.CreateParser (Generator.ConstructorDefault<T> ());
 		}
 
 		#endregion

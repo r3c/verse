@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Verse.Tools;
 
 namespace Verse.ParserDescriptors
@@ -49,12 +50,12 @@ namespace Verse.ParserDescriptors
 
 		protected Func<T, U> GetConstructor<U> ()
 		{
-			object	box;
-			Func<U>	constructor;
+			object			box;
+			Func<U>			constructor;
 
 			if (!this.constructors.TryGetValue (typeof (T), out box))
 			{
-				constructor = Generator.Constructor<U> ();
+				constructor = Generator.ConstructorDefault<U> ();
 
 				return (source) => constructor ();
 			}

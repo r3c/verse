@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using Verse.Tools;
@@ -82,7 +83,7 @@ namespace Verse
 		private bool LinkParser<T> (IParserDescriptor<T> descriptor, Dictionary<Type, object> parents)
 		{
 			Type[]			arguments;
-			ConstructorInfo	constructor;
+			object			assign;
 			TypeFilter		filter;
 			Type			inner;
 			ParameterInfo[]	parameters;
@@ -104,67 +105,50 @@ namespace Verse
 			parents = new Dictionary<Type, object> (parents);
 			parents[type] = descriptor;
 
-			// Check if target type is or implements IEnumerable<> interface
-			if (type.IsGenericType && type.GetGenericTypeDefinition () == typeof (IEnumerable<>))
+			// Target type is an array
+			if (type.IsArray)
 			{
-				arguments = type.GetGenericArguments ();
-				inner = arguments.Length == 1 ? arguments[0] : null;
+				inner = type.GetElementType ();
+				assign = Linker.MakeAssignArray (inner);
+ 
+				return this.LinkParserArray (descriptor, inner, assign, parents);
 			}
-			else
+
+			// Target type implements IEnumerable<> interface
+			filter = new TypeFilter ((t, c) => t.IsGenericType && t.GetGenericTypeDefinition () == typeof (IEnumerable<>));
+
+			foreach (Type iface in type.FindInterfaces (filter, null))
 			{
-				filter = new TypeFilter ((t, c) => t.IsGenericType && t.GetGenericTypeDefinition () == typeof (IEnumerable<>));
-				inner = null;
+				arguments = iface.GetGenericArguments ();
 
-				foreach (Type candidate in type.FindInterfaces (filter, null))
+				// Found interface, inner elements type is "inner"
+				if (arguments.Length == 1)
 				{
-					arguments = candidate.GetGenericArguments ();
+					inner = arguments[0];
 
-					if (arguments.Length == 1)
+					// Search constructor compatible with IEnumerable<>
+					foreach (ConstructorInfo constructor in type.GetConstructors ())
 					{
-						inner = arguments[0];
+						parameters = constructor.GetParameters ();
 
-						break;
+						if (parameters.Length != 1)
+							continue;
+
+						source = parameters[0].ParameterType;
+
+						if (!source.IsGenericType || source.GetGenericTypeDefinition () != typeof (IEnumerable<>))
+							continue;
+
+						arguments = source.GetGenericArguments ();
+
+						if (arguments.Length != 1 || inner != arguments[0])
+							continue;
+
+						assign = Linker.MakeAssignArray (constructor, inner);
+
+						return this.LinkParserArray (descriptor, inner, assign, parents);
 					}
 				}
-			}
-
-			// Target is an IEnumerable<> of element type "inner"
-			if (inner != null)
-			{
-				constructor = null;
-
-				foreach (ConstructorInfo candidate in type.GetConstructors ())
-				{
-					parameters = candidate.GetParameters ();
-
-					if (parameters.Length != 1)
-						continue;
-
-					source = parameters[0].ParameterType;
-
-					if (source.GetGenericTypeDefinition () != typeof (IEnumerable<>))
-						continue;
-
-					arguments = source.GetGenericArguments ();
-
-					if (arguments.Length != 1 || inner != arguments[0])
-						continue;
-
-					constructor = candidate;
-
-					break;
-				}
-
-				if (constructor == null)
-				{
-					this.OnError (type, "can't find compatible constructor");
-
-					return false;
-				}
-
-				// this.LinkElements (decoders, inner, AbstractDecoder<T>.MakeArraySetter (target, inner));
-
-				return false;
 			}
 
 			// Link public readable and writable instance properties
@@ -173,7 +157,9 @@ namespace Verse
 				if (property.GetGetMethod () == null || property.GetSetMethod () == null || property.Attributes.HasFlag (PropertyAttributes.SpecialName))
 					continue;
 
-				if (!this.LinkParserField (descriptor, property.PropertyType, property.Name, Linker.MakeAssign (property), parents))
+				assign = Linker.MakeAssignField (property);
+
+				if (!this.LinkParserField (descriptor, property.PropertyType, property.Name, assign, parents))
 					return false;
 			}
 
@@ -183,7 +169,40 @@ namespace Verse
 				if (field.Attributes.HasFlag (FieldAttributes.SpecialName))
 					continue;
 
-				if (!this.LinkParserField (descriptor, field.FieldType, field.Name, Linker.MakeAssign (field), parents))
+				assign = Linker.MakeAssignField (field);
+
+				if (!this.LinkParserField (descriptor, field.FieldType, field.Name, assign, parents))
+					return false;
+			}
+
+			return true;
+		}
+
+		private bool LinkParserArray<T> (IParserDescriptor<T> descriptor, Type type, object assign, IDictionary<Type, object> parents)
+		{
+			object	recurse;
+			object	result;
+
+			if (parents.TryGetValue (type, out recurse))
+			{
+				Resolver
+					.Method<Func<IParserDescriptor<T>, ParserAssign<T, IEnumerable<object>>, IParserDescriptor<object>, IParserDescriptor<object>>> ((d, a, p) => d.IsArray (a, p), null, new [] {type})
+					.Invoke (descriptor, new [] {assign, recurse});
+			}
+			else
+			{
+				recurse = Resolver
+					.Method<Func<IParserDescriptor<T>, ParserAssign<T, IEnumerable<object>>, IParserDescriptor<object>>> ((d, a) => d.IsArray (a), null, new [] {type})
+					.Invoke (descriptor, new [] {assign});
+
+				result = Resolver
+					.Method<Func<Linker, IParserDescriptor<object>, Dictionary<Type, object>, bool>> ((l, d, p) => l.LinkParser (d, p), null, new [] {type})
+					.Invoke (this, new object[] {recurse, parents});
+
+				if (!(result is bool))
+					throw new InvalidOperationException ("internal error");
+
+				if (!(bool)result)
 					return false;
 			}
 
@@ -235,7 +254,65 @@ namespace Verse
 
 		#region Methods / Private / Static
 
-		private static object MakeAssign (FieldInfo field)
+		/// <summary>
+		/// Generate ParserAssign delegate from IEnumerable to any compatible
+		/// object, using a constructor taking the IEnumerable as its argument.
+		/// </summary>
+		/// <param name="constructor">Compatible constructor</param>
+		/// <param name="inner">Inner elements type</param>
+		/// <returns>ParserAssign delegate</returns>
+		private static object MakeAssignArray (ConstructorInfo constructor, Type inner)
+		{
+			Type			enumerable;
+			ILGenerator		generator;
+			DynamicMethod	method;
+
+			enumerable = typeof (IEnumerable<>).MakeGenericType (inner);
+			method = new DynamicMethod (string.Empty, null, new [] {constructor.DeclaringType.MakeByRefType (), enumerable}, constructor.Module, true);
+
+			generator = method.GetILGenerator ();
+			generator.Emit (OpCodes.Ldarg_0);
+			generator.Emit (OpCodes.Ldarg_1);
+			generator.Emit (OpCodes.Newobj, constructor);
+
+			if (constructor.DeclaringType.IsValueType)
+				generator.Emit (OpCodes.Stobj, constructor.DeclaringType);
+			else
+				generator.Emit (OpCodes.Stind_Ref);
+
+			generator.Emit (OpCodes.Ret);
+
+			return method.CreateDelegate (typeof (ParserAssign<, >).MakeGenericType (constructor.DeclaringType, enumerable));
+		}
+
+		/// <summary>
+		/// Generate ParserAssign delegate from IEnumerable to compatible array
+		/// type, using Linq Enumerable.ToArray conversion.
+		/// </summary>
+		/// <param name="inner">Inner elements type</param>
+		/// <returns>ParserAssign delegate</returns>
+		private static object MakeAssignArray (Type inner)
+		{
+			MethodInfo		converter;
+			Type			enumerable;
+			ILGenerator		generator;
+			DynamicMethod	method;
+
+			converter = Resolver.Method<Func<IEnumerable<object>, object[]>> ((e) => Enumerable.ToArray (e), null, new [] {inner});
+			enumerable = typeof (IEnumerable<>).MakeGenericType (inner);
+			method = new DynamicMethod (string.Empty, null, new [] {inner.MakeArrayType ().MakeByRefType (), enumerable}, converter.Module, true);
+
+			generator = method.GetILGenerator ();
+			generator.Emit (OpCodes.Ldarg_0);
+			generator.Emit (OpCodes.Ldarg_1);
+			generator.Emit (OpCodes.Call, converter);
+			generator.Emit (OpCodes.Stind_Ref);
+			generator.Emit (OpCodes.Ret);
+
+			return method.CreateDelegate (typeof (ParserAssign<, >).MakeGenericType (inner.MakeArrayType (), enumerable));
+		}
+
+		private static object MakeAssignField (FieldInfo field)
 		{
 			ILGenerator		generator;
 			DynamicMethod	method;
@@ -255,7 +332,7 @@ namespace Verse
 			return method.CreateDelegate (typeof (ParserAssign<, >).MakeGenericType (field.DeclaringType, field.FieldType));
 		}
 
-		private static object MakeAssign (PropertyInfo property)
+		private static object MakeAssignField (PropertyInfo property)
 		{
 			ILGenerator		generator;
 			DynamicMethod	method;
