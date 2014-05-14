@@ -11,9 +11,90 @@ namespace Verse.Test
 	public class LinkerTester
 	{
 		[Test]
+		[TestCase (new [] {0, 5, 90, 23, -9, 5.3}, "[0,5,90,23,-9,5.3]")]
+		[TestCase (new [] {27.5, 19}, "[27.5,19]")]
+		public void LinkBuilderArrayFromArray (double[] value, string expected)
+		{
+			IBuilder<double[]>	builder;
+
+			builder = Linker.CreateBuilder (new JSONSchema<double[]> ());
+
+			using (var stream = new MemoryStream ())
+			{
+				Assert.IsTrue (builder.Build (value, stream));
+				CollectionAssert.AreEqual (expected, Encoding.UTF8.GetString (stream.ToArray ()));
+			}
+		}
+
+		[Test]
+		[TestCase (new [] {0, 5, 90, 23, -9, 5.3}, "[0,5,90,23,-9,5.3]")]
+		[TestCase (new [] {27.5, 19}, "[27.5,19]")]
+		public void LinkBuilderArrayFromList (double[] value, string expected)
+		{
+			IBuilder<List<double>>	builder;
+
+			builder = Linker.CreateBuilder (new JSONSchema<List<double>> ());
+
+			using (var stream = new MemoryStream ())
+			{
+				Assert.IsTrue (builder.Build (new List<double> (value), stream));
+				CollectionAssert.AreEqual (expected, Encoding.UTF8.GetString (stream.ToArray ()));
+			}
+		}
+
+		[Test]
+		[TestCase (53, "{\"Field\":53}")]
+		[TestCase ("Black sheep wall", "{\"Field\":\"Black sheep wall\"}")]
+		public void LinkBuilderField<T> (T value, string expected)
+		{
+			IBuilder<FieldContainer<T>>	builder;
+
+			builder = Linker.CreateBuilder (new JSONSchema<FieldContainer<T>> ());
+
+			using (var stream = new MemoryStream ())
+			{
+				Assert.IsTrue (builder.Build (new FieldContainer<T> { Field = value }, stream));
+				Assert.AreEqual (expected, Encoding.UTF8.GetString (stream.ToArray ()));
+			}
+		}
+
+		[Test]
+		[TestCase (53, "{\"Property\":53}")]
+		[TestCase ("Black sheep wall", "{\"Property\":\"Black sheep wall\"}")]
+		public void LinkBuilderProperty<T> (T value, string expected)
+		{
+			IBuilder<PropertyContainer<T>>	builder;
+
+			builder = Linker.CreateBuilder (new JSONSchema<PropertyContainer<T>> ());
+
+			using (var stream = new MemoryStream ())
+			{
+				Assert.IsTrue (builder.Build (new PropertyContainer<T> { Property = value }, stream));
+				Assert.AreEqual (expected, Encoding.UTF8.GetString (stream.ToArray ()));
+			}
+		}
+
+		[Test]
+		public void LinkBuilderRecursive ()
+		{
+			IBuilder<Recursive>		builder;
+			Recursive				value;
+
+			builder = Linker.CreateBuilder (new JSONSchema<Recursive> ());
+
+			using (var stream = new MemoryStream ())
+			{
+				value = new Recursive { r = new Recursive { r = new Recursive { v = 42 }, v = 17 }, v = 3 };
+
+				Assert.IsTrue (builder.Build (value, stream));
+				Assert.AreEqual ("{\"r\":{\"r\":{\"r\":null,\"v\":42},\"v\":17},\"v\":3}", Encoding.UTF8.GetString (stream.ToArray ()));
+			}
+		}
+
+		[Test]
 		[TestCase ("[0, 5, 90, 23, -9, 5.3]", new [] {0, 5, 90, 23, -9, 5.3})]
 		[TestCase ("{\"key1\": 27.5, \"key2\": 19}", new [] {27.5, 19})]
-		public void LinkArrayFromArray (string json, double[] expected)
+		public void LinkParserArrayFromArray (string json, double[] expected)
 		{
 			IParser<double[]>	parser;
 			double[]			value;
@@ -27,7 +108,7 @@ namespace Verse.Test
 		[Test]
 		[TestCase ("[0, 5, 90, 23, -9, 5.3]", new [] {0, 5, 90, 23, -9, 5.3})]
 		[TestCase ("{\"key1\": 27.5, \"key2\": 19}", new [] {27.5, 19})]
-		public void LinkArrayFromList (string json, double[] expected)
+		public void LinkParserArrayFromList (string json, double[] expected)
 		{
 			IParser<List<double>>	parser;
 			List<double>			value;
@@ -41,7 +122,7 @@ namespace Verse.Test
 		[Test]
 		[TestCase ("{\"Field\": 53}", 53)]
 		[TestCase ("{\"Field\": \"Black sheep wall\"}", "Black sheep wall")]
-		public void LinkField<T> (string json, T expected)
+		public void LinkParserField<T> (string json, T expected)
 		{
 			IParser<FieldContainer<T>>	parser;
 			FieldContainer<T>			value;
@@ -55,7 +136,7 @@ namespace Verse.Test
 		[Test]
 		[TestCase ("{\"Property\": 53}", 53)]
 		[TestCase ("{\"Property\": \"Black sheep wall\"}", "Black sheep wall")]
-		public void LinkProperty<T> (string json, T expected)
+		public void LinkParserProperty<T> (string json, T expected)
 		{
 			IParser<PropertyContainer<T>>	parser;
 			PropertyContainer<T>			value;
@@ -67,7 +148,7 @@ namespace Verse.Test
 		}
 
 		[Test]
-		public void LinkRecursive ()
+		public void LinkParserRecursive ()
 		{
 			IParser<Recursive>		parser;
 			Recursive				value;

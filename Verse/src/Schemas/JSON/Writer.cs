@@ -53,7 +53,9 @@ namespace Verse.Schemas.JSON
 
 		public void Write<T> (T source, Container<T, WriterContext, Value> container, WriterContext context)
 		{
-			if (container.items != null)
+			if (source == null)
+				this.WriteValue (new Value { Type = Content.Void }, context);
+			else if (container.items != null)
 				container.items (source, this, context);
 			else if (container.value != null)
 				this.WriteValue (container.value (source), context);

@@ -20,7 +20,7 @@ namespace Verse
 
 		public bool LinkBuilder<T> (IBuilderDescriptor<T> descriptor)
 		{
-			throw new NotImplementedException ();
+			return this.LinkBuilder (descriptor, new Dictionary<Type, object> ());
 		}
 
 		public bool LinkParser<T> (IParserDescriptor<T> descriptor)
@@ -80,6 +80,144 @@ namespace Verse
 
 		#region Methods / Private / Instance
 
+		private bool LinkBuilder<T> (IBuilderDescriptor<T> descriptor, Dictionary<Type, object> parents)
+		{
+			object		access;
+			Type[]		arguments;
+			TypeFilter	filter;
+			Type		inner;
+			Type		type;
+
+			try
+			{
+				descriptor.IsValue ();
+
+				return true;
+			}
+			catch (InvalidCastException) // FIXME: hack
+			{
+			}
+
+			type = typeof (T);
+
+			parents = new Dictionary<Type, object> (parents);
+			parents[type] = descriptor;
+
+			// Target type is an array
+			if (type.IsArray)
+			{
+				inner = type.GetElementType ();
+				access = Linker.MakeAccessArray (inner);
+ 
+				return this.LinkBuilderArray (descriptor, inner, access, parents);
+			}
+
+			// Target type implements IEnumerable<> interface
+			filter = new TypeFilter ((t, c) => t.IsGenericType && t.GetGenericTypeDefinition () == typeof (IEnumerable<>));
+
+			foreach (Type iface in type.FindInterfaces (filter, null))
+			{
+				arguments = iface.GetGenericArguments ();
+
+				// Found interface, inner elements type is "inner"
+				if (arguments.Length == 1)
+				{
+					inner = arguments[0];
+					access = Linker.MakeAccessArray (inner);
+
+					return this.LinkBuilderArray (descriptor, inner, access, parents);
+				}
+			}
+
+			// Link public readable and writable instance properties
+			foreach (PropertyInfo property in type.GetProperties (BindingFlags.Instance | BindingFlags.Public))
+			{
+				if (property.GetGetMethod () == null || property.GetSetMethod () == null || property.Attributes.HasFlag (PropertyAttributes.SpecialName))
+					continue;
+
+				access = Linker.MakeAccessField (property);
+
+				if (!this.LinkBuilderField (descriptor, property.PropertyType, property.Name, access, parents))
+					return false;
+			}
+
+			// Link public instance fields
+			foreach (FieldInfo field in type.GetFields (BindingFlags.Instance | BindingFlags.Public))
+			{
+				if (field.Attributes.HasFlag (FieldAttributes.SpecialName))
+					continue;
+
+				access = Linker.MakeAccessField (field);
+
+				if (!this.LinkBuilderField (descriptor, field.FieldType, field.Name, access, parents))
+					return false;
+			}
+
+			return true;
+		}
+
+		private bool LinkBuilderArray<T> (IBuilderDescriptor<T> descriptor, Type type, object access, IDictionary<Type, object> parents)
+		{
+			object	recurse;
+			object	result;
+
+			if (parents.TryGetValue (type, out recurse))
+			{
+				Resolver
+					.Method<Func<IBuilderDescriptor<T>, Func<T, IEnumerable<object>>, IBuilderDescriptor<object>, IBuilderDescriptor<object>>> ((d, a, p) => d.IsArray (a, p), null, new [] {type})
+					.Invoke (descriptor, new [] {access, recurse});
+			}
+			else
+			{
+				recurse = Resolver
+					.Method<Func<IBuilderDescriptor<T>, Func<T, IEnumerable<object>>, IBuilderDescriptor<object>>> ((d, a) => d.IsArray (a), null, new [] {type})
+					.Invoke (descriptor, new [] {access});
+
+				result = Resolver
+					.Method<Func<Linker, IBuilderDescriptor<object>, Dictionary<Type, object>, bool>> ((l, d, p) => l.LinkBuilder (d, p), null, new [] {type})
+					.Invoke (this, new object[] {recurse, parents});
+
+				if (!(result is bool))
+					throw new InvalidOperationException ("internal error");
+
+				if (!(bool)result)
+					return false;
+			}
+
+			return true;
+		}
+
+		private bool LinkBuilderField<T> (IBuilderDescriptor<T> descriptor, Type type, string name, object access, IDictionary<Type, object> parents)
+		{
+			object	recurse;
+			object	result;
+
+			if (parents.TryGetValue (type, out recurse))
+			{
+				Resolver
+					.Method<Func<IBuilderDescriptor<T>, string, Func<T, object>, IBuilderDescriptor<object>, IBuilderDescriptor<object>>> ((d, n, a, p) => d.HasField (n, a, p), null, new [] {type})
+					.Invoke (descriptor, new object[] {name, access, recurse});
+			}
+			else
+			{
+				recurse = Resolver
+					.Method<Func<IBuilderDescriptor<T>, string, Func<T, object>, IBuilderDescriptor<object>>> ((d, n, a) => d.HasField (n, a), null, new [] {type})
+					.Invoke (descriptor, new object[] {name, access});
+
+				result = Resolver
+					.Method<Func<Linker, IBuilderDescriptor<object>, Dictionary<Type, object>, bool>> ((l, d, p) => l.LinkBuilder (d, p), null, new [] {type})
+					.Invoke (this, new object[] {recurse, parents});
+
+				if (!(result is bool))
+					throw new InvalidOperationException ("internal error");
+
+				if (!(bool)result)
+					return false;
+			}
+
+			return true;
+		}
+
 		private bool LinkParser<T> (IParserDescriptor<T> descriptor, Dictionary<Type, object> parents)
 		{
 			Type[]			arguments;
@@ -92,7 +230,7 @@ namespace Verse
 
 			try
 			{
-				descriptor.IsValue (); 
+				descriptor.IsValue ();
 
 				return true;
 			}
@@ -254,6 +392,52 @@ namespace Verse
 
 		#region Methods / Private / Static
 
+		private static object MakeAccessArray (Type inner)
+		{
+			Type			enumerable;
+			ILGenerator		generator;
+			DynamicMethod	method;
+
+			enumerable = typeof (IEnumerable<>).MakeGenericType (inner);
+			method = new DynamicMethod (string.Empty, enumerable, new [] {enumerable}, inner.Module, true);
+
+			generator = method.GetILGenerator ();
+			generator.Emit (OpCodes.Ldarg_0);
+			generator.Emit (OpCodes.Ret);
+
+			return method.CreateDelegate (typeof (Func<, >).MakeGenericType (enumerable, enumerable));
+		}
+
+		private static object MakeAccessField (FieldInfo field)
+		{
+			ILGenerator		generator;
+			DynamicMethod	method;
+
+			method = new DynamicMethod (string.Empty, field.FieldType, new [] {field.DeclaringType}, field.Module, true);
+
+			generator = method.GetILGenerator ();
+			generator.Emit (OpCodes.Ldarg_0);
+			generator.Emit (OpCodes.Ldfld, field);
+			generator.Emit (OpCodes.Ret);
+
+			return method.CreateDelegate (typeof (Func<, >).MakeGenericType (field.DeclaringType, field.FieldType));
+		}
+
+		private static object MakeAccessField (PropertyInfo property)
+		{
+			ILGenerator		generator;
+			DynamicMethod	method;
+
+			method = new DynamicMethod (string.Empty, property.PropertyType, new [] {property.DeclaringType}, property.Module, true);
+
+			generator = method.GetILGenerator ();
+			generator.Emit (OpCodes.Ldarg_0);
+			generator.Emit (OpCodes.Call, property.GetGetMethod ());
+			generator.Emit (OpCodes.Ret);
+
+			return method.CreateDelegate (typeof (Func<, >).MakeGenericType (property.DeclaringType, property.PropertyType));
+		}
+
 		/// <summary>
 		/// Generate ParserAssign delegate from IEnumerable to any compatible
 		/// object, using a constructor taking the IEnumerable as its argument.
@@ -298,7 +482,7 @@ namespace Verse
 			ILGenerator		generator;
 			DynamicMethod	method;
 
-			converter = Resolver.Method<Func<IEnumerable<object>, object[]>> ((e) => Enumerable.ToArray (e), null, new [] {inner});
+			converter = Resolver.Method<Func<IEnumerable<object>, object[]>> ((e) => e.ToArray (), null, new [] {inner});
 			enumerable = typeof (IEnumerable<>).MakeGenericType (inner);
 			method = new DynamicMethod (string.Empty, null, new [] {inner.MakeArrayType ().MakeByRefType (), enumerable}, converter.Module, true);
 

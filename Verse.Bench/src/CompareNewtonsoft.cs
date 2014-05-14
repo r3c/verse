@@ -223,7 +223,7 @@ namespace Verse.Bench
 			}
 
 			compare = new CompareLogic ();
-			Assert.IsTrue (compare.Compare (instance, reference).AreEqual);
+			CollectionAssert.IsEmpty(compare.Compare (instance, reference).Differences);
 
 			Console.WriteLine ("NewtonSoft: {0}, Verse: {1}", timeNewton, timeVerse);
 		}
