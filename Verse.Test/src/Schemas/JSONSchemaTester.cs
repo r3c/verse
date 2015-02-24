@@ -45,6 +45,8 @@ namespace Verse.Test.Schemas
 		[TestCase (3.5, "3.5")]
 		[TestCase ("I sense a soul in search of answers", "\"I sense a soul in search of answers\"")]
 		[TestCase ("\xFF \u0066 \uB3A8", "\"\\u00FF f \\uB3A8\"")]
+		[TestCase ("\"", "\"\\\"\"")]
+		[TestCase ("\\", "\"\\\\\"")]
 		public void BuildValueNative<T> (T value, string expected)
 		{
 			JSONSchema<T>	schema;
@@ -153,6 +155,8 @@ namespace Verse.Test.Schemas
 		[TestCase ("\"\"", "")]
 		[TestCase ("\"Hello, World!\"", "Hello, World!")]
 		[TestCase ("\"\\u00FF \\u0066 \\uB3A8\"", "\xFF f \uB3A8")]
+		[TestCase ("\"\\\"\"", "\"")]
+		[TestCase ("\"\\\\\"", "\\")]
 		public void ParseValueNative<T> (string json, T expected)
 		{
 			JSONSchema<T>	schema;

@@ -103,7 +103,11 @@ namespace Verse.Schemas.JSON
 
 			foreach (char c in value)
 			{
-				if (c >= ' ' && c < 128)
+				if (c == '"')
+					this.writer.Write ("\\\"");
+				else if (c == '\\')
+					this.writer.Write ("\\\\");
+				else if (c >= ' ' && c < 128)
 					this.writer.Write (c);
 				else
 				{

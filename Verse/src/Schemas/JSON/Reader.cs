@@ -500,6 +500,16 @@ namespace Verse.Schemas.JSON
 
 					return false;
 
+				case (int)'"':
+					character = '"';
+
+					return true;
+
+				case (int)'\\':
+					character = '\\';
+
+					return true;
+
 				case (int)'b':
 					character = '\b';
 
