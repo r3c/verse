@@ -144,7 +144,7 @@ namespace Verse.Bench
 			string					source;
 
 			parser = Linker.CreateParser (new JSONSchema<MyNestedArray> ());
-			source = "{\"children\":[{\"children\":null,\"value\":\"a\"},{\"children\":[{\"children\":null,\"value\":\"b\"},{\"children\":null,\"value\":\"c\"}],\"value\":\"d\"},{\"children\":[],\"value\":\"e\"}],\"value\":\"f\"}";
+			source = "{\"children\":[{\"children\":[],\"value\":\"a\"},{\"children\":[{\"children\":[],\"value\":\"b\"},{\"children\":[],\"value\":\"c\"}],\"value\":\"d\"},{\"children\":[],\"value\":\"e\"}],\"value\":\"f\"}";
 
 			this.BenchParse (parser, source, 10000);
 		}
@@ -182,7 +182,7 @@ namespace Verse.Bench
 				Assert.AreEqual (expected, Encoding.UTF8.GetString (stream.ToArray ()));
 			}
 
-			Console.WriteLine ("NewtonSoft: {0}, Verse: {1}", timeNewton, timeVerse);
+			Console.WriteLine ("[{0}] NewtonSoft: {1}, Verse: {2}", TestContext.CurrentContext.Test.FullName, timeNewton, timeVerse);
 		}
 
 		private void	BenchParse<T> (IParser<T> parser, string source, int count)
@@ -225,28 +225,28 @@ namespace Verse.Bench
 			compare = new CompareLogic ();
 			CollectionAssert.IsEmpty(compare.Compare (instance, reference).Differences);
 
-			Console.WriteLine ("NewtonSoft: {0}, Verse: {1}", timeNewton, timeVerse);
+			Console.WriteLine ("[{0}] NewtonSoft: {1}, Verse: {2}", TestContext.CurrentContext.Test.FullName, timeNewton, timeVerse);
 		}
 
-		private struct	MyFlatStructure
+		private struct MyFlatStructure
 		{
-			public int		lorem;
-			public long		ipsum;
-			public double	sit;
-			public string	amet;
-			public byte		consectetur;
-			public ushort	adipiscing;
-			public char		elit;
-			public float	sed;
-			public string	pulvinar;
-			public uint		fermentum;
-			public short	hendrerit;
+			public int lorem;
+			public long ipsum;
+			public double sit;
+			public string amet;
+			public byte consectetur;
+			public ushort adipiscing;
+			public char elit;
+			public float sed;
+			public string pulvinar;
+			public uint fermentum;
+			public short hendrerit;
 		}
 
-		private class	MyNestedArray
+		private class MyNestedArray
 		{
-			public MyNestedArray[]	children;
-			public string			value;
+			public MyNestedArray[] children;
+			public string value;
 		}
 	}
 }

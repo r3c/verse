@@ -40,13 +40,13 @@ namespace Verse.Schemas.JSON
 
 		#region Attributes
 
-		private T						current;
+		private T current;
 
-		private int						index;
+		private int index;
 
-		private readonly BrowserMove<T>	move;
+		private BrowserMove<T> move;
 
-		private BrowserState			state;
+		private BrowserState state;
 
 		#endregion
 
@@ -65,6 +65,7 @@ namespace Verse.Schemas.JSON
 
 		public void Dispose ()
 		{
+			this.move = null;
 		}
 
 		public bool MoveNext ()
@@ -79,7 +80,7 @@ namespace Verse.Schemas.JSON
 
 		public void Reset ()
 		{
-			throw new NotSupportedException ("can't reset reader browser");
+			throw new NotSupportedException ("can't iterate over array twice");
 		}
 
 		#endregion

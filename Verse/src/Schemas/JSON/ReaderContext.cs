@@ -8,7 +8,7 @@ namespace Verse.Schemas.JSON
 	{
 		#region Properties
 
-		public int	Current
+		public int Current
 		{
 			get
 			{
@@ -16,7 +16,7 @@ namespace Verse.Schemas.JSON
 			}
 		}
 
-		public int	Position
+		public int Position
 		{
 			get
 			{
@@ -28,11 +28,11 @@ namespace Verse.Schemas.JSON
 
 		#region Attributes
 
-		private int			 			current;
+		private int current;
 
-		private int						position;
+		private int position;
 
-		private readonly StreamReader	reader;
+		private readonly StreamReader reader;
 
 		#endregion
 
@@ -60,6 +60,112 @@ namespace Verse.Schemas.JSON
 				++this.position;
 
 			this.current = c;
+		}
+
+		public bool ReadCharacter (out char character)
+		{
+			int nibble;
+			int previous;
+			int value;
+
+			previous = this.current;
+
+			this.Pull ();
+
+			if (previous < 0)
+			{
+				character = default (char);
+
+				return false;
+			}
+
+			if (previous != (int)'\\')
+			{
+				character = (char)previous;
+
+				return true;
+			}
+
+			previous = this.current;
+
+			this.Pull ();
+
+			switch (previous)
+			{
+				case -1:
+					character = default (char);
+
+					return false;
+
+				case (int)'"':
+					character = '"';
+
+					return true;
+
+				case (int)'\\':
+					character = '\\';
+
+					return true;
+
+				case (int)'b':
+					character = '\b';
+
+					return true;
+
+				case (int)'f':
+					character = '\f';
+
+					return true;
+
+				case (int)'n':
+					character = '\n';
+
+					return true;
+
+				case (int)'r':
+					character = '\r';
+
+					return true;
+
+				case (int)'t':
+					character = '\t';
+
+					return true;
+
+				case (int)'u':
+					value = 0;
+
+					for (int i = 0; i < 4; ++i)
+					{
+						previous = this.current;
+
+						this.Pull ();
+
+						if (previous >= (int)'0' && previous <= (int)'9')
+							nibble = previous - (int)'0';
+						else if (previous >= (int)'A' && previous <= (int)'F')
+							nibble = previous - (int)'A' + 10;
+						else if (previous >= (int)'a' && previous <= (int)'f')
+							nibble = previous - (int)'a' + 10;
+						else
+						{
+							character = default (char);
+
+							return false;
+						}
+
+						value = (value << 4) + nibble;
+					}
+
+					character = (char)value;
+
+					return true;
+
+				default:
+					character = (char)previous;
+
+					return true;
+			}
 		}
 
 		#endregion
