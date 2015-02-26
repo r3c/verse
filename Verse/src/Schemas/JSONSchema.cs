@@ -30,15 +30,15 @@ namespace Verse.Schemas
 
 		#region Attributes
 
-		private readonly RecurseBuilderDescriptor<T, WriterContext, Value>	builderDescriptor;
+		private readonly RecurseBuilderDescriptor<T, WriterContext, Value> builderDescriptor;
 
-		private readonly Encoding											encoding;
+		private readonly Encoding encoding;
 
-		private readonly JSON.Decoder										jsonDecoder;
+		private readonly JSON.Decoder jsonDecoder;
 
-		private readonly JSON.Encoder										jsonDncoder;
+		private readonly JSON.Encoder jsonDncoder;
 
-		private readonly RecurseParserDescriptor<T, ReaderContext, Value>	parserDescriptor;
+		private readonly RecurseParserDescriptor<T, ReaderContext, Value> parserDescriptor;
 
 		#endregion
 
@@ -46,8 +46,8 @@ namespace Verse.Schemas
 
 		public JSONSchema (Encoding encoding)
 		{
-			JSON.Decoder	decoder;
-			JSON.Encoder	encoder;
+			JSON.Decoder decoder;
+			JSON.Encoder encoder;
 
 			decoder = new JSON.Decoder ();
 			encoder = new JSON.Encoder ();
@@ -73,9 +73,9 @@ namespace Verse.Schemas
 			return this.builderDescriptor.CreateBuilder (new Writer (this.encoding));
 		}
 
-		public override IParser<T> CreateParser (Func<T> constructor)
+		public override IParser<T> CreateParser ()
 		{
-			return this.parserDescriptor.CreateParser (constructor, new Reader (this.encoding));
+			return this.parserDescriptor.CreateParser (new Reader (this.encoding));
 		}
 
 		public void SetDecoder<U> (Converter<Value, U> converter)

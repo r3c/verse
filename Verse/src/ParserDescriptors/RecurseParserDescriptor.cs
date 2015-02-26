@@ -10,9 +10,9 @@ namespace Verse.ParserDescriptors
 	{
 		#region Attributes
 
-		private readonly Container<T, C, V>	container;
+		private readonly Container<T, C, V> container;
 
-		private readonly IDecoder<V>		decoder;
+		private readonly IDecoder<V> decoder;
 
 		#endregion
 
@@ -28,14 +28,14 @@ namespace Verse.ParserDescriptors
 
 		#region Methods / Public
 
-		public IParser<T> CreateParser (Func<T> constructor, IReader<C, V> reader)
+		public IParser<T> CreateParser (IReader<C, V> reader)
 		{
-			return new Parser<T, C, V> (constructor, this.container, reader);
+			return new Parser<T, C, V> (this.container, reader);
 		}
 
 		public override IParserDescriptor<U> HasField<U> (string name, ParserAssign<T, U> assign, IParserDescriptor<U> parent)
 		{
-			RecurseParserDescriptor<U, C, V>	descriptor;
+			RecurseParserDescriptor<U, C, V> descriptor;
 
 			descriptor = parent as RecurseParserDescriptor<U, C, V>;
 
@@ -52,20 +52,20 @@ namespace Verse.ParserDescriptors
 
 		public override IParserDescriptor<T> HasField (string name)
 		{
-			RecurseParserDescriptor<T, C, V>	descriptor;
-			Container<T, C, V>					recurse;
+			RecurseParserDescriptor<T, C, V> descriptor;
+			Container<T, C, V> recurse;
 
 			descriptor = new RecurseParserDescriptor<T, C, V> (this.decoder);
 			recurse = descriptor.container;
 
-			this.Connect (name, (ref T target, IReader<C, V> reader, C context) => reader.Read (ref target, recurse, context));
+			this.Connect (name, (ref T target, IReader<C, V> reader, C context) => reader.ReadValue (ref target, recurse, context));
 
 			return descriptor;
 		}
 
 		public override IParserDescriptor<U> IsArray<U> (ParserAssign<T, IEnumerable<U>> assign, IParserDescriptor<U> parent)
 		{
-			RecurseParserDescriptor<U, C, V>	descriptor;
+			RecurseParserDescriptor<U, C, V> descriptor;
 
 			descriptor = parent as RecurseParserDescriptor<U, C, V>;
 
@@ -82,7 +82,7 @@ namespace Verse.ParserDescriptors
 
 		public override void IsValue<U> (ParserAssign<T, U> assign)
 		{
-			Converter<V, U>	convert;
+			Converter<V, U> convert;
 
 			convert = this.decoder.Get<U> ();
 
@@ -95,7 +95,7 @@ namespace Verse.ParserDescriptors
 
 		private void Connect (string name, Follow<T, C, V> enter)
 		{
-			BranchNode<T, C, V>	next;
+			BranchNode<T, C, V> next;
 
 			next = this.container.fields;
 
@@ -107,8 +107,8 @@ namespace Verse.ParserDescriptors
 
 		private IParserDescriptor<U> HasField<U> (string name, ParserAssign<T, U> assign, RecurseParserDescriptor<U, C, V> descriptor)
 		{
-			Func<T, U>			constructor;
-			Container<U, C, V>	recurse;
+			Func<T, U> constructor;
+			Container<U, C, V> recurse;
 
 			constructor = this.GetConstructor<U> ();
 			recurse = descriptor.container;
@@ -119,7 +119,7 @@ namespace Verse.ParserDescriptors
 
 				inner = constructor (target);
 
-				if (!reader.Read (ref inner, recurse, context))
+				if (!reader.ReadValue (ref inner, recurse, context))
 					return false;
 
 				assign (ref target, inner);
@@ -132,8 +132,8 @@ namespace Verse.ParserDescriptors
 
 		private IParserDescriptor<U> IsArray<U> (ParserAssign<T, IEnumerable<U>> assign, RecurseParserDescriptor<U, C, V> descriptor)
 		{
-			Func<T, U>			constructor;
-			Container<U, C, V>	recurse;
+			Func<T, U> constructor;
+			Container<U, C, V> recurse;
 
 			if (this.container.items != null)
 				throw new InvalidOperationException ("can't declare items twice on same descriptor");
@@ -147,7 +147,7 @@ namespace Verse.ParserDescriptors
 				T			source;
 
 				source = target;
-				browser = reader.ReadItems (() => constructor (source), recurse, context);
+				browser = reader.ReadArray (() => constructor (source), recurse, context);
 				assign (ref target, new Walker<U> (browser));
 
 				while (browser.MoveNext ())

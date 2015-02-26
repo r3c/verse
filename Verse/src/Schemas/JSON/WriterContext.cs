@@ -74,26 +74,11 @@ namespace Verse.Schemas.JSON
 			this.writer.Write (']');
 		}
 
-		public void Boolean (bool value)
-		{
-			this.writer.Write (value ? "true" : "false");
-		}
-
 		public void Key (string key)
 		{
 			this.String (key);
 
 			this.writer.Write (':');
-		}
-
-		public void Null ()
-		{
-			this.writer.Write ("null");
-		}
-
-		public void Number (double value)
-		{
-			this.writer.Write (value.ToString (CultureInfo.InvariantCulture));
 		}
 
 		public void Flush ()
@@ -135,6 +120,32 @@ namespace Verse.Schemas.JSON
 			}
 
 			this.writer.Write ('"');
+		}
+
+		public void Value (Value value)
+		{
+			switch (value.Type)
+			{
+				case Content.Boolean:
+					this.writer.Write (value.Boolean ? "true" : "false");
+
+					break;
+
+				case Content.Number:
+					this.writer.Write (value.Number.ToString (CultureInfo.InvariantCulture));
+
+					break;
+
+				case Content.String:
+					this.String (value.String);
+
+					break;
+
+				default:
+					this.writer.Write ("null");
+
+					break;
+			}
 		}
 
 		#endregion

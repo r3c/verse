@@ -6,13 +6,13 @@ namespace Verse
 	{
 		#region Events
 
-		event ParserError	Error;
+		event ParserError Error;
 
 		#endregion
 
 		#region Methods
 
-		bool Parse (Stream input, out T output);
+		bool Parse (Stream input, ref T output);
 
 		#endregion
 	}

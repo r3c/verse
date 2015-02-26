@@ -94,10 +94,10 @@ namespace Verse.Test.Schemas
 		[TestCase ("fail", 3)]
 		public void ParseInvalidStream (string json, int expected)
 		{
-			IParser<string>		parser;
-			int					position;
-			JSONSchema<string>	schema;
-			string				value;
+			IParser<string> parser;
+			int position;
+			JSONSchema<string> schema;
+			string value;
 
 			schema = new JSONSchema<string> ();
 			schema.ParserDescriptor.IsValue ();
@@ -107,7 +107,9 @@ namespace Verse.Test.Schemas
 			parser = schema.CreateParser ();
 			parser.Error += (p, m) => position = p;
 
-			Assert.IsFalse (parser.Parse (new MemoryStream (Encoding.UTF8.GetBytes (json)), out value));
+			value = string.Empty;
+
+			Assert.IsFalse (parser.Parse (new MemoryStream (Encoding.UTF8.GetBytes (json)), ref value));
 			Assert.AreEqual (expected, position);
 		}
 
@@ -118,17 +120,18 @@ namespace Verse.Test.Schemas
 		[TestCase ("{\"key1\": 27.5, \"key2\": 19}", new [] {27.5, 19})]
 		public void ParseItems (string json, double[] expected)
 		{
-			IParser<double[]>		parser;
-			double[]				result;
-			JSONSchema<double[]>	schema;
+			IParser<double[]> parser;
+			JSONSchema<double[]> schema;
+			double[] value;
 
 			schema = new JSONSchema<double[]> ();
-			schema.ParserDescriptor.IsArray ((ref double[] target, IEnumerable<double> value) => target = value.ToArray ()).IsValue ();
+			schema.ParserDescriptor.IsArray ((ref double[] target, IEnumerable<double> items) => target = items.ToArray ()).IsValue ();
 
 			parser = schema.CreateParser ();
+			value = new double[0];
 
-			Assert.IsTrue (parser.Parse (new MemoryStream (Encoding.UTF8.GetBytes (json)), out result));
-			CollectionAssert.AreEqual (expected, result);
+			Assert.IsTrue (parser.Parse (new MemoryStream (Encoding.UTF8.GetBytes (json)), ref value));
+			CollectionAssert.AreEqual (expected, value);
 		}
 
 		[Test]
@@ -136,7 +139,7 @@ namespace Verse.Test.Schemas
 		[TestCase ("\"c566a1c7-d89e-4e3f-8c5f-d4bcd0b82025\"", "c566a1c7-d89e-4e3f-8c5f-d4bcd0b82025")]
 		public void ParseValueCustom (string json, string expected)
 		{
-			JSONSchema<Guid>	schema;
+			JSONSchema<Guid> schema;
 
 			schema = new JSONSchema<Guid> ();
 			schema.SetDecoder ((v) => Guid.Parse (v.String));
@@ -159,7 +162,7 @@ namespace Verse.Test.Schemas
 		[TestCase ("\"\\\\\"", "\\")]
 		public void ParseValueNative<T> (string json, T expected)
 		{
-			JSONSchema<T>	schema;
+			JSONSchema<T> schema;
 
 			schema = new JSONSchema<T> ();
 			schema.ParserDescriptor.IsValue ();
@@ -170,10 +173,10 @@ namespace Verse.Test.Schemas
 		[Test]
 		public void ParseRecursiveSchema ()
 		{
-			IParserDescriptor<RecursiveEntity>	descriptor;
-			IParser<RecursiveEntity>			parser;
-			JSONSchema<RecursiveEntity>			schema;
-			RecursiveEntity						value;
+			IParserDescriptor<RecursiveEntity> descriptor;
+			IParser<RecursiveEntity> parser;
+			JSONSchema<RecursiveEntity> schema;
+			RecursiveEntity value;
 
 			schema = new JSONSchema<RecursiveEntity> ();
 
@@ -182,8 +185,9 @@ namespace Verse.Test.Schemas
 			descriptor.HasField ("v", (ref RecursiveEntity r, int v) => r.value = v).IsValue ();
 
 			parser = schema.CreateParser ();
+			value = new RecursiveEntity ();
 
-			Assert.IsTrue (parser.Parse (new MemoryStream (Encoding.UTF8.GetBytes ("{\"f\": {\"f\": {\"v\": 42}, \"v\": 17}, \"v\": 3}")), out value));
+			Assert.IsTrue (parser.Parse (new MemoryStream (Encoding.UTF8.GetBytes ("{\"f\": {\"f\": {\"v\": 42}, \"v\": 17}, \"v\": 3}")), ref value));
 
 			Assert.AreEqual (42, value.field.field.value);
 			Assert.AreEqual (17, value.field.value);
@@ -192,7 +196,7 @@ namespace Verse.Test.Schemas
 
 		private void AssertBuildAndEqual<T> (ISchema<T> schema, T value, string expected)
 		{
-			IBuilder<T>	builder;
+			IBuilder<T> builder;
 
 			builder = schema.CreateBuilder ();
 
@@ -205,19 +209,20 @@ namespace Verse.Test.Schemas
 
 		private void AssertParseAndEqual<T> (ISchema<T> schema, string json, T expected)
 		{
-			IParser<T>	parser;
-			T			value;
+			IParser<T> parser;
+			T value;
 
 			parser = schema.CreateParser ();
+			value = default (T);
 
-			Assert.IsTrue (parser.Parse (new MemoryStream (Encoding.UTF8.GetBytes (json)), out value));
+			Assert.IsTrue (parser.Parse (new MemoryStream (Encoding.UTF8.GetBytes (json)), ref value));
 			Assert.AreEqual (expected, value);
 		}
 
 		private class RecursiveEntity
 		{
-			public RecursiveEntity	field;
-			public int				value;
+			public RecursiveEntity field;
+			public int value;
 		}
 	}
 }

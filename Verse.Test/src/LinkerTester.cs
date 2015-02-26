@@ -15,7 +15,7 @@ namespace Verse.Test
 		[TestCase (new [] {27.5, 19}, "[27.5,19]")]
 		public void LinkBuilderArrayFromArray (double[] value, string expected)
 		{
-			IBuilder<double[]>	builder;
+			IBuilder<double[]> builder;
 
 			builder = Linker.CreateBuilder (new JSONSchema<double[]> ());
 
@@ -31,7 +31,7 @@ namespace Verse.Test
 		[TestCase (new [] {27.5, 19}, "[27.5,19]")]
 		public void LinkBuilderArrayFromList (double[] value, string expected)
 		{
-			IBuilder<List<double>>	builder;
+			IBuilder<List<double>> builder;
 
 			builder = Linker.CreateBuilder (new JSONSchema<List<double>> ());
 
@@ -47,7 +47,7 @@ namespace Verse.Test
 		[TestCase ("Black sheep wall", "{\"Field\":\"Black sheep wall\"}")]
 		public void LinkBuilderField<T> (T value, string expected)
 		{
-			IBuilder<FieldContainer<T>>	builder;
+			IBuilder<FieldContainer<T>> builder;
 
 			builder = Linker.CreateBuilder (new JSONSchema<FieldContainer<T>> ());
 
@@ -63,7 +63,7 @@ namespace Verse.Test
 		[TestCase ("Black sheep wall", "{\"Property\":\"Black sheep wall\"}")]
 		public void LinkBuilderProperty<T> (T value, string expected)
 		{
-			IBuilder<PropertyContainer<T>>	builder;
+			IBuilder<PropertyContainer<T>> builder;
 
 			builder = Linker.CreateBuilder (new JSONSchema<PropertyContainer<T>> ());
 
@@ -77,8 +77,8 @@ namespace Verse.Test
 		[Test]
 		public void LinkBuilderRecursive ()
 		{
-			IBuilder<Recursive>		builder;
-			Recursive				value;
+			IBuilder<Recursive> builder;
+			Recursive value;
 
 			builder = Linker.CreateBuilder (new JSONSchema<Recursive> ());
 
@@ -96,12 +96,13 @@ namespace Verse.Test
 		[TestCase ("{\"key1\": 27.5, \"key2\": 19}", new [] {27.5, 19})]
 		public void LinkParserArrayFromArray (string json, double[] expected)
 		{
-			IParser<double[]>	parser;
-			double[]			value;
+			IParser<double[]> parser;
+			double[] value;
 
 			parser = Linker.CreateParser (new JSONSchema<double[]> ());
+			value = new double[0];
 
-			Assert.IsTrue (parser.Parse (new MemoryStream (Encoding.UTF8.GetBytes (json)), out value));
+			Assert.IsTrue (parser.Parse (new MemoryStream (Encoding.UTF8.GetBytes (json)), ref value));
 			CollectionAssert.AreEqual (expected, value);
 		}
 
@@ -110,12 +111,13 @@ namespace Verse.Test
 		[TestCase ("{\"key1\": 27.5, \"key2\": 19}", new [] {27.5, 19})]
 		public void LinkParserArrayFromList (string json, double[] expected)
 		{
-			IParser<List<double>>	parser;
-			List<double>			value;
+			IParser<List<double>> parser;
+			List<double> value;
 
 			parser = Linker.CreateParser (new JSONSchema<List<double>> ());
+			value = new List<double> ();
 
-			Assert.IsTrue (parser.Parse (new MemoryStream (Encoding.UTF8.GetBytes (json)), out value));
+			Assert.IsTrue (parser.Parse (new MemoryStream (Encoding.UTF8.GetBytes (json)), ref value));
 			CollectionAssert.AreEqual (expected, value);
 		}
 
@@ -124,12 +126,13 @@ namespace Verse.Test
 		[TestCase ("{\"Field\": \"Black sheep wall\"}", "Black sheep wall")]
 		public void LinkParserField<T> (string json, T expected)
 		{
-			IParser<FieldContainer<T>>	parser;
-			FieldContainer<T>			value;
+			IParser<FieldContainer<T>> parser;
+			FieldContainer<T> value;
 
 			parser = Linker.CreateParser (new JSONSchema<FieldContainer<T>> ());
+			value = new FieldContainer<T> ();
 
-			Assert.IsTrue (parser.Parse (new MemoryStream (Encoding.UTF8.GetBytes (json)), out value));
+			Assert.IsTrue (parser.Parse (new MemoryStream (Encoding.UTF8.GetBytes (json)), ref value));
 			Assert.AreEqual (expected, value.Field);
 		}
 
@@ -138,24 +141,26 @@ namespace Verse.Test
 		[TestCase ("{\"Property\": \"Black sheep wall\"}", "Black sheep wall")]
 		public void LinkParserProperty<T> (string json, T expected)
 		{
-			IParser<PropertyContainer<T>>	parser;
-			PropertyContainer<T>			value;
+			IParser<PropertyContainer<T>> parser;
+			PropertyContainer<T> value;
 
 			parser = Linker.CreateParser (new JSONSchema<PropertyContainer<T>> ());
+			value = new PropertyContainer<T> ();
 
-			Assert.IsTrue (parser.Parse (new MemoryStream (Encoding.UTF8.GetBytes (json)), out value));
+			Assert.IsTrue (parser.Parse (new MemoryStream (Encoding.UTF8.GetBytes (json)), ref value));
 			Assert.AreEqual (expected, value.Property);
 		}
 
 		[Test]
 		public void LinkParserRecursive ()
 		{
-			IParser<Recursive>		parser;
-			Recursive				value;
+			IParser<Recursive> parser;
+			Recursive value;
 
 			parser = Linker.CreateParser (new JSONSchema<Recursive> ());
+			value = new Recursive ();
 
-			Assert.IsTrue (parser.Parse (new MemoryStream (Encoding.UTF8.GetBytes ("{\"r\": {\"r\": {\"v\": 42}, \"v\": 17}, \"v\": 3}")), out value));
+			Assert.IsTrue (parser.Parse (new MemoryStream (Encoding.UTF8.GetBytes ("{\"r\": {\"r\": {\"v\": 42}, \"v\": 17}, \"v\": 3}")), ref value));
 
 			Assert.AreEqual (42, value.r.r.v);
 			Assert.AreEqual (17, value.r.v);
@@ -164,12 +169,12 @@ namespace Verse.Test
 
 		class FieldContainer<T>
 		{
-			public T	Field = default (T);
+			public T Field = default (T);
 		}
 
 		class PropertyContainer<T>
 		{
-			public T	Property
+			public T Property
 			{
 				get;
 				set;
@@ -178,8 +183,8 @@ namespace Verse.Test
 
 		class Recursive
 		{
-			public Recursive	r = null;
-			public int			v = 0;
+			public Recursive r = null;
+			public int v = 0;
 		}
 	}
 }

@@ -19,21 +19,21 @@ namespace Verse.ParserDescriptors.Recurse.Nodes
 
 		#region Attributes / Instance
 
-		public ParserAssign<T, V>						assign = null;
+		public ParserAssign<T, V> assign = null;
 
-		public BranchNode<T, C, V>[]					branchASCII = null;
+		public BranchNode<T, C, V>[] branchASCII = null;
 
-		public Dictionary<char, BranchNode<T, C, V>>	branchOther = null;
+		public Dictionary<char, BranchNode<T, C, V>> branchOther = null;
 
-		public Follow<T, C, V>							enter = null;
+		public Follow<T, C, V> enter = null;
 
 		#endregion
 
 		#region Attributes / Static
 
-		private static readonly Container<T, C, V>	blank = new Container<T, C, V> ();
+		private static readonly Container<T, C, V> blank = new Container<T, C, V> ();
 
-		private static readonly INode<T, C, V>		empty = new EmptyNode<T, C, V> ();
+		private static readonly INode<T, C, V> empty = new EmptyNode<T, C, V> ();
 
 		#endregion
 
@@ -47,7 +47,7 @@ namespace Verse.ParserDescriptors.Recurse.Nodes
 
 		public BranchNode<T, C, V> Connect (char c)
 		{
-			BranchNode<T, C, V>	next;
+			BranchNode<T, C, V> next;
 
 			if (c < 128)
 			{
@@ -84,12 +84,12 @@ namespace Verse.ParserDescriptors.Recurse.Nodes
 			if (this.enter != null)
 				return this.enter (ref target, reader, context);
 
-			return reader.Read (ref target, BranchNode<T, C, V>.blank, context);
+			return reader.ReadValue (ref target, BranchNode<T, C, V>.blank, context);
 		}
 
 		public INode<T, C, V> Follow (char c)
 		{
-			BranchNode<T, C, V>	next;
+			BranchNode<T, C, V> next;
 
 			if (c < 128)
 			{

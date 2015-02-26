@@ -1,5 +1,4 @@
 using System;
-using Verse.Tools;
 
 namespace Verse.Schemas
 {
@@ -7,12 +6,12 @@ namespace Verse.Schemas
 	{
 		#region Properties
 
-		public abstract IBuilderDescriptor<T>	BuilderDescriptor
+		public abstract IBuilderDescriptor<T> BuilderDescriptor
 		{
 			get;
 		}
 
-		public abstract IParserDescriptor<T>	ParserDescriptor
+		public abstract IParserDescriptor<T> ParserDescriptor
 		{
 			get;
 		}
@@ -23,16 +22,7 @@ namespace Verse.Schemas
 
 		public abstract IBuilder<T>	CreateBuilder ();
 
-		public abstract IParser<T>	CreateParser (Func<T> constructor);
-
-		#endregion
-
-		#region Methods / Public
-
-		public IParser<T> CreateParser ()
-		{
-			return this.CreateParser (Generator.ConstructorDefault<T> ());
-		}
+		public abstract IParser<T>	CreateParser ();
 
 		#endregion
 	}

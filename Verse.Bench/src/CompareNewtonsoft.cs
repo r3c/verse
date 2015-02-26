@@ -17,8 +17,8 @@ namespace Verse.Bench
 		[Test]
 		public void	BuildFlatStructure ()
 		{
-			IBuilder<MyFlatStructure>	builder;
-			MyFlatStructure				instance;
+			IBuilder<MyFlatStructure> builder;
+			MyFlatStructure instance;
 
 			builder = Linker.CreateBuilder (new JSONSchema<MyFlatStructure> ());
 
@@ -43,8 +43,8 @@ namespace Verse.Bench
 		[Test]
 		public void	BuildNestedArray ()
 		{
-			IBuilder<MyNestedArray>	builder;
-			MyNestedArray			instance;
+			IBuilder<MyNestedArray> builder;
+			MyNestedArray instance;
 
 			builder = Linker.CreateBuilder (new JSONSchema<MyNestedArray> ());
 
@@ -89,13 +89,13 @@ namespace Verse.Bench
 		[Test]
 		public void	ParseFlatStructure ()
 		{
-			IParser<MyFlatStructure>	parser;
-			string						source;
+			IParser<MyFlatStructure> parser;
+			string source;
 
 			parser = Linker.CreateParser (new JSONSchema<MyFlatStructure> ());
 			source = "{\"lorem\":0,\"ipsum\":65464658634633,\"sit\":1.1,\"amet\":\"Hello, World!\",\"consectetur\":255,\"adipiscing\":64,\"elit\":\"z\",\"sed\":53.25,\"pulvinar\":\"I sense a soul in search of answers\",\"fermentum\":6553,\"hendrerit\":-32768}";
 
-			this.BenchParse (parser, source, 10000);
+			this.BenchParse (parser, () => new MyFlatStructure (), source, 10000);
 		}
 
 		[Test]
@@ -105,10 +105,10 @@ namespace Verse.Bench
 		[TestCase (100000, 1)]
 		public void ParseLargeArray (int length, int count)
 		{
-			StringBuilder	builder;
-			IParser<long[]>	parser;
-			Random			random;
-			ISchema<long[]>	schema;
+			StringBuilder builder;
+			IParser<long[]> parser;
+			Random random;
+			ISchema<long[]> schema;
 
 			builder = new StringBuilder ();
 			random = new Random ();
@@ -134,27 +134,27 @@ namespace Verse.Bench
 			schema.ParserDescriptor.IsArray ((ref long[] target, IEnumerable<long> value) => target = value.ToArray ()).IsValue ();
 			parser = schema.CreateParser ();
 
-			this.BenchParse (parser, builder.ToString (), count);
+			this.BenchParse (parser, () => null, builder.ToString (), count);
 		}
 
 		[Test]
 		public void	ParseNestedArray ()
 		{
-			IParser<MyNestedArray>	parser;
-			string					source;
+			IParser<MyNestedArray> parser;
+			string source;
 
 			parser = Linker.CreateParser (new JSONSchema<MyNestedArray> ());
 			source = "{\"children\":[{\"children\":[],\"value\":\"a\"},{\"children\":[{\"children\":[],\"value\":\"b\"},{\"children\":[],\"value\":\"c\"}],\"value\":\"d\"},{\"children\":[],\"value\":\"e\"}],\"value\":\"f\"}";
 
-			this.BenchParse (parser, source, 10000);
+			this.BenchParse (parser, () => new MyNestedArray (), source, 10000);
 		}
 
-		private void	BenchBuild<T> (IBuilder<T> builder, T instance, int count)
+		private void BenchBuild<T> (IBuilder<T> builder, T instance, int count)
 		{
-			string			expected;
-			TimeSpan		timeNewton;
-			TimeSpan		timeVerse;
-			Stopwatch		watch;
+			string expected;
+			TimeSpan timeNewton;
+			TimeSpan timeVerse;
+			Stopwatch watch;
 
 			expected = JsonConvert.SerializeObject (instance);
 			watch = Stopwatch.StartNew ();
@@ -183,17 +183,20 @@ namespace Verse.Bench
 			}
 
 			Console.WriteLine ("[{0}] NewtonSoft: {1}, Verse: {2}", TestContext.CurrentContext.Test.FullName, timeNewton, timeVerse);
+
+#if DEBUG
+			Assert.Inconclusive ("Library should be compiled in Release mode before benching");
+#endif
 		}
 
-		private void	BenchParse<T> (IParser<T> parser, string source, int count)
+		private void BenchParse<T> (IParser<T> parser, Func<T> constructor, string source, int count)
 		{
-			byte[]			buffer;
-			CompareLogic	compare;
-			T				instance;
-			T				reference;
-			TimeSpan		timeNewton;
-			TimeSpan		timeVerse;
-			Stopwatch		watch;
+			byte[] buffer;
+			T instance;
+			T reference;
+			TimeSpan timeNewton;
+			TimeSpan timeVerse;
+			Stopwatch watch;
 
 			reference = JsonConvert.DeserializeObject<T> (source);
 			buffer = Encoding.UTF8.GetBytes (source);
@@ -201,7 +204,9 @@ namespace Verse.Bench
 			watch = Stopwatch.StartNew ();
 
 			for (int i = count; i-- > 0; )
+			{
 				Assert.NotNull (JsonConvert.DeserializeObject<T> (source));
+			}
 
 			timeNewton = watch.Elapsed;
 
@@ -211,7 +216,9 @@ namespace Verse.Bench
 			{
 				using (MemoryStream stream = new MemoryStream (buffer))
 				{
-					Assert.IsTrue (parser.Parse (stream, out instance));
+					instance = constructor ();
+
+					Assert.IsTrue (parser.Parse (stream, ref instance));
 				}
 			}
 
@@ -219,13 +226,18 @@ namespace Verse.Bench
 
 			using (MemoryStream stream = new MemoryStream (buffer))
 			{
-				Assert.IsTrue (parser.Parse (stream, out instance));
+				instance = constructor ();
+
+				Assert.IsTrue (parser.Parse (stream, ref instance));
 			}
 
-			compare = new CompareLogic ();
-			CollectionAssert.IsEmpty(compare.Compare (instance, reference).Differences);
+			CollectionAssert.IsEmpty(new CompareLogic ().Compare (instance, reference).Differences);
 
 			Console.WriteLine ("[{0}] NewtonSoft: {1}, Verse: {2}", TestContext.CurrentContext.Test.FullName, timeNewton, timeVerse);
+
+#if DEBUG
+			Assert.Inconclusive ("Library should be compiled in Release mode before benching");
+#endif
 		}
 
 		private struct MyFlatStructure

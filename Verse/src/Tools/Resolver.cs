@@ -10,9 +10,9 @@ namespace Verse.Tools
 
 		public static MethodInfo Method<T> (Expression<T> lambda, Type[] callerParameters, Type[] methodParameters)
 		{
-			MethodCallExpression	expression;
-			MethodInfo				method;
-			Type					type;
+			MethodCallExpression expression;
+			MethodInfo method;
+			Type type;
 
 			expression = lambda.Body as MethodCallExpression;
 

@@ -7,15 +7,15 @@ namespace Verse.BuilderDescriptors.Recurse
 	{
 		#region Events
 
-		public event BuilderError	Error;
+		public event BuilderError Error;
 
 		#endregion
 
 		#region Attributes
 
-		private readonly Container<T, C, V>	container;
+		private readonly Container<T, C, V> container;
 
-		private readonly IWriter<C, V>		writer;
+		private readonly IWriter<C, V> writer;
 
 		#endregion
 
@@ -35,14 +35,14 @@ namespace Verse.BuilderDescriptors.Recurse
 
 		public bool Build (T input, Stream output)
 		{
-			C	context;
+			C context;
 
 			if (!this.writer.Start (output, out context))
 				return false;
 
 			try
 			{
-				this.writer.Write (input, this.container, context);
+				this.writer.WriteValue (input, this.container, context);
 			}
 			finally
 			{
@@ -58,7 +58,7 @@ namespace Verse.BuilderDescriptors.Recurse
 
 		private void OnError (int position, string message)
 		{
-			BuilderError	error;
+			BuilderError error;
 
 			error = this.Error;
 

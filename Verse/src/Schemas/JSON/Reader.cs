@@ -31,7 +31,7 @@ namespace Verse.Schemas.JSON
 
 		#region Methods / Public
 
-		public IBrowser<T> ReadItems<T> (Func<T> constructor, Container<T, ReaderContext, Value> container, ReaderContext context)
+		public IBrowser<T> ReadArray<T> (Func<T> constructor, Container<T, ReaderContext, Value> container, ReaderContext context)
 		{
 			char ignore;
 			BrowserMove<T> move;
@@ -64,7 +64,7 @@ namespace Verse.Schemas.JSON
 						}
 
 						// Read array value
-						if (!this.Read (ref current, container, context))
+						if (!this.ReadValue (ref current, container, context))
 							return BrowserState.Failure;
 
 						return BrowserState.Continue;
@@ -123,7 +123,7 @@ namespace Verse.Schemas.JSON
 						this.SkipBlank (context);
 
 						// Read array value
-						if (!this.Read (ref current, container, context))
+						if (!this.ReadValue (ref current, container, context))
 							return BrowserState.Failure;
 
 						return BrowserState.Continue;
@@ -136,7 +136,7 @@ namespace Verse.Schemas.JSON
 					{
 						current = default (T);
 
-						if (!this.Read (ref current, container, context))
+						if (!this.ReadValue (ref current, container, context))
 							return BrowserState.Failure;
 
 						return BrowserState.Success;
@@ -148,7 +148,7 @@ namespace Verse.Schemas.JSON
 			return new Browser<T> (move);
 		}
 
-		public bool Read<T> (ref T target, Container<T, ReaderContext, Value> container, ReaderContext context)
+		public bool ReadValue<T> (ref T target, Container<T, ReaderContext, Value> container, ReaderContext context)
 		{
 			StringBuilder buffer;
 			char current;

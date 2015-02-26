@@ -5,7 +5,7 @@ namespace Verse.ParserDescriptors.Recurse.Nodes
 	{
 		#region Properties
 
-		public bool	CanAssign
+		public bool CanAssign
 		{
 			get
 			{
@@ -17,7 +17,7 @@ namespace Verse.ParserDescriptors.Recurse.Nodes
 
 		#region Attributes
 
-		private static readonly Container<T, C, V>	blank = new Container<T, C, V> ();
+		private static readonly Container<T, C, V> blank = new Container<T, C, V> ();
 
 		#endregion
 
@@ -29,7 +29,7 @@ namespace Verse.ParserDescriptors.Recurse.Nodes
 
 		public bool Enter (ref T target, IReader<C, V> reader, C context)
 		{
-			return reader.Read (ref target, EmptyNode<T, C, V>.blank, context);
+			return reader.ReadValue (ref target, EmptyNode<T, C, V>.blank, context);
 		}
 
 		public INode<T, C, V> Follow (char c)

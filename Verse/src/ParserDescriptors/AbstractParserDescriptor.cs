@@ -50,12 +50,12 @@ namespace Verse.ParserDescriptors
 
 		protected Func<T, U> GetConstructor<U> ()
 		{
-			object			box;
-			Func<U>			constructor;
+			object box;
+			Func<U> constructor;
 
 			if (!this.constructors.TryGetValue (typeof (T), out box))
 			{
-				constructor = Generator.ConstructorDefault<U> ();
+				constructor = Generator.Constructor<U> ();
 
 				return (source) => constructor ();
 			}

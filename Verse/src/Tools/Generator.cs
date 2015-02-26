@@ -8,40 +8,15 @@ namespace Verse.Tools
 	{
 		#region Attributes
 
-		private static readonly ParameterModifier[]	emptyModifiers = new ParameterModifier[0];
+		private static readonly ParameterModifier[] emptyModifiers = new ParameterModifier[0];
 
-		private static readonly OpCode[]			opCodeLdargs = new [] {OpCodes.Ldarg_0, OpCodes.Ldarg_1, OpCodes.Ldarg_2, OpCodes.Ldarg_3};
+		private static readonly OpCode[] opCodeLdargs = new [] {OpCodes.Ldarg_0, OpCodes.Ldarg_1, OpCodes.Ldarg_2, OpCodes.Ldarg_3};
 
 		#endregion
 
 		#region Methods / Public
 
-		public static Func<R> Constructor<R> (ConstructorInfo constructor)
-		{
-			return (Func<R>)Generator.Constructor (constructor);
-		}
-
-		public static Func<T, R> Constructor<T, R> (ConstructorInfo constructor)
-		{
-			return (Func<T, R>)Generator.Constructor (constructor);
-		}
-
-		public static Func<T1, T2, R> Constructor<T1, T2, R> (ConstructorInfo constructor)
-		{
-			return (Func<T1, T2, R>)Generator.Constructor (constructor);
-		}
-
-		public static Func<T1, T2, T3, R> Constructor<T1, T2, T3, R> (ConstructorInfo constructor)
-		{
-			return (Func<T1, T2, T3, R>)Generator.Constructor (constructor);
-		}
-
-		public static Func<T1, T2, T3, T4, R> Constructor<T1, T2, T3, T4, R> (ConstructorInfo constructor)
-		{
-			return (Func<T1, T2, T3, T4, R>)Generator.Constructor (constructor);
-		}
-
-		public static Func<R> ConstructorDefault<R> ()
+		public static Func<R> Constructor<R> ()
 		{
 			ConstructorInfo	constructor;
 
@@ -50,21 +25,21 @@ namespace Verse.Tools
 			if (constructor == null)
 				return () => default (R);
 
-			return Generator.Constructor<R> (constructor);
+			return (Func<R>)Generator.Create (constructor);
 		}
 
 		#endregion
 
 		#region Methods / Private
 
-		private static object Constructor (ConstructorInfo constructor)
+		private static object Create (ConstructorInfo constructor)
 		{
-			ILGenerator		generator;
-			Type[]			generics;
-			int				index;
-			DynamicMethod	method;
-			ParameterInfo[]	parameters;
-			Type			type;
+			ILGenerator generator;
+			Type[] generics;
+			int index;
+			DynamicMethod method;
+			ParameterInfo[] parameters;
+			Type type;
 
 			parameters = constructor.GetParameters ();
 
