@@ -34,11 +34,11 @@ namespace Verse.Schemas
 
 		private readonly Encoding encoding;
 
-		private readonly JSON.Decoder jsonDecoder;
-
-		private readonly JSON.Encoder jsonDncoder;
-
 		private readonly RecurseParserDescriptor<T, ReaderContext, Value> parserDescriptor;
+
+		private readonly ValueDecoder valueDecoder;
+
+		private readonly ValueEncoder valueEncoder;
 
 		#endregion
 
@@ -46,17 +46,17 @@ namespace Verse.Schemas
 
 		public JSONSchema (Encoding encoding)
 		{
-			JSON.Decoder decoder;
-			JSON.Encoder encoder;
+			ValueDecoder decoder;
+			ValueEncoder encoder;
 
-			decoder = new JSON.Decoder ();
-			encoder = new JSON.Encoder ();
+			decoder = new ValueDecoder ();
+			encoder = new ValueEncoder ();
 
 			this.builderDescriptor = new RecurseBuilderDescriptor<T, WriterContext, Value> (encoder);
 			this.encoding = encoding;
-			this.jsonDecoder = decoder;
-			this.jsonDncoder = encoder;
 			this.parserDescriptor = new RecurseParserDescriptor<T, ReaderContext, Value> (decoder);
+			this.valueDecoder = decoder;
+			this.valueEncoder = encoder;
 		}
 
 		public JSONSchema () :
@@ -80,12 +80,12 @@ namespace Verse.Schemas
 
 		public void SetDecoder<U> (Converter<Value, U> converter)
 		{
-			this.jsonDecoder.Set (converter);
+			this.valueDecoder.Set (converter);
 		}
 
 		public void SetEncoder<U> (Converter<U, Value> converter)
 		{
-			this.jsonDncoder.Set (converter);
+			this.valueEncoder.Set (converter);
 		}
 
 		#endregion

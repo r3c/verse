@@ -30,9 +30,11 @@ namespace Verse.Schemas.JSON
 
 		private int current;
 
+		private readonly Decoder decoder;
+
 		private int position;
 
-		private readonly StreamReader reader;
+		private readonly Stream stream;
 
 		#endregion
 
@@ -40,8 +42,9 @@ namespace Verse.Schemas.JSON
 
 		public ReaderContext (Stream stream, Encoding encoding)
 		{
+			this.decoder = encoding.GetDecoder ();
 			this.position = 0;
-			this.reader = new StreamReader (stream, encoding);
+			this.stream = stream;
 
 			this.Pull ();
 		}
@@ -50,16 +53,34 @@ namespace Verse.Schemas.JSON
 
 		#region Methods
 
-		public void Pull ()
+		public unsafe void Pull ()
 		{
-			int c;
+			byte* bytes = stackalloc byte[1];
+			char* chars = stackalloc char[1];
+			int next;
 
-			c = this.reader.Read ();
+			while (true)
+			{
+				next = this.stream.ReadByte ();
 
-			if (this.current >= 0)
+				if (next == -1)
+				{
+					this.current = -1;
+
+					break;
+				}
+
+				bytes[0] = (byte)next;
+
 				++this.position;
 
-			this.current = c;
+				if (this.decoder.GetChars (bytes, 1, chars, 1, false) != 0)
+				{
+					this.current = chars[0];
+
+					break;
+				}
+			}
 		}
 
 		public bool ReadCharacter (out char character)

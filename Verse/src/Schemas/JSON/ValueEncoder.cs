@@ -5,26 +5,26 @@ using Verse.BuilderDescriptors.Recurse;
 
 namespace Verse.Schemas.JSON
 {
-	class Encoder : IEncoder<Value>
+	class ValueEncoder : IEncoder<Value>
 	{
 		#region Attributes
 
 		private readonly Dictionary<Type, object>	converters = new Dictionary<Type, object>
 		{
-			{typeof (bool),		new Converter<bool, Value> (Encoder.FromBoolean)},
-			{typeof (char),		new Converter<char, Value> (Encoder.FromCharacter)},
-			{typeof (decimal),	new Converter<decimal, Value> (Encoder.FromDecimal)},
-			{typeof (float),	new Converter<float, Value> (Encoder.FromFloat32)},
-			{typeof (double),	new Converter<double, Value> (Encoder.FromFloat64)},
-			{typeof (sbyte),	new Converter<sbyte, Value> (Encoder.FromInteger8s)},
-			{typeof (byte),		new Converter<byte, Value> (Encoder.FromInteger8u)},
-			{typeof (short),	new Converter<short, Value> (Encoder.FromInteger16s)},
-			{typeof (ushort),	new Converter<ushort, Value> (Encoder.FromInteger16u)},
-			{typeof (int),		new Converter<int, Value> (Encoder.FromInteger32s)},
-			{typeof (uint),		new Converter<uint, Value> (Encoder.FromInteger32u)},
-			{typeof (long),		new Converter<long, Value> (Encoder.FromInteger64s)},
-			{typeof (ulong),	new Converter<ulong, Value> (Encoder.FromInteger64u)},
-			{typeof (string),	new Converter<string, Value> (Encoder.FromString)},
+			{typeof (bool),		new Converter<bool, Value> (ValueEncoder.FromBoolean)},
+			{typeof (char),		new Converter<char, Value> (ValueEncoder.FromCharacter)},
+			{typeof (decimal),	new Converter<decimal, Value> (ValueEncoder.FromDecimal)},
+			{typeof (float),	new Converter<float, Value> (ValueEncoder.FromFloat32)},
+			{typeof (double),	new Converter<double, Value> (ValueEncoder.FromFloat64)},
+			{typeof (sbyte),	new Converter<sbyte, Value> (ValueEncoder.FromInteger8s)},
+			{typeof (byte),		new Converter<byte, Value> (ValueEncoder.FromInteger8u)},
+			{typeof (short),	new Converter<short, Value> (ValueEncoder.FromInteger16s)},
+			{typeof (ushort),	new Converter<ushort, Value> (ValueEncoder.FromInteger16u)},
+			{typeof (int),		new Converter<int, Value> (ValueEncoder.FromInteger32s)},
+			{typeof (uint),		new Converter<uint, Value> (ValueEncoder.FromInteger32u)},
+			{typeof (long),		new Converter<long, Value> (ValueEncoder.FromInteger64s)},
+			{typeof (ulong),	new Converter<ulong, Value> (ValueEncoder.FromInteger64u)},
+			{typeof (string),	new Converter<string, Value> (ValueEncoder.FromString)},
 			{typeof (Value),	new Converter<Value, Value> ((v) => v)}
 		};
 

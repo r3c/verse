@@ -12,11 +12,12 @@
     </TargetFrameworkProfile>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <NoWin32Manifest>False</NoWin32Manifest>
-    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <NoStdLib>False</NoStdLib>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
     <WarningLevel>4</WarningLevel>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Platform)' == 'AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -41,6 +42,13 @@
     <Optimize>True</Optimize>
     <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
     <DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Platform)' == '32bits' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <BaseAddress>4194304</BaseAddress>
+    <RegisterForComInterop>False</RegisterForComInterop>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+    <FileAlignment>4096</FileAlignment>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -75,7 +83,8 @@
     <Compile Include="src\Schemas\JSON\Browser.cs" />
     <Compile Include="src\Schemas\JSON\BrowserMove.cs" />
     <Compile Include="src\Schemas\JSON\BrowserState.cs" />
-    <Compile Include="src\Schemas\JSON\Encoder.cs" />
+    <Compile Include="src\Schemas\JSON\ValueDecoder.cs" />
+    <Compile Include="src\Schemas\JSON\ValueEncoder.cs" />
     <Compile Include="src\Schemas\JSON\Writer.cs" />
     <Compile Include="src\Schemas\JSON\WriterContext.cs" />
     <Compile Include="src\Tools\Generator.cs" />
@@ -95,7 +104,6 @@
     <Compile Include="src\ParserError.cs" />
     <Compile Include="src\Schemas\JSONSchema.cs" />
     <Compile Include="src\Schemas\JSON\ReaderContext.cs" />
-    <Compile Include="src\Schemas\JSON\Decoder.cs" />
     <Compile Include="src\Schemas\JSON\Reader.cs" />
     <Compile Include="src\Schemas\JSON\Value.cs" />
     <Compile Include="src\Schemas\JSON\Content.cs" />

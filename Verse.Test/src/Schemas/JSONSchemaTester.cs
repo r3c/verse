@@ -86,7 +86,7 @@ namespace Verse.Test.Schemas
 
 		[Test]
 		[TestCase ("~", 1)]
-		[TestCase ("\"Unfinished", 12)]
+		[TestCase ("\"Unfinished", 11)]
 		[TestCase ("[1.1.1]", 5)]
 		[TestCase ("[0 0]", 4)]
 		[TestCase ("{0}", 2)]
