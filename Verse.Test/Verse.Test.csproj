@@ -53,6 +53,9 @@
     <FileAlignment>4096</FileAlignment>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="KellermanSoftware.Compare-NET-Objects">
+      <HintPath>..\packages\CompareNETObjects.2.02.0.0\lib\net40\KellermanSoftware.Compare-NET-Objects.dll</HintPath>
+    </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
     </Reference>
@@ -71,14 +74,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="src\Helpers\DecoderValidator.cs" />
-    <Compile Include="src\Helpers\EncoderValidator.cs" />
-    <Compile Include="src\Helpers\SchemaValidator.cs" />
     <Compile Include="src\LinkerTester.cs" />
     <Compile Include="src\Models\RecursiveSchemaTester.cs" />
     <Compile Include="src\Models\SettingsTester.cs" />
     <Compile Include="src\Models\TypeSchemaTester.cs" />
     <Compile Include="src\Schemas\JSONSchemaTester.cs" />
+    <Compile Include="src\SchemaTester.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Verse\Verse.csproj">
@@ -89,7 +90,6 @@
   <ItemGroup>
     <Folder Include="src" />
     <Folder Include="src\Models" />
-    <Folder Include="src\Helpers" />
     <Folder Include="src\Schemas" />
   </ItemGroup>
   <ItemGroup>

@@ -8,6 +8,12 @@ namespace Verse.Schemas.JSON
 {
 	class Reader : IReader<ReaderContext, Value>
 	{
+		#region Constants
+
+		private const ulong MANTISSA_MAX = long.MaxValue / 10;
+
+		#endregion
+
 		#region Events
 
 		public event ParserError Error;
@@ -154,12 +160,13 @@ namespace Verse.Schemas.JSON
 			char current;
 			INode<T, ReaderContext, Value> node;
 			double number;
-			long numberDecimal;
-			int numberDecimalPower;
-			int numberExponent;
-			sbyte numberExponentSign;
-			long numberIntegral;
-			sbyte numberSign;
+			uint numberExponent;
+			uint numberExponentMask;
+			uint numberExponentPlus;
+			ulong numberMantissa;
+			ulong numberMantissaMask;
+			ulong numberMantissaPlus;
+			int numberPower;
 
 			if (container.items != null)
 				return container.items (ref target, this, context);
@@ -221,41 +228,44 @@ namespace Verse.Schemas.JSON
 				case (int)'9':
 					unchecked
 					{
+						numberMantissa = 0;
+						numberPower = 0;
+
 						// Read number sign
 						if (context.Current == (int)'-')
 						{
 							context.Pull ();
 
-							numberSign = -1;
+							numberMantissaMask = ~0UL;
+							numberMantissaPlus = 1;
 						}
 						else
-							numberSign = 1;
+						{
+							numberMantissaMask = 0;
+							numberMantissaPlus = 0;
+						}
 
 						// Read integral part
-						for (numberIntegral = 0; context.Current >= (int)'0' && context.Current <= (int)'9'; context.Pull ())
-							numberIntegral = numberIntegral * 10 + (context.Current - (int)'0');
+						for (; context.Current >= (int)'0' && context.Current <= (int)'9'; context.Pull ())
+							numberMantissa = numberMantissa * 10 + (ulong)(context.Current - (int)'0');
 
-						// Read decimal part
+						// Read decimal part if any
 						if (context.Current == (int)'.')
 						{
 							context.Pull ();
 
-							numberDecimalPower = 0;
-
-							for (numberDecimal = 0; context.Current >= (int)'0' && context.Current <= (int)'9'; context.Pull ())
+							for (; context.Current >= (int)'0' && context.Current <= (int)'9'; context.Pull ())
 							{
-								numberDecimal = numberDecimal * 10 + (context.Current - (int)'0');
+								if (numberMantissa > Reader.MANTISSA_MAX)
+									continue;
 
-								--numberDecimalPower;
+								numberMantissa = numberMantissa * 10 + (ulong)(context.Current - (int)'0');
+
+								--numberPower;
 							}
 						}
-						else
-						{
-							numberDecimal = 0;
-							numberDecimalPower = 0;
-						}
 
-						// Read exponent
+						// Read exponent if any
 						if (context.Current == (int)'E' || context.Current == (int)'e')
 						{
 							context.Pull ();
@@ -265,42 +275,36 @@ namespace Verse.Schemas.JSON
 								case (int)'+':
 									context.Pull ();
 
-									numberExponentSign = 1;
+									numberExponentMask = 0;
+									numberExponentPlus = 0;
 
 									break;
 
 								case (int)'-':
 									context.Pull ();
 
-									numberExponentSign = -1;
+									numberExponentMask = ~0U;
+									numberExponentPlus = 1;
 
 									break;
 
 								default:
-									numberExponentSign = 1;
+									numberExponentMask = 0;
+									numberExponentPlus = 0;
 
 									break;
 							}
 
 							for (numberExponent = 0; context.Current >= (int)'0' && context.Current <= (int)'9'; context.Pull ())
-								numberExponent = numberExponent * 10 + (context.Current - (int)'0');
-						}
-						else
-						{
-							numberExponent = 0;
-							numberExponentSign = 0;
+								numberExponent = numberExponent * 10 + (uint)(context.Current - (int)'0');
+
+							numberPower += (int)((numberExponent ^ numberExponentMask) + numberExponentPlus);
 						}
 
 						// Compute result number and assign if needed
 						if (container.value != null)
 						{
-							number = numberIntegral * numberSign;
-
-							if (numberDecimal != 0)
-								number += numberDecimal * Math.Pow (10, numberDecimalPower) * numberSign;
-
-							if (numberExponent != 0)
-								number *= Math.Pow (10, numberExponent * numberExponentSign);
+							number = (long)((numberMantissa ^ numberMantissaMask) + numberMantissaPlus) * Math.Pow (10, numberPower);
 
 							container.value (ref target, new Value {Number = number, Type = Content.Number});
 						}

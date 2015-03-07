@@ -11,7 +11,7 @@ namespace Verse.Test
 	public class LinkerTester
 	{
 		[Test]
-		[TestCase (new [] {0, 5, 90, 23, -9, 5.3}, "[0,5,90,23,-9,5.3]")]
+		[TestCase (new [] {0, 5, 90, 23, -9, 5.32}, "[0,5,90,23,-9,5.32]")]
 		[TestCase (new [] {27.5, 19}, "[27.5,19]")]
 		public void LinkBuilderArrayFromArray (double[] value, string expected)
 		{
@@ -27,7 +27,7 @@ namespace Verse.Test
 		}
 
 		[Test]
-		[TestCase (new [] {0, 5, 90, 23, -9, 5.3}, "[0,5,90,23,-9,5.3]")]
+		[TestCase (new [] {0, 5, 90, 23, -9, 5.32}, "[0,5,90,23,-9,5.32]")]
 		[TestCase (new [] {27.5, 19}, "[27.5,19]")]
 		public void LinkBuilderArrayFromList (double[] value, string expected)
 		{
@@ -92,7 +92,7 @@ namespace Verse.Test
 		}
 
 		[Test]
-		[TestCase ("[0, 5, 90, 23, -9, 5.3]", new [] {0, 5, 90, 23, -9, 5.3})]
+		[TestCase ("[0, 5, 90, 23, -9, 5.32]", new [] {0, 5, 90, 23, -9, 5.32})]
 		[TestCase ("{\"key1\": 27.5, \"key2\": 19}", new [] {27.5, 19})]
 		public void LinkParserArrayFromArray (string json, double[] expected)
 		{
@@ -107,7 +107,7 @@ namespace Verse.Test
 		}
 
 		[Test]
-		[TestCase ("[0, 5, 90, 23, -9, 5.3]", new [] {0, 5, 90, 23, -9, 5.3})]
+		[TestCase ("[0, 5, 90, 23, -9, 5.32]", new [] {0, 5, 90, 23, -9, 5.32})]
 		[TestCase ("{\"key1\": 27.5, \"key2\": 19}", new [] {27.5, 19})]
 		public void LinkParserArrayFromList (string json, double[] expected)
 		{

@@ -9,14 +9,14 @@ using Verse.Schemas;
 namespace Verse.Test.Schemas
 {
 	[TestFixture]
-	public class JSONSchemaTester
+	public class JSONSchemaTester : SchemaTester
 	{
 		[Test]
 		[TestCase ("glittering", "prizes", "{\"glittering\":\"prizes\"}")]
 		[TestCase ("", "pwic", "{\"\":\"pwic\"}")]
 		public void BuildFieldValue<T> (string name, T value, string expected)
 		{
-			JSONSchema<T>	schema;
+			JSONSchema<T> schema;
 
 			schema = new JSONSchema<T> ();
 			schema.BuilderDescriptor.HasField (name).IsValue ();
@@ -30,7 +30,7 @@ namespace Verse.Test.Schemas
 		[TestCase (new [] {54, 90, -3, 34, 0, 49}, "[54,90,-3,34,0,49]")]
 		public void BuildItems (int[] value, string expected)
 		{
-			JSONSchema<int[]>	schema;
+			JSONSchema<int[]> schema;
 
 			schema = new JSONSchema<int[]> ();
 			schema.BuilderDescriptor.IsArray ((source) => source).IsValue ();
@@ -49,7 +49,7 @@ namespace Verse.Test.Schemas
 		[TestCase ("\\", "\"\\\\\"")]
 		public void BuildValueNative<T> (T value, string expected)
 		{
-			JSONSchema<T>	schema;
+			JSONSchema<T> schema;
 
 			schema = new JSONSchema<T> ();
 			schema.BuilderDescriptor.IsValue ();
@@ -63,7 +63,7 @@ namespace Verse.Test.Schemas
 		[TestCase ("1", "[\"hey!\", \"take me!\", \"not me!\"]", "take me!")]
 		public void ParseFieldValue<T> (string name, string json, T expected)
 		{
-			JSONSchema<T>	schema;
+			JSONSchema<T> schema;
 
 			schema = new JSONSchema<T> ();
 			schema.ParserDescriptor.HasField (name).IsValue ();
@@ -76,7 +76,7 @@ namespace Verse.Test.Schemas
 		[TestCase ("b", "{\"a\": {\"x\": 1, \"y\": 2}, \"b\": \"OK\", \"c\": 21.6}", "OK")]
 		public void ParseGarbage<T> (string name, string json, T expected)
 		{
-			JSONSchema<T>	schema;
+			JSONSchema<T> schema;
 
 			schema = new JSONSchema<T> ();
 			schema.ParserDescriptor.HasField (name).IsValue ();
@@ -116,7 +116,7 @@ namespace Verse.Test.Schemas
 		[Test]
 		[TestCase ("[]", new double[0])]
 		[TestCase ("[-42.1]", new [] {-42.1})]
-		[TestCase ("[0, 5, 90, 23, -9, 5.3]", new [] {0, 5, 90, 23, -9, 5.3})]
+		[TestCase ("[0, 5, 90, 23, -9, 5.32]", new [] {0, 5, 90, 23, -9, 5.32})]
 		[TestCase ("{\"key1\": 27.5, \"key2\": 19}", new [] {27.5, 19})]
 		public void ParseItems (string json, double[] expected)
 		{
@@ -153,8 +153,11 @@ namespace Verse.Test.Schemas
 		[TestCase ("true", true)]
 		[TestCase ("27", 27.0)]
 		[TestCase ("-15.5", -15.5)]
+		[TestCase ("-.5645", -.5645)]
 		[TestCase ("1.2e3", 1200.0)]
 		[TestCase (".5e-2", 0.005)]
+		[TestCase ("2.945", 2.945)]
+		[TestCase ("1.1111111111111111111111", 1.1111111111111111111111)]
 		[TestCase ("\"\"", "")]
 		[TestCase ("\"Hello, World!\"", "Hello, World!")]
 		[TestCase ("\"\\u00FF \\u0066 \\uB3A8\"", "\xFF f \uB3A8")]
@@ -192,6 +195,13 @@ namespace Verse.Test.Schemas
 			Assert.AreEqual (42, value.field.field.value);
 			Assert.AreEqual (17, value.field.value);
 			Assert.AreEqual (3, value.value);
+		}
+
+		[Test]
+		public void Roundtrip ()
+		{
+			this.AssertRoundtrip (new JSONSchema<string> (), "Hello", () => string.Empty);
+			this.AssertRoundtrip (new JSONSchema<double> (), 25.5, () => 0);
 		}
 
 		private void AssertBuildAndEqual<T> (ISchema<T> schema, T value, string expected)
