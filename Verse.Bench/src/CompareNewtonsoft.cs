@@ -182,7 +182,14 @@ namespace Verse.Bench
 				Assert.AreEqual (expected, Encoding.UTF8.GetString (stream.ToArray ()));
 			}
 
-			Console.WriteLine ("[{0}] NewtonSoft: {1}, Verse: {2}", TestContext.CurrentContext.Test.FullName, timeNewton, timeVerse);
+			try
+			{
+				Console.WriteLine ("[{0}] NewtonSoft: {1}, Verse: {2}", TestContext.CurrentContext.Test.FullName, timeNewton, timeVerse);
+			}
+			catch (NullReferenceException)
+			{
+				// Test FullName throws when this method is executed out of a test
+			}
 
 #if DEBUG
 			Assert.Inconclusive ("Library should be compiled in Release mode before benching");
@@ -233,7 +240,14 @@ namespace Verse.Bench
 
 			CollectionAssert.IsEmpty(new CompareLogic ().Compare (instance, reference).Differences);
 
-			Console.WriteLine ("[{0}] NewtonSoft: {1}, Verse: {2}", TestContext.CurrentContext.Test.FullName, timeNewton, timeVerse);
+			try
+			{
+				Console.WriteLine ("[{0}] NewtonSoft: {1}, Verse: {2}", TestContext.CurrentContext.Test.FullName, timeNewton, timeVerse);
+			}
+			catch (NullReferenceException)
+			{
+				// Test FullName throws when this method is executed out of a test
+			}
 
 #if DEBUG
 			Assert.Inconclusive ("Library should be compiled in Release mode before benching");

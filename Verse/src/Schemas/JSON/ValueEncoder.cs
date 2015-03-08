@@ -9,7 +9,7 @@ namespace Verse.Schemas.JSON
 	{
 		#region Attributes
 
-		private readonly Dictionary<Type, object>	converters = new Dictionary<Type, object>
+		private readonly Dictionary<Type, object> converters = new Dictionary<Type, object>
 		{
 			{typeof (bool),		new Converter<bool, Value> (ValueEncoder.FromBoolean)},
 			{typeof (char),		new Converter<char, Value> (ValueEncoder.FromCharacter)},
