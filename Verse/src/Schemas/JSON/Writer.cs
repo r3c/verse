@@ -79,7 +79,7 @@ namespace Verse.Schemas.JSON
 			IEnumerator<KeyValuePair<string, Follow<T, WriterContext, Value>>> field;
 
 			if (source == null)
-				context.Value (new Value { Type = Content.Void });
+				context.Value (Value.Void);
 			else if (container.items != null)
 				container.items (source, this, context);
 			else if (container.value != null)

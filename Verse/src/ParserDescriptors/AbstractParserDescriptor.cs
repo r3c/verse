@@ -53,7 +53,7 @@ namespace Verse.ParserDescriptors
 			object box;
 			Func<U> constructor;
 
-			if (!this.constructors.TryGetValue (typeof (T), out box))
+			if (!this.constructors.TryGetValue (typeof (U), out box))
 			{
 				constructor = Generator.Constructor<U> ();
 

@@ -193,7 +193,7 @@ namespace Verse.Schemas.JSON
 							buffer.Append (current);
 						}
 
-						container.value (ref target, new Value {String = buffer.ToString (), Type = Content.String});
+						container.value (ref target, Value.FromString (buffer.ToString ()));
 					}
 
 					// Read and discard string otherwise
@@ -306,7 +306,7 @@ namespace Verse.Schemas.JSON
 						{
 							number = (long)((numberMantissa ^ numberMantissaMask) + numberMantissaPlus) * Math.Pow (10, numberPower);
 
-							container.value (ref target, new Value {Number = number, Type = Content.Number});
+							container.value (ref target, Value.FromNumber (number));
 						}
 					}
 
@@ -319,7 +319,7 @@ namespace Verse.Schemas.JSON
 						return false;
 
 					if (container.value != null)
-						container.value (ref target, new Value {Boolean = false, Type = Content.Boolean});
+						container.value (ref target, Value.FromBoolean (false));
 
 					return true;
 
@@ -330,7 +330,7 @@ namespace Verse.Schemas.JSON
 						return false;
 
 					if (container.value != null)
-						container.value (ref target, new Value {Type = Content.Void});
+						container.value (ref target, Value.Void);
 
 					return true;
 
@@ -341,7 +341,7 @@ namespace Verse.Schemas.JSON
 						return false;
 
 					if (container.value != null)
-						container.value (ref target, new Value {Boolean = true, Type = Content.Boolean});
+						container.value (ref target, Value.FromBoolean (true));
 
 					return true;
 

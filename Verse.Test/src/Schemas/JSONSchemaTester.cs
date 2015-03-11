@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using NUnit.Framework;
 using Verse.Schemas;
+using Verse.Schemas.JSON;
 
 namespace Verse.Test.Schemas
 {
@@ -36,6 +37,20 @@ namespace Verse.Test.Schemas
 			schema.BuilderDescriptor.IsArray ((source) => source).IsValue ();
 
 			this.AssertBuildAndEqual (schema, value, expected);
+		}
+
+		[Test]
+		[TestCase ("90f59097-d06a-4796-b8d5-87eb6af7ed8b", "\"90f59097-d06a-4796-b8d5-87eb6af7ed8b\"")]
+		[TestCase ("c566a1c7-d89e-4e3f-8c5f-d4bcd0b82025", "\"c566a1c7-d89e-4e3f-8c5f-d4bcd0b82025\"")]
+		public void BuildValueEncoder (string guid, string expected)
+		{
+			JSONSchema<Guid> schema;
+
+			schema = new JSONSchema<Guid> ();
+			schema.SetEncoder<Guid> ((v) => Value.FromString (v.ToString ()));
+			schema.BuilderDescriptor.IsValue ();
+
+			this.AssertBuildAndEqual (schema, Guid.Parse (guid), expected);
 		}
 
 		[Test]
@@ -135,9 +150,25 @@ namespace Verse.Test.Schemas
 		}
 
 		[Test]
+		public void ParseValueCustom ()
+		{
+			IParserDescriptor<Tuple<int, int>> descriptor;
+			JSONSchema<Tuple<Tuple<int, int>>> schema;
+
+			schema = new JSONSchema<Tuple<Tuple<int, int>>> ();
+			schema.ParserDescriptor.CanCreate ((v) => Tuple.Create (0, 0));
+
+			descriptor = schema.ParserDescriptor.HasField ("tuple", (ref Tuple<Tuple<int, int>> target, Tuple<int, int> value) => target = Tuple.Create (value));
+			descriptor.HasField ("a", (ref Tuple<int, int> target, int value) => target = Tuple.Create (value, target.Item2)).IsValue ();
+			descriptor.HasField ("b", (ref Tuple<int, int> target, int value) => target = Tuple.Create (target.Item1, value)).IsValue ();
+
+			this.AssertParseAndEqual (schema, "{\"tuple\": {\"a\": 5, \"b\": 7}}", Tuple.Create (Tuple.Create (5, 7)));
+		}
+
+		[Test]
 		[TestCase ("\"90f59097-d06a-4796-b8d5-87eb6af7ed8b\"", "90f59097-d06a-4796-b8d5-87eb6af7ed8b")]
 		[TestCase ("\"c566a1c7-d89e-4e3f-8c5f-d4bcd0b82025\"", "c566a1c7-d89e-4e3f-8c5f-d4bcd0b82025")]
-		public void ParseValueCustom (string json, string expected)
+		public void ParseValueDecoder (string json, string expected)
 		{
 			JSONSchema<Guid> schema;
 
