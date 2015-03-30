@@ -51,7 +51,7 @@ namespace Verse.Schemas.JSON
 					{
 						current = constructor ();
 
-						this.SkipBlank (context);
+						this.PullIgnored (context);
 
 						if (context.Current == (int)']')
 						{
@@ -63,10 +63,10 @@ namespace Verse.Schemas.JSON
 						// Read comma separator if any
 						if (index > 0)
 						{
-							if (!this.SkipChar (context, ','))
+							if (!this.PullExpected (context, ','))
 								return BrowserState.Failure;
 
-							this.SkipBlank (context);
+							this.PullIgnored (context);
 						}
 
 						// Read array value
@@ -85,7 +85,7 @@ namespace Verse.Schemas.JSON
 					{
 						current = constructor ();
 
-						this.SkipBlank (context);
+						this.PullIgnored (context);
 
 						if (context.Current == (int)'}')
 						{
@@ -97,19 +97,19 @@ namespace Verse.Schemas.JSON
 						// Read comma separator if any
 						if (index > 0)
 						{
-							if (!this.SkipChar (context, ','))
+							if (!this.PullExpected (context, ','))
 								return BrowserState.Failure;
 
-							this.SkipBlank (context);
+							this.PullIgnored (context);
 						}
 
-						if (!this.SkipChar (context, '"'))
+						if (!this.PullExpected (context, '"'))
 							return BrowserState.Failure;
 
 						// Read and move to object key
 						while (context.Current != (int)'"')
 						{
-							if (!context.ReadCharacter (out ignore))
+							if (!this.PullCharacter (context, out ignore))
 							{
 								this.OnError (context.Position, "invalid character in object key");
 
@@ -120,13 +120,13 @@ namespace Verse.Schemas.JSON
 						context.Pull ();
 
 						// Read object separator
-						this.SkipBlank (context);
+						this.PullIgnored (context);
 
-						if (!this.SkipChar (context, ':'))
+						if (!this.PullExpected (context, ':'))
 							return BrowserState.Failure;
 
 						// Read object value
-						this.SkipBlank (context);
+						this.PullIgnored (context);
 
 						// Read array value
 						if (!this.ReadValue (ref current, container, context))
@@ -183,7 +183,7 @@ namespace Verse.Schemas.JSON
 
 						while (context.Current != (int)'"')
 						{
-							if (!context.ReadCharacter (out current))
+							if (!this.PullCharacter (context, out current))
 							{
 								this.OnError (context.Position, "invalid character in string value");
 
@@ -201,7 +201,7 @@ namespace Verse.Schemas.JSON
 					{
 						while (context.Current != (int)'"')
 						{
-							if (!context.ReadCharacter (out current))
+							if (!this.PullCharacter (context, out current))
 							{
 								this.OnError (context.Position, "invalid character in string value");
 
@@ -247,7 +247,16 @@ namespace Verse.Schemas.JSON
 
 						// Read integral part
 						for (; context.Current >= (int)'0' && context.Current <= (int)'9'; context.Pull ())
+						{
+							if (numberMantissa > Reader.MANTISSA_MAX)
+							{
+								++numberPower;
+
+								continue;
+							}
+
 							numberMantissa = numberMantissa * 10 + (ulong)(context.Current - (int)'0');
+						}
 
 						// Read decimal part if any
 						if (context.Current == (int)'.')
@@ -315,7 +324,7 @@ namespace Verse.Schemas.JSON
 				case (int)'f':
 					context.Pull ();
 
-					if (!this.SkipChar (context, 'a') || !this.SkipChar (context, 'l') || !this.SkipChar (context, 's') || !this.SkipChar (context, 'e'))
+					if (!this.PullExpected (context, 'a') || !this.PullExpected (context, 'l') || !this.PullExpected (context, 's') || !this.PullExpected (context, 'e'))
 						return false;
 
 					if (container.value != null)
@@ -326,7 +335,7 @@ namespace Verse.Schemas.JSON
 				case (int)'n':
 					context.Pull ();
 
-					if (!this.SkipChar (context, 'u') || !this.SkipChar (context, 'l') || !this.SkipChar (context, 'l'))
+					if (!this.PullExpected (context, 'u') || !this.PullExpected (context, 'l') || !this.PullExpected (context, 'l'))
 						return false;
 
 					if (container.value != null)
@@ -337,7 +346,7 @@ namespace Verse.Schemas.JSON
 				case (int)'t':
 					context.Pull ();
 
-					if (!this.SkipChar (context, 'r') || !this.SkipChar (context, 'u') || !this.SkipChar (context, 'e'))
+					if (!this.PullExpected (context, 'r') || !this.PullExpected (context, 'u') || !this.PullExpected (context, 'e'))
 						return false;
 
 					if (container.value != null)
@@ -350,7 +359,7 @@ namespace Verse.Schemas.JSON
 
 					for (int index = 0; true; ++index)
 					{
-						this.SkipBlank (context);
+						this.PullIgnored (context);
 
 						if (context.Current == (int)']')
 							break;
@@ -358,10 +367,10 @@ namespace Verse.Schemas.JSON
 						// Read comma separator if any
 						if (index > 0)
 						{
-							if (!this.SkipChar (context, ','))
+							if (!this.PullExpected (context, ','))
 								return false;
 
-							this.SkipBlank (context);
+							this.PullIgnored (context);
 						}
 
 						// Build and move to array index
@@ -389,7 +398,7 @@ namespace Verse.Schemas.JSON
 
 					for (int index = 0; true; ++index)
 					{
-						this.SkipBlank (context);
+						this.PullIgnored (context);
 
 						if (context.Current == (int)'}')
 							break;
@@ -397,13 +406,13 @@ namespace Verse.Schemas.JSON
 						// Read comma separator if any
 						if (index > 0)
 						{
-							if (!this.SkipChar (context, ','))
+							if (!this.PullExpected (context, ','))
 								return false;
 
-							this.SkipBlank (context);
+							this.PullIgnored (context);
 						}
 
-						if (!this.SkipChar (context, '"'))
+						if (!this.PullExpected (context, '"'))
 							return false;
 
 						// Read and move to object key
@@ -411,7 +420,7 @@ namespace Verse.Schemas.JSON
 
 						while (context.Current != (int)'"')
 						{
-							if (!context.ReadCharacter (out current))
+							if (!this.PullCharacter (context, out current))
 							{
 								this.OnError (context.Position, "invalid character in object key");
 
@@ -424,13 +433,13 @@ namespace Verse.Schemas.JSON
 						context.Pull ();
 
 						// Read object separator
-						this.SkipBlank (context);
+						this.PullIgnored (context);
 
-						if (!this.SkipChar (context, ':'))
+						if (!this.PullExpected (context, ':'))
 							return false;
 
 						// Read object value
-						this.SkipBlank (context);
+						this.PullIgnored (context);
 
 						if (!node.Enter (ref target, this, context))
 							return false;
@@ -451,7 +460,7 @@ namespace Verse.Schemas.JSON
 		{
 			context = new ReaderContext (stream, this.encoding);
 
-			this.SkipBlank (context);
+			this.PullIgnored (context);
 
 			if (context.Current < 0)
 			{
@@ -481,22 +490,115 @@ namespace Verse.Schemas.JSON
 				error (position, message);
 		}
 
-		private void SkipBlank (ReaderContext source)
+		private bool PullCharacter (ReaderContext context, out char character)
 		{
-			int current;
+			int nibble;
+			int previous;
+			int value;
 
-			while (true)
+			previous = context.Current;
+
+			context.Pull ();
+
+			if (previous < 0)
 			{
-				current = source.Current;
+				character = default (char);
 
-				if (current < 0 || current > (int)' ')
-					return;
+				return false;
+			}
 
-				source.Pull ();
+			if (previous != (int)'\\')
+			{
+				character = (char)previous;
+
+				return true;
+			}
+
+			previous = context.Current;
+
+			context.Pull ();
+
+			switch (previous)
+			{
+				case -1:
+					character = default (char);
+
+					return false;
+
+				case (int)'"':
+					character = '"';
+
+					return true;
+
+				case (int)'\\':
+					character = '\\';
+
+					return true;
+
+				case (int)'b':
+					character = '\b';
+
+					return true;
+
+				case (int)'f':
+					character = '\f';
+
+					return true;
+
+				case (int)'n':
+					character = '\n';
+
+					return true;
+
+				case (int)'r':
+					character = '\r';
+
+					return true;
+
+				case (int)'t':
+					character = '\t';
+
+					return true;
+
+				case (int)'u':
+					value = 0;
+
+					for (int i = 0; i < 4; ++i)
+					{
+						previous = context.Current;
+
+						context.Pull ();
+
+						if (previous >= (int)'0' && previous <= (int)'9')
+							nibble = previous - (int)'0';
+						else if (previous >= (int)'A' && previous <= (int)'F')
+							nibble = previous - (int)'A' + 10;
+						else if (previous >= (int)'a' && previous <= (int)'f')
+							nibble = previous - (int)'a' + 10;
+						else
+						{
+							this.OnError (context.Position, "unknown character in unicode escape sequence");
+
+							character = default (char);
+
+							return false;
+						}
+
+						value = (value << 4) + nibble;
+					}
+
+					character = (char)value;
+
+					return true;
+
+				default:
+					character = (char)previous;
+
+					return true;
 			}
 		}
 
-		private bool SkipChar (ReaderContext context, char expected)
+		private bool PullExpected (ReaderContext context, char expected)
 		{
 			if (context.Current != (int)expected)
 			{
@@ -508,6 +610,21 @@ namespace Verse.Schemas.JSON
 			context.Pull ();
 
 			return true;
+		}
+
+		private void PullIgnored (ReaderContext context)
+		{
+			int current;
+
+			while (true)
+			{
+				current = context.Current;
+
+				if (current < 0 || current > (int)' ')
+					return;
+
+				context.Pull ();
+			}
 		}
 
 		#endregion

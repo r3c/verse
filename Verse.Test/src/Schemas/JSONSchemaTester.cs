@@ -101,7 +101,7 @@ namespace Verse.Test.Schemas
 
 		[Test]
 		[TestCase ("~", 1)]
-		[TestCase ("\"Unfinished", 11)]
+		[TestCase ("\"Unfinished", 13)]
 		[TestCase ("[1.1.1]", 5)]
 		[TestCase ("[0 0]", 4)]
 		[TestCase ("{0}", 2)]
@@ -189,6 +189,7 @@ namespace Verse.Test.Schemas
 		[TestCase (".5e-2", 0.005)]
 		[TestCase ("2.945", 2.945)]
 		[TestCase ("1.1111111111111111111111", 1.1111111111111111111111)]
+		[TestCase ("897643545435434543784546873543548", 897643545435434543784546873543548d)]
 		[TestCase ("\"\"", "")]
 		[TestCase ("\"Hello, World!\"", "Hello, World!")]
 		[TestCase ("\"\\u00FF \\u0066 \\uB3A8\"", "\xFF f \uB3A8")]
