@@ -3,12 +3,12 @@ using Verse.ParserDescriptors.Recurse.Nodes;
 
 namespace Verse.ParserDescriptors.Recurse
 {
-	class Container<T, C, V>
-	{
-		public BranchNode<T, C, V> fields = new BranchNode<T, C, V> ();
+    internal class Container<TEntity, TContext, TNative>
+    {
+        public BranchNode<TEntity, TContext, TNative> fields = new BranchNode<TEntity, TContext, TNative>();
 
-		public Follow<T, C, V> items = null;
+        public Follow<TEntity, TContext, TNative> items = null;
 
-		public ParserAssign<T, V> value = null;
-	}
+        public ParserAssign<TEntity, TNative> value = null;
+    }
 }

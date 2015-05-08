@@ -2,12 +2,12 @@ using System;
 
 namespace Verse.ParserDescriptors.Recurse
 {
-	interface IDecoder<V>
-	{
-		#region Methods
+    internal interface IDecoder<TInput>
+    {
+        #region Methods
 
-		Converter<V, T>	Get<T> ();
+        Converter<TInput, TOutput> Get<TOutput>();
 
-		#endregion
-	}
+        #endregion
+    }
 }

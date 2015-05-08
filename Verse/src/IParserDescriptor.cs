@@ -3,30 +3,93 @@ using System.Collections.Generic;
 
 namespace Verse
 {
-	public interface IParserDescriptor<T>
-	{
-		#region Methods
+    /// <summary>
+    /// Parser descriptor receives instructions about how to parse given
+    /// <typeparamref name="TEntity"/> type. Those instructions are used when
+    /// an actual parser is used to read entity from a stream.
+    /// </summary>
+    /// <typeparam name="TEntity">Entity type</typeparam>
+    public interface IParserDescriptor<TEntity>
+    {
+        #region Methods
 
-		void CanCreate<U> (Func<T, U> constructor);
+        /// <summary>
+        /// Register constructor which will be used as replacement for default
+        /// one when a field, element or value of associated type must be
+        /// created before its content is read from stream. 
+        /// </summary>
+        /// <typeparam name="TMember">Constructed type</typeparam>
+        /// <param name="constructor">Type constructor</param>
+        void CanCreate<TMember>(Func<TEntity, TMember> constructor);
 
-		IParserDescriptor<U> HasField<U> (string name, ParserAssign<T, U> assign, IParserDescriptor<U> parent);
+        /// <summary>
+        /// Declare new named field in current entity, and reuse existing parser
+        /// descriptor to describe it.
+        /// </summary>
+        /// <typeparam name="TField">Field type</typeparam>
+        /// <param name="name">Field name</param>
+        /// <param name="assign">Field to parent entity assignment delegate</param>
+        /// <param name="parent">Existing parser descriptor for this field,
+        /// needed if you want to declare recursive entities</param>
+        /// <returns>Field parser descriptor</returns>
+        IParserDescriptor<TField> HasField<TField>(string name, ParserAssign<TEntity, TField> assign, IParserDescriptor<TField> parent);
 
-		IParserDescriptor<U> HasField<U> (string name, ParserAssign<T, U> assign);
+        /// <summary>
+        /// Declare new named field in current entity.
+        /// </summary>
+        /// <typeparam name="TField">Field type</typeparam>
+        /// <param name="name">Field name</param>
+        /// <param name="assign">Field to parent entity assignment delegate</param>
+        /// <returns>Field parser descriptor</returns>
+        IParserDescriptor<TField> HasField<TField>(string name, ParserAssign<TEntity, TField> assign);
 
-		IParserDescriptor<T> HasField (string name);
+        /// <summary>
+        /// Declare new named field in current entity, but keep describing its
+        /// content on parent entity type rather than a new type.
+        /// </summary>
+        /// <param name="name">Field name</param>
+        /// <returns>Entity parser descriptor</returns>
+        IParserDescriptor<TEntity> HasField(string name);
 
-		IParserDescriptor<U> IsArray<U> (ParserAssign<T, IEnumerable<U>> assign, IParserDescriptor<U> parent);
+        /// <summary>
+        /// Declare new elements collection within current entity, and reuse
+        /// existing parser to describe them.
+        /// </summary>
+        /// <typeparam name="TElement">Element type</typeparam>
+        /// <param name="assign">Elements to parent entity assignment delegate</param>
+        /// <param name="parent">Existing parser descriptor for this elements
+        /// collection, needed if you want to declare recursive entities</param>
+        /// <returns>Element parser descriptor</returns>
+        IParserDescriptor<TElement> IsArray<TElement>(ParserAssign<TEntity, IEnumerable<TElement>> assign, IParserDescriptor<TElement> parent);
 
-		IParserDescriptor<U> IsArray<U> (ParserAssign<T, IEnumerable<U>> assign);
+        /// <summary>
+        /// Declare new elements collection within current entity.
+        /// </summary>
+        /// <typeparam name="TElement">Element type</typeparam>
+        /// <param name="assign">Elements to parent entity assignment delegate</param>
+        /// <returns>Element parser descriptor</returns>
+        IParserDescriptor<TElement> IsArray<TElement>(ParserAssign<TEntity, IEnumerable<TElement>> assign);
+
 /*
-		IParserDescriptor<U> IsMap<U> (ParserAssign<T, IEnumerable<KeyValuePair<string, U>>> assign, IParserDescriptor<U> parent);
+        IParserDescriptor<U> IsMap<U> (ParserAssign<T, IEnumerable<KeyValuePair<string, U>>> assign, IParserDescriptor<U> parent);
 
-		IParserDescriptor<U> IsMap<U> (ParserAssign<T, IEnumerable<KeyValuePair<string, U>>> assign);
+        IParserDescriptor<U> IsMap<U> (ParserAssign<T, IEnumerable<KeyValuePair<string, U>>> assign);
 */
-		void IsValue<U> (ParserAssign<T, U> assign);
 
-		void IsValue ();
+        /// <summary>
+        /// Declare assignable value within current entity.
+        /// </summary>
+        /// <typeparam name="TValue">Value type</typeparam>
+        /// <param name="assign">Value to parent entity assignment delegate</param>
+        void IsValue<TValue>(ParserAssign<TEntity, TValue> assign);
 
-		#endregion
-	}
+        /// <summary>
+        /// Declare entity as a value. Entity type must have a known decoder
+        /// declared (through its schema), otherwise you'll get a type error
+        /// when calling this method.
+        /// </summary>
+        void IsValue();
+
+        #endregion
+    }
 }

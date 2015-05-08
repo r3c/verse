@@ -3,24 +3,24 @@ using System.IO;
 
 namespace Verse.ParserDescriptors.Recurse
 {
-	interface IReader<C, V>
-	{
-		#region Events
+    internal interface IReader<TContext, TNative>
+    {
+        #region Events
 
-		event ParserError Error;
+        event ParserError Error;
 
-		#endregion
+        #endregion
 
-		#region Methods
+        #region Methods
 
-		IBrowser<T> ReadArray<T> (Func<T> constructor, Container<T, C, V> container, C context);
+        IBrowser<TEntity> ReadArray<TEntity>(Func<TEntity> constructor, Container<TEntity, TContext, TNative> container, TContext context);
 
-		bool ReadValue<T> (ref T target, Container<T, C, V> container, C context);
+        bool ReadValue<TEntity>(ref TEntity target, Container<TEntity, TContext, TNative> container, TContext context);
 
-		bool Start (Stream stream, out C context);
+        bool Start(Stream stream, out TContext context);
 
-		void Stop (C context);
+        void Stop(TContext context);
 
-		#endregion
-	}
+        #endregion
+    }
 }

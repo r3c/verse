@@ -2,25 +2,25 @@ using System;
 
 namespace Verse.ParserDescriptors.Recurse
 {
-	interface INode<T, C, V>
-	{
-		#region Properties
+    internal interface INode<TEntity, TContext, TNative>
+    {
+        #region Properties
 
-		bool	CanAssign
-		{
-			get;
-		}
+        bool CanAssign
+        {
+            get;
+        }
 
-		#endregion
+        #endregion
 
-		#region Methods
+        #region Methods
 
-		void			Assign (ref T target, V value);
+        void Assign(ref TEntity target, TNative value);
 
-		bool			Enter (ref T target, IReader<C, V> reader, C context);
+        bool Enter(ref TEntity target, IReader<TContext, TNative> reader, TContext context);
 
-		INode<T, C, V>	Follow (char c);
+        INode<TEntity, TContext, TNative> Follow(char c);
 
-		#endregion
-	}
+        #endregion
+    }
 }

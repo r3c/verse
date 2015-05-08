@@ -5,46 +5,46 @@ using NUnit.Framework;
 
 namespace Verse.Test
 {
-	public class SchemaTester
-	{
-		protected void AssertRoundtrip<T> (ISchema<T> schema, T instance, Func<T> constructor)
-		{
-			IBuilder<T> builder;
-			byte[] first;
-			CompareLogic compare;
-			T other;
-			IParser<T> parser;
-			byte[] second;
+    public class SchemaTester
+    {
+        protected void AssertRoundtrip<T>(ISchema<T> schema, T instance, Func<T> constructor)
+        {
+            byte[] first;
+            CompareLogic compare;
+            T other;
+            IParser<T> parser;
+            IPrinter<T> printer;
+            byte[] second;
 
-			builder = Linker.CreateBuilder (schema);
-			parser = Linker.CreateParser (schema);
+            parser = Linker.CreateParser(schema);
+            printer = Linker.CreatePrinter(schema);
 
-			using (MemoryStream stream = new MemoryStream ())
-			{
-				Assert.IsTrue (builder.Build (instance, stream));
+            using (MemoryStream stream = new MemoryStream())
+            {
+                Assert.IsTrue(printer.Print(instance, stream));
 
-				first = stream.ToArray ();
-			}
+                first = stream.ToArray();
+            }
 
-			using (MemoryStream stream = new MemoryStream (first))
-			{
-				other = constructor ();
+            using (MemoryStream stream = new MemoryStream(first))
+            {
+                other = constructor();
 
-				Assert.IsTrue (parser.Parse (stream, ref other));
-			}
+                Assert.IsTrue(parser.Parse(stream, ref other));
+            }
 
-			compare = new CompareLogic ();
+            compare = new CompareLogic();
 
-			CollectionAssert.IsEmpty (compare.Compare (instance, other).Differences);
+            CollectionAssert.IsEmpty(compare.Compare(instance, other).Differences);
 
-			using (MemoryStream stream = new MemoryStream ())
-			{
-				Assert.IsTrue (builder.Build (other, stream));
+            using (MemoryStream stream = new MemoryStream())
+            {
+                Assert.IsTrue(printer.Print(other, stream));
 
-				second = stream.ToArray ();
-			}
+                second = stream.ToArray();
+            }
 
-			CollectionAssert.AreEqual (first, second);
-		}
-	}
+            CollectionAssert.AreEqual(first, second);
+        }
+    }
 }

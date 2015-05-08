@@ -1,10 +1,11 @@
-
 namespace Verse.Schemas.JSON
 {
-	enum BrowserState
-	{
-		Continue,
-		Failure,
-		Success
-	}
+    internal enum BrowserState
+    {
+        Continue,
+
+        Failure,
+
+        Success
+    }
 }

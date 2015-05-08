@@ -1,42 +1,41 @@
-
 namespace Verse.ParserDescriptors.Recurse.Nodes
 {
-	class EmptyNode<T, C, V> : INode<T, C, V>
-	{
-		#region Properties
+    internal class EmptyNode<TEntity, TContext, TNative> : INode<TEntity, TContext, TNative>
+    {
+        #region Properties
 
-		public bool CanAssign
-		{
-			get
-			{
-				return false;
-			}
-		}
+        public bool CanAssign
+        {
+            get
+            {
+                return false;
+            }
+        }
 
-		#endregion
+        #endregion
 
-		#region Attributes
+        #region Attributes
 
-		private static readonly Container<T, C, V> blank = new Container<T, C, V> ();
+        private static readonly Container<TEntity, TContext, TNative> blank = new Container<TEntity, TContext, TNative>();
 
-		#endregion
+        #endregion
 
-		#region Methods
+        #region Methods
 
-		public void Assign (ref T target, V value)
-		{
-		}
+        public void Assign(ref TEntity target, TNative value)
+        {
+        }
 
-		public bool Enter (ref T target, IReader<C, V> reader, C context)
-		{
-			return reader.ReadValue (ref target, EmptyNode<T, C, V>.blank, context);
-		}
+        public bool Enter(ref TEntity target, IReader<TContext, TNative> reader, TContext context)
+        {
+            return reader.ReadValue(ref target, EmptyNode<TEntity, TContext, TNative>.blank, context);
+        }
 
-		public INode<T, C, V> Follow (char c)
-		{
-			return this;
-		}
+        public INode<TEntity, TContext, TNative> Follow(char c)
+        {
+            return this;
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }

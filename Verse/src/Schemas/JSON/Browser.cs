@@ -4,85 +4,85 @@ using Verse.ParserDescriptors.Recurse;
 
 namespace Verse.Schemas.JSON
 {
-	class Browser<T> : IBrowser<T>
-	{
-		#region Properties / Public
+    internal class Browser<TEntity> : IBrowser<TEntity>
+    {
+        #region Properties / Public
 
-		public T Current
-		{
-			get
-			{
-				return this.current;
-			}
-		}
+        public TEntity Current
+        {
+            get
+            {
+                return this.current;
+            }
+        }
 
-		public bool Success
-		{
-			get
-			{
-				return this.state == BrowserState.Success;
-			}
-		}
+        public bool Success
+        {
+            get
+            {
+                return this.state == BrowserState.Success;
+            }
+        }
 
-		#endregion
+        #endregion
 
-		#region Properties / Explicit
+        #region Properties / Explicit
 
-		object IEnumerator.Current
-		{
-			get
-			{
-				return this.Current;
-			}
-		}
+        object IEnumerator.Current
+        {
+            get
+            {
+                return this.Current;
+            }
+        }
 
-		#endregion
+        #endregion
 
-		#region Attributes
+        #region Attributes
 
-		private T current;
+        private TEntity current;
 
-		private int index;
+        private int index;
 
-		private BrowserMove<T> move;
+        private BrowserMove<TEntity> move;
 
-		private BrowserState state;
+        private BrowserState state;
 
-		#endregion
+        #endregion
 
-		#region Constructors
+        #region Constructors
 
-		public Browser (BrowserMove<T> move)
-		{
-			this.index = 0;
-			this.move = move;
-			this.state = BrowserState.Continue;
-		}
+        public Browser(BrowserMove<TEntity> move)
+        {
+            this.index = 0;
+            this.move = move;
+            this.state = BrowserState.Continue;
+        }
 
-		#endregion
+        #endregion
 
-		#region Methods
+        #region Methods
 
-		public void Dispose ()
-		{
-			this.move = null;
-		}
+        public void Dispose()
+        {
+            this.move = null;
+        }
 
-		public bool MoveNext ()
-		{
-			if (this.state != BrowserState.Continue)
-				return false;
+        public bool MoveNext()
+        {
+            if (this.state != BrowserState.Continue)
+                return false;
 
-			this.state = this.move (this.index++, out this.current);
+            this.state = this.move(this.index++, out this.current);
 
-			return this.state == BrowserState.Continue;
-		}
+            return this.state == BrowserState.Continue;
+        }
 
-		public void Reset ()
-		{
-			throw new NotSupportedException ("can't iterate over array twice");
-		}
+        public void Reset()
+        {
+            throw new NotSupportedException("can't iterate over array twice");
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }

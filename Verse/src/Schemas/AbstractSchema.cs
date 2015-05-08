@@ -2,28 +2,36 @@ using System;
 
 namespace Verse.Schemas
 {
-	public abstract class AbstractSchema<T> : ISchema<T>
-	{
-		#region Properties
+    /// <summary>
+    /// Base class for schema implementations.
+    /// </summary>
+    /// <typeparam name="TEntity">Entity type</typeparam>
+    public abstract class AbstractSchema<TEntity> : ISchema<TEntity>
+    {
+        #region Properties
 
-		public abstract IBuilderDescriptor<T> BuilderDescriptor
-		{
-			get;
-		}
+        /// <inheritdoc/>
+        public abstract IPrinterDescriptor<TEntity> PrinterDescriptor
+        {
+            get;
+        }
 
-		public abstract IParserDescriptor<T> ParserDescriptor
-		{
-			get;
-		}
+        /// <inheritdoc/>
+        public abstract IParserDescriptor<TEntity> ParserDescriptor
+        {
+            get;
+        }
 
-		#endregion
+        #endregion
 
-		#region Methods / Abstract
+        #region Methods
 
-		public abstract IBuilder<T>	CreateBuilder ();
+        /// <inheritdoc/>
+        public abstract IPrinter<TEntity> CreatePrinter();
 
-		public abstract IParser<T>	CreateParser ();
+        /// <inheritdoc/>
+        public abstract IParser<TEntity> CreateParser();
 
-		#endregion
-	}
+        #endregion
+    }
 }

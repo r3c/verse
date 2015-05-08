@@ -1,5 +1,4 @@
-
 namespace Verse.ParserDescriptors.Recurse
 {
-	delegate bool Follow<T, C, V> (ref T target, IReader<C, V> reader, C context);
+    internal delegate bool Follow<TEntity, TContext, TNative>(ref TEntity target, IReader<TContext, TNative> reader, TContext context);
 }

@@ -12,267 +12,274 @@ using Verse.Schemas;
 
 namespace Verse.Bench
 {
-	public class CompareNewtonsoft
-	{
-		[Test]
-		public void	BuildFlatStructure ()
-		{
-			IBuilder<MyFlatStructure> builder;
-			MyFlatStructure instance;
+    public class CompareNewtonsoft
+    {
+        [Test]
+        public void ParseFlatStructure()
+        {
+            IParser<MyFlatStructure> parser;
+            string source;
 
-			builder = Linker.CreateBuilder (new JSONSchema<MyFlatStructure> ());
+            parser = Linker.CreateParser(new JSONSchema<MyFlatStructure>());
+            source = "{\"lorem\":0,\"ipsum\":65464658634633,\"sit\":1.1,\"amet\":\"Hello, World!\",\"consectetur\":255,\"adipiscing\":64,\"elit\":\"z\",\"sed\":53.25,\"pulvinar\":\"I sense a soul in search of answers\",\"fermentum\":6553,\"hendrerit\":-32768}";
 
-			instance = new MyFlatStructure
-			{
-				adipiscing	= 64,
-				amet		= "Hello, World!",
-				consectetur	= 255,
-				elit		= 'z',
-				fermentum	= 6553,
-				hendrerit	= -32768,
-				ipsum		= 65464658634633,
-				lorem		= 0,
-				pulvinar	= "I sense a soul in search of answers",
-				sed			= 53.25f,
-				sit			= 1.1
-			};
+            this.BenchParse(parser, () => new MyFlatStructure(), source, 10000);
+        }
 
-			this.BenchBuild (builder, instance, 10000);
-		}
+        [Test]
+        [TestCase(10, 10000)]
+        [TestCase(1000, 100)]
+        [TestCase(10000, 10)]
+        [TestCase(100000, 1)]
+        public void ParseLargeArray(int length, int count)
+        {
+            StringBuilder builder;
+            IParser<long[]> parser;
+            Random random;
+            ISchema<long[]> schema;
 
-		[Test]
-		public void	BuildNestedArray ()
-		{
-			IBuilder<MyNestedArray> builder;
-			MyNestedArray instance;
+            builder = new StringBuilder();
+            random = new Random();
 
-			builder = Linker.CreateBuilder (new JSONSchema<MyNestedArray> ());
+            builder.Append("[");
 
-			instance = new MyNestedArray
-			{
-				children = new []
-				{
-					new MyNestedArray
-					{
-						children = null,
-						value = "a"
-					},
-					new MyNestedArray
-					{
-						children = new []
-						{
-							new MyNestedArray
-							{
-								children = null,
-								value = "b"
-							},
-							new MyNestedArray
-							{
-								children = null,
-								value = "c"
-							}
-						},
-						value = "d"
-					},
-					new MyNestedArray
-					{
-						children = new MyNestedArray[0],
-						value = "e"
-					}
-				},
-				value = "f"
-			};
+            if (length > 0)
+            {
+                for (int i = 0; true;)
+                {
+                    builder.Append(random.Next().ToString(CultureInfo.InvariantCulture));
 
-			this.BenchBuild (builder, instance, 10000);
-		}
+                    if (++i >= length)
+                        break;
 
-		[Test]
-		public void	ParseFlatStructure ()
-		{
-			IParser<MyFlatStructure> parser;
-			string source;
+                    builder.Append(",");
+                }
+            }
 
-			parser = Linker.CreateParser (new JSONSchema<MyFlatStructure> ());
-			source = "{\"lorem\":0,\"ipsum\":65464658634633,\"sit\":1.1,\"amet\":\"Hello, World!\",\"consectetur\":255,\"adipiscing\":64,\"elit\":\"z\",\"sed\":53.25,\"pulvinar\":\"I sense a soul in search of answers\",\"fermentum\":6553,\"hendrerit\":-32768}";
+            builder.Append("]");
 
-			this.BenchParse (parser, () => new MyFlatStructure (), source, 10000);
-		}
+            schema = new JSONSchema<long[]>();
+            schema.ParserDescriptor.IsArray((ref long[] target, IEnumerable<long> value) => target = value.ToArray()).IsValue();
+            parser = schema.CreateParser();
 
-		[Test]
-		[TestCase (10, 10000)]
-		[TestCase (1000, 100)]
-		[TestCase (10000, 10)]
-		[TestCase (100000, 1)]
-		public void ParseLargeArray (int length, int count)
-		{
-			StringBuilder builder;
-			IParser<long[]> parser;
-			Random random;
-			ISchema<long[]> schema;
+            this.BenchParse(parser, () => null, builder.ToString(), count);
+        }
 
-			builder = new StringBuilder ();
-			random = new Random ();
+        [Test]
+        public void ParseNestedArray()
+        {
+            IParser<MyNestedArray> parser;
+            string source;
 
-			builder.Append ("[");
+            parser = Linker.CreateParser(new JSONSchema<MyNestedArray>());
+            source = "{\"children\":[{\"children\":[],\"value\":\"a\"},{\"children\":[{\"children\":[],\"value\":\"b\"},{\"children\":[],\"value\":\"c\"}],\"value\":\"d\"},{\"children\":[],\"value\":\"e\"}],\"value\":\"f\"}";
 
-			if (length > 0)
-			{
-				for (int i = 0; true; )
-				{
-					builder.Append (random.Next ().ToString (CultureInfo.InvariantCulture));
-	
-					if (++i >= length)
-						break;
-	
-					builder.Append (",");
-				}
-			}
+            this.BenchParse(parser, () => new MyNestedArray(), source, 10000);
+        }
 
-			builder.Append ("]");
+        private void BenchParse<T>(IParser<T> parser, Func<T> constructor, string source, int count)
+        {
+            byte[] buffer;
+            T instance;
+            T reference;
+            TimeSpan timeNewton;
+            TimeSpan timeVerse;
+            Stopwatch watch;
 
-			schema = new JSONSchema<long[]> ();
-			schema.ParserDescriptor.IsArray ((ref long[] target, IEnumerable<long> value) => target = value.ToArray ()).IsValue ();
-			parser = schema.CreateParser ();
+            reference = JsonConvert.DeserializeObject<T>(source);
+            buffer = Encoding.UTF8.GetBytes(source);
 
-			this.BenchParse (parser, () => null, builder.ToString (), count);
-		}
+            watch = Stopwatch.StartNew();
 
-		[Test]
-		public void	ParseNestedArray ()
-		{
-			IParser<MyNestedArray> parser;
-			string source;
+            for (int i = count; i-- > 0;)
+                Assert.NotNull(JsonConvert.DeserializeObject<T>(source));
 
-			parser = Linker.CreateParser (new JSONSchema<MyNestedArray> ());
-			source = "{\"children\":[{\"children\":[],\"value\":\"a\"},{\"children\":[{\"children\":[],\"value\":\"b\"},{\"children\":[],\"value\":\"c\"}],\"value\":\"d\"},{\"children\":[],\"value\":\"e\"}],\"value\":\"f\"}";
+            timeNewton = watch.Elapsed;
 
-			this.BenchParse (parser, () => new MyNestedArray (), source, 10000);
-		}
+            watch = Stopwatch.StartNew();
 
-		private void BenchBuild<T> (IBuilder<T> builder, T instance, int count)
-		{
-			string expected;
-			TimeSpan timeNewton;
-			TimeSpan timeVerse;
-			Stopwatch watch;
+            for (int i = count; i-- > 0;)
+            {
+                using (MemoryStream stream = new MemoryStream(buffer))
+                {
+                    instance = constructor();
 
-			expected = JsonConvert.SerializeObject (instance);
-			watch = Stopwatch.StartNew ();
+                    Assert.IsTrue(parser.Parse(stream, ref instance));
+                }
+            }
 
-			for (int i = count; i-- > 0; )
-				JsonConvert.SerializeObject (instance);
+            timeVerse = watch.Elapsed;
 
-			timeNewton = watch.Elapsed;
+            using (MemoryStream stream = new MemoryStream(buffer))
+            {
+                instance = constructor();
 
-			watch = Stopwatch.StartNew ();
+                Assert.IsTrue(parser.Parse(stream, ref instance));
+            }
 
-			for (int i = count; i-- > 0; )
-			{
-				using (MemoryStream stream = new MemoryStream ())
-				{
-					Assert.IsTrue (builder.Build (instance, stream));
-				}
-			}
+            CollectionAssert.IsEmpty(new CompareLogic().Compare(instance, reference).Differences);
 
-			timeVerse = watch.Elapsed;
-
-			using (MemoryStream stream = new MemoryStream ())
-			{
-				Assert.IsTrue (builder.Build (instance, stream));
-				Assert.AreEqual (expected, Encoding.UTF8.GetString (stream.ToArray ()));
-			}
-
-			try
-			{
-				Console.WriteLine ("[{0}] NewtonSoft: {1}, Verse: {2}", TestContext.CurrentContext.Test.FullName, timeNewton, timeVerse);
-			}
-			catch (NullReferenceException)
-			{
-				// Test FullName throws when this method is executed out of a test
-			}
+            try
+            {
+                Console.WriteLine("[{0}] NewtonSoft: {1}, Verse: {2}", TestContext.CurrentContext.Test.FullName, timeNewton, timeVerse);
+            }
+            catch (NullReferenceException)
+            {
+                // Test FullName throws when this method is executed out of a test
+            }
 
 #if DEBUG
-			Assert.Inconclusive ("Library should be compiled in Release mode before benching");
+            Assert.Inconclusive("Library should be compiled in Release mode before benching");
 #endif
-		}
+        }
 
-		private void BenchParse<T> (IParser<T> parser, Func<T> constructor, string source, int count)
-		{
-			byte[] buffer;
-			T instance;
-			T reference;
-			TimeSpan timeNewton;
-			TimeSpan timeVerse;
-			Stopwatch watch;
+        [Test]
+        public void PrintFlatStructure()
+        {
+            IPrinter<MyFlatStructure> printer;
+            MyFlatStructure instance;
 
-			reference = JsonConvert.DeserializeObject<T> (source);
-			buffer = Encoding.UTF8.GetBytes (source);
+            printer = Linker.CreatePrinter(new JSONSchema<MyFlatStructure>());
 
-			watch = Stopwatch.StartNew ();
+            instance = new MyFlatStructure
+            {
+                adipiscing = 64,
+                amet = "Hello, World!",
+                consectetur = 255,
+                elit = 'z',
+                fermentum = 6553,
+                hendrerit = -32768,
+                ipsum = 65464658634633,
+                lorem = 0,
+                pulvinar = "I sense a soul in search of answers",
+                sed = 53.25f,
+                sit = 1.1
+            };
 
-			for (int i = count; i-- > 0; )
-			{
-				Assert.NotNull (JsonConvert.DeserializeObject<T> (source));
-			}
+            this.BenchPrint(printer, instance, 10000);
+        }
 
-			timeNewton = watch.Elapsed;
+        [Test]
+        public void PrintNestedArray()
+        {
+            IPrinter<MyNestedArray> printer;
+            MyNestedArray instance;
 
-			watch = Stopwatch.StartNew ();
+            printer = Linker.CreatePrinter(new JSONSchema<MyNestedArray>());
 
-			for (int i = count; i-- > 0; )
-			{
-				using (MemoryStream stream = new MemoryStream (buffer))
-				{
-					instance = constructor ();
+            instance = new MyNestedArray
+            {
+                children = new[]
+                {
+                    new MyNestedArray
+                    {
+                        children = null,
+                        value = "a"
+                    },
+                    new MyNestedArray
+                    {
+                        children = new[]
+                        {
+                            new MyNestedArray
+                            {
+                                children = null,
+                                value = "b"
+                            },
+                            new MyNestedArray
+                            {
+                                children = null,
+                                value = "c"
+                            }
+                        },
+                        value = "d"
+                    },
+                    new MyNestedArray
+                    {
+                        children = new MyNestedArray[0],
+                        value = "e"
+                    }
+                },
+                value = "f"
+            };
 
-					Assert.IsTrue (parser.Parse (stream, ref instance));
-				}
-			}
+            this.BenchPrint(printer, instance, 10000);
+        }
 
-			timeVerse = watch.Elapsed;
+        private void BenchPrint<T>(IPrinter<T> printer, T instance, int count)
+        {
+            string expected;
+            TimeSpan timeNewton;
+            TimeSpan timeVerse;
+            Stopwatch watch;
 
-			using (MemoryStream stream = new MemoryStream (buffer))
-			{
-				instance = constructor ();
+            expected = JsonConvert.SerializeObject(instance);
+            watch = Stopwatch.StartNew();
 
-				Assert.IsTrue (parser.Parse (stream, ref instance));
-			}
+            for (int i = count; i-- > 0;)
+                JsonConvert.SerializeObject(instance);
 
-			CollectionAssert.IsEmpty(new CompareLogic ().Compare (instance, reference).Differences);
+            timeNewton = watch.Elapsed;
 
-			try
-			{
-				Console.WriteLine ("[{0}] NewtonSoft: {1}, Verse: {2}", TestContext.CurrentContext.Test.FullName, timeNewton, timeVerse);
-			}
-			catch (NullReferenceException)
-			{
-				// Test FullName throws when this method is executed out of a test
-			}
+            watch = Stopwatch.StartNew();
+
+            for (int i = count; i-- > 0;)
+            {
+                using (MemoryStream stream = new MemoryStream())
+                    Assert.IsTrue(printer.Print(instance, stream));
+            }
+
+            timeVerse = watch.Elapsed;
+
+            using (MemoryStream stream = new MemoryStream())
+            {
+                Assert.IsTrue(printer.Print(instance, stream));
+                Assert.AreEqual(expected, Encoding.UTF8.GetString(stream.ToArray()));
+            }
+
+            try
+            {
+                Console.WriteLine("[{0}] NewtonSoft: {1}, Verse: {2}", TestContext.CurrentContext.Test.FullName, timeNewton, timeVerse);
+            }
+            catch (NullReferenceException)
+            {
+                // Test FullName throws when this method is executed out of a test
+            }
 
 #if DEBUG
-			Assert.Inconclusive ("Library should be compiled in Release mode before benching");
+            Assert.Inconclusive("Library should be compiled in Release mode before benching");
 #endif
-		}
+        }
 
-		private struct MyFlatStructure
-		{
-			public int lorem;
-			public long ipsum;
-			public double sit;
-			public string amet;
-			public byte consectetur;
-			public ushort adipiscing;
-			public char elit;
-			public float sed;
-			public string pulvinar;
-			public uint fermentum;
-			public short hendrerit;
-		}
+        private struct MyFlatStructure
+        {
+            public int lorem;
 
-		private class MyNestedArray
-		{
-			public MyNestedArray[] children;
-			public string value;
-		}
-	}
+            public long ipsum;
+
+            public double sit;
+
+            public string amet;
+
+            public byte consectetur;
+
+            public ushort adipiscing;
+
+            public char elit;
+
+            public float sed;
+
+            public string pulvinar;
+
+            public uint fermentum;
+
+            public short hendrerit;
+        }
+
+        private class MyNestedArray
+        {
+            public MyNestedArray[] children;
+
+            public string value;
+        }
+    }
 }

@@ -2,28 +2,51 @@ using System;
 
 namespace Verse
 {
-	public interface ISchema<T>
-	{
-		#region Properties
+    /// <summary>
+    /// Schema describes how to print (through a printer descriptor) or parse
+    /// (through a parser descriptor) any instance of type
+    /// <typeparamref name="TEntity"/> using a given serialization format which
+    /// depends on the actual implementation.
+    /// </summary>
+    /// <typeparam name="TEntity">Associated entity type</typeparam>
+    public interface ISchema<TEntity>
+    {
+        #region Properties
 
-		IBuilderDescriptor<T> BuilderDescriptor
-		{
-			get;
-		}
+        /// <summary>
+        /// Get parser descriptor for this schema and entity type.
+        /// </summary>
+        IParserDescriptor<TEntity> ParserDescriptor
+        {
+            get;
+        }
 
-		IParserDescriptor<T> ParserDescriptor
-		{
-			get;
-		}
+        /// <summary>
+        /// Get printer descriptor for this schema and entity type.
+        /// </summary>
+        IPrinterDescriptor<TEntity> PrinterDescriptor
+        {
+            get;
+        }
 
-		#endregion
+        #endregion
 
-		#region Methods
+        #region Methods
 
-		IBuilder<T> CreateBuilder ();
+        /// <summary>
+        /// Create an entity parser based on instructions passed to the
+        /// parser descriptor associated to this schema.
+        /// </summary>
+        /// <returns>Parser descriptor</returns>
+        IParser<TEntity> CreateParser();
 
-		IParser<T> CreateParser ();
+        /// <summary>
+        /// Create an entity printer based on instructions passed to the
+        /// Printer descriptor associated to this schema.
+        /// </summary>
+        /// <returns>Printer descriptor</returns>
+        IPrinter<TEntity> CreatePrinter();
 
-		#endregion
-	}
+        #endregion
+    }
 }

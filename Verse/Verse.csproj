@@ -50,6 +50,9 @@
     <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
     <FileAlignment>4096</FileAlignment>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|32bits'">
+    <DocumentationFile>bin\Release\Verse.xml</DocumentationFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core">
@@ -67,8 +70,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="src\BuilderDescriptors\Recurse\Builder.cs" />
-    <Compile Include="src\BuilderDescriptors\Recurse\Follow.cs" />
     <Compile Include="src\Linker.cs" />
     <Compile Include="src\ParserAssign.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\Container.cs" />
@@ -77,8 +78,14 @@
     <Compile Include="src\ParserDescriptors\Recurse\Parser.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\Nodes\BranchNode.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\Nodes\EmptyNode.cs" />
-    <Compile Include="src\BuilderDescriptors\Recurse\IEncoder.cs" />
-    <Compile Include="src\BuilderDescriptors\Recurse\Container.cs" />
+    <Compile Include="src\PrinterDescriptors\AbstractPrinterDescriptor.cs" />
+    <Compile Include="src\PrinterDescriptors\RecursePrinterDescriptor.cs" />
+    <Compile Include="src\PrinterDescriptors\Recurse\Container.cs" />
+    <Compile Include="src\PrinterDescriptors\Recurse\Follow.cs" />
+    <Compile Include="src\PrinterDescriptors\Recurse\IEncoder.cs" />
+    <Compile Include="src\PrinterDescriptors\Recurse\IWriter.cs" />
+    <Compile Include="src\PrinterDescriptors\Recurse\Printer.cs" />
+    <Compile Include="src\PrinterError.cs" />
     <Compile Include="src\Schemas\AbstractSchema.cs" />
     <Compile Include="src\Schemas\JSON\Browser.cs" />
     <Compile Include="src\Schemas\JSON\BrowserMove.cs" />
@@ -90,8 +97,8 @@
     <Compile Include="src\Tools\Generator.cs" />
     <Compile Include="src\Tools\Resolver.cs" />
     <Compile Include="src\Tools\Walker.cs" />
-    <Compile Include="src\IBuilder.cs" />
-    <Compile Include="src\IBuilderDescriptor.cs" />
+    <Compile Include="src\IPrinter.cs" />
+    <Compile Include="src\IPrinterDescriptor.cs" />
     <Compile Include="src\ParserDescriptors\AbstractParserDescriptor.cs" />
     <Compile Include="src\ParserDescriptors\RecurseParserDescriptor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -107,21 +114,7 @@
     <Compile Include="src\Schemas\JSON\Reader.cs" />
     <Compile Include="src\Schemas\JSON\Value.cs" />
     <Compile Include="src\Schemas\JSON\Content.cs" />
-    <Compile Include="src\BuilderError.cs" />
-    <Compile Include="src\BuilderDescriptors\AbstractBuilderDescriptor.cs" />
-    <Compile Include="src\BuilderDescriptors\RecurseBuilderDescriptor.cs" />
-    <Compile Include="src\BuilderDescriptors\Recurse\IWriter.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="src\ParserDescriptors\Recurse\Nodes" />
-    <Folder Include="src\BuilderDescriptors" />
-    <Folder Include="src\Tools" />
-    <Folder Include="src\ParserDescriptors" />
-    <Folder Include="src" />
-    <Folder Include="src\ParserDescriptors\Recurse" />
-    <Folder Include="src\Schemas" />
-    <Folder Include="src\Schemas\JSON" />
-    <Folder Include="src\BuilderDescriptors\Recurse" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

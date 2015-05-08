@@ -2,11 +2,29 @@ using System;
 
 namespace Verse.Schemas.JSON
 {
-	public enum Content
-	{
-		Void,
-		Boolean,
-		Number,
-		String
-	}
+    /// <summary>
+    /// JSON native value content type.
+    /// </summary>
+    public enum Content
+    {
+        /// <summary>
+        /// Undefined (null) value.
+        /// </summary>
+        Void,
+
+        /// <summary>
+        /// Boolean value.
+        /// </summary>
+        Boolean,
+
+        /// <summary>
+        /// Decimal number value.
+        /// </summary>
+        Number,
+
+        /// <summary>
+        /// String value.
+        /// </summary>
+        String
+    }
 }

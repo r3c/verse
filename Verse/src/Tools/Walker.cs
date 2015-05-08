@@ -4,39 +4,39 @@ using System.Collections.Generic;
 
 namespace Verse.Tools
 {
-	class Walker<T> : IEnumerable<T>
-	{
-		#region Attributes
+    internal class Walker<T> : IEnumerable<T>
+    {
+        #region Attributes
 
-		private readonly IEnumerator<T>	enumerator;
+        private readonly IEnumerator<T> enumerator;
 
-		#endregion
+        #endregion
 
-		#region Constructors
+        #region Constructors
 
-		public Walker (IEnumerator<T> enumerator)
-		{
-			this.enumerator = enumerator;
-		}
+        public Walker(IEnumerator<T> enumerator)
+        {
+            this.enumerator = enumerator;
+        }
 
-		#endregion
+        #endregion
 
-		#region Methods / Public
+        #region Methods / Public
 
-		public IEnumerator<T> GetEnumerator ()
-		{
-			return this.enumerator;
-		}
+        public IEnumerator<T> GetEnumerator()
+        {
+            return this.enumerator;
+        }
 
-		#endregion
+        #endregion
 
-		#region Methods / Explicit
+        #region Methods / Explicit
 
-		IEnumerator IEnumerable.GetEnumerator ()
-		{
-			return this.GetEnumerator ();
-		}
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return this.GetEnumerator();
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }

@@ -3,108 +3,108 @@ using System.Collections.Generic;
 
 namespace Verse.ParserDescriptors.Recurse.Nodes
 {
-	class BranchNode<T, C, V> : INode<T, C, V>
-	{
-		#region Properties
+    internal class BranchNode<TEntity, TContext, TNative> : INode<TEntity, TContext, TNative>
+    {
+        #region Properties
 
-		public bool CanAssign
-		{
-			get
-			{
-				return this.assign != null;
-			}
-		}
+        public bool CanAssign
+        {
+            get
+            {
+                return this.assign != null;
+            }
+        }
 
-		#endregion
+        #endregion
 
-		#region Attributes / Instance
+        #region Attributes / Instance
 
-		public ParserAssign<T, V> assign = null;
+        public ParserAssign<TEntity, TNative> assign = null;
 
-		public BranchNode<T, C, V>[] branchASCII = null;
+        public BranchNode<TEntity, TContext, TNative>[] branchASCII = null;
 
-		public Dictionary<char, BranchNode<T, C, V>> branchOther = null;
+        public Dictionary<char, BranchNode<TEntity, TContext, TNative>> branchOther = null;
 
-		public Follow<T, C, V> enter = null;
+        public Follow<TEntity, TContext, TNative> enter = null;
 
-		#endregion
+        #endregion
 
-		#region Attributes / Static
+        #region Attributes / Static
 
-		private static readonly Container<T, C, V> blank = new Container<T, C, V> ();
+        private static readonly Container<TEntity, TContext, TNative> blank = new Container<TEntity, TContext, TNative>();
 
-		private static readonly INode<T, C, V> empty = new EmptyNode<T, C, V> ();
+        private static readonly INode<TEntity, TContext, TNative> empty = new EmptyNode<TEntity, TContext, TNative>();
 
-		#endregion
+        #endregion
 
-		#region Methods
+        #region Methods
 
-		public void Assign (ref T target, V value)
-		{
-			if (this.assign != null)
-				this.assign (ref target, value);
-		}
+        public void Assign(ref TEntity target, TNative value)
+        {
+            if (this.assign != null)
+                this.assign(ref target, value);
+        }
 
-		public BranchNode<T, C, V> Connect (char c)
-		{
-			BranchNode<T, C, V> next;
+        public BranchNode<TEntity, TContext, TNative> Connect(char c)
+        {
+            BranchNode<TEntity, TContext, TNative> next;
 
-			if (c < 128)
-			{
-				if (this.branchASCII == null)
-					this.branchASCII = new BranchNode<T, C, V>[128];
+            if (c < 128)
+            {
+                if (this.branchASCII == null)
+                    this.branchASCII = new BranchNode<TEntity, TContext, TNative>[128];
 
-				if (this.branchASCII[c] != null)
-					next = this.branchASCII[c];
-				else
-				{
-					next = new BranchNode<T, C, V> ();
+                if (this.branchASCII[c] != null)
+                    next = this.branchASCII[c];
+                else
+                {
+                    next = new BranchNode<TEntity, TContext, TNative>();
 
-					this.branchASCII[c] = next;
-				}
-			}
-			else
-			{
-				if (this.branchOther == null)
-					this.branchOther = new Dictionary<char, BranchNode<T, C, V>> ();
+                    this.branchASCII[c] = next;
+                }
+            }
+            else
+            {
+                if (this.branchOther == null)
+                    this.branchOther = new Dictionary<char, BranchNode<TEntity, TContext, TNative>>();
 
-				if (!this.branchOther.TryGetValue (c, out next))
-				{
-					next = new BranchNode<T, C, V> ();
+                if (!this.branchOther.TryGetValue(c, out next))
+                {
+                    next = new BranchNode<TEntity, TContext, TNative>();
 
-					this.branchOther[c] = next;
-				}
-			}
+                    this.branchOther[c] = next;
+                }
+            }
 
-			return next;
-		}
+            return next;
+        }
 
-		public bool Enter (ref T target, IReader<C, V> reader, C context)
-		{
-			if (this.enter != null)
-				return this.enter (ref target, reader, context);
+        public bool Enter(ref TEntity target, IReader<TContext, TNative> reader, TContext context)
+        {
+            if (this.enter != null)
+                return this.enter(ref target, reader, context);
 
-			return reader.ReadValue (ref target, BranchNode<T, C, V>.blank, context);
-		}
+            return reader.ReadValue(ref target, BranchNode<TEntity, TContext, TNative>.blank, context);
+        }
 
-		public INode<T, C, V> Follow (char c)
-		{
-			BranchNode<T, C, V> next;
+        public INode<TEntity, TContext, TNative> Follow(char c)
+        {
+            BranchNode<TEntity, TContext, TNative> next;
 
-			if (c < 128)
-			{
-				if (this.branchASCII != null && this.branchASCII[c] != null)
-					return this.branchASCII[c];
-			}
-			else
-			{
-				if (this.branchOther != null && this.branchOther.TryGetValue (c, out next))
-					return next;
-			}
+            if (c < 128)
+            {
+                if (this.branchASCII != null && this.branchASCII[c] != null)
+                    return this.branchASCII[c];
+            }
+            else
+            {
+                if (this.branchOther != null && this.branchOther.TryGetValue(c, out next))
+                    return next;
+            }
 
-			return BranchNode<T, C, V>.empty;
-		}
+            return BranchNode<TEntity, TContext, TNative>.empty;
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }

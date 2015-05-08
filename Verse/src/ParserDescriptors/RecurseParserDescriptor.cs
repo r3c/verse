@@ -6,159 +6,159 @@ using Verse.Tools;
 
 namespace Verse.ParserDescriptors
 {
-	class RecurseParserDescriptor<T, C, V> : AbstractParserDescriptor<T>
-	{
-		#region Attributes
+    internal class RecurseParserDescriptor<TEntity, TContext, TNative> : AbstractParserDescriptor<TEntity>
+    {
+        #region Attributes
 
-		private readonly Container<T, C, V> container;
+        private readonly Container<TEntity, TContext, TNative> container;
 
-		private readonly IDecoder<V> decoder;
+        private readonly IDecoder<TNative> decoder;
 
-		#endregion
+        #endregion
 
-		#region Constructors
+        #region Constructors
 
-		public RecurseParserDescriptor (IDecoder<V> decoder)
-		{
-			this.container = new Container<T, C, V> ();
-			this.decoder = decoder;
-		}
+        public RecurseParserDescriptor(IDecoder<TNative> decoder)
+        {
+            this.container = new Container<TEntity, TContext, TNative>();
+            this.decoder = decoder;
+        }
 
-		#endregion
+        #endregion
 
-		#region Methods / Public
+        #region Methods / Public
 
-		public IParser<T> CreateParser (IReader<C, V> reader)
-		{
-			return new Parser<T, C, V> (this.container, reader);
-		}
+        public IParser<TEntity> CreateParser(IReader<TContext, TNative> reader)
+        {
+            return new Parser<TEntity, TContext, TNative>(this.container, reader);
+        }
 
-		public override IParserDescriptor<U> HasField<U> (string name, ParserAssign<T, U> assign, IParserDescriptor<U> parent)
-		{
-			RecurseParserDescriptor<U, C, V> descriptor;
+        public override IParserDescriptor<TField> HasField<TField>(string name, ParserAssign<TEntity, TField> assign, IParserDescriptor<TField> parent)
+        {
+            RecurseParserDescriptor<TField, TContext, TNative> descriptor;
 
-			descriptor = parent as RecurseParserDescriptor<U, C, V>;
+            descriptor = parent as RecurseParserDescriptor<TField, TContext, TNative>;
 
-			if (descriptor == null)
-				throw new ArgumentOutOfRangeException ("parent", "invalid target descriptor type");
+            if (descriptor == null)
+                throw new ArgumentOutOfRangeException("parent", "invalid target descriptor type");
 
-			return this.HasField (name, assign, descriptor);
-		}
+            return this.HasField(name, assign, descriptor);
+        }
 
-		public override IParserDescriptor<U> HasField<U> (string name, ParserAssign<T, U> assign)
-		{
-			return this.HasField (name, assign, new RecurseParserDescriptor<U, C, V> (this.decoder));
-		}
+        public override IParserDescriptor<TField> HasField<TField>(string name, ParserAssign<TEntity, TField> assign)
+        {
+            return this.HasField(name, assign, new RecurseParserDescriptor<TField, TContext, TNative>(this.decoder));
+        }
 
-		public override IParserDescriptor<T> HasField (string name)
-		{
-			RecurseParserDescriptor<T, C, V> descriptor;
-			Container<T, C, V> recurse;
+        public override IParserDescriptor<TEntity> HasField(string name)
+        {
+            RecurseParserDescriptor<TEntity, TContext, TNative> descriptor;
+            Container<TEntity, TContext, TNative> recurse;
 
-			descriptor = new RecurseParserDescriptor<T, C, V> (this.decoder);
-			recurse = descriptor.container;
+            descriptor = new RecurseParserDescriptor<TEntity, TContext, TNative>(this.decoder);
+            recurse = descriptor.container;
 
-			this.Connect (name, (ref T target, IReader<C, V> reader, C context) => reader.ReadValue (ref target, recurse, context));
+            this.Connect(name, (ref TEntity target, IReader<TContext, TNative> reader, TContext context) => reader.ReadValue(ref target, recurse, context));
 
-			return descriptor;
-		}
+            return descriptor;
+        }
 
-		public override IParserDescriptor<U> IsArray<U> (ParserAssign<T, IEnumerable<U>> assign, IParserDescriptor<U> parent)
-		{
-			RecurseParserDescriptor<U, C, V> descriptor;
+        public override IParserDescriptor<TElement> IsArray<TElement>(ParserAssign<TEntity, IEnumerable<TElement>> assign, IParserDescriptor<TElement> parent)
+        {
+            RecurseParserDescriptor<TElement, TContext, TNative> descriptor;
 
-			descriptor = parent as RecurseParserDescriptor<U, C, V>;
+            descriptor = parent as RecurseParserDescriptor<TElement, TContext, TNative>;
 
-			if (descriptor == null)
-				throw new ArgumentOutOfRangeException ("parent", "incompatible descriptor type");
+            if (descriptor == null)
+                throw new ArgumentOutOfRangeException("parent", "incompatible descriptor type");
 
-			return this.IsArray (assign, descriptor);
-		}
+            return this.IsArray(assign, descriptor);
+        }
 
-		public override IParserDescriptor<U> IsArray<U> (ParserAssign<T, IEnumerable<U>> assign)
-		{
-			return this.IsArray (assign, new RecurseParserDescriptor<U, C, V> (this.decoder));
-		}
+        public override IParserDescriptor<TElement> IsArray<TElement>(ParserAssign<TEntity, IEnumerable<TElement>> assign)
+        {
+            return this.IsArray(assign, new RecurseParserDescriptor<TElement, TContext, TNative>(this.decoder));
+        }
 
-		public override void IsValue<U> (ParserAssign<T, U> assign)
-		{
-			Converter<V, U> convert;
+        public override void IsValue<TValue>(ParserAssign<TEntity, TValue> assign)
+        {
+            Converter<TNative, TValue> convert;
 
-			convert = this.decoder.Get<U> ();
+            convert = this.decoder.Get<TValue>();
 
-			this.container.value = (ref T target, V value) => assign (ref target, convert (value));
-		}
+            this.container.value = (ref TEntity target, TNative value) => assign(ref target, convert(value));
+        }
 
-		#endregion
+        #endregion
 
-		#region Methods / Private
+        #region Methods / Private
 
-		private void Connect (string name, Follow<T, C, V> enter)
-		{
-			BranchNode<T, C, V> next;
+        private void Connect(string name, Follow<TEntity, TContext, TNative> enter)
+        {
+            BranchNode<TEntity, TContext, TNative> next;
 
-			next = this.container.fields;
+            next = this.container.fields;
 
-			foreach (char c in name)
-				next = next.Connect (c);
+            foreach (char c in name)
+                next = next.Connect(c);
 
-			next.enter = enter;
-		}
+            next.enter = enter;
+        }
 
-		private IParserDescriptor<U> HasField<U> (string name, ParserAssign<T, U> assign, RecurseParserDescriptor<U, C, V> descriptor)
-		{
-			Func<T, U> constructor;
-			Container<U, C, V> recurse;
+        private IParserDescriptor<TField> HasField<TField>(string name, ParserAssign<TEntity, TField> assign, RecurseParserDescriptor<TField, TContext, TNative> descriptor)
+        {
+            Func<TEntity, TField> constructor;
+            Container<TField, TContext, TNative> recurse;
 
-			constructor = this.GetConstructor<U> ();
-			recurse = descriptor.container;
+            constructor = this.GetConstructor<TField>();
+            recurse = descriptor.container;
 
-			this.Connect (name, (ref T target, IReader<C, V> reader, C context) =>
-			{
-				U	inner;
+            this.Connect(name, (ref TEntity target, IReader<TContext, TNative> reader, TContext context) =>
+            {
+                TField inner;
 
-				inner = constructor (target);
+                inner = constructor(target);
 
-				if (!reader.ReadValue (ref inner, recurse, context))
-					return false;
+                if (!reader.ReadValue(ref inner, recurse, context))
+                    return false;
 
-				assign (ref target, inner);
+                assign(ref target, inner);
 
-				return true;
-			});
+                return true;
+            });
 
-			return descriptor;
-		}
+            return descriptor;
+        }
 
-		private IParserDescriptor<U> IsArray<U> (ParserAssign<T, IEnumerable<U>> assign, RecurseParserDescriptor<U, C, V> descriptor)
-		{
-			Func<T, U> constructor;
-			Container<U, C, V> recurse;
+        private IParserDescriptor<TElement> IsArray<TElement>(ParserAssign<TEntity, IEnumerable<TElement>> assign, RecurseParserDescriptor<TElement, TContext, TNative> descriptor)
+        {
+            Func<TEntity, TElement> constructor;
+            Container<TElement, TContext, TNative> recurse;
 
-			if (this.container.items != null)
-				throw new InvalidOperationException ("can't declare items twice on same descriptor");
+            if (this.container.items != null)
+                throw new InvalidOperationException("can't declare items twice on same descriptor");
 
-			constructor = this.GetConstructor<U> ();
-			recurse = descriptor.container;
+            constructor = this.GetConstructor<TElement>();
+            recurse = descriptor.container;
 
-			this.container.items = (ref T target, IReader<C, V> reader, C context) =>
-			{
-				IBrowser<U>	browser;
-				T			source;
+            this.container.items = (ref TEntity target, IReader<TContext, TNative> reader, TContext context) =>
+            {
+                IBrowser<TElement> browser;
+                TEntity source;
 
-				source = target;
-				browser = reader.ReadArray (() => constructor (source), recurse, context);
-				assign (ref target, new Walker<U> (browser));
+                source = target;
+                browser = reader.ReadArray(() => constructor(source), recurse, context);
+                assign(ref target, new Walker<TElement>(browser));
 
-				while (browser.MoveNext ())
-					;
+                while (browser.MoveNext())
+                    ;
 
-				return browser.Success;
-			};
+                return browser.Success;
+            };
 
-			return descriptor;
-		}
+            return descriptor;
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }

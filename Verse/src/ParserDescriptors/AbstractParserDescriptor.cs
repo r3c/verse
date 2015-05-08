@@ -5,64 +5,64 @@ using Verse.Tools;
 
 namespace Verse.ParserDescriptors
 {
-	abstract class AbstractParserDescriptor<T> : IParserDescriptor<T>
-	{
-		#region Attributes
+    internal abstract class AbstractParserDescriptor<TEntity> : IParserDescriptor<TEntity>
+    {
+        #region Attributes
 
-		private readonly Dictionary<Type, object>	constructors = new Dictionary<Type, object> ();
+        private readonly Dictionary<Type, object> constructors = new Dictionary<Type, object>();
 
-		#endregion
+        #endregion
 
-		#region Methods / Abstract
+        #region Methods / Abstract
 
-		public abstract IParserDescriptor<U> HasField<U> (string name, ParserAssign<T, U> assign, IParserDescriptor<U> parent);
+        public abstract IParserDescriptor<TField> HasField<TField>(string name, ParserAssign<TEntity, TField> assign, IParserDescriptor<TField> parent);
 
-		public abstract IParserDescriptor<U> HasField<U> (string name, ParserAssign<T, U> assign);
+        public abstract IParserDescriptor<TField> HasField<TField>(string name, ParserAssign<TEntity, TField> assign);
 
-		public abstract IParserDescriptor<T> HasField (string name);
+        public abstract IParserDescriptor<TEntity> HasField(string name);
 
-		public abstract IParserDescriptor<U> IsArray<U> (ParserAssign<T, IEnumerable<U>> assign, IParserDescriptor<U> parent);
+        public abstract IParserDescriptor<TItem> IsArray<TItem>(ParserAssign<TEntity, IEnumerable<TItem>> assign, IParserDescriptor<TItem> parent);
 
-		public abstract IParserDescriptor<U> IsArray<U> (ParserAssign<T, IEnumerable<U>> assign);
+        public abstract IParserDescriptor<TItem> IsArray<TItem>(ParserAssign<TEntity, IEnumerable<TItem>> assign);
 
-		public abstract void IsValue<U> (ParserAssign<T, U> assign);
+        public abstract void IsValue<TValue>(ParserAssign<TEntity, TValue> assign);
 
-		#endregion
+        #endregion
 
-		#region Methods / Public
+        #region Methods / Public
 
-		public void CanCreate<U> (Func<T, U> constructor)
-		{
-			if (constructor == null)
-				throw new ArgumentNullException ("constructor");
+        public void CanCreate<TValue>(Func<TEntity, TValue> constructor)
+        {
+            if (constructor == null)
+                throw new ArgumentNullException("constructor");
 
-			this.constructors[typeof (U)] = constructor;
-		}
+            this.constructors[typeof (TValue)] = constructor;
+        }
 
-		public void IsValue ()
-		{
-			this.IsValue ((ref T target, T value) => target = value);
-		}
+        public void IsValue()
+        {
+            this.IsValue((ref TEntity target, TEntity value) => target = value);
+        }
 
-		#endregion
+        #endregion
 
-		#region Methods / Protected
+        #region Methods / Protected
 
-		protected Func<T, U> GetConstructor<U> ()
-		{
-			object box;
-			Func<U> constructor;
+        protected Func<TEntity, TValue> GetConstructor<TValue>()
+        {
+            object box;
+            Func<TValue> constructor;
 
-			if (!this.constructors.TryGetValue (typeof (U), out box))
-			{
-				constructor = Generator.Constructor<U> ();
+            if (!this.constructors.TryGetValue(typeof (TValue), out box))
+            {
+                constructor = Generator.Constructor<TValue>();
 
-				return (source) => constructor ();
-			}
+                return (source) => constructor();
+            }
 
-			return (Func<T, U>)box;
-		}
+            return (Func<TEntity, TValue>)box;
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }
