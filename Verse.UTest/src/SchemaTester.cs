@@ -1,16 +1,14 @@
 ﻿using System;
 using System.IO;
-using KellermanSoftware.CompareNetObjects;
 using NUnit.Framework;
 
-namespace Verse.Test
+namespace Verse.UTest
 {
     public class SchemaTester
     {
-        protected void AssertRoundtrip<T>(ISchema<T> schema, T instance, Func<T> constructor)
+        protected void AssertRoundtrip<T>(ISchema<T> schema, T instance, Func<T> constructor, Func<T, T, bool> equalityTester)
         {
             byte[] first;
-            CompareLogic compare;
             T other;
             IParser<T> parser;
             IPrinter<T> printer;
@@ -33,9 +31,7 @@ namespace Verse.Test
                 Assert.IsTrue(parser.Parse(stream, ref other));
             }
 
-            compare = new CompareLogic();
-
-            CollectionAssert.IsEmpty(compare.Compare(instance, other).Differences);
+            Assert.IsTrue(equalityTester(instance, other));
 
             using (MemoryStream stream = new MemoryStream())
             {

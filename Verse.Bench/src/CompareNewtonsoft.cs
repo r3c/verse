@@ -5,7 +5,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using KellermanSoftware.CompareNetObjects;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using Verse.Schemas;
@@ -117,7 +116,7 @@ namespace Verse.Bench
                 Assert.IsTrue(parser.Parse(stream, ref instance));
             }
 
-            CollectionAssert.IsEmpty(new CompareLogic().Compare(instance, reference).Differences);
+            Assert.AreEqual(instance, reference);
 
             try
             {
@@ -250,7 +249,7 @@ namespace Verse.Bench
 #endif
         }
 
-        private struct MyFlatStructure
+        private struct MyFlatStructure : IEquatable<MyFlatStructure>
         {
             public int lorem;
 
@@ -273,13 +272,43 @@ namespace Verse.Bench
             public uint fermentum;
 
             public short hendrerit;
+
+            public bool Equals(MyFlatStructure other)
+            {
+                return
+                    this.lorem == other.lorem &&
+                    this.ipsum == other.ipsum &&
+                    Math.Abs(this.sit - other.sit) < double.Epsilon &&
+                    this.amet == other.amet &&
+                    this.consectetur == other.consectetur &&
+                    this.adipiscing == other.adipiscing &&
+                    this.elit == other.elit &&
+                    Math.Abs(this.sed - other.sed) < float.Epsilon &&
+                    this.pulvinar == other.pulvinar &&
+                    this.fermentum == other.fermentum &&
+                    this.hendrerit == other.hendrerit;
+            }
         }
 
-        private class MyNestedArray
+        private class MyNestedArray : IEquatable<MyNestedArray>
         {
             public MyNestedArray[] children;
 
             public string value;
+
+            public bool Equals(MyNestedArray other)
+            {
+                if (this.children.Length != other.children.Length)
+                    return false;
+
+                for (int i = 0; i < this.children.Length; ++i)
+                {
+                    if (!this.children[i].Equals(other.children[i]))
+                        return false;
+                }
+
+                return this.value != other.value;
+            }
         }
     }
 }

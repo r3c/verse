@@ -7,7 +7,7 @@ using NUnit.Framework;
 using Verse.Schemas;
 using Verse.Schemas.JSON;
 
-namespace Verse.Test.Schemas
+namespace Verse.UTest.Schemas
 {
     [TestFixture]
     public class JSONSchemaTester : SchemaTester
@@ -232,8 +232,8 @@ namespace Verse.Test.Schemas
         [Test]
         public void Roundtrip()
         {
-            this.AssertRoundtrip(new JSONSchema<string>(), "Hello", () => string.Empty);
-            this.AssertRoundtrip(new JSONSchema<double>(), 25.5, () => 0);
+            this.AssertRoundtrip(new JSONSchema<string>(), "Hello", () => string.Empty, (a, b) => a == b);
+            this.AssertRoundtrip(new JSONSchema<double>(), 25.5, () => 0, (a, b) => Math.Abs(a - b) < double.Epsilon);
         }
 
         private void AssertParseAndEqual<T>(ISchema<T> schema, string json, T expected)
