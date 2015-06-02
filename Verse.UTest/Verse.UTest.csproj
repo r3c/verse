@@ -92,7 +92,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Verse\Verse.csproj">
-      <Project>{893A0620-914F-4A39-B20F-323BD0ED5969}</Project>
+      <Project>{5848CC59-8957-4B18-906C-0BAA7875DF62}</Project>
       <Name>Verse</Name>
     </ProjectReference>
   </ItemGroup>
