@@ -76,6 +76,7 @@
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq">
@@ -85,6 +86,16 @@
   <ItemGroup>
     <Compile Include="src\Linker.cs" />
     <Compile Include="src\ParserAssign.cs" />
+    <Compile Include="src\ParserDescriptors\FlatParserDescriptor.cs" />
+    <Compile Include="src\ParserDescriptors\Flat\Container.cs" />
+    <Compile Include="src\ParserDescriptors\Flat\Follow.cs" />
+    <Compile Include="src\ParserDescriptors\Flat\IBrowser.cs" />
+    <Compile Include="src\ParserDescriptors\Flat\IDecoder.cs" />
+    <Compile Include="src\ParserDescriptors\Flat\INode.cs" />
+    <Compile Include="src\ParserDescriptors\Flat\IReader.cs" />
+    <Compile Include="src\ParserDescriptors\Flat\Nodes\BranchNode.cs" />
+    <Compile Include="src\ParserDescriptors\Flat\Nodes\EmptyNode.cs" />
+    <Compile Include="src\ParserDescriptors\Flat\Parser.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\Container.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\Follow.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\IBrowser.cs" />
@@ -100,6 +111,7 @@
     <Compile Include="src\PrinterDescriptors\Recurse\Printer.cs" />
     <Compile Include="src\PrinterError.cs" />
     <Compile Include="src\Schemas\AbstractSchema.cs" />
+    <Compile Include="src\Schemas\QueryStringSchema.cs" />
     <Compile Include="src\Schemas\JSON\Browser.cs" />
     <Compile Include="src\Schemas\JSON\BrowserMove.cs" />
     <Compile Include="src\Schemas\JSON\BrowserState.cs" />
@@ -107,6 +119,9 @@
     <Compile Include="src\Schemas\JSON\ValueEncoder.cs" />
     <Compile Include="src\Schemas\JSON\Writer.cs" />
     <Compile Include="src\Schemas\JSON\WriterContext.cs" />
+    <Compile Include="src\Schemas\QueryString\Reader.cs" />
+    <Compile Include="src\Schemas\QueryString\ReaderContext.cs" />
+    <Compile Include="src\Schemas\QueryString\ValueDecoder.cs" />
     <Compile Include="src\Tools\Generator.cs" />
     <Compile Include="src\Tools\Resolver.cs" />
     <Compile Include="src\Tools\Walker.cs" />

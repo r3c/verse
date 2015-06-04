@@ -87,6 +87,7 @@
     <Compile Include="src\Models\RecursiveSchemaTester.cs" />
     <Compile Include="src\Models\SettingsTester.cs" />
     <Compile Include="src\Models\TypeSchemaTester.cs" />
+    <Compile Include="src\Schemas\QueryStringSchemaTester.cs" />
     <Compile Include="src\Schemas\JSONSchemaTester.cs" />
     <Compile Include="src\SchemaTester.cs" />
   </ItemGroup>
