@@ -247,12 +247,19 @@ namespace Verse.Schemas.QueryString
             return ch == '&' || ch == ';';
         }
 
+        /// <summary>
+        /// Check if character is unreserved.
+        /// </summary>
+        /// <param name="ch"></param>
+        /// <remarks>Array is not supported yet (",")</remarks>
+        /// <returns></returns>
         static private bool IsUnreservedCharacters(int ch)
         {
             return (ch >= 'A' && ch <= 'Z') ||
                    (ch >= 'a' && ch <= 'z') ||
                    (ch >= '0' && ch <= '9') ||
-                   ch == '*' || ch == '-' || ch == '.' || ch == '_';
+                   ch == '-' || ch == '_' || ch == '.' || ch == '!' ||
+                   ch == '~' || ch == '*' || ch == '\'' || ch == '(' || ch == ')';
         }
 
         #endregion

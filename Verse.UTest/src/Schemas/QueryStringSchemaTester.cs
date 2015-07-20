@@ -30,6 +30,14 @@ namespace Verse.UTest.Schemas
         [TestCase("f0", "?f0=", "")]
         [TestCase("f0", "?f0=v0&f1=v1", "v0")]
         [TestCase("f1", "?f0=v0&f1=v1", "v1")]
+        [TestCase("f0", "?f0=v0(v1)", "v0(v1)")]
+        [TestCase("f0", "?f0=-v0", "-v0")]
+        [TestCase("f0", "?f0=v0_v1", "v0_v1")]
+        [TestCase("f0", "?f0=v0.v1", "v0.v1")]
+        [TestCase("f0", "?f0=v0!v1", "v0!v1")]
+        [TestCase("f0", "?f0=v0~v1", "v0~v1")]
+        [TestCase("f0", "?f0=v0*v1", "v0*v1")]
+        [TestCase("f0", "?f0=v0'v1", "v0'v1")]
         public void ParseFieldValue<T>(string name, string query, T expected)
         {
             IParser<T> parser;
