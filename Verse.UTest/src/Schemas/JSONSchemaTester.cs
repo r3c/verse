@@ -183,6 +183,18 @@ namespace Verse.UTest.Schemas
         }
 
         [Test]
+        [TestCase("num", 9223372036854775807, "{\"num\":9223372036854775807}")]
+        public void PrintLongValue(string name, long value, string expected)
+        {
+            JSONSchema<long> schema;
+
+            schema = new JSONSchema<long>();
+            schema.PrinterDescriptor.HasField(name).IsValue();
+
+            this.AssertPrintAndEqual(schema, value, expected);
+        }
+
+        [Test]
         [TestCase(new int[0], "[]")]
         [TestCase(new[] { 21 }, "[21]")]
         [TestCase(new[] { 54, 90, -3, 34, 0, 49 }, "[54,90,-3,34,0,49]")]

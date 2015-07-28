@@ -132,8 +132,13 @@ namespace Verse.Schemas.JSON
 
                     break;
 
-                case Content.Number:
-                    this.writer.Write(value.Number.ToString(CultureInfo.InvariantCulture));
+                case Content.DecimalNumber:
+                    this.writer.Write(value.DecimalNumber.ToString(CultureInfo.InvariantCulture));
+
+                    break;
+
+                case Content.LongNumber:
+                    this.writer.Write(value.LongNumber.ToString(CultureInfo.InvariantCulture));
 
                     break;
 

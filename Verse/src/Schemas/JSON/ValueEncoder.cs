@@ -22,7 +22,7 @@ namespace Verse.Schemas.JSON
             { typeof (ushort), new Converter<ushort, Value>((v) => Value.FromNumber(v)) },
             { typeof (int), new Converter<int, Value>((v) => Value.FromNumber(v)) },
             { typeof (uint), new Converter<uint, Value>((v) => Value.FromNumber(v)) },
-            { typeof (long), new Converter<long, Value>((v) => Value.FromNumber(v)) },
+            { typeof (long), new Converter<long, Value>(Value.FromNumber) },
             { typeof (ulong), new Converter<ulong, Value>((v) => Value.FromNumber(v)) },
             { typeof (string), new Converter<string, Value>(Value.FromString) },
             { typeof (Value), new Converter<Value, Value>((v) => v) }

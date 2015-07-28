@@ -20,7 +20,12 @@ namespace Verse.Schemas.JSON
         /// <summary>
         /// Decimal number value.
         /// </summary>
-        Number,
+        DecimalNumber,
+
+        /// <summary>
+        /// Long number value.
+        /// </summary>
+        LongNumber,
 
         /// <summary>
         /// String value.

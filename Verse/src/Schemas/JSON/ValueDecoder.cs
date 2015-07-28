@@ -61,8 +61,11 @@ namespace Verse.Schemas.JSON
                 case Content.Boolean:
                     return value.Boolean;
 
-                case Content.Number:
-                    return value.Number != 0;
+                case Content.DecimalNumber:
+                    return value.DecimalNumber != 0;
+
+                case Content.LongNumber:
+                    return value.LongNumber != 0;
 
                 case Content.String:
                     return !string.IsNullOrEmpty(value.String);
@@ -79,8 +82,12 @@ namespace Verse.Schemas.JSON
                 case Content.Boolean:
                     return value.Boolean ? '1' : '\0';
 
-                case Content.Number:
-                    return value.Number != 0 ? '1' : '\0';
+                case Content.DecimalNumber:
+                    // ReSharper disable once CompareOfFloatsByEqualityOperator
+                    return value.DecimalNumber != 0 ? '1' : '\0';
+
+                case Content.LongNumber:
+                    return value.LongNumber != 0 ? '1' : '\0';
 
                 case Content.String:
                     return value.String.Length > 0 ? value.String[0] : '\0';
@@ -99,8 +106,11 @@ namespace Verse.Schemas.JSON
                 case Content.Boolean:
                     return value.Boolean ? 1 : 0;
 
-                case Content.Number:
-                    return (decimal)value.Number;
+                case Content.DecimalNumber:
+                    return (decimal)value.DecimalNumber;
+
+                case Content.LongNumber:
+                    return value.LongNumber;
 
                 case Content.String:
                     if (decimal.TryParse(value.String, NumberStyles.Float, CultureInfo.InvariantCulture, out number))
@@ -122,8 +132,11 @@ namespace Verse.Schemas.JSON
                 case Content.Boolean:
                     return value.Boolean ? 1 : 0;
 
-                case Content.Number:
-                    return (float)value.Number;
+                case Content.DecimalNumber:
+                    return (float)value.DecimalNumber;
+
+                case Content.LongNumber:
+                    return value.LongNumber;
 
                 case Content.String:
                     if (float.TryParse(value.String, NumberStyles.Float, CultureInfo.InvariantCulture, out number))
@@ -145,8 +158,11 @@ namespace Verse.Schemas.JSON
                 case Content.Boolean:
                     return value.Boolean ? 1 : 0;
 
-                case Content.Number:
-                    return (double)value.Number;
+                case Content.DecimalNumber:
+                    return value.DecimalNumber;
+
+                case Content.LongNumber:
+                    return value.LongNumber;
 
                 case Content.String:
                     if (double.TryParse(value.String, NumberStyles.Float, CultureInfo.InvariantCulture, out number))
@@ -168,8 +184,11 @@ namespace Verse.Schemas.JSON
                 case Content.Boolean:
                     return value.Boolean ? (sbyte)1 : (sbyte)0;
 
-                case Content.Number:
-                    return (sbyte)value.Number;
+                case Content.DecimalNumber:
+                    return (sbyte)value.DecimalNumber;
+
+                case Content.LongNumber:
+                    return (sbyte)value.LongNumber;
 
                 case Content.String:
                     if (sbyte.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
@@ -191,8 +210,11 @@ namespace Verse.Schemas.JSON
                 case Content.Boolean:
                     return value.Boolean ? (byte)1 : (byte)0;
 
-                case Content.Number:
-                    return (byte)value.Number;
+                case Content.DecimalNumber:
+                    return (byte)value.DecimalNumber;
+
+                case Content.LongNumber:
+                    return (byte)value.LongNumber;
 
                 case Content.String:
                     if (byte.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
@@ -214,8 +236,11 @@ namespace Verse.Schemas.JSON
                 case Content.Boolean:
                     return value.Boolean ? (short)1 : (short)0;
 
-                case Content.Number:
-                    return (short)value.Number;
+                case Content.DecimalNumber:
+                    return (short)value.DecimalNumber;
+
+                case Content.LongNumber:
+                    return (short)value.LongNumber;
 
                 case Content.String:
                     if (short.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
@@ -237,8 +262,11 @@ namespace Verse.Schemas.JSON
                 case Content.Boolean:
                     return value.Boolean ? (ushort)1 : (ushort)0;
 
-                case Content.Number:
-                    return (ushort)value.Number;
+                case Content.DecimalNumber:
+                    return (ushort)value.DecimalNumber;
+
+                case Content.LongNumber:
+                    return (ushort)value.LongNumber;
 
                 case Content.String:
                     if (ushort.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
@@ -260,8 +288,11 @@ namespace Verse.Schemas.JSON
                 case Content.Boolean:
                     return value.Boolean ? 1 : 0;
 
-                case Content.Number:
-                    return (int)value.Number;
+                case Content.DecimalNumber:
+                    return (int)value.DecimalNumber;
+
+                case Content.LongNumber:
+                    return (int)value.LongNumber;
 
                 case Content.String:
                     if (int.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
@@ -283,8 +314,11 @@ namespace Verse.Schemas.JSON
                 case Content.Boolean:
                     return value.Boolean ? 1u : 0;
 
-                case Content.Number:
-                    return (uint)value.Number;
+                case Content.DecimalNumber:
+                    return (uint)value.DecimalNumber;
+
+                case Content.LongNumber:
+                    return (uint)value.LongNumber;
 
                 case Content.String:
                     if (uint.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
@@ -306,8 +340,11 @@ namespace Verse.Schemas.JSON
                 case Content.Boolean:
                     return value.Boolean ? 1 : 0;
 
-                case Content.Number:
-                    return (long)value.Number;
+                case Content.DecimalNumber:
+                    return (long)value.DecimalNumber;
+
+                case Content.LongNumber:
+                    return value.LongNumber;
 
                 case Content.String:
                     if (long.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
@@ -329,8 +366,11 @@ namespace Verse.Schemas.JSON
                 case Content.Boolean:
                     return value.Boolean ? 1u : 0;
 
-                case Content.Number:
-                    return (ulong)value.Number;
+                case Content.DecimalNumber:
+                    return (ulong)value.DecimalNumber;
+
+                case Content.LongNumber:
+                    return (ulong)value.LongNumber;
 
                 case Content.String:
                     if (ulong.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
@@ -350,8 +390,11 @@ namespace Verse.Schemas.JSON
                 case Content.Boolean:
                     return value.Boolean ? "1" : string.Empty;
 
-                case Content.Number:
-                    return value.Number.ToString(CultureInfo.InvariantCulture);
+                case Content.DecimalNumber:
+                    return value.DecimalNumber.ToString(CultureInfo.InvariantCulture);
+
+                case Content.LongNumber:
+                    return value.LongNumber.ToString(CultureInfo.InvariantCulture);
 
                 case Content.String:
                     return value.String;
