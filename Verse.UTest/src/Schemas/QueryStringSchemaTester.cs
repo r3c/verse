@@ -38,6 +38,8 @@ namespace Verse.UTest.Schemas
         [TestCase("f0", "?f0=v0~v1", "v0~v1")]
         [TestCase("f0", "?f0=v0*v1", "v0*v1")]
         [TestCase("f0", "?f0=v0'v1", "v0'v1")]
+        [TestCase("f0", "?f0=a,b&f1=c", "a,b")]
+        [TestCase("f1", "?f0=a,b&f1=c", "c")]
         public void ParseFieldValue<T>(string name, string query, T expected)
         {
             IParser<T> parser;
