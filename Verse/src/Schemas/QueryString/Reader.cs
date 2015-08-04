@@ -13,9 +13,15 @@ namespace Verse.Schemas.QueryString
 
         #endregion
 
-        #region Attributes
+        #region Attributes / Instance
 
         private readonly Encoding encoding;
+
+        #endregion
+
+        #region Attributes / Static
+
+        private static readonly bool[] unreserved = new bool[128];
 
         #endregion
 
@@ -24,6 +30,35 @@ namespace Verse.Schemas.QueryString
         public Reader(Encoding encoding)
         {
             this.encoding = encoding;
+        }
+
+        static Reader()
+        {
+            for (int c = '0'; c <= '9'; ++c)
+                Reader.unreserved[c] = true;
+
+            for (int c = 'A'; c <= 'Z'; ++c)
+                Reader.unreserved[c] = true;
+
+            for (int c = 'a'; c <= 'z'; ++c)
+                Reader.unreserved[c] = true;
+
+            Reader.unreserved['-'] = true;
+            Reader.unreserved['_'] = true;
+            Reader.unreserved['.'] = true;
+            Reader.unreserved['!'] = true;
+            Reader.unreserved['~'] = true;
+            Reader.unreserved['*'] = true;
+            Reader.unreserved['\''] = true;
+            Reader.unreserved['('] = true;
+            Reader.unreserved[')'] = true;
+            Reader.unreserved[','] = true;
+            Reader.unreserved['"'] = true;
+            Reader.unreserved['$'] = true;
+            Reader.unreserved[':'] = true;
+            Reader.unreserved['@'] = true;
+            Reader.unreserved['/'] = true;
+            Reader.unreserved['?'] = true;
         }
 
         #endregion
@@ -58,7 +93,7 @@ namespace Verse.Schemas.QueryString
                 node = container.fields;
                 isKeyEmpty = true;
 
-                if (Reader.IsUnreservedCharacters(context.Current))
+                if (Reader.IsUnreserved(context.Current))
                 {
                     node = node.Follow((char)context.Current);
 
@@ -67,7 +102,7 @@ namespace Verse.Schemas.QueryString
                     context.Pull();
                 }
 
-                while (Reader.IsUnreservedCharacters(context.Current))
+                while (Reader.IsUnreserved(context.Current))
                 {
                     node = node.Follow((char)context.Current);
 
@@ -148,23 +183,19 @@ namespace Verse.Schemas.QueryString
 
                 c = context.Current;
 
-                if (Reader.IsUnreservedCharacters(c))
-                {
+                if (Reader.IsUnreserved(c))
                     builder.Append((char)c);
-                }
                 else if (c == '+')
-                {
                     builder.Append(' ');
-                }
                 else if (c == '%')
                 {
                     int digit1;
                     int digit2;
-                    int hexaValue;
-                    char[] result;
 
+                    // Fail if value isn't hexadecimal or is greater than 127
                     if (!Reader.ConvertToHexadecimalDigit(context, out digit1) ||
-                        !Reader.ConvertToHexadecimalDigit(context, out digit2))
+                        !Reader.ConvertToHexadecimalDigit(context, out digit2) ||
+                        digit1 > 7)
                     {
                         value = string.Empty;
 
@@ -173,20 +204,7 @@ namespace Verse.Schemas.QueryString
                         return false;
                     }
 
-                    hexaValue = digit1 * 16 + digit2;
-
-                    result = Encoding.ASCII.GetChars(new[] { (byte)hexaValue });
-
-                    if (result.Length != 1)
-                    {
-                        value = string.Empty;
-
-                        this.OnError(context.Position, "invalid ascii character");
-
-                        return false;
-                    }
-
-                    builder.Append(result[0]);
+                    builder.Append((char)(digit1 * 16 + digit2));
                 }
                 else
                     break;
@@ -214,45 +232,41 @@ namespace Verse.Schemas.QueryString
             context.Pull();
 
             if (context.Current >= '0' && context.Current <= '9')
-            {
                 digit = context.Current - '0';
-                return true;
-            }
             else if (context.Current >= 'A' && context.Current <= 'F')
-            {
                 digit = context.Current - 'A' + 10;
-                return true;
-            }
             else if (context.Current >= 'a' && context.Current <= 'f')
-            {
                 digit = context.Current - 'a' + 10;
-                return true;
+            else
+            {
+                digit = -1;
+
+                return false;
             }
 
-            digit = -1;
-
-            return false;
-        }
-
-        static private bool IsSeparator(int ch)
-        {
-            return ch == '&' || ch == ';';
+            return true;
         }
 
         /// <summary>
-        /// Check if character is unreserved.
+        /// Check if character is a parameters separator (& or ;).
         /// </summary>
-        /// <param name="ch"></param>
-        /// <remarks>Array is not supported yet (",")</remarks>
-        /// <returns></returns>
-        static private bool IsUnreservedCharacters(int ch)
+        /// <param name="c">Input character</param>
+        /// <returns>True if character is a separator, false otherwise</returns>
+        static private bool IsSeparator(int c)
         {
-            return (ch >= 'A' && ch <= 'Z') ||
-                   (ch >= 'a' && ch <= 'z') ||
-                   (ch >= '0' && ch <= '9') ||
-                   ch == '-' || ch == '_' || ch == '.' || ch == '!' ||
-                   ch == '~' || ch == '*' || ch == '\'' || ch == '(' || ch == ')' ||
-                   ch == ',' || ch == '"' || ch == '$' || ch == ':' || ch == '@' || ch == '/' || ch == '?';
+            return c == '&' || c == ';';
+        }
+
+        /// <summary>
+        /// Check if character is unreserved, i.e. can be used in a query
+        /// string without having to escape it.
+        /// </summary>
+        /// <param name="c">Input character</param>
+        /// <remarks>Array is not supported yet (",")</remarks>
+        /// <returns>True if character is unreserved, false otherwise</returns>
+        static private bool IsUnreserved(int c)
+        {
+            return c >= 0 && c < Reader.unreserved.Length && Reader.unreserved[c];
         }
 
         #endregion

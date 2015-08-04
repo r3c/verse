@@ -51,13 +51,13 @@ namespace Verse.Schemas.JSON
             for (int i = 32; i < 128; ++i)
                 WriterContext.ascii[i] = new[] { (char)i };
 
-            WriterContext.ascii[(int)'\b'] = new[] { '\\', 'b' };
-            WriterContext.ascii[(int)'\f'] = new[] { '\\', 'f' };
-            WriterContext.ascii[(int)'\n'] = new[] { '\\', 'n' };
-            WriterContext.ascii[(int)'\r'] = new[] { '\\', 'r' };
-            WriterContext.ascii[(int)'\t'] = new[] { '\\', 't' };
-            WriterContext.ascii[(int)'\\'] = new[] { '\\', '\\' };
-            WriterContext.ascii[(int)'"'] = new[] { '\\', '\"' };
+            WriterContext.ascii['\b'] = new[] { '\\', 'b' };
+            WriterContext.ascii['\f'] = new[] { '\\', 'f' };
+            WriterContext.ascii['\n'] = new[] { '\\', 'n' };
+            WriterContext.ascii['\r'] = new[] { '\\', 'r' };
+            WriterContext.ascii['\t'] = new[] { '\\', 't' };
+            WriterContext.ascii['\\'] = new[] { '\\', '\\' };
+            WriterContext.ascii['"'] = new[] { '\\', '\"' };
         }
 
         #endregion
