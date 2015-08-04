@@ -50,7 +50,7 @@ namespace Verse.Schemas.QueryString
 
         public bool Read<T>(ref T target, Container<T, ReaderContext, string> container, ReaderContext context)
         {
-            while (context.Current != -1)
+            while (true)
             {
                 bool isKeyEmpty;
                 INode<T, ReaderContext, string> node;
@@ -88,16 +88,13 @@ namespace Verse.Schemas.QueryString
                     if (!node.Enter(ref target, this, context))
                         return false;
                 }
-
-                if (context.Current == -1)
-                    break;
+                else
+                {
+                    context.Pull();
+                }
 
                 if (!Reader.IsSeparator(context.Current))
-                {
-                    this.OnError(context.Position, "unexpected character");
-
-                    return false;
-                }
+                    break;
 
                 context.Pull();
             }
@@ -139,6 +136,17 @@ namespace Verse.Schemas.QueryString
         private bool ReadFieldValue(ReaderContext context, out string value)
         {
             StringBuilder builder;
+
+            if (context.Current != -1 &&
+                !Reader.IsUnreservedCharacters(context.Current) &&
+                !Reader.IsSeparator(context.Current))
+            {
+                this.OnError(context.Position, "invalid character");
+
+                value = string.Empty;
+
+                return false;
+            }
 
             builder = new StringBuilder(32);
 
@@ -251,8 +259,7 @@ namespace Verse.Schemas.QueryString
                    (ch >= 'a' && ch <= 'z') ||
                    (ch >= '0' && ch <= '9') ||
                    ch == '-' || ch == '_' || ch == '.' || ch == '!' ||
-                   ch == '~' || ch == '*' || ch == '\'' || ch == '(' || ch == ')' ||
-                   ch == ',' || ch == '"' || ch == '$' || ch == ':' || ch == '@' || ch == '/' || ch == '?';
+                   ch == '~' || ch == '*' || ch == '\'' || ch == '(' || ch == ')';
         }
 
         #endregion
