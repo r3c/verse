@@ -17,12 +17,7 @@ namespace Verse.Schemas.JSON
         /// <summary>
         /// DecimalNumber value (only set if type is number).
         /// </summary>
-        public double DecimalNumber;
-
-        /// <summary>
-        /// LongNumber value (only set if type is an integer number).
-        /// </summary>
-        public long LongNumber;
+        public decimal DecimalNumber;
 
         /// <summary>
         /// String value (only set if type is string).
@@ -62,19 +57,9 @@ namespace Verse.Schemas.JSON
         /// </summary>
         /// <param name="value">Number value</param>
         /// <returns>JSON number value</returns>
-        public static Value FromNumber(double value)
+        public static Value FromNumber(decimal value)
         {
             return new Value { DecimalNumber = value, Type = Content.DecimalNumber };
-        }
-
-        /// <summary>
-        /// Create a new number JSON value.
-        /// </summary>
-        /// <param name="value">Number value</param>
-        /// <returns>JSON number value</returns>
-        public static Value FromNumber(long value)
-        {
-            return new Value { LongNumber = value, Type = Content.LongNumber };
         }
 
         /// <summary>

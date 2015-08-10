@@ -159,7 +159,7 @@ namespace Verse.Schemas.JSON
             StringBuilder buffer;
             char current;
             INode<TEntity, ReaderContext, Value> node;
-            double number;
+            decimal number;
             uint numberExponent;
             uint numberExponentMask;
             uint numberExponentPlus;
@@ -313,7 +313,9 @@ namespace Verse.Schemas.JSON
                         // Compute result number and assign if needed
                         if (container.value != null)
                         {
-                            number = (long)((numberMantissa ^ numberMantissaMask) + numberMantissaPlus)*Math.Pow(10, numberPower);
+                            number =
+                                (long)((numberMantissa ^ numberMantissaMask) + numberMantissaPlus) *
+                                (decimal)Math.Pow(10, numberPower);
 
                             container.value(ref target, Value.FromNumber(number));
                         }

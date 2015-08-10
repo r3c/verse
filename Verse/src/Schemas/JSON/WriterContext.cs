@@ -137,11 +137,6 @@ namespace Verse.Schemas.JSON
 
                     break;
 
-                case Content.LongNumber:
-                    this.writer.Write(value.LongNumber.ToString(CultureInfo.InvariantCulture));
-
-                    break;
-
                 case Content.String:
                     this.String(value.String);
 

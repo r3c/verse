@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -129,7 +130,8 @@ namespace Verse.UTest.Schemas
         [TestCase(".5e-2", 0.005)]
         [TestCase("2.945", 2.945)]
         [TestCase("1.1111111111111111111111", 1.1111111111111111111111)]
-        [TestCase("897643545435434543784546873543548", 897643545435434543784546873543548d)]
+        [TestCase("8976435454354345437845468735", 8976435454354345437845468735d)]
+        [TestCase("9223372036854775807", long.MaxValue)]
         [TestCase("\"\"", "")]
         [TestCase("\"Hello, World!\"", "Hello, World!")]
         [TestCase("\"\\u00FF \\u0066 \\uB3A8\"", "\xFF f \uB3A8")]
@@ -143,6 +145,17 @@ namespace Verse.UTest.Schemas
             schema.ParserDescriptor.IsValue();
 
             this.AssertParseAndEqual(schema, json, expected);
+        }
+
+        [Test]
+        public void ParseLittleValueNativeDecimal()
+        {
+            JSONSchema<decimal> schema;
+
+            schema = new JSONSchema<decimal>();
+            schema.ParserDescriptor.IsValue();
+
+            this.AssertParseAndEqual(schema, "1e-28", 1e-28m);
         }
 
         [Test]
