@@ -183,36 +183,17 @@ namespace Verse.Schemas.QueryString
 
                 c = context.Current;
 
-                if (Reader.IsUnreserved(c))
+                if (Reader.IsUnreserved(c) || c == '%')
                     builder.Append((char)c);
                 else if (c == '+')
                     builder.Append(' ');
-                else if (c == '%')
-                {
-                    int digit1;
-                    int digit2;
-
-                    // Fail if value isn't hexadecimal or is greater than 127
-                    if (!Reader.ConvertToHexadecimalDigit(context, out digit1) ||
-                        !Reader.ConvertToHexadecimalDigit(context, out digit2) ||
-                        digit1 > 7)
-                    {
-                        value = string.Empty;
-
-                        this.OnError(context.Position, "invalid hexadecimal character");
-
-                        return false;
-                    }
-
-                    builder.Append((char)(digit1 * 16 + digit2));
-                }
                 else
                     break;
 
                 context.Pull();
             }
 
-            value = builder.ToString();
+            value = Uri.UnescapeDataString(builder.ToString());
 
             return true;
         }
@@ -225,26 +206,6 @@ namespace Verse.Schemas.QueryString
 
             if (error != null)
                 error(position, message);
-        }
-
-        private static bool ConvertToHexadecimalDigit(ReaderContext context, out int digit)
-        {
-            context.Pull();
-
-            if (context.Current >= '0' && context.Current <= '9')
-                digit = context.Current - '0';
-            else if (context.Current >= 'A' && context.Current <= 'F')
-                digit = context.Current - 'A' + 10;
-            else if (context.Current >= 'a' && context.Current <= 'f')
-                digit = context.Current - 'a' + 10;
-            else
-            {
-                digit = -1;
-
-                return false;
-            }
-
-            return true;
         }
 
         /// <summary>
