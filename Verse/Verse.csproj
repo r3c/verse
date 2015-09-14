@@ -67,6 +67,9 @@
     <DocumentationFile>bin\Release\Verse.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="protobuf-net">
+      <HintPath>$(SolutionDir)\packages\protobuf-net.2.0.0.668\lib\net40\protobuf-net.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -114,6 +117,12 @@
     <Compile Include="src\PrinterDescriptors\Recurse\Printer.cs" />
     <Compile Include="src\PrinterError.cs" />
     <Compile Include="src\Schemas\AbstractSchema.cs" />
+    <Compile Include="src\Schemas\ProtobufSchema.cs" />
+    <Compile Include="src\Schemas\Protobuf\ContentType.cs" />
+    <Compile Include="src\Schemas\Protobuf\Reader.cs" />
+    <Compile Include="src\Schemas\Protobuf\ReaderContext.cs" />
+    <Compile Include="src\Schemas\Protobuf\Value.cs" />
+    <Compile Include="src\Schemas\Protobuf\ValueDecoder.cs" />
     <Compile Include="src\Schemas\QueryStringSchema.cs" />
     <Compile Include="src\Schemas\JSON\ValueDecoder.cs" />
     <Compile Include="src\Schemas\JSON\ValueEncoder.cs" />
