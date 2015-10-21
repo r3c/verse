@@ -96,6 +96,9 @@
     <Compile Include="src\ParserDescriptors\Flat\Nodes\BranchNode.cs" />
     <Compile Include="src\ParserDescriptors\Flat\Nodes\EmptyNode.cs" />
     <Compile Include="src\ParserDescriptors\Flat\Parser.cs" />
+    <Compile Include="src\ParserDescriptors\Recurse\Browser.cs" />
+    <Compile Include="src\ParserDescriptors\Recurse\BrowserMove.cs" />
+    <Compile Include="src\ParserDescriptors\Recurse\BrowserState.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\Container.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\Follow.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\IBrowser.cs" />
@@ -112,9 +115,6 @@
     <Compile Include="src\PrinterError.cs" />
     <Compile Include="src\Schemas\AbstractSchema.cs" />
     <Compile Include="src\Schemas\QueryStringSchema.cs" />
-    <Compile Include="src\Schemas\JSON\Browser.cs" />
-    <Compile Include="src\Schemas\JSON\BrowserMove.cs" />
-    <Compile Include="src\Schemas\JSON\BrowserState.cs" />
     <Compile Include="src\Schemas\JSON\ValueDecoder.cs" />
     <Compile Include="src\Schemas\JSON\ValueEncoder.cs" />
     <Compile Include="src\Schemas\JSON\Writer.cs" />
