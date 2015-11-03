@@ -1,5 +1,6 @@
 ﻿using System;
 using Verse.ParserDescriptors;
+using Verse.PrinterDescriptors;
 using Verse.Schemas.Protobuf;
 
 namespace Verse.Schemas
@@ -12,7 +13,7 @@ namespace Verse.Schemas
         {
             get
             {
-                throw new NotImplementedException("printing not implemented");
+                return this.printerDescriptor;
             }
         }
 
@@ -30,7 +31,11 @@ namespace Verse.Schemas
 
         private readonly RecurseParserDescriptor<TEntity, ReaderContext, Value> parserDescriptor;
 
+        private readonly RecursePrinterDescriptor<TEntity, WriterContext, Value> printerDescriptor;
+
         private readonly ValueDecoder valueDecoder;
+
+        private readonly ValueEncoder valueEncoder;
 
         #endregion
 
@@ -38,12 +43,11 @@ namespace Verse.Schemas
 
         public ProtobufSchema()
         {
-            ValueDecoder decoder;
+            this.valueDecoder = new ValueDecoder();
+            this.valueEncoder = new ValueEncoder();
 
-            decoder = new ValueDecoder();
-
-            this.parserDescriptor = new RecurseParserDescriptor<TEntity, ReaderContext, Value>(decoder);
-            this.valueDecoder = decoder;
+            this.parserDescriptor = new RecurseParserDescriptor<TEntity, ReaderContext, Value>(this.valueDecoder);
+            this.printerDescriptor = new RecursePrinterDescriptor<TEntity, WriterContext, Value>(this.valueEncoder);
         }
 
         #endregion
@@ -57,12 +61,17 @@ namespace Verse.Schemas
 
         public override IPrinter<TEntity> CreatePrinter()
         {
-            throw new NotImplementedException("printing not implemented");
+            return this.printerDescriptor.CreatePrinter(new Writer());
         }
 
         public void SetDecoder<U>(Converter<Value, U> converter)
         {
             this.valueDecoder.Set(converter);
+        }
+
+        public void SetEncoder<U>(Converter<U, Value> converter)
+        {
+            this.valueEncoder.Set(converter);
         }
 
         #endregion

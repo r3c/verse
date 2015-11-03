@@ -121,8 +121,12 @@
     <Compile Include="src\Schemas\Protobuf\ContentType.cs" />
     <Compile Include="src\Schemas\Protobuf\Reader.cs" />
     <Compile Include="src\Schemas\Protobuf\ReaderContext.cs" />
+    <Compile Include="src\Schemas\Protobuf\SubObjectInstance.cs" />
     <Compile Include="src\Schemas\Protobuf\Value.cs" />
     <Compile Include="src\Schemas\Protobuf\ValueDecoder.cs" />
+    <Compile Include="src\Schemas\Protobuf\ValueEncoder.cs" />
+    <Compile Include="src\Schemas\Protobuf\Writer.cs" />
+    <Compile Include="src\Schemas\Protobuf\WriterContext.cs" />
     <Compile Include="src\Schemas\QueryStringSchema.cs" />
     <Compile Include="src\Schemas\JSON\ValueDecoder.cs" />
     <Compile Include="src\Schemas\JSON\ValueEncoder.cs" />

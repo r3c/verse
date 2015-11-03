@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using NUnit.Framework;
@@ -21,7 +20,7 @@ namespace Verse.UTest.Schemas
         {
             Value decodedValue;
 
-            decodedValue = ProtobufSchemaTester.EncodeAndDecode(value);
+            decodedValue = ProtobufSchemaTester.TestDecode(value);
 
             Assert.AreEqual(ContentType.Double, decodedValue.Type);
             Assert.AreEqual(value, decodedValue.DoubleContent);
@@ -34,7 +33,7 @@ namespace Verse.UTest.Schemas
         {
             Value decodedValue;
 
-            decodedValue = ProtobufSchemaTester.EncodeAndDecode(value);
+            decodedValue = ProtobufSchemaTester.TestDecode(value);
 
             Assert.AreEqual(ContentType.Float, decodedValue.Type);
             Assert.AreEqual(value, decodedValue.FloatContent);
@@ -45,11 +44,11 @@ namespace Verse.UTest.Schemas
         [TestCase(150)]
         [TestCase(16777215)]
         [TestCase(9223372036854775807)]
-        public void DecodeNumericValue<T>(T value)
+        public void DecodeLongValue(long value)
         {
             Value decodedValue;
 
-            decodedValue = ProtobufSchemaTester.EncodeAndDecode(value);
+            decodedValue = ProtobufSchemaTester.TestDecode(value);
 
             Assert.AreEqual(ContentType.Long, decodedValue.Type);
             Assert.AreEqual(value, decodedValue.LongContent);
@@ -58,31 +57,31 @@ namespace Verse.UTest.Schemas
         [TestCase("")]
         [TestCase("toto")]
         [TestCase("DecodingProtobuf")]
-        public void DecodeString(string value)
+        public void DecodeStringValue(string value)
         {
             Value decodedValue;
 
-            decodedValue = ProtobufSchemaTester.EncodeAndDecode(value);
+            decodedValue = ProtobufSchemaTester.TestDecode(value);
 
             Assert.AreEqual(value, decodedValue.StringContent);
         }
 
         [Test]
-        [TestCase(new[] {1, 2, 3})]
-        [TestCase(new[] {1, 1, 1})]
+        [TestCase(new[] { 1, 2, 3 })]
+        [TestCase(new[] { 1, 1, 1 })]
         [TestCase(new int[0])]
         public void DecodeIntegers(int[] expectedItems)
         {
-            DecodeItems(expectedItems);
+            TestDecodeItems(expectedItems);
         }
 
         [Test]
-        [TestCase(new[] { 1.0, 2.0, 3.0})]
+        [TestCase(new[] { 1.0, 2.0, 3.0 })]
         [TestCase(new[] { -1.0, 3.0, 2.0 })]
         [TestCase(new double[0])]
         public void DecodeDoubles(double[] expectedItems)
         {
-            DecodeItems(expectedItems);
+            TestDecodeItems(expectedItems);
         }
 
         [Test]
@@ -91,7 +90,7 @@ namespace Verse.UTest.Schemas
         [TestCase("", "", "")]
         public void DecodeStrings(string a, string b, string c)
         {
-            DecodeItems(new string[]{a, b, c});
+            TestDecodeItems(new string[] { a, b, c });
         }
 
         [Test]
@@ -100,7 +99,7 @@ namespace Verse.UTest.Schemas
         [TestCase(new float[0])]
         public void DecodeFloats(float[] expectedItems)
         {
-            DecodeItems(expectedItems);
+            TestDecodeItems(expectedItems);
         }
 
         [Test]
@@ -136,7 +135,127 @@ namespace Verse.UTest.Schemas
             Assert.AreEqual(testFieldClass.subValue.value, decodedValue[0].value);
         }
 
-        private static void DecodeItems<T>(T[] expectedItems)
+        [Test]
+        [TestCase(2.3)]
+        [TestCase(0.0)]
+        [TestCase(-2.3)]
+        [TestCase(1.11111111111)]
+        public void EncodeNumericValue(double value)
+        {
+            double decodedValue;
+
+            decodedValue = ProtobufSchemaTester.TestEncode<double>(new Value(value));
+
+            Assert.AreEqual(value, decodedValue);
+        }
+
+        [TestCase(2.3f)]
+        [TestCase(0.0f)]
+        [TestCase(-2.3f)]
+        public void EncodeNumericValue(float value)
+        {
+            float decodedValue;
+
+            decodedValue = ProtobufSchemaTester.TestEncode<float>(new Value(value));
+
+            Assert.AreEqual(value, decodedValue);
+        }
+
+        [TestCase(0)]
+        [TestCase(10)]
+        [TestCase(150)]
+        [TestCase(16777215)]
+        [TestCase(9223372036854775807)]
+        public void EncodeLongValue(long value)
+        {
+            long decodedValue;
+
+            decodedValue = ProtobufSchemaTester.TestEncode<long>(new Value(value));
+
+            Assert.AreEqual(value, decodedValue);
+        }
+
+
+        [TestCase("")]
+        [TestCase("toto")]
+        [TestCase("DecodingProtobuf")]
+        public void EncodeStringValue(string value)
+        {
+            string decodedValue;
+
+            decodedValue = ProtobufSchemaTester.TestEncode<string>(new Value(value));
+
+            Assert.AreEqual(value, decodedValue);
+        }
+
+        [Test]
+        [TestCase(new[] { 1, 2, 3 })]
+        [TestCase(new[] { 1, 1, 1 })]
+        [TestCase(new int[0])]
+        public void EncodeIntegers(int[] expectedItems)
+        {
+            TestEncodeItems(expectedItems);
+        }
+
+        [Test]
+        [TestCase(new[] { 1.0, 2.0, 3.0 })]
+        [TestCase(new[] { -1.0, 3.0, 2.0 })]
+        [TestCase(new double[0])]
+        public void EncodeDoubles(double[] expectedItems)
+        {
+            TestEncodeItems(expectedItems);
+        }
+
+        [Test]
+        [TestCase("toto", "titi", "tutu")]
+        [TestCase("A", "B", "D")]
+        [TestCase("", "", "")]
+        public void EncodeStrings(string a, string b, string c)
+        {
+            TestEncodeItems(new string[] { a, b, c });
+        }
+
+        [Test]
+        [TestCase(new[] { 1f, 2f, 3f })]
+        [TestCase(new[] { -1f, 3f, 2f })]
+        [TestCase(new float[0])]
+        public void EncodeFloats(float[] expectedItems)
+        {
+            TestEncodeItems(expectedItems);
+        }
+
+        [Test]
+        public void EncodeSubItem()
+        {
+            TestFieldClass<long> decodedTestFieldClass;
+            IPrinter<TestFieldClass<long>> printer;
+            ProtobufSchema<TestFieldClass<long>> schema;
+            MemoryStream stream;
+            TestFieldClass<long> testFieldClass;
+
+            testFieldClass = new TestFieldClass<long>();
+            testFieldClass.subValue = new SubTestFieldClass();
+            testFieldClass.subValue.value = 10;
+
+            schema = new ProtobufSchema<TestFieldClass<long>>();
+            schema.PrinterDescriptor
+                .HasField("3")
+                .IsArray(source => new List<SubTestFieldClass> {source.subValue})
+                .HasField("4", target => target.value)
+                .IsValue();
+
+            stream = new MemoryStream();
+
+            printer = schema.CreatePrinter();
+            Assert.IsTrue(printer.Print(testFieldClass, stream));
+            stream.Seek(0, SeekOrigin.Begin);
+
+            decodedTestFieldClass = Serializer.Deserialize<TestFieldClass<long>>(stream);
+
+            Assert.AreEqual(testFieldClass.subValue.value, decodedTestFieldClass.subValue.value);
+        }
+
+        private static void TestDecodeItems<T>(T[] expectedItems)
         {
             IParser<List<T>> parser;
             ProtobufSchema<List<T>> schema;
@@ -161,7 +280,23 @@ namespace Verse.UTest.Schemas
             CollectionAssert.AreEqual(expectedItems, value);
         }
 
-        private static Value EncodeAndDecode<T>(T encodedValue)
+        private static void TestEncodeItems<T>(T[] expectedItems)
+        {
+            ProtobufSchema<List<T>> schema;
+            schema = new ProtobufSchema<List<T>>();
+            IPrinterDescriptor<List<T>> printerDescriptor = schema.PrinterDescriptor.HasField("2");
+            printerDescriptor.IsArray(source => source).IsValue();
+
+            MemoryStream stream;
+            stream = new MemoryStream();
+            Assert.IsTrue(schema.CreatePrinter().Print(new List<T>(expectedItems), stream));
+            stream.Seek(0, SeekOrigin.Begin);
+
+            TestFieldClass<T> testFieldClass = Serializer.Deserialize<TestFieldClass<T>>(stream);
+            CollectionAssert.AreEqual(expectedItems, testFieldClass.items);
+        }
+
+        private static Value TestDecode<T>(T value)
         {
             Value decodedValue;
             IParser<Value> parser;
@@ -170,7 +305,7 @@ namespace Verse.UTest.Schemas
             TestFieldClass<T> testFieldClass;
 
             testFieldClass = new TestFieldClass<T>();
-            testFieldClass.value = encodedValue;;
+            testFieldClass.value = value;
 
             stream = new MemoryStream();
             Serializer.Serialize(stream, testFieldClass);
@@ -184,6 +319,28 @@ namespace Verse.UTest.Schemas
             Assert.IsTrue(parser.Parse(stream, ref decodedValue));
 
             return decodedValue;
+        }
+
+        private static T TestEncode<T>(Value value)
+        {
+            IPrinter<Value> printer;
+            ISchema<Value> schema;
+            MemoryStream stream;
+            TestFieldClass<T> testFieldClass;
+
+            schema = new ProtobufSchema<Value>();
+            schema.PrinterDescriptor.HasField("1").IsValue();
+
+            stream = new MemoryStream();
+
+            printer = schema.CreatePrinter();
+            Assert.IsTrue(printer.Print(value, stream));
+
+            stream.Seek(0, SeekOrigin.Begin);
+
+            testFieldClass = Serializer.Deserialize<TestFieldClass<T>>(stream);
+
+            return testFieldClass.value;
         }
 
         [global::System.Serializable, global::ProtoBuf.ProtoContract(Name = @"SubTestFieldClass")]
