@@ -103,6 +103,39 @@ namespace Verse.UTest.Schemas
             DecodeItems(expectedItems);
         }
 
+        [Test]
+        public void DecodeSubItem()
+        {
+            List<SubTestFieldClass> decodedValue;
+            IParser<List<SubTestFieldClass>> parser;
+            ProtobufSchema<List<SubTestFieldClass>> schema;
+            MemoryStream stream;
+            TestFieldClass<long> testFieldClass;
+
+            testFieldClass = new TestFieldClass<long>();
+            testFieldClass.subValue = new SubTestFieldClass();
+            testFieldClass.subValue.value = 10;
+
+            stream = new MemoryStream();
+            Serializer.Serialize(stream, testFieldClass);
+            stream.Seek(0, SeekOrigin.Begin);
+
+            schema = new ProtobufSchema<List<SubTestFieldClass>>();
+            schema.ParserDescriptor
+                .HasField("3")
+                .IsArray((ref List<SubTestFieldClass> target, IEnumerable<SubTestFieldClass> enumerable) => target.AddRange(enumerable))
+                .HasField<int>("4", (ref SubTestFieldClass target, int value) => target.value = value)
+                .IsValue();
+
+            parser = schema.CreateParser();
+
+            decodedValue = new List<SubTestFieldClass>();
+            Assert.IsTrue(parser.Parse(stream, ref decodedValue));
+
+            Assert.AreEqual(1, decodedValue.Count);
+            Assert.AreEqual(testFieldClass.subValue.value, decodedValue[0].value);
+        }
+
         private static void DecodeItems<T>(T[] expectedItems)
         {
             IParser<List<T>> parser;
@@ -153,8 +186,26 @@ namespace Verse.UTest.Schemas
             return decodedValue;
         }
 
+        [global::System.Serializable, global::ProtoBuf.ProtoContract(Name = @"SubTestFieldClass")]
+        public class SubTestFieldClass : global::ProtoBuf.IExtensible
+        {
+            private int _value;
+            [global::ProtoBuf.ProtoMember(4, IsRequired = true)]
+            public int value
+            {
+                get { return _value; }
+                set { _value = value; }
+            }
+
+            private global::ProtoBuf.IExtension extensionObject;
+            global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+            {
+                return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing);
+            }
+        }
+
         [global::System.Serializable, global::ProtoBuf.ProtoContract(Name = @"TestFieldClass")]
-        class TestFieldClass<T> : global::ProtoBuf.IExtensible
+        public class TestFieldClass<T> : global::ProtoBuf.IExtensible
         {
             private T _value;
             [global::ProtoBuf.ProtoMember(1, IsRequired = true)]
@@ -172,9 +223,19 @@ namespace Verse.UTest.Schemas
                 set { _items = value; }
             }
 
+            private SubTestFieldClass _subValue;
+            [global::ProtoBuf.ProtoMember(3, IsRequired = true)]
+            public SubTestFieldClass subValue
+            {
+                get { return _subValue; }
+                set { _subValue = value; }
+            }
+
             private global::ProtoBuf.IExtension extensionObject;
             global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-            { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
+            {
+                return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing);
+            }
         }
     }
 }
