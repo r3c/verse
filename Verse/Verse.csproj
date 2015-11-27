@@ -119,6 +119,7 @@
     <Compile Include="src\Schemas\AbstractSchema.cs" />
     <Compile Include="src\Schemas\ProtobufSchema.cs" />
     <Compile Include="src\Schemas\Protobuf\ContentType.cs" />
+    <Compile Include="src\Schemas\Protobuf\VisitingNode.cs" />
     <Compile Include="src\Schemas\Protobuf\Reader.cs" />
     <Compile Include="src\Schemas\Protobuf\ReaderContext.cs" />
     <Compile Include="src\Schemas\Protobuf\SubObjectInstance.cs" />

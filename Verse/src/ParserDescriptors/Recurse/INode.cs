@@ -11,6 +11,11 @@ namespace Verse.ParserDescriptors.Recurse
             get;
         }
 
+        bool IsConnected
+        {
+            get;
+        }
+
         #endregion
 
         #region Methods

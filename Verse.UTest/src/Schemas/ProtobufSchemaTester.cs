@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using NUnit.Framework;
@@ -121,9 +123,9 @@ namespace Verse.UTest.Schemas
 
             schema = new ProtobufSchema<List<SubTestFieldClass>>();
             schema.ParserDescriptor
-                .HasField("3")
+                .HasField("_3")
                 .IsArray((ref List<SubTestFieldClass> target, IEnumerable<SubTestFieldClass> enumerable) => target.AddRange(enumerable))
-                .HasField<int>("4", (ref SubTestFieldClass target, int value) => target.value = value)
+                .HasField("_4", (ref SubTestFieldClass target, int value) => target.value = value)
                 .IsValue();
 
             parser = schema.CreateParser();
@@ -225,7 +227,141 @@ namespace Verse.UTest.Schemas
         }
 
         [Test]
-        public void EncodeSubItem()
+        public void TestDecodeSubObject()
+        {
+            TestFieldClass<int> testFieldClass;
+            testFieldClass = new TestFieldClass<int>();
+
+            testFieldClass.subValue = new SubTestFieldClass();
+            testFieldClass.subValue.value = 10;
+
+            MemoryStream stream;
+            stream = new MemoryStream();
+            Serializer.Serialize(stream, testFieldClass);
+            stream.Seek(0, SeekOrigin.Begin);
+
+            ProtobufSchema<int> schema = new ProtobufSchema<int>();
+            schema.ParserDescriptor.HasField("_3").HasField("_4").IsValue();
+
+            int value = 0;
+
+            IParser<int> parser = schema.CreateParser();
+
+            Assert.IsTrue(parser.Parse(stream, ref value));
+            Assert.AreEqual(10, value);
+        }
+
+        [Test]
+        [TestCase(0, 0, 10)]
+        [TestCase(0, 1, 20)]
+        [TestCase(0, 2, 30)]
+        [TestCase(1, 0, 40)]
+        [TestCase(1, 1, 50)]
+        [TestCase(1, 2, 60)]
+        [TestCase(2, 0, 70)]
+        [TestCase(2, 1, 80)]
+        [TestCase(2, 2, 90)]
+        [TestCase(0, null, 10)]
+        [TestCase(1, null, 40)]
+        [TestCase(2, null, 70)]
+        [TestCase(null, 0, 10)]
+        [TestCase(null, 1, 20)]
+        [TestCase(null, 2, 30)]
+        [TestCase(null, null, 10)]
+        public void TestDecodeSubObjectIndex(int? index0, int? index1, int expected)
+        {
+            IParser<int> parser;
+            ProtobufSchema<int> schema;
+            int value;
+
+            TestFieldClass<TestFieldClass<SubTestFieldClass>> testFieldClass;
+            testFieldClass = new TestFieldClass<TestFieldClass<SubTestFieldClass>>();
+            testFieldClass.items = new List<TestFieldClass<SubTestFieldClass>>
+            {
+                new TestFieldClass<SubTestFieldClass>
+                {
+                    items = new List<SubTestFieldClass>
+                    {
+                        new SubTestFieldClass
+                        {
+                            value = 10
+                        },
+                        new SubTestFieldClass
+                        {
+                            value = 20
+                        },
+                        new SubTestFieldClass
+                        {
+                            value = 30
+                        }
+                    }
+                },
+                new TestFieldClass<SubTestFieldClass>
+                {
+                    items = new List<SubTestFieldClass>
+                    {
+                        new SubTestFieldClass
+                        {
+                            value = 40
+                        },
+                        new SubTestFieldClass
+                        {
+                            value = 50
+                        },
+                        new SubTestFieldClass
+                        {
+                            value = 60
+                        }
+                    }
+                },
+                new TestFieldClass<SubTestFieldClass>
+                {
+                    items = new List<SubTestFieldClass>
+                    {
+                        new SubTestFieldClass
+                        {
+                            value = 70
+                        },
+                        new SubTestFieldClass
+                        {
+                            value = 80
+                        },
+                        new SubTestFieldClass
+                        {
+                            value = 90
+                        }
+                    }
+                },
+            }.ToList();
+
+            MemoryStream stream;
+            stream = new MemoryStream();
+            Serializer.Serialize(stream, testFieldClass);
+            stream.Seek(0, SeekOrigin.Begin);
+
+            schema = new ProtobufSchema<int>();
+
+            IParserDescriptor<int> result = schema.ParserDescriptor.HasField("_2");
+
+            if (index0.HasValue)
+                result = result.HasField(index0.Value.ToString(CultureInfo.InvariantCulture));
+
+            result = result.HasField("_2");
+
+            if (index1.HasValue)
+                result = result.HasField(index1.Value.ToString(CultureInfo.InvariantCulture));
+
+            result = result.HasField("_4");
+            result.IsValue();
+
+            value = 0;
+            parser = schema.CreateParser();
+            Assert.IsTrue(parser.Parse(stream, ref value));
+            Assert.AreEqual(expected, value);
+        }
+
+        [Test]
+        public void TestEncodeSubListItem()
         {
             TestFieldClass<long> decodedTestFieldClass;
             IPrinter<TestFieldClass<long>> printer;
@@ -239,9 +375,39 @@ namespace Verse.UTest.Schemas
 
             schema = new ProtobufSchema<TestFieldClass<long>>();
             schema.PrinterDescriptor
-                .HasField("3")
+                .HasField("_3")
                 .IsArray(source => new List<SubTestFieldClass> {source.subValue})
-                .HasField("4", target => target.value)
+                .HasField("_4", target => target.value)
+                .IsValue();
+
+            stream = new MemoryStream();
+
+            printer = schema.CreatePrinter();
+            Assert.IsTrue(printer.Print(testFieldClass, stream));
+            stream.Seek(0, SeekOrigin.Begin);
+
+            decodedTestFieldClass = Serializer.Deserialize<TestFieldClass<long>>(stream);
+
+            Assert.AreEqual(testFieldClass.subValue.value, decodedTestFieldClass.subValue.value);
+        }
+
+        [Test]
+        public void TestEncodeSubItem()
+        {
+            TestFieldClass<long> decodedTestFieldClass;
+            IPrinter<TestFieldClass<long>> printer;
+            ProtobufSchema<TestFieldClass<long>> schema;
+            MemoryStream stream;
+            TestFieldClass<long> testFieldClass;
+
+            testFieldClass = new TestFieldClass<long>();
+            testFieldClass.subValue = new SubTestFieldClass();
+            testFieldClass.subValue.value = 10;
+
+            schema = new ProtobufSchema<TestFieldClass<long>>();
+            schema.PrinterDescriptor
+                .HasField("_3", target => target.subValue)
+                .HasField("_4", target => target.value)
                 .IsValue();
 
             stream = new MemoryStream();
@@ -271,7 +437,7 @@ namespace Verse.UTest.Schemas
             stream.Seek(0, SeekOrigin.Begin);
 
             schema = new ProtobufSchema<List<T>>();
-            IParserDescriptor<List<T>> fieldParser = schema.ParserDescriptor.HasField("2");
+            IParserDescriptor<List<T>> fieldParser = schema.ParserDescriptor.HasField("_2");
             fieldParser.IsArray((ref List<T> target, IEnumerable<T> enumerable) => target.AddRange(enumerable)).IsValue();
 
             value = new List<T>();
@@ -284,7 +450,7 @@ namespace Verse.UTest.Schemas
         {
             ProtobufSchema<List<T>> schema;
             schema = new ProtobufSchema<List<T>>();
-            IPrinterDescriptor<List<T>> printerDescriptor = schema.PrinterDescriptor.HasField("2");
+            IPrinterDescriptor<List<T>> printerDescriptor = schema.PrinterDescriptor.HasField("_2");
             printerDescriptor.IsArray(source => source).IsValue();
 
             MemoryStream stream;
@@ -314,7 +480,7 @@ namespace Verse.UTest.Schemas
             decodedValue = new Value();
 
             schema = new ProtobufSchema<Value>();
-            schema.ParserDescriptor.HasField("1").IsValue();
+            schema.ParserDescriptor.HasField("_1").IsValue();
             parser = schema.CreateParser();
             Assert.IsTrue(parser.Parse(stream, ref decodedValue));
 
@@ -329,7 +495,7 @@ namespace Verse.UTest.Schemas
             TestFieldClass<T> testFieldClass;
 
             schema = new ProtobufSchema<Value>();
-            schema.PrinterDescriptor.HasField("1").IsValue();
+            schema.PrinterDescriptor.HasField("_1").IsValue();
 
             stream = new MemoryStream();
 

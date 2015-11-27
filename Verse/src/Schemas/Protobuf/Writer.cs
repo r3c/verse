@@ -49,7 +49,10 @@ namespace Verse.Schemas.Protobuf
 
                 foreach (var field in container.fields)
                 {
-                    context.Key(field.Key);
+                    if (field.Key.Length > 1 && field.Key[0] == '_')
+                        context.Key(field.Key.Substring(1));
+                    else
+                        context.Key(field.Key);
 
                     field.Value(source, this, context);
                 }

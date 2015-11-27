@@ -12,6 +12,14 @@ namespace Verse.ParserDescriptors.Recurse.Nodes
             }
         }
 
+        public bool IsConnected
+        {
+            get
+            {
+                return false;
+            }
+        }
+
         #endregion
 
         #region Attributes

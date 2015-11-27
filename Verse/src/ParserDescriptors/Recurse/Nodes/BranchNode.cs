@@ -15,17 +15,35 @@ namespace Verse.ParserDescriptors.Recurse.Nodes
             }
         }
 
+        public bool IsConnected
+        {
+            get
+            {
+                return true;
+            }
+        }
+
+        public bool HasSubNode
+        {
+            get
+            {
+                return this.hasSubNode;
+            }
+        }
+
         #endregion
 
         #region Attributes / Instance
 
-        public ParserAssign<TEntity, TNative> assign = null;
+        public ParserAssign<TEntity, TNative> assign;
 
-        public BranchNode<TEntity, TContext, TNative>[] branchASCII = null;
+        public BranchNode<TEntity, TContext, TNative>[] branchASCII;
 
-        public Dictionary<char, BranchNode<TEntity, TContext, TNative>> branchOther = null;
+        public Dictionary<char, BranchNode<TEntity, TContext, TNative>> branchOther;
 
-        public Follow<TEntity, TContext, TNative> enter = null;
+        public Follow<TEntity, TContext, TNative> enter;
+
+        private bool hasSubNode;
 
         #endregion
 
@@ -39,6 +57,15 @@ namespace Verse.ParserDescriptors.Recurse.Nodes
 
         #region Methods
 
+        public BranchNode()
+        {
+            this.assign = null;
+            this.branchASCII = null;
+            this.branchOther = null;
+            this.enter = null;
+            this.hasSubNode = false;
+        }
+
         public void Assign(ref TEntity target, TNative value)
         {
             if (this.assign != null)
@@ -48,6 +75,8 @@ namespace Verse.ParserDescriptors.Recurse.Nodes
         public BranchNode<TEntity, TContext, TNative> Connect(char c)
         {
             BranchNode<TEntity, TContext, TNative> next;
+
+            this.hasSubNode = true;
 
             if (c < 128)
             {
