@@ -116,6 +116,10 @@ namespace Verse.Schemas.Protobuf
                     ProtoWriter.WriteFieldHeader(fieldIndex, WireType.String, destWriter);
                     ProtoWriter.WriteString(value.StringContent ?? string.Empty, destWriter);
                     break;
+
+                case ContentType.Void:
+                    // do nothing
+                    break;
             }
 
             return true;
