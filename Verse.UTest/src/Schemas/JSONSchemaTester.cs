@@ -255,6 +255,41 @@ namespace Verse.UTest.Schemas
         }
 
         [Test]
+        [Theory]
+        public void PrintNullValue(bool ignoreNull)
+        {
+            string expected;
+            JSONSchema<string> schema;
+
+            expected = ignoreNull ? string.Empty : "null";
+            schema = new JSONSchema<string>(new JSONSettings(new UTF8Encoding(false), ignoreNull));
+            schema.PrinterDescriptor.IsValue();
+
+            this.AssertPrintAndEqual(schema, null, expected);
+        }
+
+        [Test]
+        [Theory]
+        public void PrintItem(bool ignoreNull)
+        {
+            string expected;
+            JSONSchema<string> schema;
+
+            expected = ignoreNull
+                ? "{\"value\":\"test\",\"item\":{\"values\":[\"val1\",\"val2\"]}}"
+                : "{\"firstnull\":null,\"value\":\"test\",\"secondnull\":null,\"item\":{\"values\":[null,\"val1\",null,\"val2\",null]},\"lastnull\":null}";
+
+            schema = new JSONSchema<string>(new JSONSettings(new UTF8Encoding(false), ignoreNull));
+            schema.PrinterDescriptor.HasField("firstnull").IsValue(v => Value.Void);
+            schema.PrinterDescriptor.HasField("value").IsValue();
+            schema.PrinterDescriptor.HasField("secondnull").IsValue(v => Value.Void);
+            schema.PrinterDescriptor.HasField("item").HasField("values").IsArray(v => new[] { null, "val1", null, "val2", null }).IsValue();
+            schema.PrinterDescriptor.HasField("lastnull").IsValue(v => Value.Void);
+
+            this.AssertPrintAndEqual(schema, "test", expected);
+        }
+
+        [Test]
         public void Roundtrip()
         {
             this.AssertRoundtrip(new JSONSchema<string>(), "Hello", () => string.Empty, (a, b) => a == b);
@@ -267,7 +302,7 @@ namespace Verse.UTest.Schemas
             T value;
 
             parser = schema.CreateParser();
-            value = default (T);
+            value = default(T);
 
             Assert.IsTrue(parser.Parse(new MemoryStream(Encoding.UTF8.GetBytes(json)), ref value));
             Assert.AreEqual(expected, value);

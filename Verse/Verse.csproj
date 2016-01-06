@@ -117,6 +117,7 @@
     <Compile Include="src\PrinterDescriptors\Recurse\Printer.cs" />
     <Compile Include="src\PrinterError.cs" />
     <Compile Include="src\Schemas\AbstractSchema.cs" />
+    <Compile Include="src\Schemas\JSONSettings.cs" />
     <Compile Include="src\Schemas\ProtobufSchema.cs" />
     <Compile Include="src\Schemas\Protobuf\ContentType.cs" />
     <Compile Include="src\Schemas\Protobuf\VisitingNode.cs" />

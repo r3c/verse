@@ -36,7 +36,7 @@ namespace Verse.Schemas
 
         #region Attributes
 
-        private readonly Encoding encoding;
+        private readonly JSONSettings settings;
 
         private readonly RecurseParserDescriptor<TEntity, ReaderContext, Value> parserDescriptor;
 
@@ -51,10 +51,10 @@ namespace Verse.Schemas
         #region Constructors
 
         /// <summary>
-        /// Create new JSON schema using given text encoding.
+        /// Create new JSON schema using given settings
         /// </summary>
-        /// <param name="encoding">Text encoding</param>
-        public JSONSchema(Encoding encoding)
+        /// <param name="settings">Text encoding, ignore null...</param>
+        public JSONSchema(JSONSettings settings)
         {
             ValueDecoder decoder;
             ValueEncoder encoder;
@@ -62,7 +62,7 @@ namespace Verse.Schemas
             decoder = new ValueDecoder();
             encoder = new ValueEncoder();
 
-            this.encoding = encoding;
+            this.settings = settings;
             this.parserDescriptor = new RecurseParserDescriptor<TEntity, ReaderContext, Value>(decoder);
             this.printerDescriptor = new RecursePrinterDescriptor<TEntity, WriterContext, Value>(encoder);
             this.valueDecoder = decoder;
@@ -70,11 +70,19 @@ namespace Verse.Schemas
         }
 
         /// <summary>
+        /// Create new JSON schema using given text encoding.
+        /// </summary>
+        /// <param name="encoding">Text encoding</param>
+        public JSONSchema(Encoding encoding)
+            : this(new JSONSettings(encoding, false))
+        {
+        }
+
+        /// <summary>
         /// Create JSON schema using default UTF8 encoding.
         /// </summary>
         public JSONSchema()
-            :
-                this(new UTF8Encoding(false))
+            : this(new UTF8Encoding(false))
         {
         }
 
@@ -85,13 +93,13 @@ namespace Verse.Schemas
         /// <inheritdoc/>
         public override IParser<TEntity> CreateParser()
         {
-            return this.parserDescriptor.CreateParser(new Reader(this.encoding));
+            return this.parserDescriptor.CreateParser(new Reader(this.settings.Encoding));
         }
 
         /// <inheritdoc/>
         public override IPrinter<TEntity> CreatePrinter()
         {
-            return this.printerDescriptor.CreatePrinter(new Writer(this.encoding));
+            return this.printerDescriptor.CreatePrinter(new Writer(this.settings));
         }
 
         /// <summary>

@@ -24,15 +24,15 @@ namespace Verse.Schemas.JSON
 
         #region Attributes
 
-        private readonly Encoding encoding;
+        private readonly JSONSettings settings;
 
         #endregion
 
         #region Constructors
 
-        public Writer(Encoding encoding)
+        public Writer(JSONSettings settings)
         {
-            this.encoding = encoding;
+            this.settings = settings;
         }
 
         #endregion
@@ -41,7 +41,7 @@ namespace Verse.Schemas.JSON
 
         public bool Start(Stream stream, out WriterContext context)
         {
-            context = new WriterContext(stream, this.encoding);
+            context = new WriterContext(stream, this.settings);
 
             return true;
         }
@@ -58,18 +58,8 @@ namespace Verse.Schemas.JSON
             context.ArrayBegin();
             item = items.GetEnumerator();
 
-            if (item.MoveNext())
-            {
-                while (true)
-                {
-                    this.WriteValue(item.Current, container, context);
-
-                    if (!item.MoveNext())
-                        break;
-
-                    context.Next();
-                }
-            }
+            while (item.MoveNext())
+                this.WriteValue(item.Current, container, context);
 
             context.ArrayEnd();
         }
@@ -89,19 +79,11 @@ namespace Verse.Schemas.JSON
                 context.ObjectBegin();
                 field = container.fields.GetEnumerator();
 
-                if (field.MoveNext())
+                while (field.MoveNext())
                 {
-                    while (true)
-                    {
-                        context.Key(field.Current.Key);
+                    context.Key(field.Current.Key);
 
-                        field.Current.Value(source, this, context);
-
-                        if (!field.MoveNext())
-                            break;
-
-                        context.Next();
-                    }
+                    field.Current.Value(source, this, context);
                 }
 
                 context.ObjectEnd();

@@ -21,6 +21,12 @@ namespace Verse.Schemas.JSON
 
         #region Attributes / Instance
 
+        private bool addComma;
+
+        private string currentKey;
+
+        private readonly bool ignoreNull;
+
         private int position;
 
         private readonly StreamWriter writer;
@@ -37,10 +43,13 @@ namespace Verse.Schemas.JSON
 
         #region Constructors
 
-        public WriterContext(Stream stream, Encoding encoding)
+        public WriterContext(Stream stream, JSONSettings settings)
         {
+            this.ignoreNull = settings.IgnoreNull;
             this.position = 0;
-            this.writer = new StreamWriter(stream, encoding);
+            this.currentKey = null;
+            this.addComma = false;
+            this.writer = new StreamWriter(stream, settings.Encoding);
         }
 
         static WriterContext()
@@ -66,19 +75,20 @@ namespace Verse.Schemas.JSON
 
         public void ArrayBegin()
         {
+            this.PrepareToInsertEntry();
             this.writer.Write('[');
+            this.addComma = false;
         }
 
         public void ArrayEnd()
         {
             this.writer.Write(']');
+            this.addComma = true;
         }
 
         public void Key(string key)
         {
-            this.String(key);
-
-            this.writer.Write(':');
+            this.currentKey = key;
         }
 
         public void Flush()
@@ -86,19 +96,17 @@ namespace Verse.Schemas.JSON
             this.writer.Flush();
         }
 
-        public void Next()
-        {
-            this.writer.Write(',');
-        }
-
         public void ObjectBegin()
         {
+            this.PrepareToInsertEntry();
             this.writer.Write('{');
+            this.addComma = false;
         }
 
         public void ObjectEnd()
         {
             this.writer.Write('}');
+            this.addComma = true;
         }
 
         public void String(string value)
@@ -128,24 +136,47 @@ namespace Verse.Schemas.JSON
             switch (value.Type)
             {
                 case Content.Boolean:
+                    this.PrepareToInsertEntry();
                     this.writer.Write(value.Boolean ? "true" : "false");
 
                     break;
 
                 case Content.DecimalNumber:
+                    this.PrepareToInsertEntry();
                     this.writer.Write(value.DecimalNumber.ToString(CultureInfo.InvariantCulture));
 
                     break;
 
                 case Content.String:
+                    this.PrepareToInsertEntry();
                     this.String(value.String);
 
                     break;
 
                 default:
+                    if (this.ignoreNull)
+                        return;
+
+                    this.PrepareToInsertEntry();
                     this.writer.Write("null");
 
                     break;
+            }
+
+            this.addComma = true;
+        }
+
+        private void PrepareToInsertEntry()
+        {
+            if (this.addComma)
+                this.writer.Write(',');
+
+            if (this.currentKey != null)
+            {
+                this.String(this.currentKey);
+
+                this.writer.Write(':');
+                this.currentKey = null;
             }
         }
 

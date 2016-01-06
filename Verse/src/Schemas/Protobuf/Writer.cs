@@ -34,6 +34,9 @@ namespace Verse.Schemas.Protobuf
 
         public void WriteValue<TEntity>(TEntity source, Container<TEntity, WriterContext, Value> container, WriterContext context)
         {
+            if (source == null)
+                return;
+
             if (container.items != null)
                 container.items(source, this, context);
             else if (container.value != null)

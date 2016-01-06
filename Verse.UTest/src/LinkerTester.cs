@@ -75,19 +75,25 @@ namespace Verse.UTest
         }
 
         [Test]
-        public void LinkPrinterRecursive()
+        [Theory]
+        public void LinkPrinterRecursive(bool ignoreNull)
         {
+            string expected;
             IPrinter<Recursive> printer;
             Recursive value;
 
-            printer = Linker.CreatePrinter(new JSONSchema<Recursive>());
+            expected = ignoreNull
+                ? "{\"r\":{\"r\":{\"v\":42},\"v\":17},\"v\":3}"
+                : "{\"r\":{\"r\":{\"r\":null,\"v\":42},\"v\":17},\"v\":3}";
+
+            printer = Linker.CreatePrinter(new JSONSchema<Recursive>(new JSONSettings(new UTF8Encoding(false), ignoreNull)));
 
             using (var stream = new MemoryStream())
             {
                 value = new Recursive { r = new Recursive { r = new Recursive { v = 42 }, v = 17 }, v = 3 };
 
                 Assert.IsTrue(printer.Print(value, stream));
-                Assert.AreEqual("{\"r\":{\"r\":{\"r\":null,\"v\":42},\"v\":17},\"v\":3}", Encoding.UTF8.GetString(stream.ToArray()));
+                Assert.AreEqual(expected, Encoding.UTF8.GetString(stream.ToArray()));
             }
         }
 
@@ -169,7 +175,7 @@ namespace Verse.UTest
 
         private class FieldContainer<T>
         {
-            public T Field = default (T);
+            public T Field = default(T);
         }
 
         private class PropertyContainer<T>
