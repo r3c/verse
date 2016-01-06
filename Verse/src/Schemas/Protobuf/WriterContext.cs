@@ -80,6 +80,7 @@ namespace Verse.Schemas.Protobuf
             subObjectInstance = this.subObjectInstances.Pop();
 
             this.parentOffset -= subObjectInstance.Stream.Position;
+            this.fieldIndex = subObjectInstance.Index;
 
             this.CopyToParent(subObjectInstance);
 
@@ -98,22 +99,22 @@ namespace Verse.Schemas.Protobuf
             switch (value.Type)
             {
                 case ContentType.Double:
-                    ProtoWriter.WriteFieldHeader(fieldIndex, WireType.Fixed64, destWriter);
+                    ProtoWriter.WriteFieldHeader(this.fieldIndex, WireType.Fixed64, destWriter);
                     ProtoWriter.WriteDouble(value.DoubleContent, destWriter);
                     break;
 
                 case ContentType.Float:
-                    ProtoWriter.WriteFieldHeader(fieldIndex, WireType.Fixed32, destWriter);
+                    ProtoWriter.WriteFieldHeader(this.fieldIndex, WireType.Fixed32, destWriter);
                     ProtoWriter.WriteSingle(value.FloatContent, destWriter);
                     break;
 
                 case ContentType.Long:
-                    ProtoWriter.WriteFieldHeader(fieldIndex, WireType.Variant, destWriter);
+                    ProtoWriter.WriteFieldHeader(this.fieldIndex, WireType.Variant, destWriter);
                     ProtoWriter.WriteInt64(value.LongContent, destWriter);
                     break;
 
                 case ContentType.String:
-                    ProtoWriter.WriteFieldHeader(fieldIndex, WireType.String, destWriter);
+                    ProtoWriter.WriteFieldHeader(this.fieldIndex, WireType.String, destWriter);
                     ProtoWriter.WriteString(value.StringContent ?? string.Empty, destWriter);
                     break;
 
@@ -141,7 +142,7 @@ namespace Verse.Schemas.Protobuf
                 destWriter = this.subObjectInstances.Peek().Writer;
 
                 ProtoWriter.WriteFieldHeader(subObjectInstance.Index, WireType.String, destWriter);
-                ProtoWriter.WriteString(Encoding.UTF8.GetString(subObjectInstance.Stream.ToArray()), destWriter);
+                ProtoWriter.WriteBytes(subObjectInstance.Stream.ToArray(), destWriter);
             }
         }
 
