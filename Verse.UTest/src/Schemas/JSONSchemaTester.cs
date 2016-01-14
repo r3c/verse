@@ -290,6 +290,27 @@ namespace Verse.UTest.Schemas
         }
 
         [Test]
+        [Theory]
+        public void PrintArrayOfItems(bool ignoreNull)
+        {
+            string expected;
+            JSONSchema<Value> schema;
+
+            expected = ignoreNull
+                ? "{\"values\":[{},{\"value\":\"test\"}]}"
+                : "{\"values\":[{\"value\":null},{\"value\":\"test\"}]}";
+
+            schema = new JSONSchema<Value>(new JSONSettings(new UTF8Encoding(false), ignoreNull));
+            schema.PrinterDescriptor
+                .HasField("values")
+                .IsArray(v => new[] { Value.Void, v, })
+                .HasField("value")
+                .IsValue();
+
+            this.AssertPrintAndEqual(schema, Value.FromString("test"), expected);
+        }
+
+        [Test]
         public void Roundtrip()
         {
             this.AssertRoundtrip(new JSONSchema<string>(), "Hello", () => string.Empty, (a, b) => a == b);

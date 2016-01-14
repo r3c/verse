@@ -155,7 +155,11 @@ namespace Verse.Schemas.JSON
 
                 default:
                     if (this.ignoreNull)
+                    {
+                        this.currentKey = null;
+
                         return;
+                    }
 
                     this.PrepareToInsertEntry();
                     this.writer.Write("null");
