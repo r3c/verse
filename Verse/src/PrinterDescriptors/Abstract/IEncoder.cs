@@ -1,6 +1,6 @@
 using System;
 
-namespace Verse.PrinterDescriptors.Recurse
+namespace Verse.PrinterDescriptors.Abstract
 {
     internal interface IEncoder<TOutput>
     {

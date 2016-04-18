@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using Verse.ParserDescriptors.Flat;
+using Verse.ParserDescriptors.Abstract;
 
 namespace Verse.Schemas.QueryString
 {
-    internal class ValueDecoder : IDecoder<string>
+    internal class StringDecoder : IDecoder<string>
     {
         private readonly Dictionary<Type, object> converters = new Dictionary<Type, object>
         {

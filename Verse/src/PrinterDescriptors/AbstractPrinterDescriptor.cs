@@ -1,10 +1,26 @@
 using System;
 using System.Collections.Generic;
+using Verse.PrinterDescriptors.Abstract;
 
 namespace Verse.PrinterDescriptors
 {
-    internal abstract class AbstractPrinterDescriptor<TEntity> : IPrinterDescriptor<TEntity>
+    internal abstract class AbstractPrinterDescriptor<TEntity, TNative> : IPrinterDescriptor<TEntity>
     {
+        #region Attributes
+
+        protected readonly IEncoder<TNative> encoder;
+
+        #endregion
+
+        #region Constructors
+
+        protected AbstractPrinterDescriptor(IEncoder<TNative> encoder)
+        {
+            this.encoder = encoder;
+        }
+
+        #endregion
+
         #region Methods / Abstract
 
         public abstract IPrinterDescriptor<TField> HasField<TField>(string name, Func<TEntity, TField> access, IPrinterDescriptor<TField> parent);
@@ -29,6 +45,15 @@ namespace Verse.PrinterDescriptors
         public void IsValue()
         {
             this.IsValue((target) => target);
+        }
+
+        #endregion
+
+        #region Methods / Protected
+
+        protected Converter<TValue, TNative> GetConverter<TValue>()
+        {
+            return this.encoder.Get<TValue>();
         }
 
         #endregion

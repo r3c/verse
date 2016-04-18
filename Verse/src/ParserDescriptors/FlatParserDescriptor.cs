@@ -1,26 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
+using Verse.ParserDescriptors.Abstract;
 using Verse.ParserDescriptors.Flat;
 using Verse.ParserDescriptors.Flat.Nodes;
 
 namespace Verse.ParserDescriptors
 {
-    internal class FlatParserDescriptor<TEntity, TContext> : AbstractParserDescriptor<TEntity>
+    internal class FlatParserDescriptor<TEntity, TContext> : AbstractParserDescriptor<TEntity, string>
     {
         #region Attributes
 
         private readonly Container<TEntity, TContext, string> container;
 
-        private readonly IDecoder<string> decoder;
-
         #endregion
 
         #region Constructors
 
-        public FlatParserDescriptor(IDecoder<string> decoder)
+        public FlatParserDescriptor(IDecoder<string> decoder) :
+            base(decoder)
         {
             this.container = new Container<TEntity, TContext, string>();
-            this.decoder = decoder;
         }
 
         #endregion
@@ -74,9 +73,7 @@ namespace Verse.ParserDescriptors
 
         public override void IsValue<TValue>(ParserAssign<TEntity, TValue> assign)
         {
-            Converter<string, TValue> convert;
-
-            convert = this.decoder.Get<TValue>();
+            Converter<string, TValue> convert = this.GetConverter<TValue>();
 
             this.container.value = (ref TEntity target, string value) => assign(ref target, convert(value));
         }

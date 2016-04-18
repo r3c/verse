@@ -1,27 +1,26 @@
 using System;
 using System.Collections.Generic;
+using Verse.ParserDescriptors.Abstract;
 using Verse.ParserDescriptors.Recurse;
 using Verse.ParserDescriptors.Recurse.Nodes;
 using Verse.Tools;
 
 namespace Verse.ParserDescriptors
 {
-    internal class RecurseParserDescriptor<TEntity, TContext, TNative> : AbstractParserDescriptor<TEntity>
+    internal class RecurseParserDescriptor<TEntity, TContext, TNative> : AbstractParserDescriptor<TEntity, TNative>
     {
         #region Attributes
 
         private readonly Container<TEntity, TContext, TNative> container;
 
-        private readonly IDecoder<TNative> decoder;
-
         #endregion
 
         #region Constructors
 
-        public RecurseParserDescriptor(IDecoder<TNative> decoder)
+        public RecurseParserDescriptor(IDecoder<TNative> decoder) :
+            base(decoder)
         {
             this.container = new Container<TEntity, TContext, TNative>();
-            this.decoder = decoder;
         }
 
         #endregion
@@ -58,7 +57,7 @@ namespace Verse.ParserDescriptors
             descriptor = new RecurseParserDescriptor<TEntity, TContext, TNative>(this.decoder);
             recurse = descriptor.container;
 
-            this.Connect(name, (ref TEntity target, IReader<TContext, TNative> reader, TContext context) => reader.ReadValue(ref target, recurse, context));
+            this.ConnectField(name, (ref TEntity target, IReader<TContext, TNative> reader, TContext context) => reader.ReadValue(ref target, recurse, context));
 
             return descriptor;
         }
@@ -82,18 +81,16 @@ namespace Verse.ParserDescriptors
 
         public override void IsValue<TValue>(ParserAssign<TEntity, TValue> assign)
         {
-            Converter<TNative, TValue> convert;
+            Converter<TNative, TValue> convert = this.GetConverter<TValue>();
 
-            convert = this.decoder.Get<TValue>();
-
-            this.container.value = (ref TEntity target, TNative value) => assign(ref target, convert(value));
+            this.ConnectValue((ref TEntity target, TNative value) => assign(ref target, convert(value)));
         }
 
         #endregion
 
         #region Methods / Private
 
-        private void Connect(string name, Follow<TEntity, TContext, TNative> enter)
+        private void ConnectField(string name, Follow<TEntity, TContext, TNative> enter)
         {
             BranchNode<TEntity, TContext, TNative> next;
 
@@ -105,6 +102,11 @@ namespace Verse.ParserDescriptors
             next.enter = enter;
         }
 
+        private void ConnectValue(ParserAssign<TEntity, TNative> assign)
+        {
+            this.container.value = assign;
+        }
+
         private IParserDescriptor<TField> HasField<TField>(string name, ParserAssign<TEntity, TField> assign, RecurseParserDescriptor<TField, TContext, TNative> descriptor)
         {
             Func<TEntity, TField> constructor;
@@ -113,7 +115,7 @@ namespace Verse.ParserDescriptors
             constructor = this.GetConstructor<TField>();
             recurse = descriptor.container;
 
-            this.Connect(name, (ref TEntity target, IReader<TContext, TNative> reader, TContext context) =>
+            this.ConnectField(name, (ref TEntity target, IReader<TContext, TNative> reader, TContext context) =>
             {
                 TField inner;
 

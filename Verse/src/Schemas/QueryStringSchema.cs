@@ -29,7 +29,7 @@ namespace Verse.Schemas
 
         #region Attributes
 
-        private readonly ValueDecoder decoder;
+        private readonly StringDecoder decoder;
 
         private readonly Encoding encoding;
 
@@ -43,9 +43,9 @@ namespace Verse.Schemas
 
         public QueryStringSchema(Encoding encoding)
         {
-            ValueDecoder valueDecoder;
+            StringDecoder valueDecoder;
 
-            valueDecoder = new ValueDecoder();
+            valueDecoder = new StringDecoder();
 
             this.decoder = valueDecoder;
             this.encoding = encoding;

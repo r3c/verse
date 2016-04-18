@@ -17,7 +17,7 @@ namespace Verse.Schemas.JSON
         /// <summary>
         /// DecimalNumber value (only set if type is number).
         /// </summary>
-        public decimal DecimalNumber;
+        public decimal Number;
 
         /// <summary>
         /// String value (only set if type is string).
@@ -27,7 +27,7 @@ namespace Verse.Schemas.JSON
         /// <summary>
         /// Value content type.
         /// </summary>
-        public Content Type;
+        public ContentType Type;
 
         #endregion
 
@@ -49,7 +49,7 @@ namespace Verse.Schemas.JSON
         /// <returns>JSON boolean value</returns>
         public static Value FromBoolean(bool value)
         {
-            return new Value { Boolean = value, Type = Content.Boolean };
+            return new Value { Boolean = value, Type = ContentType.Boolean };
         }
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace Verse.Schemas.JSON
         /// <returns>JSON number value</returns>
         public static Value FromNumber(decimal value)
         {
-            return new Value { DecimalNumber = value, Type = Content.DecimalNumber };
+            return new Value { Number = value, Type = ContentType.Number };
         }
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace Verse.Schemas.JSON
         /// <returns>JSON string value</returns>
         public static Value FromString(string value)
         {
-            return new Value { String = value, Type = Content.String };
+            return new Value { String = value, Type = ContentType.String };
         }
 
         #endregion
