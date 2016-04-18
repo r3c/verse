@@ -5,7 +5,7 @@ namespace Verse.Schemas.JSON
     /// <summary>
     /// JSON native value content type.
     /// </summary>
-    public enum Content
+    public enum ContentType
     {
         /// <summary>
         /// Undefined (null) value.
@@ -18,14 +18,9 @@ namespace Verse.Schemas.JSON
         Boolean,
 
         /// <summary>
-        /// Decimal number value.
+        /// Number value.
         /// </summary>
-        DecimalNumber,
-
-        /// <summary>
-        /// Long number value.
-        /// </summary>
-        LongNumber,
+        Number,
 
         /// <summary>
         /// String value.

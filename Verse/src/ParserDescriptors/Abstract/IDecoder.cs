@@ -1,6 +1,6 @@
 using System;
 
-namespace Verse.ParserDescriptors.Recurse
+namespace Verse.ParserDescriptors.Abstract
 {
     internal interface IDecoder<TInput>
     {

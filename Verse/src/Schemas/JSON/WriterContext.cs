@@ -127,17 +127,17 @@ namespace Verse.Schemas.JSON
         {
             switch (value.Type)
             {
-                case Content.Boolean:
+                case ContentType.Boolean:
                     this.writer.Write(value.Boolean ? "true" : "false");
 
                     break;
 
-                case Content.DecimalNumber:
-                    this.writer.Write(value.DecimalNumber.ToString(CultureInfo.InvariantCulture));
+                case ContentType.Number:
+                    this.writer.Write(value.Number.ToString(CultureInfo.InvariantCulture));
 
                     break;
 
-                case Content.String:
+                case ContentType.String:
                     this.String(value.String);
 
                     break;

@@ -1,25 +1,24 @@
 using System;
 using System.Collections.Generic;
+using Verse.PrinterDescriptors.Abstract;
 using Verse.PrinterDescriptors.Recurse;
 
 namespace Verse.PrinterDescriptors
 {
-    internal class RecursePrinterDescriptor<TEntity, TContext, TNative> : AbstractPrinterDescriptor<TEntity>
+    internal class RecursePrinterDescriptor<TEntity, TContext, TNative> : AbstractPrinterDescriptor<TEntity, TNative>
     {
         #region Attributes
 
         private readonly Container<TEntity, TContext, TNative> container;
 
-        private readonly IEncoder<TNative> encoder;
-
         #endregion
 
         #region Constructors
 
-        public RecursePrinterDescriptor(IEncoder<TNative> encoder)
+        public RecursePrinterDescriptor(IEncoder<TNative> encoder) :
+            base(encoder)
         {
             this.container = new Container<TEntity, TContext, TNative>();
-            this.encoder = encoder;
         }
 
         #endregion
@@ -67,9 +66,7 @@ namespace Verse.PrinterDescriptors
 
         public override void IsValue<TValue>(Func<TEntity, TValue> access)
         {
-            Converter<TValue, TNative> convert;
-
-            convert = this.encoder.Get<TValue>();
+            Converter<TValue, TNative> convert = this.GetConverter<TValue>();
 
             this.container.value = (source) => convert(access(source));
         }

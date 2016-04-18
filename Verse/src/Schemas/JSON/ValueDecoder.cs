@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using Verse.ParserDescriptors.Recurse;
+using Verse.ParserDescriptors.Abstract;
 
 namespace Verse.Schemas.JSON
 {
@@ -58,13 +58,13 @@ namespace Verse.Schemas.JSON
         {
             switch (value.Type)
             {
-                case Content.Boolean:
+                case ContentType.Boolean:
                     return value.Boolean;
 
-                case Content.DecimalNumber:
-                    return value.DecimalNumber != 0;
+                case ContentType.Number:
+                    return value.Number != 0;
 
-                case Content.String:
+                case ContentType.String:
                     return !string.IsNullOrEmpty(value.String);
 
                 default:
@@ -76,14 +76,14 @@ namespace Verse.Schemas.JSON
         {
             switch (value.Type)
             {
-                case Content.Boolean:
+                case ContentType.Boolean:
                     return value.Boolean ? '1' : '\0';
 
-                case Content.DecimalNumber:
+                case ContentType.Number:
                     // ReSharper disable once CompareOfFloatsByEqualityOperator
-                    return value.DecimalNumber != 0 ? '1' : '\0';
+                    return value.Number != 0 ? '1' : '\0';
 
-                case Content.String:
+                case ContentType.String:
                     return value.String.Length > 0 ? value.String[0] : '\0';
 
                 default:
@@ -97,13 +97,13 @@ namespace Verse.Schemas.JSON
 
             switch (value.Type)
             {
-                case Content.Boolean:
+                case ContentType.Boolean:
                     return value.Boolean ? 1 : 0;
 
-                case Content.DecimalNumber:
-                    return value.DecimalNumber;
+                case ContentType.Number:
+                    return value.Number;
 
-                case Content.String:
+                case ContentType.String:
                     if (decimal.TryParse(value.String, NumberStyles.Float, CultureInfo.InvariantCulture, out number))
                         return number;
 
@@ -120,13 +120,13 @@ namespace Verse.Schemas.JSON
 
             switch (value.Type)
             {
-                case Content.Boolean:
+                case ContentType.Boolean:
                     return value.Boolean ? 1 : 0;
 
-                case Content.DecimalNumber:
-                    return (float)value.DecimalNumber;
+                case ContentType.Number:
+                    return (float)value.Number;
 
-                case Content.String:
+                case ContentType.String:
                     if (float.TryParse(value.String, NumberStyles.Float, CultureInfo.InvariantCulture, out number))
                         return number;
 
@@ -143,13 +143,13 @@ namespace Verse.Schemas.JSON
 
             switch (value.Type)
             {
-                case Content.Boolean:
+                case ContentType.Boolean:
                     return value.Boolean ? 1 : 0;
 
-                case Content.DecimalNumber:
-                    return (double) value.DecimalNumber;
+                case ContentType.Number:
+                    return (double) value.Number;
 
-                case Content.String:
+                case ContentType.String:
                     if (double.TryParse(value.String, NumberStyles.Float, CultureInfo.InvariantCulture, out number))
                         return number;
 
@@ -166,13 +166,13 @@ namespace Verse.Schemas.JSON
 
             switch (value.Type)
             {
-                case Content.Boolean:
+                case ContentType.Boolean:
                     return value.Boolean ? (sbyte)1 : (sbyte)0;
 
-                case Content.DecimalNumber:
-                    return (sbyte)value.DecimalNumber;
+                case ContentType.Number:
+                    return (sbyte)value.Number;
 
-                case Content.String:
+                case ContentType.String:
                     if (sbyte.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
                         return number;
 
@@ -189,13 +189,13 @@ namespace Verse.Schemas.JSON
 
             switch (value.Type)
             {
-                case Content.Boolean:
+                case ContentType.Boolean:
                     return value.Boolean ? (byte)1 : (byte)0;
 
-                case Content.DecimalNumber:
-                    return (byte)value.DecimalNumber;
+                case ContentType.Number:
+                    return (byte)value.Number;
 
-                case Content.String:
+                case ContentType.String:
                     if (byte.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
                         return number;
 
@@ -212,13 +212,13 @@ namespace Verse.Schemas.JSON
 
             switch (value.Type)
             {
-                case Content.Boolean:
+                case ContentType.Boolean:
                     return value.Boolean ? (short)1 : (short)0;
 
-                case Content.DecimalNumber:
-                    return (short)value.DecimalNumber;
+                case ContentType.Number:
+                    return (short)value.Number;
 
-                case Content.String:
+                case ContentType.String:
                     if (short.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
                         return number;
 
@@ -235,13 +235,13 @@ namespace Verse.Schemas.JSON
 
             switch (value.Type)
             {
-                case Content.Boolean:
+                case ContentType.Boolean:
                     return value.Boolean ? (ushort)1 : (ushort)0;
 
-                case Content.DecimalNumber:
-                    return (ushort)value.DecimalNumber;
+                case ContentType.Number:
+                    return (ushort)value.Number;
 
-                case Content.String:
+                case ContentType.String:
                     if (ushort.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
                         return number;
 
@@ -258,13 +258,13 @@ namespace Verse.Schemas.JSON
 
             switch (value.Type)
             {
-                case Content.Boolean:
+                case ContentType.Boolean:
                     return value.Boolean ? 1 : 0;
 
-                case Content.DecimalNumber:
-                    return (int)value.DecimalNumber;
+                case ContentType.Number:
+                    return (int)value.Number;
 
-                case Content.String:
+                case ContentType.String:
                     if (int.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
                         return number;
 
@@ -281,13 +281,13 @@ namespace Verse.Schemas.JSON
 
             switch (value.Type)
             {
-                case Content.Boolean:
+                case ContentType.Boolean:
                     return value.Boolean ? 1u : 0;
 
-                case Content.DecimalNumber:
-                    return (uint)value.DecimalNumber;
+                case ContentType.Number:
+                    return (uint)value.Number;
 
-                case Content.String:
+                case ContentType.String:
                     if (uint.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
                         return number;
 
@@ -304,13 +304,13 @@ namespace Verse.Schemas.JSON
 
             switch (value.Type)
             {
-                case Content.Boolean:
+                case ContentType.Boolean:
                     return value.Boolean ? 1 : 0;
 
-                case Content.DecimalNumber:
-                    return (long)value.DecimalNumber;
+                case ContentType.Number:
+                    return (long)value.Number;
 
-                case Content.String:
+                case ContentType.String:
                     if (long.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
                         return number;
 
@@ -327,13 +327,13 @@ namespace Verse.Schemas.JSON
 
             switch (value.Type)
             {
-                case Content.Boolean:
+                case ContentType.Boolean:
                     return value.Boolean ? 1u : 0;
 
-                case Content.DecimalNumber:
-                    return (ulong)value.DecimalNumber;
+                case ContentType.Number:
+                    return (ulong)value.Number;
 
-                case Content.String:
+                case ContentType.String:
                     if (ulong.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
                         return number;
 
@@ -348,13 +348,13 @@ namespace Verse.Schemas.JSON
         {
             switch (value.Type)
             {
-                case Content.Boolean:
+                case ContentType.Boolean:
                     return value.Boolean ? "1" : string.Empty;
 
-                case Content.DecimalNumber:
-                    return value.DecimalNumber.ToString(CultureInfo.InvariantCulture);
+                case ContentType.Number:
+                    return value.Number.ToString(CultureInfo.InvariantCulture);
 
-                case Content.String:
+                case ContentType.String:
                     return value.String;
 
                 default:

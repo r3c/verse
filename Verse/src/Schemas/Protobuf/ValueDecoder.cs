@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using Verse.ParserDescriptors.Recurse;
+using Verse.ParserDescriptors.Abstract;
 
 namespace Verse.Schemas.Protobuf
 {

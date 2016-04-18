@@ -1,15 +1,27 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
+using Verse.ParserDescriptors.Abstract;
 using Verse.Tools;
 
 namespace Verse.ParserDescriptors
 {
-    internal abstract class AbstractParserDescriptor<TEntity> : IParserDescriptor<TEntity>
+    internal abstract class AbstractParserDescriptor<TEntity, TNative> : IParserDescriptor<TEntity>
     {
         #region Attributes
 
-        private readonly Dictionary<Type, object> constructors = new Dictionary<Type, object>();
+        private readonly Dictionary<Type, object> constructors;
+
+        protected readonly IDecoder<TNative> decoder;
+
+        #endregion
+
+        #region Constructors
+
+        protected AbstractParserDescriptor(IDecoder<TNative> decoder)
+        {
+            this.constructors = new Dictionary<Type, object>();
+            this.decoder = decoder;
+        }
 
         #endregion
 
@@ -61,6 +73,11 @@ namespace Verse.ParserDescriptors
             }
 
             return (Func<TEntity, TValue>)box;
+        }
+
+        protected Converter<TNative, TValue> GetConverter<TValue>()
+        {
+            return this.decoder.Get<TValue>();
         }
 
         #endregion

@@ -89,11 +89,11 @@
   <ItemGroup>
     <Compile Include="src\Linker.cs" />
     <Compile Include="src\ParserAssign.cs" />
+    <Compile Include="src\ParserDescriptors\Abstract\IDecoder.cs" />
     <Compile Include="src\ParserDescriptors\FlatParserDescriptor.cs" />
     <Compile Include="src\ParserDescriptors\Flat\Container.cs" />
     <Compile Include="src\ParserDescriptors\Flat\Follow.cs" />
     <Compile Include="src\ParserDescriptors\Flat\IBrowser.cs" />
-    <Compile Include="src\ParserDescriptors\Flat\IDecoder.cs" />
     <Compile Include="src\ParserDescriptors\Flat\INode.cs" />
     <Compile Include="src\ParserDescriptors\Flat\IReader.cs" />
     <Compile Include="src\ParserDescriptors\Flat\Nodes\BranchNode.cs" />
@@ -109,14 +109,15 @@
     <Compile Include="src\ParserDescriptors\Recurse\Nodes\BranchNode.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\Nodes\EmptyNode.cs" />
     <Compile Include="src\PrinterDescriptors\AbstractPrinterDescriptor.cs" />
+    <Compile Include="src\PrinterDescriptors\Abstract\IEncoder.cs" />
     <Compile Include="src\PrinterDescriptors\RecursePrinterDescriptor.cs" />
     <Compile Include="src\PrinterDescriptors\Recurse\Container.cs" />
     <Compile Include="src\PrinterDescriptors\Recurse\Follow.cs" />
-    <Compile Include="src\PrinterDescriptors\Recurse\IEncoder.cs" />
     <Compile Include="src\PrinterDescriptors\Recurse\IWriter.cs" />
     <Compile Include="src\PrinterDescriptors\Recurse\Printer.cs" />
     <Compile Include="src\PrinterError.cs" />
     <Compile Include="src\Schemas\AbstractSchema.cs" />
+    <Compile Include="src\Schemas\JSON\ContentType.cs" />
     <Compile Include="src\Schemas\ProtobufSchema.cs" />
     <Compile Include="src\Schemas\Protobuf\ContentType.cs" />
     <Compile Include="src\Schemas\Protobuf\Reader.cs" />
@@ -134,7 +135,7 @@
     <Compile Include="src\Schemas\JSON\WriterContext.cs" />
     <Compile Include="src\Schemas\QueryString\Reader.cs" />
     <Compile Include="src\Schemas\QueryString\ReaderContext.cs" />
-    <Compile Include="src\Schemas\QueryString\ValueDecoder.cs" />
+    <Compile Include="src\Schemas\QueryString\StringDecoder.cs" />
     <Compile Include="src\Tools\Generator.cs" />
     <Compile Include="src\Tools\Resolver.cs" />
     <Compile Include="src\Tools\Walker.cs" />
@@ -146,7 +147,6 @@
     <Compile Include="src\IParserDescriptor.cs" />
     <Compile Include="src\IParser.cs" />
     <Compile Include="src\ISchema.cs" />
-    <Compile Include="src\ParserDescriptors\Recurse\IDecoder.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\INode.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\IReader.cs" />
     <Compile Include="src\ParserError.cs" />
@@ -154,9 +154,11 @@
     <Compile Include="src\Schemas\JSON\ReaderContext.cs" />
     <Compile Include="src\Schemas\JSON\Reader.cs" />
     <Compile Include="src\Schemas\JSON\Value.cs" />
-    <Compile Include="src\Schemas\JSON\Content.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="src\ParserDescriptors\Abstract" />
+    <Folder Include="src\PrinterDescriptors\Abstract" />
+  </ItemGroup>
   <Import Project="$(SolutionDir)\.cbs\moab.targets" Condition="Exists('$(SolutionDir)\.cbs\moab.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.cbs\Checks.targets" Condition="Exists('$(SolutionDir)\.cbs\Checks.targets')" />
