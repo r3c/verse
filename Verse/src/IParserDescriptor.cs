@@ -9,6 +9,7 @@ namespace Verse
     /// an actual parser is used to read entity from a stream.
     /// </summary>
     /// <typeparam name="TEntity">Entity type</typeparam>
+    /// <typeparam name="TKey">Key type</typeparam>
     public interface IParserDescriptor<TEntity>
     {
         #region Methods
@@ -38,6 +39,7 @@ namespace Verse
         /// Declare new named field in current entity.
         /// </summary>
         /// <typeparam name="TField">Field type</typeparam>
+        /// <typeparam name="TKey">Key type</typeparam>
         /// <param name="name">Field name</param>
         /// <param name="assign">Field to parent entity assignment delegate</param>
         /// <returns>Field parser descriptor</returns>
@@ -48,6 +50,7 @@ namespace Verse
         /// content on parent entity type rather than a new type.
         /// </summary>
         /// <param name="name">Field name</param>
+        /// <typeparam name="TEntity">Field type</typeparam>
         /// <returns>Entity parser descriptor</returns>
         IParserDescriptor<TEntity> HasField(string name);
 
@@ -55,7 +58,7 @@ namespace Verse
         /// Declare new elements collection within current entity, and reuse
         /// existing parser to describe them.
         /// </summary>
-        /// <typeparam name="TElement">Element type</typeparam>
+        /// <typeparam name="TElement">Array element type</typeparam>
         /// <param name="assign">Elements to parent entity assignment delegate</param>
         /// <param name="parent">Existing parser descriptor for this elements
         /// collection, needed if you want to declare recursive entities</param>
@@ -65,23 +68,17 @@ namespace Verse
         /// <summary>
         /// Declare new elements collection within current entity.
         /// </summary>
-        /// <typeparam name="TElement">Element type</typeparam>
+        /// <typeparam name="TElement">Array element type</typeparam>
         /// <param name="assign">Elements to parent entity assignment delegate</param>
         /// <returns>Element parser descriptor</returns>
         IParserDescriptor<TElement> IsArray<TElement>(ParserAssign<TEntity, IEnumerable<TElement>> assign);
 
-/*
-        IParserDescriptor<U> IsMap<U> (ParserAssign<T, IEnumerable<KeyValuePair<string, U>>> assign, IParserDescriptor<U> parent);
-
-        IParserDescriptor<U> IsMap<U> (ParserAssign<T, IEnumerable<KeyValuePair<string, U>>> assign);
-*/
-
         /// <summary>
         /// Declare assignable value within current entity.
         /// </summary>
-        /// <typeparam name="TValue">Value type</typeparam>
-        /// <param name="assign">Value to parent entity assignment delegate</param>
-        void IsValue<TValue>(ParserAssign<TEntity, TValue> assign);
+        /// <typeparam name="TRaw">Raw value type</typeparam>
+        /// <param name="assign">Raw value to parent entity assignment delegate</param>
+        void IsValue<TRaw>(ParserAssign<TEntity, TRaw> assign);
 
         /// <summary>
         /// Declare entity as a value. Entity type must have a known decoder

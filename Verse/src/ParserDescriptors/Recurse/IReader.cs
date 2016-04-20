@@ -1,25 +1,45 @@
-using System;
+﻿using System;
 using System.IO;
 
 namespace Verse.ParserDescriptors.Recurse
 {
-    internal interface IReader<TContext, TNative>
+    interface IReader<TEntity, TValue, TState>
     {
-        #region Events
+        #region Properties
 
-        event ParserError Error;
+        bool HoldArray
+        {
+            get;
+        }
+
+        bool HoldValue
+        {
+            get;
+        }
 
         #endregion
 
         #region Methods
 
-        IBrowser<TEntity> ReadArray<TEntity>(Func<TEntity> constructor, Container<TEntity, TContext, TNative> container, TContext context);
+        IReader<TOther, TValue, TState> Create<TOther>();
 
-        bool ReadValue<TEntity>(ref TEntity target, Container<TEntity, TContext, TNative> container, TContext context);
+        void DeclareArray(Enter<TEntity, TState> enter);
 
-        bool Start(Stream stream, out TContext context);
+        void DeclareField(string name, Enter<TEntity, TState> enter);
 
-        void Stop(TContext context);
+        void DeclareValue(ParserAssign<TEntity, TValue> assign);
+
+        bool ProcessArray(ref TEntity entity, TState state);
+
+        void ProcessValue(ref TEntity entity, TValue value);
+
+        IBrowser<TEntity> ReadArray(Func<TEntity> constructor, TState state);
+
+        bool ReadValue(ref TEntity target, TState state);
+
+        bool Start(Stream stream, ParserError onError, out TState state);
+
+        void Stop(TState state);
 
         #endregion
     }

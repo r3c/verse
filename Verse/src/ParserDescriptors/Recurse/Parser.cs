@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Verse.ParserDescriptors.Recurse
 {
-    internal class Parser<TEntity, TContext, TNative> : IParser<TEntity>
+    class Parser<TEntity, TValue, TState> : IParser<TEntity>
     {
         #region Events
 
@@ -13,19 +13,14 @@ namespace Verse.ParserDescriptors.Recurse
 
         #region Attributes
 
-        private readonly Container<TEntity, TContext, TNative> container;
-
-        private readonly IReader<TContext, TNative> reader;
+        private readonly IReader<TEntity, TValue, TState> reader;
 
         #endregion
 
         #region Constructors
 
-        public Parser(Container<TEntity, TContext, TNative> container, IReader<TContext, TNative> reader)
+        public Parser(IReader<TEntity, TValue, TState> reader)
         {
-            reader.Error += this.OnError;
-
-            this.container = container;
             this.reader = reader;
         }
 
@@ -35,18 +30,18 @@ namespace Verse.ParserDescriptors.Recurse
 
         public bool Parse(Stream input, ref TEntity output)
         {
-            TContext context;
+            TState state;
 
-            if (!this.reader.Start(input, out context))
+            if (!this.reader.Start(input, this.OnError, out state))
                 return false;
 
             try
             {
-                return this.reader.ReadValue(ref output, this.container, context);
+                return this.reader.ReadValue(ref output, state);
             }
             finally
             {
-                this.reader.Stop(context);
+                this.reader.Stop(state);
             }
         }
 

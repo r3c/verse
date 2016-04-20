@@ -5,98 +5,101 @@ using System.IO;
 using ProtoBuf;
 
 using Verse.ParserDescriptors.Recurse;
+using Verse.ParserDescriptors.Recurse.Readers;
+using Verse.ParserDescriptors.Recurse.Readers.String;
 
 namespace Verse.Schemas.Protobuf
 {
-    internal class Reader : IReader<ReaderContext, Value>
+    class Reader<TEntity> : StringReader<TEntity, Value, ReaderContext>
     {
-        #region Events
+        #region Attributes
 
-        public event ParserError Error;
+        private static readonly Reader<TEntity> unknown = new Reader<TEntity>();
 
         #endregion
 
         #region Methods / Public
 
-        public IBrowser<TEntity> ReadArray<TEntity>(
-            Func<TEntity> constructor,
-            Container<TEntity, ReaderContext, Value> container,
-            ReaderContext context)
+        public override IReader<TOther, Value, ReaderContext> Create<TOther>()
         {
-            switch (context.Reader.WireType)
+            return new Reader<TOther>();
+        }
+
+        public override IBrowser<TEntity> ReadArray(Func<TEntity> constructor, ReaderContext state)
+        {
+            switch (state.Reader.WireType)
             {
                 case WireType.StartGroup:
                 case WireType.String:
-                    return this.ReadSubItemArray(constructor, container, context);
+                    return this.ReadSubItemArray(constructor, state);
 
                 default:
-                    return this.ReadValueArray(constructor, container, context);
+                    return this.ReadValueArray(constructor, state);
             }
         }
 
-        public bool ReadValue<TEntity>(ref TEntity target, Container<TEntity, ReaderContext, Value> container, ReaderContext context)
+        public override bool ReadValue(ref TEntity target, ReaderContext state)
         {
-            switch (context.ReadingAction)
+            switch (state.ReadingAction)
             {
                 case ReaderContext.ReadingActionType.UseHeader:
-                    this.FollowNode(context.Reader.FieldNumber, ref target, container, context);
+                    this.FollowNode(state.Reader.FieldNumber, ref target, state);
 
                     break;
 
                 case ReaderContext.ReadingActionType.ReadHeader:
                     int fieldIndex;
 
-                    while (context.ReadHeader(out fieldIndex))
+                    while (state.ReadHeader(out fieldIndex))
                     {
-                        context.AddObject(fieldIndex);
+                        state.AddObject(fieldIndex);
 
-                        this.FollowNode(fieldIndex, ref target, container, context);
+                        this.FollowNode(fieldIndex, ref target, state);
                     }
 
                     break;
 
                 default:
-                    context.ReadingAction = ReaderContext.ReadingActionType.ReadHeader;
+                    state.ReadingAction = ReaderContext.ReadingActionType.ReadHeader;
 
-                    if (container.items != null)
-                        return container.items(ref target, this, context);
+                    if (this.HoldArray)
+                        return this.ProcessArray(ref target, state);
 
-                    if (container.value == null)
+                    if (!this.HoldValue)
                     {
                         // if it's not object, ignore
-                        if ((context.Reader.WireType != WireType.StartGroup && context.Reader.WireType != WireType.String) ||
-                            !container.fields.HasSubNode)
+                        if ((state.Reader.WireType != WireType.StartGroup && state.Reader.WireType != WireType.String) ||
+                            !this.RootNode.HasSubNode)
                         {
-                            context.Reader.SkipField();
+                            state.Reader.SkipField();
 
                             return true;
                         }
 
-                        return this.ReadObjectValue(ref target, container, context);
+                        return this.ReadObjectValue(ref target, state);
                     }
 
-                    switch (context.Reader.WireType)
+                    switch (state.Reader.WireType)
                     {
                         case WireType.Fixed32:
-                            container.value(ref target, new Value(context.Reader.ReadSingle()));
+                            this.ProcessValue(ref target, new Value(state.Reader.ReadSingle()));
                             break;
 
                         case WireType.Fixed64:
-                            container.value(ref target, new Value(context.Reader.ReadDouble()));
+                            this.ProcessValue(ref target, new Value(state.Reader.ReadDouble()));
                             break;
 
                         case WireType.String:
-                            container.value(ref target, new Value(context.Reader.ReadString()));
+                            this.ProcessValue(ref target, new Value(state.Reader.ReadString()));
                             break;
 
                         case WireType.Variant:
-                            container.value(ref target, new Value(context.Reader.ReadInt64()));
+                            this.ProcessValue(ref target, new Value(state.Reader.ReadInt64()));
                             break;
 
                         default:
-                            this.OnError(context.Position, "wire type not supported, skipped");
-
-                            context.Reader.SkipField();
+                            state.OnError(state.Position, "wire type not supported, skipped");
+                            state.Reader.SkipField();
 
                             break;
                     }
@@ -107,69 +110,69 @@ namespace Verse.Schemas.Protobuf
             return true;
         }
 
-        private bool ReadObjectValue<TEntity>(ref TEntity target, Container<TEntity, ReaderContext, Value> container, ReaderContext context)
+        private bool ReadObjectValue(ref TEntity target, ReaderContext state)
         {
             int visitCount;
             SubItemToken lastSubItem;
 
-            lastSubItem = ProtoReader.StartSubItem(context.Reader);
-            visitCount = context.VisitCount();
+            lastSubItem = ProtoReader.StartSubItem(state.Reader);
+            visitCount = state.VisitCount();
 
             if (visitCount == -1)
                 return false;
 
-            if (!context.EnterObject())
+            if (!state.EnterObject())
                 return false;
 
-            while (ProtoReader.HasSubValue(WireType.None, context.Reader))
+            while (ProtoReader.HasSubValue(WireType.None, state.Reader))
             {
                 int fieldIndex;
-                INode<TEntity, ReaderContext, Value> node;
+                INode<TEntity, Value, ReaderContext> node;
 
-                context.ReadHeader(out fieldIndex);
-                context.AddObject(fieldIndex);
+                state.ReadHeader(out fieldIndex);
+                state.AddObject(fieldIndex);
 
-                node = Reader.GetNode(container.fields, fieldIndex);
+                node = Reader<TEntity>.GetNode(this.RootNode, fieldIndex);
 
                 if (visitCount == 1 && node.IsConnected)
                 {
-                    context.ReadingAction = ReaderContext.ReadingActionType.ReadValue;
+                    state.ReadingAction = ReaderContext.ReadingActionType.ReadValue;
 
-                    if (!node.Enter(ref target, this, context))
+                    if (!node.Enter(ref target, Reader<TEntity>.unknown, state))
                         return false;
                 }
                 else
                 {
                     int index;
 
-                    node = container.fields;
+                    node = this.RootNode;
                     index = visitCount - 1;
 
                     foreach (char digit in index.ToString(CultureInfo.InvariantCulture))
                         node = node.Follow(digit);
 
-                    context.ReadingAction = ReaderContext.ReadingActionType.UseHeader;
+                    state.ReadingAction = ReaderContext.ReadingActionType.UseHeader;
 
-                    if (!node.Enter(ref target, this, context))
+                    if (!node.Enter(ref target, Reader<TEntity>.unknown, state))
                         return false;
                 }
             }
 
-            context.LeaveObject();
+            state.LeaveObject();
 
-            ProtoReader.EndSubItem(lastSubItem, context.Reader);
+            ProtoReader.EndSubItem(lastSubItem, state.Reader);
 
             return true;
         }
 
-        public bool Start(Stream stream, out ReaderContext context)
+        public override bool Start(Stream stream, ParserError onError, out ReaderContext state)
         {
-            context = new ReaderContext(stream);
+            state = new ReaderContext(stream, onError);
 
             return true;
         }
 
-        public void Stop(ReaderContext context)
+        public override void Stop(ReaderContext state)
         {
         }
 
@@ -177,33 +180,32 @@ namespace Verse.Schemas.Protobuf
 
         #region Methods / Private
 
-        private void FollowNode<TEntity>(int fieldIndex, ref TEntity target, Container<TEntity, ReaderContext, Value> container, ReaderContext context)
+        private void FollowNode(int fieldIndex, ref TEntity target, ReaderContext state)
         {
-            INode<TEntity, ReaderContext, Value> node;
+            INode<TEntity, Value, ReaderContext> node;
 
-            node = Reader.GetNode(container.fields, fieldIndex);
+            node = Reader<TEntity>.GetNode(this.RootNode, fieldIndex);
 
-            context.ReadingAction = ReaderContext.ReadingActionType.ReadValue;
+            state.ReadingAction = ReaderContext.ReadingActionType.ReadValue;
 
-            node.Enter(ref target, this, context);
+            node.Enter(ref target, Reader<TEntity>.unknown, state);
         }
 
-        private IBrowser<TEntity> ReadSubItemArray<TEntity>(
+        private IBrowser<TEntity> ReadSubItemArray(
             Func<TEntity> constructor,
-            Container<TEntity, ReaderContext, Value> container,
-            ReaderContext context)
+            ReaderContext state)
         {
             SubItemToken lastSubItem;
             BrowserMove<TEntity> move;
 
-            if (container.value != null)
-                return this.ReadValueArray(constructor, container, context);
+            if (this.HoldValue)
+                return this.ReadValueArray(constructor, state);
 
-            context.ReadingAction = ReaderContext.ReadingActionType.ReadHeader;
+            state.ReadingAction = ReaderContext.ReadingActionType.ReadHeader;
 
-            lastSubItem = ProtoReader.StartSubItem(context.Reader);
+            lastSubItem = ProtoReader.StartSubItem(state.Reader);
 
-            if (!context.EnterObject())
+            if (!state.EnterObject())
             {
                 return new Browser<TEntity>((int index, out TEntity current) =>
                 {
@@ -216,18 +218,18 @@ namespace Verse.Schemas.Protobuf
             {
                 current = constructor();
 
-                context.AddObject(index);
+                state.AddObject(index);
 
-                if (!ProtoReader.HasSubValue(WireType.None, context.Reader))
+                if (!ProtoReader.HasSubValue(WireType.None, state.Reader))
                 {
-                    context.LeaveObject();
+                    state.LeaveObject();
 
-                    ProtoReader.EndSubItem(lastSubItem, context.Reader);
+                    ProtoReader.EndSubItem(lastSubItem, state.Reader);
 
                     return BrowserState.Success;
                 }
 
-                if (!this.ReadValue(ref current, container, context))
+                if (!this.ReadValue(ref current, state))
                     return BrowserState.Failure;
 
                 return BrowserState.Continue;
@@ -236,25 +238,24 @@ namespace Verse.Schemas.Protobuf
             return new Browser<TEntity>(move);
         }
 
-        private IBrowser<TEntity> ReadValueArray<TEntity>(
+        private IBrowser<TEntity> ReadValueArray(
             Func<TEntity> constructor,
-            Container<TEntity, ReaderContext, Value> container,
-            ReaderContext context)
+            ReaderContext state)
         {
             BrowserMove<TEntity> move;
 
-            context.ReadingAction = ReaderContext.ReadingActionType.ReadValue;
+            state.ReadingAction = ReaderContext.ReadingActionType.ReadValue;
 
             bool first = true;
 
             move = (int index, out TEntity current) =>
             {
                 current = constructor();
-                context.AddObject(index);
+                state.AddObject(index);
 
                 if (first)
                 {
-                    if (!this.ReadValue(ref current, container, context))
+                    if (!this.ReadValue(ref current, state))
                         return BrowserState.Failure;
 
                     first = false;
@@ -270,21 +271,11 @@ namespace Verse.Schemas.Protobuf
             return new Browser<TEntity>(move);
         }
 
-        private void OnError(int position, string message)
-        {
-            ParserError error;
-
-            error = this.Error;
-
-            if (error != null)
-                error(position, message);
-        }
-
-        private static INode<TEntity, ReaderContext, Value> GetNode<TEntity>(
-            INode<TEntity, ReaderContext, Value> rootNode,
+        private static INode<TEntity, Value, ReaderContext> GetNode(
+            INode<TEntity, Value, ReaderContext> rootNode,
             int fieldIndex)
         {
-            INode<TEntity, ReaderContext, Value> node;
+            INode<TEntity, Value, ReaderContext> node;
 
             node = rootNode.Follow('_');
 

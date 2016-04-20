@@ -26,6 +26,8 @@ namespace Verse.Schemas.Protobuf
             ReadValue
         };
 
+        public readonly ParserError OnError;        
+
         public VisitingNode ParentVisitingNode;
 
         public ProtoReader Reader;
@@ -40,8 +42,9 @@ namespace Verse.Schemas.Protobuf
 
         #region Constructors
 
-        public ReaderContext(Stream stream)
+        public ReaderContext(Stream stream, ParserError onError)
         {
+            this.OnError = onError;
             this.Reader = new ProtoReader(stream, TypeModel.Create(), null);
             this.ReadingAction = ReadingActionType.ReadHeader;
             this.Root = new VisitingNode(NoParent);

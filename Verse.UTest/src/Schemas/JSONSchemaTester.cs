@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -14,10 +13,31 @@ namespace Verse.UTest.Schemas
     public class JSONSchemaTester : SchemaTester
     {
         [Test]
+        [TestCase("[]", new double[0])]
+        [TestCase("[-42.1]", new[] { -42.1 })]
+        [TestCase("[0, 5, 90, 23, -9, 5.32]", new[] { 0, 5, 90, 23, -9, 5.32 })]
+        [TestCase("{\"key1\": 27.5, \"key2\": 19}", new[] { 27.5, 19 })]
+        public void ParseArray(string json, double[] expected)
+        {
+            IParser<double[]> parser;
+            JSONSchema<double[]> schema;
+            double[] value;
+
+            schema = new JSONSchema<double[]>();
+            schema.ParserDescriptor.IsArray((ref double[] target, IEnumerable<double> items) => target = items.ToArray()).IsValue();
+
+            parser = schema.CreateParser();
+            value = new double[0];
+
+            Assert.IsTrue(parser.Parse(new MemoryStream(Encoding.UTF8.GetBytes(json)), ref value));
+            CollectionAssert.AreEqual(expected, value);
+        }
+
+        [Test]
         [TestCase("glittering", "{\"glittering\": \"prizes\"}", "prizes")]
         [TestCase("", "{\"\": 5}", 5)]
         [TestCase("1", "[\"hey!\", \"take me!\", \"not me!\"]", "take me!")]
-        public void ParseFieldValue<T>(string name, string json, T expected)
+        public void ParseField<T>(string name, string json, T expected)
         {
             JSONSchema<T> schema;
 
@@ -25,6 +45,27 @@ namespace Verse.UTest.Schemas
             schema.ParserDescriptor.HasField(name).IsValue();
 
             this.AssertParseAndEqual(schema, json, expected);
+        }
+
+        [Test]
+        public void ParseFieldMismatchName()
+        {
+            var schema = new JSONSchema<int>();
+
+            schema.ParserDescriptor.HasField("match").IsValue();
+
+            this.AssertParseAndEqual(schema, "{\"match1\": 17}", 0);
+            this.AssertParseAndEqual(schema, "{\"matc\": 17}", 0);
+        }
+
+        [Test]
+        public void ParseFieldMismatchScope()
+        {
+            var schema = new JSONSchema<int>();
+
+            schema.ParserDescriptor.HasField("match").IsValue();
+
+            this.AssertParseAndEqual(schema, "{\"unknown\": {\"match\": 17}}", 0);
         }
 
         [Test]
@@ -70,95 +111,6 @@ namespace Verse.UTest.Schemas
         }
 
         [Test]
-        [TestCase("[]", new double[0])]
-        [TestCase("[-42.1]", new[] { -42.1 })]
-        [TestCase("[0, 5, 90, 23, -9, 5.32]", new[] { 0, 5, 90, 23, -9, 5.32 })]
-        [TestCase("{\"key1\": 27.5, \"key2\": 19}", new[] { 27.5, 19 })]
-        public void ParseItems(string json, double[] expected)
-        {
-            IParser<double[]> parser;
-            JSONSchema<double[]> schema;
-            double[] value;
-
-            schema = new JSONSchema<double[]>();
-            schema.ParserDescriptor.IsArray((ref double[] target, IEnumerable<double> items) => target = items.ToArray()).IsValue();
-
-            parser = schema.CreateParser();
-            value = new double[0];
-
-            Assert.IsTrue(parser.Parse(new MemoryStream(Encoding.UTF8.GetBytes(json)), ref value));
-            CollectionAssert.AreEqual(expected, value);
-        }
-
-        [Test]
-        public void ParseValueCustom()
-        {
-            IParserDescriptor<Tuple<int, int>> descriptor;
-            JSONSchema<Tuple<Tuple<int, int>>> schema;
-
-            schema = new JSONSchema<Tuple<Tuple<int, int>>>();
-            schema.ParserDescriptor.CanCreate((v) => Tuple.Create(0, 0));
-
-            descriptor = schema.ParserDescriptor.HasField("tuple", (ref Tuple<Tuple<int, int>> target, Tuple<int, int> value) => target = Tuple.Create(value));
-            descriptor.HasField("a", (ref Tuple<int, int> target, int value) => target = Tuple.Create(value, target.Item2)).IsValue();
-            descriptor.HasField("b", (ref Tuple<int, int> target, int value) => target = Tuple.Create(target.Item1, value)).IsValue();
-
-            this.AssertParseAndEqual(schema, "{\"tuple\": {\"a\": 5, \"b\": 7}}", Tuple.Create(Tuple.Create(5, 7)));
-        }
-
-        [Test]
-        [TestCase("\"90f59097-d06a-4796-b8d5-87eb6af7ed8b\"", "90f59097-d06a-4796-b8d5-87eb6af7ed8b")]
-        [TestCase("\"c566a1c7-d89e-4e3f-8c5f-d4bcd0b82025\"", "c566a1c7-d89e-4e3f-8c5f-d4bcd0b82025")]
-        public void ParseValueDecoder(string json, string expected)
-        {
-            JSONSchema<Guid> schema;
-
-            schema = new JSONSchema<Guid>();
-            schema.SetDecoder((v) => Guid.Parse(v.String));
-            schema.ParserDescriptor.IsValue();
-
-            this.AssertParseAndEqual(schema, json, Guid.Parse(expected));
-        }
-
-        [Test]
-        [TestCase("false", false)]
-        [TestCase("true", true)]
-        [TestCase("27", 27.0)]
-        [TestCase("-15.5", -15.5)]
-        [TestCase("-.5645", -.5645)]
-        [TestCase("1.2e3", 1200.0)]
-        [TestCase(".5e-2", 0.005)]
-        [TestCase("2.945", 2.945)]
-        [TestCase("1.1111111111111111111111", 1.1111111111111111111111)]
-        [TestCase("8976435454354345437845468735", 8976435454354345437845468735d)]
-        [TestCase("9223372036854775807", long.MaxValue)]
-        [TestCase("\"\"", "")]
-        [TestCase("\"Hello, World!\"", "Hello, World!")]
-        [TestCase("\"\\u00FF \\u0066 \\uB3A8\"", "\xFF f \uB3A8")]
-        [TestCase("\"\\\"\"", "\"")]
-        [TestCase("\"\\\\\"", "\\")]
-        public void ParseValueNative<T>(string json, T expected)
-        {
-            JSONSchema<T> schema;
-
-            schema = new JSONSchema<T>();
-            schema.ParserDescriptor.IsValue();
-
-            this.AssertParseAndEqual(schema, json, expected);
-        }
-
-        [Test]
-        public void ParseLittleValueNativeDecimal()
-        {
-            JSONSchema<decimal> schema;
-
-            schema = new JSONSchema<decimal>();
-            schema.ParserDescriptor.IsValue();
-
-            this.AssertParseAndEqual(schema, "1e-28", 1e-28m);
-        }
-
-        [Test]
         public void ParseRecursiveSchema()
         {
             IParserDescriptor<RecursiveEntity> descriptor;
@@ -183,40 +135,109 @@ namespace Verse.UTest.Schemas
         }
 
         [Test]
-        [TestCase("glittering", "prizes", "{\"glittering\":\"prizes\"}")]
-        [TestCase("", "pwic", "{\"\":\"pwic\"}")]
-        public void PrintFieldValue<T>(string name, T value, string expected)
+        public void ParseValueWithCustomConstructor()
+        {
+            IParserDescriptor<Tuple<int, int>> descriptor;
+            JSONSchema<Tuple<Tuple<int, int>>> schema;
+
+            schema = new JSONSchema<Tuple<Tuple<int, int>>>();
+            schema.ParserDescriptor.CanCreate((v) => Tuple.Create(0, 0));
+
+            descriptor = schema.ParserDescriptor.HasField("tuple", (ref Tuple<Tuple<int, int>> target, Tuple<int, int> value) => target = Tuple.Create(value));
+            descriptor.HasField("a", (ref Tuple<int, int> target, int value) => target = Tuple.Create(value, target.Item2)).IsValue();
+            descriptor.HasField("b", (ref Tuple<int, int> target, int value) => target = Tuple.Create(target.Item1, value)).IsValue();
+
+            this.AssertParseAndEqual(schema, "{\"tuple\": {\"a\": 5, \"b\": 7}}", Tuple.Create(Tuple.Create(5, 7)));
+        }
+
+        [Test]
+        [TestCase("\"90f59097-d06a-4796-b8d5-87eb6af7ed8b\"", "90f59097-d06a-4796-b8d5-87eb6af7ed8b")]
+        [TestCase("\"c566a1c7-d89e-4e3f-8c5f-d4bcd0b82025\"", "c566a1c7-d89e-4e3f-8c5f-d4bcd0b82025")]
+        public void ParseValueWithCustomDecoder(string json, string expected)
+        {
+            JSONSchema<Guid> schema;
+
+            schema = new JSONSchema<Guid>();
+            schema.SetDecoder((v) => Guid.Parse(v.String));
+            schema.ParserDescriptor.IsValue();
+
+            this.AssertParseAndEqual(schema, json, Guid.Parse(expected));
+        }
+
+        [Test]
+        public void ParseValueMismatchType()
+        {
+            var schema = new JSONSchema<int>();
+
+            schema.ParserDescriptor.IsArray<string>((ref int target, IEnumerable<string> elements) => target = elements.Count());
+            schema.ParserDescriptor.IsValue();
+
+            this.AssertParseAndEqual(schema, "\"test\"", 0);
+            this.AssertParseAndEqual(schema, "53", 0);
+        }
+
+        [Test]
+        [TestCase("false", false)]
+        [TestCase("true", true)]
+        [TestCase("27", 27.0)]
+        [TestCase("-15.5", -15.5)]
+        [TestCase("-.5645", -.5645)]
+        [TestCase("1.2e3", 1200.0)]
+        [TestCase(".5e-2", 0.005)]
+        [TestCase("2.945", 2.945)]
+        [TestCase("1.1111111111111111111111", 1.1111111111111111111111)]
+        [TestCase("8976435454354345437845468735", 8976435454354345437845468735d)]
+        [TestCase("9223372036854775807", long.MaxValue)]
+        [TestCase("\"\"", "")]
+        [TestCase("\"Hello, World!\"", "Hello, World!")]
+        [TestCase("\"\\u00FF \\u0066 \\uB3A8\"", "\xFF f \uB3A8")]
+        [TestCase("\"\\\"\"", "\"")]
+        [TestCase("\"\\\\\"", "\\")]
+        [TestCase("9223372036854775807", 9223372036854775807)]
+        public void ParseValueNative<T>(string json, T expected)
         {
             JSONSchema<T> schema;
 
             schema = new JSONSchema<T>();
-            schema.PrinterDescriptor.HasField(name).IsValue();
+            schema.ParserDescriptor.IsValue();
 
-            this.AssertPrintAndEqual(schema, value, expected);
+            this.AssertParseAndEqual(schema, json, expected);
         }
 
         [Test]
-        [TestCase("num", 9223372036854775807, "{\"num\":9223372036854775807}")]
-        public void PrintLongValue(string name, long value, string expected)
+        public void ParseValueSmallNativeDecimal()
         {
-            JSONSchema<long> schema;
+            JSONSchema<decimal> schema;
 
-            schema = new JSONSchema<long>();
-            schema.PrinterDescriptor.HasField(name).IsValue();
+            schema = new JSONSchema<decimal>();
+            schema.ParserDescriptor.IsValue();
 
-            this.AssertPrintAndEqual(schema, value, expected);
+            this.AssertParseAndEqual(schema, "1e-28", 1e-28m);
         }
 
         [Test]
         [TestCase(new int[0], "[]")]
         [TestCase(new[] { 21 }, "[21]")]
         [TestCase(new[] { 54, 90, -3, 34, 0, 49 }, "[54,90,-3,34,0,49]")]
-        public void PrintItems(int[] value, string expected)
+        public void PrintArray(int[] value, string expected)
         {
             JSONSchema<int[]> schema;
 
             schema = new JSONSchema<int[]>();
             schema.PrinterDescriptor.IsArray((source) => source).IsValue();
+
+            this.AssertPrintAndEqual(schema, value, expected);
+        }
+
+        [Test]
+        [TestCase("glittering", "prizes", "{\"glittering\":\"prizes\"}")]
+        [TestCase("", "pwic", "{\"\":\"pwic\"}")]
+        public void PrintField<T>(string name, T value, string expected)
+        {
+            JSONSchema<T> schema;
+
+            schema = new JSONSchema<T>();
+            schema.PrinterDescriptor.HasField(name).IsValue();
 
             this.AssertPrintAndEqual(schema, value, expected);
         }

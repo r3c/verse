@@ -1,7 +1,7 @@
 using System;
 using System.Text;
-using Verse.PrinterDescriptors;
 using Verse.ParserDescriptors;
+using Verse.PrinterDescriptors;
 using Verse.Schemas.JSON;
 
 namespace Verse.Schemas
@@ -38,7 +38,7 @@ namespace Verse.Schemas
 
         private readonly JSONSettings settings;
 
-        private readonly RecurseParserDescriptor<TEntity, ReaderContext, Value> parserDescriptor;
+        private readonly RecurseParserDescriptor<TEntity, Value, ReaderState> parserDescriptor;
 
         private readonly RecursePrinterDescriptor<TEntity, WriterContext, Value> printerDescriptor;
 
@@ -63,7 +63,7 @@ namespace Verse.Schemas
             encoder = new ValueEncoder();
 
             this.settings = settings;
-            this.parserDescriptor = new RecurseParserDescriptor<TEntity, ReaderContext, Value>(decoder);
+            this.parserDescriptor = new RecurseParserDescriptor<TEntity, Value, ReaderState>(decoder, new Reader<TEntity>(settings.Encoding));
             this.printerDescriptor = new RecursePrinterDescriptor<TEntity, WriterContext, Value>(encoder);
             this.valueDecoder = decoder;
             this.valueEncoder = encoder;
@@ -81,8 +81,8 @@ namespace Verse.Schemas
         /// <summary>
         /// Create JSON schema using default UTF8 encoding.
         /// </summary>
-        public JSONSchema()
-            : this(new UTF8Encoding(false))
+        public JSONSchema() :
+            this(new UTF8Encoding(false))
         {
         }
 
@@ -93,7 +93,7 @@ namespace Verse.Schemas
         /// <inheritdoc/>
         public override IParser<TEntity> CreateParser()
         {
-            return this.parserDescriptor.CreateParser(new Reader(this.settings.Encoding));
+            return this.parserDescriptor.CreateParser();
         }
 
         /// <inheritdoc/>

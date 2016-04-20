@@ -35,8 +35,6 @@ namespace Verse.Schemas
 
         private readonly FlatParserDescriptor<TEntity, ReaderContext> parserDescriptor;
 
-
-
         #endregion
 
         #region Constructor

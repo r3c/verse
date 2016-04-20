@@ -1,5 +1,6 @@
 ﻿using System;
 using Verse.ParserDescriptors;
+using Verse.ParserDescriptors.Recurse.Readers;
 using Verse.PrinterDescriptors;
 using Verse.Schemas.Protobuf;
 
@@ -29,7 +30,7 @@ namespace Verse.Schemas
 
         #region Attributes
 
-        private readonly RecurseParserDescriptor<TEntity, ReaderContext, Value> parserDescriptor;
+        private readonly RecurseParserDescriptor<TEntity, Value, ReaderContext> parserDescriptor;
 
         private readonly RecursePrinterDescriptor<TEntity, WriterContext, Value> printerDescriptor;
 
@@ -46,7 +47,7 @@ namespace Verse.Schemas
             this.valueDecoder = new ValueDecoder();
             this.valueEncoder = new ValueEncoder();
 
-            this.parserDescriptor = new RecurseParserDescriptor<TEntity, ReaderContext, Value>(this.valueDecoder);
+            this.parserDescriptor = new RecurseParserDescriptor<TEntity, Value, ReaderContext>(this.valueDecoder, new Reader<TEntity>());
             this.printerDescriptor = new RecursePrinterDescriptor<TEntity, WriterContext, Value>(this.valueEncoder);
         }
 
@@ -56,7 +57,7 @@ namespace Verse.Schemas
 
         public override IParser<TEntity> CreateParser()
         {
-            return this.parserDescriptor.CreateParser(new Reader());
+            return this.parserDescriptor.CreateParser();
         }
 
         public override IPrinter<TEntity> CreatePrinter()

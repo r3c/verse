@@ -3,26 +3,28 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using Verse.ParserDescriptors.Recurse;
+using Verse.ParserDescriptors.Recurse.Readers;
+using Verse.ParserDescriptors.Recurse.Readers.String;
 
 namespace Verse.Schemas.JSON
 {
-    internal class Reader : IReader<ReaderContext, Value>
+    class Reader<TEntity> : StringReader<TEntity, Value, ReaderState>
     {
         #region Constants
 
-        private const ulong MANTISSA_MAX = long.MaxValue/10;
+        private const ulong MANTISSA_MAX = long.MaxValue / 10;
 
         #endregion
 
-        #region Events
-
-        public event ParserError Error;
-
-        #endregion
-
-        #region Attributes
+        #region Attributes / Instance
 
         private readonly Encoding encoding;
+
+        #endregion
+
+        #region Attributes / Static
+
+        private static readonly Reader<TEntity> unknown = new Reader<TEntity>(Encoding.Default);
 
         #endregion
 
@@ -37,182 +39,43 @@ namespace Verse.Schemas.JSON
 
         #region Methods / Public
 
-        public IBrowser<TEntity> ReadArray<TEntity>(Func<TEntity> constructor, Container<TEntity, ReaderContext, Value> container, ReaderContext context)
+        public override IReader<TOther, Value, ReaderState> Create<TOther>()
         {
-            char ignore;
-            BrowserMove<TEntity> move;
+            return new Reader<TOther>(this.encoding);
+        }
 
-            switch (context.Current)
+        public override IBrowser<TEntity> ReadArray(Func<TEntity> constructor, ReaderState state)
+        {
+            switch (state.Current)
             {
                 case (int)'[':
-                    context.Pull();
-
-                    move = (int index, out TEntity current) =>
-                    {
-                        current = constructor();
-
-                        this.PullIgnored(context);
-
-                        if (context.Current == (int)']')
-                        {
-                            context.Pull();
-
-                            return BrowserState.Success;
-                        }
-
-                        // Read comma separator if any
-                        if (index > 0)
-                        {
-                            if (!this.PullExpected(context, ','))
-                                return BrowserState.Failure;
-
-                            this.PullIgnored(context);
-                        }
-
-                        // Read array value
-                        if (!this.ReadValue(ref current, container, context))
-                            return BrowserState.Failure;
-
-                        return BrowserState.Continue;
-                    };
-
-                    break;
+                    return new Browser<TEntity>(this.ScanArrayAsArray(constructor, state));
 
                 case (int)'{':
-                    context.Pull();
-
-                    move = (int index, out TEntity current) =>
-                    {
-                        current = constructor();
-
-                        this.PullIgnored(context);
-
-                        if (context.Current == (int)'}')
-                        {
-                            context.Pull();
-
-                            return BrowserState.Success;
-                        }
-
-                        // Read comma separator if any
-                        if (index > 0)
-                        {
-                            if (!this.PullExpected(context, ','))
-                                return BrowserState.Failure;
-
-                            this.PullIgnored(context);
-                        }
-
-                        if (!this.PullExpected(context, '"'))
-                            return BrowserState.Failure;
-
-                        // Read and move to object key
-                        while (context.Current != (int)'"')
-                        {
-                            if (!this.PullCharacter(context, out ignore))
-                            {
-                                this.OnError(context.Position, "invalid character in object key");
-
-                                return BrowserState.Failure;
-                            }
-                        }
-
-                        context.Pull();
-
-                        // Read object separator
-                        this.PullIgnored(context);
-
-                        if (!this.PullExpected(context, ':'))
-                            return BrowserState.Failure;
-
-                        // Read object value
-                        this.PullIgnored(context);
-
-                        // Read array value
-                        if (!this.ReadValue(ref current, container, context))
-                            return BrowserState.Failure;
-
-                        return BrowserState.Continue;
-                    };
-
-                    break;
+                    return new Browser<TEntity>(this.ScanObjectAsArray(constructor, state));
 
                 default:
-                    move = (int index, out TEntity current) =>
+                    return new Browser<TEntity>((int index, out TEntity current) =>
                     {
                         current = default (TEntity);
 
-                        if (!this.ReadValue(ref current, container, context))
+                        if (!this.ReadValue(ref current, state))
                             return BrowserState.Failure;
 
                         return BrowserState.Success;
-                    };
-
-                    break;
+                    });
             }
-
-            return new Browser<TEntity>(move);
         }
 
-        public bool ReadValue<TEntity>(ref TEntity target, Container<TEntity, ReaderContext, Value> container, ReaderContext context)
+        public override bool ReadValue(ref TEntity target, ReaderState state)
         {
-            StringBuilder buffer;
-            char current;
-            INode<TEntity, ReaderContext, Value> node;
-            decimal number;
-            uint numberExponent;
-            uint numberExponentMask;
-            uint numberExponentPlus;
-            ulong numberMantissa;
-            ulong numberMantissaMask;
-            ulong numberMantissaPlus;
-            int numberPower;
+            if (this.HoldArray)
+                return this.ProcessArray(ref target, state);
 
-            if (container.items != null)
-                return container.items(ref target, this, context);
-
-            switch (context.Current)
+            switch (state.Current)
             {
                 case (int)'"':
-                    context.Pull();
-
-                    // Read and store string in a buffer if its value is needed
-                    if (container.value != null)
-                    {
-                        buffer = new StringBuilder(32);
-
-                        while (context.Current != (int)'"')
-                        {
-                            if (!this.PullCharacter(context, out current))
-                            {
-                                this.OnError(context.Position, "invalid character in string value");
-
-                                return false;
-                            }
-
-                            buffer.Append(current);
-                        }
-
-                        container.value(ref target, Value.FromString(buffer.ToString()));
-                    }
-
-                        // Read and discard string otherwise
-                    else
-                    {
-                        while (context.Current != (int)'"')
-                        {
-                            if (!this.PullCharacter(context, out current))
-                            {
-                                this.OnError(context.Position, "invalid character in string value");
-
-                                return false;
-                            }
-                        }
-                    }
-
-                    context.Pull();
-
-                    return true;
+                    return this.ScanStringAsEntity(ref target, state);
 
                 case (int)'-':
                 case (int)'.':
@@ -226,247 +89,63 @@ namespace Verse.Schemas.JSON
                 case (int)'7':
                 case (int)'8':
                 case (int)'9':
-                    unchecked
-                    {
-                        numberMantissa = 0;
-                        numberPower = 0;
-
-                        // Read number sign
-                        if (context.Current == (int)'-')
-                        {
-                            context.Pull();
-
-                            numberMantissaMask = ~0UL;
-                            numberMantissaPlus = 1;
-                        }
-                        else
-                        {
-                            numberMantissaMask = 0;
-                            numberMantissaPlus = 0;
-                        }
-
-                        // Read integral part
-                        for (; context.Current >= (int)'0' && context.Current <= (int)'9'; context.Pull())
-                        {
-                            if (numberMantissa > Reader.MANTISSA_MAX)
-                            {
-                                ++numberPower;
-
-                                continue;
-                            }
-
-                            numberMantissa = numberMantissa*10 + (ulong)(context.Current - (int)'0');
-                        }
-
-                        // Read decimal part if any
-                        if (context.Current == (int)'.')
-                        {
-                            context.Pull();
-
-                            for (; context.Current >= (int)'0' && context.Current <= (int)'9'; context.Pull())
-                            {
-                                if (numberMantissa > Reader.MANTISSA_MAX)
-                                    continue;
-
-                                numberMantissa = numberMantissa*10 + (ulong)(context.Current - (int)'0');
-
-                                --numberPower;
-                            }
-                        }
-
-                        // Read exponent if any
-                        if (context.Current == (int)'E' || context.Current == (int)'e')
-                        {
-                            context.Pull();
-
-                            switch (context.Current)
-                            {
-                                case (int)'+':
-                                    context.Pull();
-
-                                    numberExponentMask = 0;
-                                    numberExponentPlus = 0;
-
-                                    break;
-
-                                case (int)'-':
-                                    context.Pull();
-
-                                    numberExponentMask = ~0U;
-                                    numberExponentPlus = 1;
-
-                                    break;
-
-                                default:
-                                    numberExponentMask = 0;
-                                    numberExponentPlus = 0;
-
-                                    break;
-                            }
-
-                            for (numberExponent = 0; context.Current >= (int)'0' && context.Current <= (int)'9'; context.Pull())
-                                numberExponent = numberExponent*10 + (uint)(context.Current - (int)'0');
-
-                            numberPower += (int)((numberExponent ^ numberExponentMask) + numberExponentPlus);
-                        }
-
-                        // Compute result number and assign if needed
-                        if (container.value != null)
-                        {
-                            number =
-                                (long)((numberMantissa ^ numberMantissaMask) + numberMantissaPlus) *
-                                (decimal)Math.Pow(10, numberPower);
-
-                            container.value(ref target, Value.FromNumber(number));
-                        }
-                    }
-
-                    return true;
+                    return this.ScanNumberAsEntity(ref target, state);
 
                 case (int)'f':
-                    context.Pull();
+                    state.Pull();
 
-                    if (!this.PullExpected(context, 'a') || !this.PullExpected(context, 'l') || !this.PullExpected(context, 's') || !this.PullExpected(context, 'e'))
+                    if (!this.PullExpected(state, 'a') || !this.PullExpected(state, 'l') || !this.PullExpected(state, 's') || !this.PullExpected(state, 'e'))
                         return false;
 
-                    if (container.value != null)
-                        container.value(ref target, Value.FromBoolean(false));
+                    if (this.HoldValue)
+                        this.ProcessValue(ref target, Value.FromBoolean(false));
 
                     return true;
 
                 case (int)'n':
-                    context.Pull();
+                    state.Pull();
 
-                    if (!this.PullExpected(context, 'u') || !this.PullExpected(context, 'l') || !this.PullExpected(context, 'l'))
+                    if (!this.PullExpected(state, 'u') || !this.PullExpected(state, 'l') || !this.PullExpected(state, 'l'))
                         return false;
 
-                    if (container.value != null)
-                        container.value(ref target, Value.Void);
+                    if (this.HoldValue)
+                        this.ProcessValue(ref target, Value.Void);
 
                     return true;
 
                 case (int)'t':
-                    context.Pull();
+                    state.Pull();
 
-                    if (!this.PullExpected(context, 'r') || !this.PullExpected(context, 'u') || !this.PullExpected(context, 'e'))
+                    if (!this.PullExpected(state, 'r') || !this.PullExpected(state, 'u') || !this.PullExpected(state, 'e'))
                         return false;
 
-                    if (container.value != null)
-                        container.value(ref target, Value.FromBoolean(true));
+                    if (this.HoldValue)
+                        this.ProcessValue(ref target, Value.FromBoolean(true));
 
                     return true;
 
                 case (int)'[':
-                    context.Pull();
-
-                    for (int index = 0; true; ++index)
-                    {
-                        this.PullIgnored(context);
-
-                        if (context.Current == (int)']')
-                            break;
-
-                        // Read comma separator if any
-                        if (index > 0)
-                        {
-                            if (!this.PullExpected(context, ','))
-                                return false;
-
-                            this.PullIgnored(context);
-                        }
-
-                        // Build and move to array index
-                        node = container.fields;
-
-                        if (index > 9)
-                        {
-                            foreach (char digit in index.ToString(CultureInfo.InvariantCulture))
-                                node = node.Follow(digit);
-                        }
-                        else
-                            node = node.Follow((char)('0' + index));
-
-                        // Read array value
-                        if (!node.Enter(ref target, this, context))
-                            return false;
-                    }
-
-                    context.Pull();
-
-                    return true;
+                    return this.ScanArrayAsEntity(ref target, state);
 
                 case (int)'{':
-                    context.Pull();
-
-                    for (int index = 0; true; ++index)
-                    {
-                        this.PullIgnored(context);
-
-                        if (context.Current == (int)'}')
-                            break;
-
-                        // Read comma separator if any
-                        if (index > 0)
-                        {
-                            if (!this.PullExpected(context, ','))
-                                return false;
-
-                            this.PullIgnored(context);
-                        }
-
-                        if (!this.PullExpected(context, '"'))
-                            return false;
-
-                        // Read and move to object key
-                        node = container.fields;
-
-                        while (context.Current != (int)'"')
-                        {
-                            if (!this.PullCharacter(context, out current))
-                            {
-                                this.OnError(context.Position, "invalid character in object key");
-
-                                return false;
-                            }
-
-                            node = node.Follow(current);
-                        }
-
-                        context.Pull();
-
-                        // Read object separator
-                        this.PullIgnored(context);
-
-                        if (!this.PullExpected(context, ':'))
-                            return false;
-
-                        // Read object value
-                        this.PullIgnored(context);
-
-                        if (!node.Enter(ref target, this, context))
-                            return false;
-                    }
-
-                    context.Pull();
-
-                    return true;
+                    return this.ScanObjectAsEntity(ref target, state);
 
                 default:
-                    this.OnError(context.Position, "expected array, object or value");
+                    state.OnError(state.Position, "expected array, object or value");
 
                     return false;
             }
         }
 
-        public bool Start(Stream stream, out ReaderContext context)
+        public override bool Start(Stream stream, ParserError onError, out ReaderState state)
         {
-            context = new ReaderContext(stream, this.encoding);
+            state = new ReaderState(stream, this.encoding, onError);
 
-            this.PullIgnored(context);
+            this.PullIgnored(state);
 
-            if (context.Current < 0)
+            if (state.Current < 0)
             {
-                this.OnError(context.Position, "empty input stream");
+                state.OnError(state.Position, "empty input stream");
 
                 return false;
             }
@@ -474,7 +153,7 @@ namespace Verse.Schemas.JSON
             return true;
         }
 
-        public void Stop(ReaderContext context)
+        public override void Stop(ReaderState state)
         {
         }
 
@@ -482,25 +161,15 @@ namespace Verse.Schemas.JSON
 
         #region Methods / Private
 
-        private void OnError(int position, string message)
-        {
-            ParserError error;
-
-            error = this.Error;
-
-            if (error != null)
-                error(position, message);
-        }
-
-        private bool PullCharacter(ReaderContext context, out char character)
+        private bool PullCharacter(ReaderState state, out char character)
         {
             int nibble;
             int previous;
             int value;
 
-            previous = context.Current;
+            previous = state.Current;
 
-            context.Pull();
+            state.Pull();
 
             if (previous < 0)
             {
@@ -516,9 +185,9 @@ namespace Verse.Schemas.JSON
                 return true;
             }
 
-            previous = context.Current;
+            previous = state.Current;
 
-            context.Pull();
+            state.Pull();
 
             switch (previous)
             {
@@ -567,9 +236,9 @@ namespace Verse.Schemas.JSON
 
                     for (int i = 0; i < 4; ++i)
                     {
-                        previous = context.Current;
+                        previous = state.Current;
 
-                        context.Pull();
+                        state.Pull();
 
                         if (previous >= (int)'0' && previous <= (int)'9')
                             nibble = previous - (int)'0';
@@ -579,7 +248,7 @@ namespace Verse.Schemas.JSON
                             nibble = previous - (int)'a' + 10;
                         else
                         {
-                            this.OnError(context.Position, "unknown character in unicode escape sequence");
+                            state.OnError(state.Position, "unknown character in unicode escape sequence");
 
                             character = default (char);
 
@@ -600,33 +269,387 @@ namespace Verse.Schemas.JSON
             }
         }
 
-        private bool PullExpected(ReaderContext context, char expected)
+        private bool PullExpected(ReaderState state, char expected)
         {
-            if (context.Current != (int)expected)
+            if (state.Current != (int)expected)
             {
-                this.OnError(context.Position, string.Format(CultureInfo.InvariantCulture, "expected '{0}'", expected));
+                state.OnError(state.Position, string.Format(CultureInfo.InvariantCulture, "expected '{0}'", expected));
 
                 return false;
             }
 
-            context.Pull();
+            state.Pull();
 
             return true;
         }
 
-        private void PullIgnored(ReaderContext context)
+        private void PullIgnored(ReaderState state)
         {
             int current;
 
             while (true)
             {
-                current = context.Current;
+                current = state.Current;
 
                 if (current < 0 || current > (int)' ')
                     return;
 
-                context.Pull();
+                state.Pull();
             }
+        }
+
+        private BrowserMove<TEntity> ScanArrayAsArray(Func<TEntity> constructor, ReaderState state)
+        {
+            state.Pull();
+
+            return (int index, out TEntity current) =>
+            {
+                current = constructor();
+
+                this.PullIgnored(state);
+
+                if (state.Current == (int)']')
+                {
+                    state.Pull();
+
+                    return BrowserState.Success;
+                }
+
+                // Read comma separator if any
+                if (index > 0)
+                {
+                    if (!this.PullExpected(state, ','))
+                        return BrowserState.Failure;
+
+                    this.PullIgnored(state);
+                }
+
+                // Read array value
+                if (!this.ReadValue(ref current, state))
+                    return BrowserState.Failure;
+
+                return BrowserState.Continue;
+            };
+        }
+
+        private bool ScanArrayAsEntity(ref TEntity target, ReaderState state)
+        {
+            INode<TEntity, Value, ReaderState> node;
+
+            state.Pull();
+
+            for (int index = 0; true; ++index)
+            {
+                this.PullIgnored(state);
+
+                if (state.Current == (int)']')
+                    break;
+
+                // Read comma separator if any
+                if (index > 0)
+                {
+                    if (!this.PullExpected(state, ','))
+                        return false;
+
+                    this.PullIgnored(state);
+                }
+
+                // Build and move to array index
+                node = this.RootNode;
+
+                if (index > 9)
+                {
+                    foreach (char digit in index.ToString(CultureInfo.InvariantCulture))
+                        node = node.Follow(digit);
+                }
+                else
+                    node = node.Follow((char)('0' + index));
+
+                // Read array value
+                if (!node.Enter(ref target, Reader<TEntity>.unknown, state))
+                    return false;
+            }
+
+            state.Pull();
+
+            return true;
+        }
+
+        private bool ScanNumberAsEntity(ref TEntity target, ReaderState state)
+        {
+            decimal number;
+            uint numberExponent;
+            uint numberExponentMask;
+            uint numberExponentPlus;
+            ulong numberMantissa;
+            ulong numberMantissaMask;
+            ulong numberMantissaPlus;
+            int numberPower;
+
+            unchecked
+            {
+                numberMantissa = 0;
+                numberPower = 0;
+
+                // Read number sign
+                if (state.Current == (int)'-')
+                {
+                    state.Pull();
+
+                    numberMantissaMask = ~0UL;
+                    numberMantissaPlus = 1;
+                }
+                else
+                {
+                    numberMantissaMask = 0;
+                    numberMantissaPlus = 0;
+                }
+
+                // Read integral part
+                for (; state.Current >= (int)'0' && state.Current <= (int)'9'; state.Pull())
+                {
+                    if (numberMantissa > MANTISSA_MAX)
+                    {
+                        ++numberPower;
+
+                        continue;
+                    }
+
+                    numberMantissa = numberMantissa*10 + (ulong)(state.Current - (int)'0');
+                }
+
+                // Read decimal part if any
+                if (state.Current == (int)'.')
+                {
+                    state.Pull();
+
+                    for (; state.Current >= (int)'0' && state.Current <= (int)'9'; state.Pull())
+                    {
+                        if (numberMantissa > MANTISSA_MAX)
+                            continue;
+
+                        numberMantissa = numberMantissa*10 + (ulong)(state.Current - (int)'0');
+
+                        --numberPower;
+                    }
+                }
+
+                // Read exponent if any
+                if (state.Current == (int)'E' || state.Current == (int)'e')
+                {
+                    state.Pull();
+
+                    switch (state.Current)
+                    {
+                        case (int)'+':
+                            state.Pull();
+
+                            numberExponentMask = 0;
+                            numberExponentPlus = 0;
+
+                            break;
+
+                        case (int)'-':
+                            state.Pull();
+
+                            numberExponentMask = ~0U;
+                            numberExponentPlus = 1;
+
+                            break;
+
+                        default:
+                            numberExponentMask = 0;
+                            numberExponentPlus = 0;
+
+                            break;
+                    }
+
+                    for (numberExponent = 0; state.Current >= (int)'0' && state.Current <= (int)'9'; state.Pull())
+                        numberExponent = numberExponent*10 + (uint)(state.Current - (int)'0');
+
+                    numberPower += (int)((numberExponent ^ numberExponentMask) + numberExponentPlus);
+                }
+
+                // Compute result number and assign if needed
+                if (this.HoldValue)
+                {
+                    number =
+                        (long)((numberMantissa ^ numberMantissaMask) + numberMantissaPlus) *
+                        (decimal)Math.Pow(10, numberPower);
+
+                    this.ProcessValue(ref target, Value.FromNumber(number));
+                }
+            }
+
+            return true;
+        }
+
+        private BrowserMove<TEntity> ScanObjectAsArray(Func<TEntity> constructor, ReaderState state)
+        {
+            state.Pull();
+
+            return (int index, out TEntity current) =>
+            {
+                char ignore;
+
+                current = constructor();
+
+                this.PullIgnored(state);
+
+                if (state.Current == (int)'}')
+                {
+                    state.Pull();
+
+                    return BrowserState.Success;
+                }
+
+                // Read comma separator if any
+                if (index > 0)
+                {
+                    if (!this.PullExpected(state, ','))
+                        return BrowserState.Failure;
+
+                    this.PullIgnored(state);
+                }
+
+                if (!this.PullExpected(state, '"'))
+                    return BrowserState.Failure;
+
+                // Read and move to object key
+                while (state.Current != (int)'"')
+                {
+                    if (!this.PullCharacter(state, out ignore))
+                    {
+                        state.OnError(state.Position, "invalid character in object key");
+
+                        return BrowserState.Failure;
+                    }
+                }
+
+                state.Pull();
+
+                // Read object separator
+                this.PullIgnored(state);
+
+                if (!this.PullExpected(state, ':'))
+                    return BrowserState.Failure;
+
+                // Read object value
+                this.PullIgnored(state);
+
+                // Read array value
+                if (!this.ReadValue(ref current, state))
+                    return BrowserState.Failure;
+
+                return BrowserState.Continue;
+            };
+        }
+
+        private bool ScanObjectAsEntity(ref TEntity target, ReaderState state)
+        {
+            char character;
+            INode<TEntity, Value, ReaderState> node;
+
+            state.Pull();
+
+            for (int index = 0; true; ++index)
+            {
+                this.PullIgnored(state);
+
+                if (state.Current == (int)'}')
+                    break;
+
+                // Read comma separator if any
+                if (index > 0)
+                {
+                    if (!this.PullExpected(state, ','))
+                        return false;
+
+                    this.PullIgnored(state);
+                }
+
+                if (!this.PullExpected(state, '"'))
+                    return false;
+
+                // Read and move to object key
+                node = this.RootNode;
+
+                while (state.Current != (int)'"')
+                {
+                    if (!this.PullCharacter(state, out character))
+                    {
+                        state.OnError(state.Position, "invalid character in object key");
+
+                        return false;
+                    }
+
+                    node = node.Follow(character);
+                }
+
+                state.Pull();
+
+                // Read object separator
+                this.PullIgnored(state);
+
+                if (!this.PullExpected(state, ':'))
+                    return false;
+
+                // Read object value
+                this.PullIgnored(state);
+
+                if (!node.Enter(ref target, Reader<TEntity>.unknown, state))
+                    return false;
+            }
+
+            state.Pull();
+
+            return true;
+        }
+
+        private bool ScanStringAsEntity(ref TEntity target, ReaderState state)
+        {
+            StringBuilder buffer;
+            char character;
+
+            state.Pull();
+
+            // Read and store string in a buffer if its value is needed
+            if (this.HoldValue)
+            {
+                buffer = new StringBuilder(32);
+
+                while (state.Current != (int)'"')
+                {
+                    if (!this.PullCharacter(state, out character))
+                    {
+                        state.OnError(state.Position, "invalid character in string value");
+
+                        return false;
+                    }
+
+                    buffer.Append(character);
+                }
+
+                this.ProcessValue(ref target, Value.FromString(buffer.ToString()));
+            }
+
+            // Read and discard string otherwise
+            else
+            {
+                while (state.Current != (int)'"')
+                {
+                    if (!this.PullCharacter(state, out character))
+                    {
+                        state.OnError(state.Position, "invalid character in string value");
+
+                        return false;
+                    }
+                }
+            }
+
+            state.Pull();
+
+            return true;
         }
 
         #endregion

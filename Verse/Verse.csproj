@@ -102,12 +102,14 @@
     <Compile Include="src\ParserDescriptors\Recurse\Browser.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\BrowserMove.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\BrowserState.cs" />
-    <Compile Include="src\ParserDescriptors\Recurse\Container.cs" />
-    <Compile Include="src\ParserDescriptors\Recurse\Follow.cs" />
+    <Compile Include="src\ParserDescriptors\Recurse\Readers\StringReaders.cs" />
+    <Compile Include="src\ParserDescriptors\Recurse\Readers\String\INode.cs" />
+    <Compile Include="src\ParserDescriptors\Recurse\Enter.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\IBrowser.cs" />
+    <Compile Include="src\ParserDescriptors\Recurse\IReader.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\Parser.cs" />
-    <Compile Include="src\ParserDescriptors\Recurse\Nodes\BranchNode.cs" />
-    <Compile Include="src\ParserDescriptors\Recurse\Nodes\EmptyNode.cs" />
+    <Compile Include="src\ParserDescriptors\Recurse\Readers\String\Nodes\BranchNode.cs" />
+    <Compile Include="src\ParserDescriptors\Recurse\Readers\String\Nodes\EmptyNode.cs" />
     <Compile Include="src\PrinterDescriptors\AbstractPrinterDescriptor.cs" />
     <Compile Include="src\PrinterDescriptors\Abstract\IEncoder.cs" />
     <Compile Include="src\PrinterDescriptors\RecursePrinterDescriptor.cs" />
@@ -149,16 +151,16 @@
     <Compile Include="src\IParserDescriptor.cs" />
     <Compile Include="src\IParser.cs" />
     <Compile Include="src\ISchema.cs" />
-    <Compile Include="src\ParserDescriptors\Recurse\INode.cs" />
-    <Compile Include="src\ParserDescriptors\Recurse\IReader.cs" />
     <Compile Include="src\ParserError.cs" />
     <Compile Include="src\Schemas\JSONSchema.cs" />
-    <Compile Include="src\Schemas\JSON\ReaderContext.cs" />
+    <Compile Include="src\Schemas\JSON\ReaderState.cs" />
     <Compile Include="src\Schemas\JSON\Reader.cs" />
     <Compile Include="src\Schemas\JSON\Value.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="src\ParserDescriptors\Abstract" />
+    <Folder Include="src\ParserDescriptors\Recurse\Readers" />
+    <Folder Include="src\ParserDescriptors\Recurse\Readers\String" />
     <Folder Include="src\PrinterDescriptors\Abstract" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

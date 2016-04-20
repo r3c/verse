@@ -5,19 +5,19 @@ using Verse.Tools;
 
 namespace Verse.ParserDescriptors
 {
-    internal abstract class AbstractParserDescriptor<TEntity, TNative> : IParserDescriptor<TEntity>
+    abstract class AbstractParserDescriptor<TEntity, TValue> : IParserDescriptor<TEntity>
     {
         #region Attributes
 
         private readonly Dictionary<Type, object> constructors;
 
-        protected readonly IDecoder<TNative> decoder;
+        protected readonly IDecoder<TValue> decoder;
 
         #endregion
 
         #region Constructors
 
-        protected AbstractParserDescriptor(IDecoder<TNative> decoder)
+        protected AbstractParserDescriptor(IDecoder<TValue> decoder)
         {
             this.constructors = new Dictionary<Type, object>();
             this.decoder = decoder;
@@ -33,22 +33,22 @@ namespace Verse.ParserDescriptors
 
         public abstract IParserDescriptor<TEntity> HasField(string name);
 
-        public abstract IParserDescriptor<TItem> IsArray<TItem>(ParserAssign<TEntity, IEnumerable<TItem>> assign, IParserDescriptor<TItem> parent);
+        public abstract IParserDescriptor<TElement> IsArray<TElement>(ParserAssign<TEntity, IEnumerable<TElement>> assign, IParserDescriptor<TElement> parent);
 
-        public abstract IParserDescriptor<TItem> IsArray<TItem>(ParserAssign<TEntity, IEnumerable<TItem>> assign);
+        public abstract IParserDescriptor<TElement> IsArray<TElement>(ParserAssign<TEntity, IEnumerable<TElement>> assign);
 
-        public abstract void IsValue<TValue>(ParserAssign<TEntity, TValue> assign);
+        public abstract void IsValue<TRaw>(ParserAssign<TEntity, TRaw> assign);
 
         #endregion
 
         #region Methods / Public
 
-        public void CanCreate<TValue>(Func<TEntity, TValue> constructor)
+        public void CanCreate<TField>(Func<TEntity, TField> constructor)
         {
             if (constructor == null)
                 throw new ArgumentNullException("constructor");
 
-            this.constructors[typeof (TValue)] = constructor;
+            this.constructors[typeof (TField)] = constructor;
         }
 
         public void IsValue()
@@ -60,24 +60,24 @@ namespace Verse.ParserDescriptors
 
         #region Methods / Protected
 
-        protected Func<TEntity, TValue> GetConstructor<TValue>()
+        protected Func<TEntity, TField> GetConstructor<TField>()
         {
             object box;
-            Func<TValue> constructor;
+            Func<TField> constructor;
 
-            if (!this.constructors.TryGetValue(typeof (TValue), out box))
+            if (!this.constructors.TryGetValue(typeof (TField), out box))
             {
-                constructor = Generator.Constructor<TValue>();
+                constructor = Generator.Constructor<TField>();
 
                 return (source) => constructor();
             }
 
-            return (Func<TEntity, TValue>)box;
+            return (Func<TEntity, TField>)box;
         }
 
-        protected Converter<TNative, TValue> GetConverter<TValue>()
+        protected Converter<TValue, TRaw> GetConverter<TRaw>()
         {
-            return this.decoder.Get<TValue>();
+            return this.decoder.Get<TRaw>();
         }
 
         #endregion
