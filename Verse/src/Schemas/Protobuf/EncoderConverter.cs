@@ -5,7 +5,7 @@ using Verse.PrinterDescriptors.Abstract;
 
 namespace Verse.Schemas.Protobuf
 {
-    internal class ValueEncoder : IEncoder<Value>
+    class EncoderConverter : IEncoderConverter<Value>
     {
         #region Attributes
 
@@ -32,28 +32,28 @@ namespace Verse.Schemas.Protobuf
 
         #region Methods
 
-        public Converter<TValue, Value> Get<TValue>()
+        public Converter<TFrom, Value> Get<TFrom>()
         {
             object box;
 
-            if (!this.converters.TryGetValue(typeof (TValue), out box))
+            if (!this.converters.TryGetValue(typeof (TFrom), out box))
             {
                 throw new InvalidCastException(
                     string.Format(
                         CultureInfo.InvariantCulture,
                         "no available converter from type '{0}', protobuf value",
-                        typeof (TValue)));
+                        typeof (TFrom)));
             }
 
-            return (Converter<TValue, Value>)box;
+            return (Converter<TFrom, Value>)box;
         }
 
-        public void Set<TValue>(Converter<TValue, Value> converter)
+        public void Set<TFrom>(Converter<TFrom, Value> converter)
         {
             if (converter == null)
                 throw new ArgumentNullException("converter");
 
-            this.converters[typeof (TValue)] = converter;
+            this.converters[typeof (TFrom)] = converter;
         }
 
         #endregion

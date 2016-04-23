@@ -1,6 +1,5 @@
 ﻿using System;
 using Verse.ParserDescriptors;
-using Verse.ParserDescriptors.Recurse.Readers;
 using Verse.PrinterDescriptors;
 using Verse.Schemas.Protobuf;
 
@@ -30,13 +29,13 @@ namespace Verse.Schemas
 
         #region Attributes
 
-        private readonly RecurseParserDescriptor<TEntity, Value, ReaderContext> parserDescriptor;
+        private readonly DecoderConverter decoderConverter;
 
-        private readonly RecursePrinterDescriptor<TEntity, Value, WriterContext> printerDescriptor;
+        private readonly EncoderConverter encoderConverter;
 
-        private readonly ValueDecoder valueDecoder;
+        private readonly RecurseParserDescriptor<TEntity, Value, ReaderState> parserDescriptor;
 
-        private readonly ValueEncoder valueEncoder;
+        private readonly RecursePrinterDescriptor<TEntity, Value, WriterState> printerDescriptor;
 
         #endregion
 
@@ -44,11 +43,13 @@ namespace Verse.Schemas
 
         public ProtobufSchema()
         {
-            this.valueDecoder = new ValueDecoder();
-            this.valueEncoder = new ValueEncoder();
+            var sourceConverter = new DecoderConverter();
+            var targetConverter = new EncoderConverter();
 
-            this.parserDescriptor = new RecurseParserDescriptor<TEntity, Value, ReaderContext>(this.valueDecoder, new Reader<TEntity>());
-            this.printerDescriptor = new RecursePrinterDescriptor<TEntity, Value, WriterContext>(this.valueEncoder, new Writer<TEntity>());
+            this.decoderConverter = sourceConverter;
+            this.encoderConverter = targetConverter;
+            this.parserDescriptor = new RecurseParserDescriptor<TEntity, Value, ReaderState>(sourceConverter, new Reader<TEntity>());
+            this.printerDescriptor = new RecursePrinterDescriptor<TEntity, Value, WriterState>(targetConverter, new Writer<TEntity>());
         }
 
         #endregion
@@ -67,12 +68,12 @@ namespace Verse.Schemas
 
         public void SetDecoder<U>(Converter<Value, U> converter)
         {
-            this.valueDecoder.Set(converter);
+            this.decoderConverter.Set(converter);
         }
 
         public void SetEncoder<U>(Converter<U, Value> converter)
         {
-            this.valueEncoder.Set(converter);
+            this.encoderConverter.Set(converter);
         }
 
         #endregion

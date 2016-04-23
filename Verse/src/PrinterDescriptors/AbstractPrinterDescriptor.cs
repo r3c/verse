@@ -4,19 +4,19 @@ using Verse.PrinterDescriptors.Abstract;
 
 namespace Verse.PrinterDescriptors
 {
-    internal abstract class AbstractPrinterDescriptor<TEntity, TNative> : IPrinterDescriptor<TEntity>
+    abstract class AbstractPrinterDescriptor<TEntity, TNative> : IPrinterDescriptor<TEntity>
     {
         #region Attributes
 
-        protected readonly IEncoder<TNative> encoder;
+        protected readonly IEncoderConverter<TNative> converter;
 
         #endregion
 
         #region Constructors
 
-        protected AbstractPrinterDescriptor(IEncoder<TNative> encoder)
+        protected AbstractPrinterDescriptor(IEncoderConverter<TNative> converter)
         {
-            this.encoder = encoder;
+            this.converter = converter;
         }
 
         #endregion
@@ -53,7 +53,7 @@ namespace Verse.PrinterDescriptors
 
         protected Converter<TValue, TNative> GetConverter<TValue>()
         {
-            return this.encoder.Get<TValue>();
+            return this.converter.Get<TValue>();
         }
 
         #endregion

@@ -2,11 +2,11 @@ using System;
 
 namespace Verse.PrinterDescriptors.Abstract
 {
-    internal interface IEncoder<TOutput>
+    interface IEncoderConverter<TTo>
     {
         #region Methods
 
-        Converter<TInput, TOutput> Get<TInput>();
+        Converter<TFrom, TTo> Get<TFrom>();
 
         #endregion
     }

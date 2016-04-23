@@ -15,8 +15,8 @@ namespace Verse.PrinterDescriptors
 
         #region Constructors
 
-        public RecursePrinterDescriptor(IEncoder<TValue> encoder, IWriter<TEntity, TValue, TState> writer) :
-            base(encoder)
+        public RecursePrinterDescriptor(IEncoderConverter<TValue> converter, IWriter<TEntity, TValue, TState> writer) :
+            base(converter)
         {
             this.writer = writer;
         }
@@ -42,7 +42,7 @@ namespace Verse.PrinterDescriptors
 
         public override IPrinterDescriptor<TField> HasField<TField>(string name, Func<TEntity, TField> access)
         {
-            return this.HasField(name, access, new RecursePrinterDescriptor<TField, TValue, TState>(this.encoder, this.writer.Create<TField>()));
+            return this.HasField(name, access, new RecursePrinterDescriptor<TField, TValue, TState>(this.converter, this.writer.Create<TField>()));
         }
 
         public override IPrinterDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> access, IPrinterDescriptor<TElement> parent)
@@ -57,7 +57,7 @@ namespace Verse.PrinterDescriptors
 
         public override IPrinterDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> access)
         {
-            return this.IsArray(access, new RecursePrinterDescriptor<TElement, TValue, TState>(this.encoder, this.writer.Create<TElement>()));
+            return this.IsArray(access, new RecursePrinterDescriptor<TElement, TValue, TState>(this.converter, this.writer.Create<TElement>()));
         }
 
         public override void IsValue<TRaw>(Func<TEntity, TRaw> access)

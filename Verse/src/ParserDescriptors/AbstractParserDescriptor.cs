@@ -11,16 +11,16 @@ namespace Verse.ParserDescriptors
 
         private readonly Dictionary<Type, object> constructors;
 
-        protected readonly IDecoder<TValue> decoder;
+        protected readonly IDecoderConverter<TValue> converter;
 
         #endregion
 
         #region Constructors
 
-        protected AbstractParserDescriptor(IDecoder<TValue> decoder)
+        protected AbstractParserDescriptor(IDecoderConverter<TValue> converter)
         {
             this.constructors = new Dictionary<Type, object>();
-            this.decoder = decoder;
+            this.converter = converter;
         }
 
         #endregion
@@ -77,7 +77,7 @@ namespace Verse.ParserDescriptors
 
         protected Converter<TValue, TRaw> GetConverter<TRaw>()
         {
-            return this.decoder.Get<TRaw>();
+            return this.converter.Get<TRaw>();
         }
 
         #endregion

@@ -5,26 +5,26 @@ using Verse.ParserDescriptors.Abstract;
 
 namespace Verse.Schemas.Protobuf
 {
-    internal class ValueDecoder : IDecoder<Value>
+    class DecoderConverter : IDecoderConverter<Value>
     {
         #region Attributes
 
         private readonly Dictionary<Type, object> converters = new Dictionary<Type, object>
         {
-            { typeof (bool), new Converter<Value, bool>(ValueDecoder.ToBoolean) },
-            { typeof (char), new Converter<Value, char>(ValueDecoder.ToCharacter) },
-            { typeof (decimal), new Converter<Value, decimal>(ValueDecoder.ToDecimal) },
-            { typeof (float), new Converter<Value, float>(ValueDecoder.ToFloat32) },
-            { typeof (double), new Converter<Value, double>(ValueDecoder.ToFloat64) },
-            { typeof (sbyte), new Converter<Value, sbyte>(ValueDecoder.ToInteger8s) },
-            { typeof (byte), new Converter<Value, byte>(ValueDecoder.ToInteger8u) },
-            { typeof (short), new Converter<Value, short>(ValueDecoder.ToInteger16s) },
-            { typeof (ushort), new Converter<Value, ushort>(ValueDecoder.ToInteger16u) },
-            { typeof (int), new Converter<Value, int>(ValueDecoder.ToInteger32s) },
-            { typeof (uint), new Converter<Value, uint>(ValueDecoder.ToInteger32u) },
-            { typeof (long), new Converter<Value, long>(ValueDecoder.ToInteger64s) },
-            { typeof (ulong), new Converter<Value, ulong>(ValueDecoder.ToInteger64u) },
-            { typeof (string), new Converter<Value, string>(ValueDecoder.ToString) },
+            { typeof (bool), new Converter<Value, bool>(DecoderConverter.ToBoolean) },
+            { typeof (char), new Converter<Value, char>(DecoderConverter.ToCharacter) },
+            { typeof (decimal), new Converter<Value, decimal>(DecoderConverter.ToDecimal) },
+            { typeof (float), new Converter<Value, float>(DecoderConverter.ToFloat32) },
+            { typeof (double), new Converter<Value, double>(DecoderConverter.ToFloat64) },
+            { typeof (sbyte), new Converter<Value, sbyte>(DecoderConverter.ToInteger8s) },
+            { typeof (byte), new Converter<Value, byte>(DecoderConverter.ToInteger8u) },
+            { typeof (short), new Converter<Value, short>(DecoderConverter.ToInteger16s) },
+            { typeof (ushort), new Converter<Value, ushort>(DecoderConverter.ToInteger16u) },
+            { typeof (int), new Converter<Value, int>(DecoderConverter.ToInteger32s) },
+            { typeof (uint), new Converter<Value, uint>(DecoderConverter.ToInteger32u) },
+            { typeof (long), new Converter<Value, long>(DecoderConverter.ToInteger64s) },
+            { typeof (ulong), new Converter<Value, ulong>(DecoderConverter.ToInteger64u) },
+            { typeof (string), new Converter<Value, string>(DecoderConverter.ToString) },
             { typeof (Value), new Converter<Value, Value>((v) => v) }
         };
 
@@ -32,28 +32,28 @@ namespace Verse.Schemas.Protobuf
 
         #region Methods / Public
 
-        public Converter<Value, TValue> Get<TValue>()
+        public Converter<Value, TTo> Get<TTo>()
         {
             object box;
 
-            if (!this.converters.TryGetValue(typeof (TValue), out box))
+            if (!this.converters.TryGetValue(typeof (TTo), out box))
             {
                 throw new InvalidCastException(
                     string.Format(
                         CultureInfo.InvariantCulture,
                         "no available converter from Protobuf value to type '{0}'",
-                        typeof (TValue)));
+                        typeof (TTo)));
             }
 
-            return (Converter<Value, TValue>)box;
+            return (Converter<Value, TTo>)box;
         }
 
-        public void Set<TValue>(Converter<Value, TValue> converter)
+        public void Set<TTo>(Converter<Value, TTo> converter)
         {
             if (converter == null)
                 throw new ArgumentNullException("converter");
 
-            this.converters[typeof (TValue)] = converter;
+            this.converters[typeof (TTo)] = converter;
         }
 
         #endregion

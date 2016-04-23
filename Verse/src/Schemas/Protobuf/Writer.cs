@@ -5,33 +5,33 @@ using Verse.PrinterDescriptors.Recurse;
 
 namespace Verse.Schemas.Protobuf
 {
-    class Writer<TEntity> : StringWriter<TEntity, Value, WriterContext>
+    class Writer<TEntity> : StringWriter<TEntity, Value, WriterState>
     {
         #region Methods
 
-        public override IWriter<TOther, Value, WriterContext> Create<TOther>()
+        public override IWriter<TOther, Value, WriterState> Create<TOther>()
         {
             return new Writer<TOther>();
         }
 
-        public override bool Start(Stream stream, PrinterError onError, out WriterContext state)
+        public override bool Start(Stream stream, PrinterError onError, out WriterState state)
         {
-            state = new WriterContext(stream, onError);
+            state = new WriterState(stream, onError);
 
             return true;
         }
 
-        public override void Stop(WriterContext state)
+        public override void Stop(WriterState state)
         {
         }
 
-        public override void WriteArray(IEnumerable<TEntity> items, WriterContext state)
+        public override void WriteArray(IEnumerable<TEntity> items, WriterState state)
         {
             foreach (var item in items)
                 this.WriteValue(item, state);
         }
 
-        public override void WriteValue(TEntity source, WriterContext state)
+        public override void WriteValue(TEntity source, WriterState state)
         {
             if (source == null)
                 return;

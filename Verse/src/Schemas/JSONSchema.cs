@@ -36,15 +36,13 @@ namespace Verse.Schemas
 
         #region Attributes
 
-        private readonly JSONSettings settings;
+        private readonly DecoderConverter decoderConverter;
+
+        private readonly EncoderConverter encoderConverter;
 
         private readonly RecurseParserDescriptor<TEntity, Value, ReaderState> parserDescriptor;
 
         private readonly RecursePrinterDescriptor<TEntity, Value, WriterState> printerDescriptor;
-
-        private readonly ValueDecoder valueDecoder;
-
-        private readonly ValueEncoder valueEncoder;
 
         #endregion
 
@@ -56,17 +54,16 @@ namespace Verse.Schemas
         /// <param name="settings">Text encoding, ignore null...</param>
         public JSONSchema(JSONSettings settings)
         {
-            ValueDecoder decoder;
-            ValueEncoder encoder;
+            DecoderConverter decoderConverter;
+            EncoderConverter encoderConverter;
 
-            decoder = new ValueDecoder();
-            encoder = new ValueEncoder();
+            decoderConverter = new DecoderConverter();
+            encoderConverter = new EncoderConverter();
 
-            this.settings = settings;
-            this.parserDescriptor = new RecurseParserDescriptor<TEntity, Value, ReaderState>(decoder, new Reader<TEntity>(settings.Encoding));
-            this.printerDescriptor = new RecursePrinterDescriptor<TEntity, Value, WriterState>(encoder, new Writer<TEntity>(settings));
-            this.valueDecoder = decoder;
-            this.valueEncoder = encoder;
+            this.decoderConverter = decoderConverter;
+            this.encoderConverter = encoderConverter;
+            this.parserDescriptor = new RecurseParserDescriptor<TEntity, Value, ReaderState>(decoderConverter, new Reader<TEntity>(settings.Encoding));
+            this.printerDescriptor = new RecursePrinterDescriptor<TEntity, Value, WriterState>(encoderConverter, new Writer<TEntity>(settings));
         }
 
         /// <summary>
@@ -109,7 +106,7 @@ namespace Verse.Schemas
         /// <param name="converter">Converter from JSON native value to output type</param>
         public void SetDecoder<TOutput>(Converter<Value, TOutput> converter)
         {
-            this.valueDecoder.Set(converter);
+            this.decoderConverter.Set(converter);
         }
 
         /// <summary>
@@ -119,7 +116,7 @@ namespace Verse.Schemas
         /// <param name="converter">Converter from input type to JSON native value</param>
         public void SetEncoder<TInput>(Converter<TInput, Value> converter)
         {
-            this.valueEncoder.Set(converter);
+            this.encoderConverter.Set(converter);
         }
 
         #endregion

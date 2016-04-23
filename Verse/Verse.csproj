@@ -89,7 +89,7 @@
   <ItemGroup>
     <Compile Include="src\Linker.cs" />
     <Compile Include="src\ParserAssign.cs" />
-    <Compile Include="src\ParserDescriptors\Abstract\IDecoder.cs" />
+    <Compile Include="src\ParserDescriptors\Abstract\IDecoderConverter.cs" />
     <Compile Include="src\ParserDescriptors\FlatParserDescriptor.cs" />
     <Compile Include="src\ParserDescriptors\Flat\Container.cs" />
     <Compile Include="src\ParserDescriptors\Flat\Follow.cs" />
@@ -111,7 +111,7 @@
     <Compile Include="src\ParserDescriptors\Recurse\Readers\String\Nodes\BranchNode.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\Readers\String\Nodes\EmptyNode.cs" />
     <Compile Include="src\PrinterDescriptors\AbstractPrinterDescriptor.cs" />
-    <Compile Include="src\PrinterDescriptors\Abstract\IEncoder.cs" />
+    <Compile Include="src\PrinterDescriptors\Abstract\IEncoderConverter.cs" />
     <Compile Include="src\PrinterDescriptors\RecursePrinterDescriptor.cs" />
     <Compile Include="src\PrinterDescriptors\Recurse\Enter.cs" />
     <Compile Include="src\PrinterDescriptors\Recurse\IWriter.cs" />
@@ -125,21 +125,21 @@
     <Compile Include="src\Schemas\Protobuf\ContentType.cs" />
     <Compile Include="src\Schemas\Protobuf\VisitingNode.cs" />
     <Compile Include="src\Schemas\Protobuf\Reader.cs" />
-    <Compile Include="src\Schemas\Protobuf\ReaderContext.cs" />
+    <Compile Include="src\Schemas\Protobuf\ReaderState.cs" />
     <Compile Include="src\Schemas\Protobuf\SubObjectInstance.cs" />
     <Compile Include="src\Schemas\Protobuf\Value.cs" />
-    <Compile Include="src\Schemas\Protobuf\ValueDecoder.cs" />
-    <Compile Include="src\Schemas\Protobuf\ValueEncoder.cs" />
+    <Compile Include="src\Schemas\Protobuf\DecoderConverter.cs" />
+    <Compile Include="src\Schemas\Protobuf\EncoderConverter.cs" />
     <Compile Include="src\Schemas\Protobuf\Writer.cs" />
-    <Compile Include="src\Schemas\Protobuf\WriterContext.cs" />
+    <Compile Include="src\Schemas\Protobuf\WriterState.cs" />
     <Compile Include="src\Schemas\QueryStringSchema.cs" />
-    <Compile Include="src\Schemas\JSON\ValueDecoder.cs" />
-    <Compile Include="src\Schemas\JSON\ValueEncoder.cs" />
+    <Compile Include="src\Schemas\JSON\DecoderConverter.cs" />
+    <Compile Include="src\Schemas\JSON\EncoderConverter.cs" />
     <Compile Include="src\Schemas\JSON\Writer.cs" />
     <Compile Include="src\Schemas\JSON\WriterState.cs" />
     <Compile Include="src\Schemas\QueryString\Reader.cs" />
     <Compile Include="src\Schemas\QueryString\ReaderContext.cs" />
-    <Compile Include="src\Schemas\QueryString\StringDecoder.cs" />
+    <Compile Include="src\Schemas\QueryString\DecoderConverter.cs" />
     <Compile Include="src\Tools\Generator.cs" />
     <Compile Include="src\Tools\Resolver.cs" />
     <Compile Include="src\Tools\Walker.cs" />

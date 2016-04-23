@@ -2,11 +2,11 @@ using System;
 
 namespace Verse.ParserDescriptors.Abstract
 {
-    internal interface IDecoder<TInput>
+    interface IDecoderConverter<TFrom>
     {
         #region Methods
 
-        Converter<TInput, TOutput> Get<TOutput>();
+        Converter<TFrom, TTo> Get<TTo>();
 
         #endregion
     }

@@ -5,7 +5,7 @@ using Verse.ParserDescriptors.Abstract;
 
 namespace Verse.Schemas.QueryString
 {
-    internal class StringDecoder : IDecoder<string>
+    internal class DecoderConverter : IDecoderConverter<string>
     {
         private readonly Dictionary<Type, object> converters = new Dictionary<Type, object>
         {

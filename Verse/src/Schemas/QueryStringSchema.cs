@@ -29,7 +29,7 @@ namespace Verse.Schemas
 
         #region Attributes
 
-        private readonly StringDecoder decoder;
+        private readonly DecoderConverter decoderConverter;
 
         private readonly Encoding encoding;
 
@@ -41,13 +41,11 @@ namespace Verse.Schemas
 
         public QueryStringSchema(Encoding encoding)
         {
-            StringDecoder valueDecoder;
+            var sourceConverter = new DecoderConverter();
 
-            valueDecoder = new StringDecoder();
-
-            this.decoder = valueDecoder;
             this.encoding = encoding;
-            this.parserDescriptor = new FlatParserDescriptor<TEntity, ReaderContext>(this.decoder);
+            this.parserDescriptor = new FlatParserDescriptor<TEntity, ReaderContext>(sourceConverter);
+            this.decoderConverter = sourceConverter;
         }
 
         public QueryStringSchema() :
@@ -71,7 +69,7 @@ namespace Verse.Schemas
 
         public void SetDecoder<U>(Converter<string, U> converter)
         {
-            this.decoder.Set(converter);
+            this.decoderConverter.Set(converter);
         }
 
         #endregion

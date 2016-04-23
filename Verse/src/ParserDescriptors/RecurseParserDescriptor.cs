@@ -16,8 +16,8 @@ namespace Verse.ParserDescriptors
 
         #region Constructors
 
-        public RecurseParserDescriptor(IDecoder<TValue> decoder, IReader<TEntity, TValue, TState> reader) :
-            base(decoder)
+        public RecurseParserDescriptor(IDecoderConverter<TValue> converter, IReader<TEntity, TValue, TState> reader) :
+            base(converter)
         {
             this.reader = reader;
         }
@@ -43,12 +43,12 @@ namespace Verse.ParserDescriptors
 
         public override IParserDescriptor<TField> HasField<TField>(string name, ParserAssign<TEntity, TField> assign)
         {
-            return this.HasField(name, assign, new RecurseParserDescriptor<TField, TValue, TState>(this.decoder, this.reader.Create<TField>()));
+            return this.HasField(name, assign, new RecurseParserDescriptor<TField, TValue, TState>(this.converter, this.reader.Create<TField>()));
         }
 
         public override IParserDescriptor<TEntity> HasField(string name)
         {
-            var descriptor = new RecurseParserDescriptor<TEntity, TValue, TState>(this.decoder, this.reader.Create<TEntity>());
+            var descriptor = new RecurseParserDescriptor<TEntity, TValue, TState>(this.converter, this.reader.Create<TEntity>());
             var recurse = descriptor.reader;
 
             this.reader.DeclareField(name, (ref TEntity target, TState state) => recurse.ReadValue(ref target, state));
@@ -68,7 +68,7 @@ namespace Verse.ParserDescriptors
 
         public override IParserDescriptor<TElement> IsArray<TElement>(ParserAssign<TEntity, IEnumerable<TElement>> assign)
         {
-            return this.IsArray(assign, new RecurseParserDescriptor<TElement, TValue, TState>(this.decoder, this.reader.Create<TElement>()));
+            return this.IsArray(assign, new RecurseParserDescriptor<TElement, TValue, TState>(this.converter, this.reader.Create<TElement>()));
         }
 
         public override void IsValue<TRaw>(ParserAssign<TEntity, TRaw> assign)

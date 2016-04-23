@@ -5,7 +5,7 @@ using ProtoBuf.Meta;
 
 namespace Verse.Schemas.Protobuf
 {
-    class ReaderContext
+    class ReaderState
     {
         #region Properties
 
@@ -42,7 +42,7 @@ namespace Verse.Schemas.Protobuf
 
         #region Constructors
 
-        public ReaderContext(Stream stream, ParserError onError)
+        public ReaderState(Stream stream, ParserError onError)
         {
             this.OnError = onError;
             this.Reader = new ProtoReader(stream, TypeModel.Create(), null);

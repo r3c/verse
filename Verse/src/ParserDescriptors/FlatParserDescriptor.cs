@@ -16,8 +16,8 @@ namespace Verse.ParserDescriptors
 
         #region Constructors
 
-        public FlatParserDescriptor(IDecoder<string> decoder) :
-            base(decoder)
+        public FlatParserDescriptor(IDecoderConverter<string> converter) :
+            base(converter)
         {
             this.container = new Container<TEntity, TContext, string>();
         }
@@ -45,7 +45,7 @@ namespace Verse.ParserDescriptors
 
         public override IParserDescriptor<TField> HasField<TField>(string name, ParserAssign<TEntity, TField> assign)
         {
-            return this.HasField(name, assign, new FlatParserDescriptor<TField, TContext>(this.decoder));
+            return this.HasField(name, assign, new FlatParserDescriptor<TField, TContext>(this.converter));
         }
 
         public override IParserDescriptor<TEntity> HasField(string name)
@@ -53,7 +53,7 @@ namespace Verse.ParserDescriptors
             FlatParserDescriptor<TEntity, TContext> descriptor;
             Container<TEntity, TContext, string> container;
 
-            descriptor = new FlatParserDescriptor<TEntity, TContext>(this.decoder);
+            descriptor = new FlatParserDescriptor<TEntity, TContext>(this.converter);
             container = descriptor.container;
 
             this.Connect(name, (ref TEntity target, IReader<TContext, string> reader, TContext context) => reader.ReadValue(ref target, container, context));

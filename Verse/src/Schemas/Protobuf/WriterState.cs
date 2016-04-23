@@ -7,7 +7,7 @@ using ProtoBuf;
 
 namespace Verse.Schemas.Protobuf
 {
-    class WriterContext
+    class WriterState
     {
         #region Property
 
@@ -47,7 +47,7 @@ namespace Verse.Schemas.Protobuf
 
         #region Constructor
 
-        public WriterContext(Stream stream, PrinterError onError)
+        public WriterState(Stream stream, PrinterError onError)
         {
             this.OnError = onError;
 

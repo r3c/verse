@@ -10,7 +10,7 @@ using Verse.ParserDescriptors.Recurse.Readers.String;
 
 namespace Verse.Schemas.Protobuf
 {
-    class Reader<TEntity> : StringReader<TEntity, Value, ReaderContext>
+    class Reader<TEntity> : StringReader<TEntity, Value, ReaderState>
     {
         #region Attributes
 
@@ -20,12 +20,12 @@ namespace Verse.Schemas.Protobuf
 
         #region Methods / Public
 
-        public override IReader<TOther, Value, ReaderContext> Create<TOther>()
+        public override IReader<TOther, Value, ReaderState> Create<TOther>()
         {
             return new Reader<TOther>();
         }
 
-        public override IBrowser<TEntity> ReadArray(Func<TEntity> constructor, ReaderContext state)
+        public override IBrowser<TEntity> ReadArray(Func<TEntity> constructor, ReaderState state)
         {
             switch (state.Reader.WireType)
             {
@@ -38,16 +38,16 @@ namespace Verse.Schemas.Protobuf
             }
         }
 
-        public override bool ReadValue(ref TEntity target, ReaderContext state)
+        public override bool ReadValue(ref TEntity target, ReaderState state)
         {
             switch (state.ReadingAction)
             {
-                case ReaderContext.ReadingActionType.UseHeader:
+                case ReaderState.ReadingActionType.UseHeader:
                     this.FollowNode(state.Reader.FieldNumber, ref target, state);
 
                     break;
 
-                case ReaderContext.ReadingActionType.ReadHeader:
+                case ReaderState.ReadingActionType.ReadHeader:
                     int fieldIndex;
 
                     while (state.ReadHeader(out fieldIndex))
@@ -60,7 +60,7 @@ namespace Verse.Schemas.Protobuf
                     break;
 
                 default:
-                    state.ReadingAction = ReaderContext.ReadingActionType.ReadHeader;
+                    state.ReadingAction = ReaderState.ReadingActionType.ReadHeader;
 
                     if (this.HoldArray)
                         return this.ProcessArray(ref target, state);
@@ -110,7 +110,7 @@ namespace Verse.Schemas.Protobuf
             return true;
         }
 
-        private bool ReadObjectValue(ref TEntity target, ReaderContext state)
+        private bool ReadObjectValue(ref TEntity target, ReaderState state)
         {
             int visitCount;
             SubItemToken lastSubItem;
@@ -127,7 +127,7 @@ namespace Verse.Schemas.Protobuf
             while (ProtoReader.HasSubValue(WireType.None, state.Reader))
             {
                 int fieldIndex;
-                INode<TEntity, Value, ReaderContext> node;
+                INode<TEntity, Value, ReaderState> node;
 
                 state.ReadHeader(out fieldIndex);
                 state.AddObject(fieldIndex);
@@ -136,7 +136,7 @@ namespace Verse.Schemas.Protobuf
 
                 if (visitCount == 1 && node.IsConnected)
                 {
-                    state.ReadingAction = ReaderContext.ReadingActionType.ReadValue;
+                    state.ReadingAction = ReaderState.ReadingActionType.ReadValue;
 
                     if (!node.Enter(ref target, Reader<TEntity>.unknown, state))
                         return false;
@@ -151,7 +151,7 @@ namespace Verse.Schemas.Protobuf
                     foreach (char digit in index.ToString(CultureInfo.InvariantCulture))
                         node = node.Follow(digit);
 
-                    state.ReadingAction = ReaderContext.ReadingActionType.UseHeader;
+                    state.ReadingAction = ReaderState.ReadingActionType.UseHeader;
 
                     if (!node.Enter(ref target, Reader<TEntity>.unknown, state))
                         return false;
@@ -165,14 +165,14 @@ namespace Verse.Schemas.Protobuf
             return true;
         }
 
-        public override bool Start(Stream stream, ParserError onError, out ReaderContext state)
+        public override bool Start(Stream stream, ParserError onError, out ReaderState state)
         {
-            state = new ReaderContext(stream, onError);
+            state = new ReaderState(stream, onError);
 
             return true;
         }
 
-        public override void Stop(ReaderContext state)
+        public override void Stop(ReaderState state)
         {
         }
 
@@ -180,20 +180,20 @@ namespace Verse.Schemas.Protobuf
 
         #region Methods / Private
 
-        private void FollowNode(int fieldIndex, ref TEntity target, ReaderContext state)
+        private void FollowNode(int fieldIndex, ref TEntity target, ReaderState state)
         {
-            INode<TEntity, Value, ReaderContext> node;
+            INode<TEntity, Value, ReaderState> node;
 
             node = Reader<TEntity>.GetNode(this.RootNode, fieldIndex);
 
-            state.ReadingAction = ReaderContext.ReadingActionType.ReadValue;
+            state.ReadingAction = ReaderState.ReadingActionType.ReadValue;
 
             node.Enter(ref target, Reader<TEntity>.unknown, state);
         }
 
         private IBrowser<TEntity> ReadSubItemArray(
             Func<TEntity> constructor,
-            ReaderContext state)
+            ReaderState state)
         {
             SubItemToken lastSubItem;
             BrowserMove<TEntity> move;
@@ -201,7 +201,7 @@ namespace Verse.Schemas.Protobuf
             if (this.HoldValue)
                 return this.ReadValueArray(constructor, state);
 
-            state.ReadingAction = ReaderContext.ReadingActionType.ReadHeader;
+            state.ReadingAction = ReaderState.ReadingActionType.ReadHeader;
 
             lastSubItem = ProtoReader.StartSubItem(state.Reader);
 
@@ -240,11 +240,11 @@ namespace Verse.Schemas.Protobuf
 
         private IBrowser<TEntity> ReadValueArray(
             Func<TEntity> constructor,
-            ReaderContext state)
+            ReaderState state)
         {
             BrowserMove<TEntity> move;
 
-            state.ReadingAction = ReaderContext.ReadingActionType.ReadValue;
+            state.ReadingAction = ReaderState.ReadingActionType.ReadValue;
 
             bool first = true;
 
@@ -271,11 +271,11 @@ namespace Verse.Schemas.Protobuf
             return new Browser<TEntity>(move);
         }
 
-        private static INode<TEntity, Value, ReaderContext> GetNode(
-            INode<TEntity, Value, ReaderContext> rootNode,
+        private static INode<TEntity, Value, ReaderState> GetNode(
+            INode<TEntity, Value, ReaderState> rootNode,
             int fieldIndex)
         {
-            INode<TEntity, Value, ReaderContext> node;
+            INode<TEntity, Value, ReaderState> node;
 
             node = rootNode.Follow('_');
 
