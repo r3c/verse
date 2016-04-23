@@ -1,33 +1,26 @@
 using System;
 using System.Globalization;
 using System.IO;
-using System.Text;
 
 namespace Verse.Schemas.JSON
 {
-    internal class WriterContext
+    class WriterState
     {
-        #region Properties
+        #region Attributes / Public
 
-        public int Position
-        {
-            get
-            {
-                return this.position;
-            }
-        }
+        public readonly PrinterError OnError;
+
+        public int Position;
 
         #endregion
 
-        #region Attributes / Instance
+        #region Attributes / Private
 
         private bool addComma;
 
         private string currentKey;
 
         private readonly bool ignoreNull;
-
-        private int position;
 
         private readonly StreamWriter writer;
 
@@ -43,30 +36,32 @@ namespace Verse.Schemas.JSON
 
         #region Constructors
 
-        public WriterContext(Stream stream, JSONSettings settings)
+        public WriterState(Stream stream, PrinterError onError, JSONSettings settings)
         {
             this.ignoreNull = settings.IgnoreNull;
-            this.position = 0;
             this.currentKey = null;
             this.addComma = false;
             this.writer = new StreamWriter(stream, settings.Encoding);
+
+            this.OnError = onError;
+            this.Position = 0;
         }
 
-        static WriterContext()
+        static WriterState()
         {
             for (int i = 0; i < 32; ++i)
-                WriterContext.ascii[i] = new[] { '\\', 'u', '0', '0', WriterContext.hexa[(i >> 4) & 0xF], WriterContext.hexa[(i >> 0) & 0xF] };
+                WriterState.ascii[i] = new[] { '\\', 'u', '0', '0', WriterState.hexa[(i >> 4) & 0xF], WriterState.hexa[(i >> 0) & 0xF] };
 
             for (int i = 32; i < 128; ++i)
-                WriterContext.ascii[i] = new[] { (char)i };
+                WriterState.ascii[i] = new[] { (char)i };
 
-            WriterContext.ascii['\b'] = new[] { '\\', 'b' };
-            WriterContext.ascii['\f'] = new[] { '\\', 'f' };
-            WriterContext.ascii['\n'] = new[] { '\\', 'n' };
-            WriterContext.ascii['\r'] = new[] { '\\', 'r' };
-            WriterContext.ascii['\t'] = new[] { '\\', 't' };
-            WriterContext.ascii['\\'] = new[] { '\\', '\\' };
-            WriterContext.ascii['"'] = new[] { '\\', '\"' };
+            WriterState.ascii['\b'] = new[] { '\\', 'b' };
+            WriterState.ascii['\f'] = new[] { '\\', 'f' };
+            WriterState.ascii['\n'] = new[] { '\\', 'n' };
+            WriterState.ascii['\r'] = new[] { '\\', 'r' };
+            WriterState.ascii['\t'] = new[] { '\\', 't' };
+            WriterState.ascii['\\'] = new[] { '\\', '\\' };
+            WriterState.ascii['"'] = new[] { '\\', '\"' };
         }
 
         #endregion
@@ -116,15 +111,15 @@ namespace Verse.Schemas.JSON
             foreach (char c in value)
             {
                 if (c < 128)
-                    this.writer.Write(WriterContext.ascii[(int)c]);
+                    this.writer.Write(WriterState.ascii[(int)c]);
                 else
                 {
                     this.writer.Write('\\');
                     this.writer.Write('u');
-                    this.writer.Write(WriterContext.hexa[(c >> 12) & 0xF]);
-                    this.writer.Write(WriterContext.hexa[(c >> 8) & 0xF]);
-                    this.writer.Write(WriterContext.hexa[(c >> 4) & 0xF]);
-                    this.writer.Write(WriterContext.hexa[(c >> 0) & 0xF]);
+                    this.writer.Write(WriterState.hexa[(c >> 12) & 0xF]);
+                    this.writer.Write(WriterState.hexa[(c >> 8) & 0xF]);
+                    this.writer.Write(WriterState.hexa[(c >> 4) & 0xF]);
+                    this.writer.Write(WriterState.hexa[(c >> 0) & 0xF]);
                 }
             }
 

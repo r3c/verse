@@ -62,12 +62,12 @@ namespace Verse.ParserDescriptors.Recurse.Readers
 
         #region Methods / Public
 
-        public void DeclareArray(Enter<TEntity, TState> items)
+        public void DeclareArray(Enter<TEntity, TState> enter)
         {
             if (this.array != null)
-                throw new InvalidOperationException("can't declare items twice on a descriptor");
+                throw new InvalidOperationException("can't declare array twice on a descriptor");
 
-            this.array = items;
+            this.array = enter;
         }
 
         public void DeclareField(string name, Enter<TEntity, TState> enter)
@@ -83,12 +83,12 @@ namespace Verse.ParserDescriptors.Recurse.Readers
             next.enter = enter;
         }
 
-        public void DeclareValue(ParserAssign<TEntity, TValue> value)
+        public void DeclareValue(ParserAssign<TEntity, TValue> assign)
         {
             if (this.value != null)
                 throw new InvalidOperationException("can't declare value twice on a descriptor");
 
-            this.value = value;
+            this.value = assign;
         }
 
         public bool ProcessArray(ref TEntity entity, TState state)

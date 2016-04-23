@@ -27,7 +27,13 @@ namespace Verse.Schemas.Protobuf
 
         #endregion
 
-        #region attributes
+        #region Attributes / Public
+
+        public readonly PrinterError OnError;
+
+        #endregion
+
+        #region Attributes / Private
 
         private int fieldIndex;
 
@@ -39,10 +45,12 @@ namespace Verse.Schemas.Protobuf
 
         #endregion
 
-        #region constructor
+        #region Constructor
 
-        public WriterContext(Stream stream)
+        public WriterContext(Stream stream, PrinterError onError)
         {
+            this.OnError = onError;
+
             this.fieldIndex = 0;
             this.parentOffset = 0;
             this.stream = stream;

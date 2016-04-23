@@ -5,36 +5,34 @@ using Verse.PrinterDescriptors.Recurse;
 
 namespace Verse.PrinterDescriptors
 {
-    internal class RecursePrinterDescriptor<TEntity, TContext, TNative> : AbstractPrinterDescriptor<TEntity, TNative>
+    class RecursePrinterDescriptor<TEntity, TValue, TState> : AbstractPrinterDescriptor<TEntity, TValue>
     {
         #region Attributes
 
-        private readonly Container<TEntity, TContext, TNative> container;
+        private readonly IWriter<TEntity, TValue, TState> writer;
 
         #endregion
 
         #region Constructors
 
-        public RecursePrinterDescriptor(IEncoder<TNative> encoder) :
+        public RecursePrinterDescriptor(IEncoder<TValue> encoder, IWriter<TEntity, TValue, TState> writer) :
             base(encoder)
         {
-            this.container = new Container<TEntity, TContext, TNative>();
+            this.writer = writer;
         }
 
         #endregion
 
         #region Methods / Public
 
-        public IPrinter<TEntity> CreatePrinter(IWriter<TContext, TNative> writer)
+        public IPrinter<TEntity> CreatePrinter()
         {
-            return new Printer<TEntity, TContext, TNative>(this.container, writer);
+            return new Printer<TEntity, TValue, TState>(this.writer);
         }
 
         public override IPrinterDescriptor<TField> HasField<TField>(string name, Func<TEntity, TField> access, IPrinterDescriptor<TField> parent)
         {
-            RecursePrinterDescriptor<TField, TContext, TNative> descriptor;
-
-            descriptor = parent as RecursePrinterDescriptor<TField, TContext, TNative>;
+            var descriptor = parent as RecursePrinterDescriptor<TField, TValue, TState>;
 
             if (descriptor == null)
                 throw new ArgumentOutOfRangeException("parent", "incompatible descriptor type");
@@ -44,14 +42,12 @@ namespace Verse.PrinterDescriptors
 
         public override IPrinterDescriptor<TField> HasField<TField>(string name, Func<TEntity, TField> access)
         {
-            return this.HasField(name, access, new RecursePrinterDescriptor<TField, TContext, TNative>(this.encoder));
+            return this.HasField(name, access, new RecursePrinterDescriptor<TField, TValue, TState>(this.encoder, this.writer.Create<TField>()));
         }
 
         public override IPrinterDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> access, IPrinterDescriptor<TElement> parent)
         {
-            RecursePrinterDescriptor<TElement, TContext, TNative> descriptor;
-
-            descriptor = parent as RecursePrinterDescriptor<TElement, TContext, TNative>;
+            var descriptor = parent as RecursePrinterDescriptor<TElement, TValue, TState>;
 
             if (descriptor == null)
                 throw new ArgumentOutOfRangeException("parent", "incompatible descriptor type");
@@ -61,41 +57,34 @@ namespace Verse.PrinterDescriptors
 
         public override IPrinterDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> access)
         {
-            return this.IsArray(access, new RecursePrinterDescriptor<TElement, TContext, TNative>(this.encoder));
+            return this.IsArray(access, new RecursePrinterDescriptor<TElement, TValue, TState>(this.encoder, this.writer.Create<TElement>()));
         }
 
-        public override void IsValue<TValue>(Func<TEntity, TValue> access)
+        public override void IsValue<TRaw>(Func<TEntity, TRaw> access)
         {
-            Converter<TValue, TNative> convert = this.GetConverter<TValue>();
+            Converter<TRaw, TValue> convert = this.GetConverter<TRaw>();
 
-            this.container.value = (source) => convert(access(source));
+            this.writer.DeclareValue((source) => convert(access(source)));
         }
 
         #endregion
 
         #region Methods / Private
 
-        private RecursePrinterDescriptor<TField, TContext, TNative> HasField<TField>(string name, Func<TEntity, TField> access, RecursePrinterDescriptor<TField, TContext, TNative> descriptor)
+        private RecursePrinterDescriptor<TField, TValue, TState> HasField<TField>(string name, Func<TEntity, TField> access, RecursePrinterDescriptor<TField, TValue, TState> descriptor)
         {
-            Container<TField, TContext, TNative> recurse;
+            var recurse = descriptor.writer;
 
-            recurse = descriptor.container;
-
-            this.container.fields[name] = (source, writer, context) => writer.WriteValue(access(source), recurse, context);
+            this.writer.DeclareField(name, (source, state) => recurse.WriteValue(access(source), state));
 
             return descriptor;
         }
 
-        private RecursePrinterDescriptor<TElement, TContext, TNative> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> access, RecursePrinterDescriptor<TElement, TContext, TNative> descriptor)
+        private RecursePrinterDescriptor<TElement, TValue, TState> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> access, RecursePrinterDescriptor<TElement, TValue, TState> descriptor)
         {
-            Container<TElement, TContext, TNative> recurse;
+            var recurse = descriptor.writer;
 
-            if (this.container.items != null)
-                throw new InvalidOperationException("can't declare items twice on same descriptor");
-
-            recurse = descriptor.container;
-
-            this.container.items = (source, writer, context) => writer.WriteArray(access(source), recurse, context);
+            this.writer.DeclareArray((source, state) => recurse.WriteArray(access(source), state));
 
             return descriptor;
         }

@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Verse.PrinterDescriptors.Recurse
 {
-    internal class Printer<TEntity, TContext, TNative> : IPrinter<TEntity>
+    class Printer<TEntity, TValue, TState> : IPrinter<TEntity>
     {
         #region Events
 
@@ -13,19 +13,14 @@ namespace Verse.PrinterDescriptors.Recurse
 
         #region Attributes
 
-        private readonly Container<TEntity, TContext, TNative> container;
-
-        private readonly IWriter<TContext, TNative> writer;
+        private readonly IWriter<TEntity, TValue, TState> writer;
 
         #endregion
 
         #region Constructors
 
-        public Printer(Container<TEntity, TContext, TNative> container, IWriter<TContext, TNative> writer)
+        public Printer(IWriter<TEntity, TValue, TState> writer)
         {
-            writer.Error += this.OnError;
-
-            this.container = container;
             this.writer = writer;
         }
 
@@ -35,18 +30,18 @@ namespace Verse.PrinterDescriptors.Recurse
 
         public bool Print(TEntity input, Stream output)
         {
-            TContext context;
+            TState state;
 
-            if (!this.writer.Start(output, out context))
+            if (!this.writer.Start(output, this.OnError, out state))
                 return false;
 
             try
             {
-                this.writer.WriteValue(input, this.container, context);
+                this.writer.WriteValue(input, state);
             }
             finally
             {
-                this.writer.Stop(context);
+                this.writer.Stop(state);
             }
 
             return true;

@@ -4,23 +4,25 @@ using System.IO;
 
 namespace Verse.PrinterDescriptors.Recurse
 {
-    internal interface IWriter<TContext, TNative>
+    interface IWriter<TEntity, TValue, TState>
     {
-        #region Events
-
-        event PrinterError Error;
-
-        #endregion
-
         #region Methods
 
-        bool Start(Stream stream, out TContext context);
+        IWriter<TOther, TValue, TState> Create<TOther>();
 
-        void Stop(TContext context);
+        void DeclareArray(Enter<TEntity, TState> enter);
 
-        void WriteArray<T>(IEnumerable<T> items, Container<T, TContext, TNative> container, TContext context);
+        void DeclareField(string name, Enter<TEntity, TState> enter);
 
-        void WriteValue<T>(T source, Container<T, TContext, TNative> container, TContext context);
+        void DeclareValue(Func<TEntity, TValue> access);
+
+        bool Start(Stream stream, PrinterError onError, out TState state);
+
+        void Stop(TState state);
+
+        void WriteArray(IEnumerable<TEntity> items, TState state);
+
+        void WriteValue(TEntity source, TState state);
 
         #endregion
     }

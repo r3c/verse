@@ -6,22 +6,8 @@ using Verse.PrinterDescriptors.Recurse;
 
 namespace Verse.Schemas.JSON
 {
-    internal class Writer : IWriter<WriterContext, Value>
+    class Writer<TEntity> : StringWriter<TEntity, Value, WriterState>
     {
-        #region Events
-
-        public event PrinterError Error
-        {
-            add
-            {
-            }
-            remove
-            {
-            }
-        }
-
-        #endregion
-
         #region Attributes
 
         private readonly JSONSettings settings;
@@ -39,54 +25,59 @@ namespace Verse.Schemas.JSON
 
         #region Methods
 
-        public bool Start(Stream stream, out WriterContext context)
+        public override IWriter<TOther, Value, WriterState> Create<TOther>()
         {
-            context = new WriterContext(stream, this.settings);
+            return new Writer<TOther>(this.settings);
+        }
+
+        public override bool Start(Stream stream, PrinterError onError, out WriterState state)
+        {
+            state = new WriterState(stream, onError, this.settings);
 
             return true;
         }
 
-        public void Stop(WriterContext context)
+        public override void Stop(WriterState state)
         {
-            context.Flush();
+            state.Flush();
         }
 
-        public void WriteArray<TEntity>(IEnumerable<TEntity> items, Container<TEntity, WriterContext, Value> container, WriterContext context)
+        public override void WriteArray(IEnumerable<TEntity> items, WriterState state)
         {
             IEnumerator<TEntity> item;
 
-            context.ArrayBegin();
+            state.ArrayBegin();
             item = items.GetEnumerator();
 
             while (item.MoveNext())
-                this.WriteValue(item.Current, container, context);
+                this.WriteValue(item.Current, state);
 
-            context.ArrayEnd();
+            state.ArrayEnd();
         }
 
-        public void WriteValue<TEntity>(TEntity source, Container<TEntity, WriterContext, Value> container, WriterContext context)
+        public override void WriteValue(TEntity source, WriterState state)
         {
-            IEnumerator<KeyValuePair<string, Follow<TEntity, WriterContext, Value>>> field;
+            IEnumerator<KeyValuePair<string, Enter<TEntity, WriterState>>> field;
 
             if (source == null)
-                context.Value(Value.Void);
-            else if (container.items != null)
-                container.items(source, this, context);
-            else if (container.value != null)
-                context.Value(container.value(source));
+                state.Value(JSON.Value.Void);
+            else if (this.Array != null)
+                this.Array(source, state);
+            else if (this.Value != null)
+                state.Value(this.Value(source));
             else
             {
-                context.ObjectBegin();
-                field = container.fields.GetEnumerator();
+                state.ObjectBegin();
+                field = this.Fields.GetEnumerator();
 
                 while (field.MoveNext())
                 {
-                    context.Key(field.Current.Key);
+                    state.Key(field.Current.Key);
 
-                    field.Current.Value(source, this, context);
+                    field.Current.Value(source, state);
                 }
 
-                context.ObjectEnd();
+                state.ObjectEnd();
             }
         }
 

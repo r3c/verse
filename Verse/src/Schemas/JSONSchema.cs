@@ -40,7 +40,7 @@ namespace Verse.Schemas
 
         private readonly RecurseParserDescriptor<TEntity, Value, ReaderState> parserDescriptor;
 
-        private readonly RecursePrinterDescriptor<TEntity, WriterContext, Value> printerDescriptor;
+        private readonly RecursePrinterDescriptor<TEntity, Value, WriterState> printerDescriptor;
 
         private readonly ValueDecoder valueDecoder;
 
@@ -64,7 +64,7 @@ namespace Verse.Schemas
 
             this.settings = settings;
             this.parserDescriptor = new RecurseParserDescriptor<TEntity, Value, ReaderState>(decoder, new Reader<TEntity>(settings.Encoding));
-            this.printerDescriptor = new RecursePrinterDescriptor<TEntity, WriterContext, Value>(encoder);
+            this.printerDescriptor = new RecursePrinterDescriptor<TEntity, Value, WriterState>(encoder, new Writer<TEntity>(settings));
             this.valueDecoder = decoder;
             this.valueEncoder = encoder;
         }
@@ -99,7 +99,7 @@ namespace Verse.Schemas
         /// <inheritdoc/>
         public override IPrinter<TEntity> CreatePrinter()
         {
-            return this.printerDescriptor.CreatePrinter(new Writer(this.settings));
+            return this.printerDescriptor.CreatePrinter();
         }
 
         /// <summary>

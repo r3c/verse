@@ -5,73 +5,62 @@ using Verse.PrinterDescriptors.Recurse;
 
 namespace Verse.Schemas.Protobuf
 {
-    internal class Writer : IWriter<WriterContext, Value>
+    class Writer<TEntity> : StringWriter<TEntity, Value, WriterContext>
     {
-        #region Events
-
-        public event PrinterError Error;
-
-        #endregion
-
         #region Methods
 
-        public bool Start(Stream stream, out WriterContext context)
+        public override IWriter<TOther, Value, WriterContext> Create<TOther>()
         {
-            context = new WriterContext(stream);
+            return new Writer<TOther>();
+        }
+
+        public override bool Start(Stream stream, PrinterError onError, out WriterContext state)
+        {
+            state = new WriterContext(stream, onError);
 
             return true;
         }
 
-        public void Stop(WriterContext context)
+        public override void Stop(WriterContext state)
         {
         }
 
-        public void WriteArray<TEntity>(IEnumerable<TEntity> items, Container<TEntity, WriterContext, Value> container, WriterContext context)
+        public override void WriteArray(IEnumerable<TEntity> items, WriterContext state)
         {
             foreach (var item in items)
-                this.WriteValue(item, container, context);
+                this.WriteValue(item, state);
         }
 
-        public void WriteValue<TEntity>(TEntity source, Container<TEntity, WriterContext, Value> container, WriterContext context)
+        public override void WriteValue(TEntity source, WriterContext state)
         {
             if (source == null)
                 return;
 
-            if (container.items != null)
-                container.items(source, this, context);
-            else if (container.value != null)
+            if (this.Array != null)
+                this.Array(source, state);
+            else if (this.Value != null)
             {
-                if (!context.Value(container.value(source)))
+                if (!state.Value(this.Value(source)))
                 {
-                    this.OnError(context.Position, "failed to write value");
+                    state.OnError(state.Position, "failed to write value");
                 }
             }
             else
             {
-                context.ObjectBegin();
+                state.ObjectBegin();
 
-                foreach (var field in container.fields)
+                foreach (var field in this.Fields)
                 {
                     if (field.Key.Length > 1 && field.Key[0] == '_')
-                        context.Key(field.Key.Substring(1));
+                        state.Key(field.Key.Substring(1));
                     else
-                        context.Key(field.Key);
+                        state.Key(field.Key);
 
-                    field.Value(source, this, context);
+                    field.Value(source, state);
                 }
 
-                context.ObjectEnd();
+                state.ObjectEnd();
             }
-        }
-
-        private void OnError(int position, string message)
-        {
-            PrinterError error;
-
-            error = this.Error;
-
-            if (error != null)
-                error(position, message);
         }
 
         #endregion
