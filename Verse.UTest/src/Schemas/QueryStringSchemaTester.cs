@@ -60,7 +60,7 @@ namespace Verse.UTest.Schemas
         [TestCase("f0", "?f0=v0+v1", "v0 v1")]
         [TestCase("f0", "?f0=v0%3Dv1", "v0=v1")]
         [TestCase("f0", "?f0=v0%3dv1", "v0=v1")]
-        [TestCase("f0", "?f0=http%3a%2f%2fwww.pokewiki.de%2fSchillern+de_Pok%c3%a9mon", "http://www.pokewiki.de/Schillern de_Pokémon")]
+        [TestCase("f0", "?f0=http%3a%2f%2fwww.pokewiki.de%2fSchillern+de_Pok%c3%a9mon", "http://www.pokewiki.de/Schillern de_PokÃ©mon")]
         public void ParseSpecialCharacter<T>(string name, string query, T expected)
         {
             IParser<T> parser;
