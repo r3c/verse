@@ -6,13 +6,13 @@
 	<title>$title$</title>
     <authors>$author$</authors>
     <owners>Remi Caput</owners>
-    <licenseUrl>https://raw.github.com/r3c/Verse/master/LICENSE</licenseUrl>
-    <projectUrl>http://r3c.github.com/Verse/</projectUrl>
-    <iconUrl>https://raw.github.com/r3c/Verse/master/icon.png</iconUrl>
+    <licenseUrl>https://raw.github.com/r3c/verse/master/LICENSE</licenseUrl>
+    <projectUrl>http://r3c.github.com/verse/</projectUrl>
+    <iconUrl>https://raw.github.com/r3c/verse/master/icon.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
 	<releaseNotes>Initial release</releaseNotes>
 	<copyright>$copyright$</copyright>
-    <tags>Verse Generic Serialization JSON</tags>
+    <tags>Verse Generic Serialization JSON Protobuf</tags>
   </metadata>
 </package>
