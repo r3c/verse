@@ -51,7 +51,7 @@ namespace Verse.ParserDescriptors
             var descriptor = new RecurseParserDescriptor<TEntity, TValue, TState>(this.converter, this.reader.Create<TEntity>());
             var recurse = descriptor.reader;
 
-            this.reader.DeclareField(name, (ref TEntity target, TState state) => recurse.ReadValue(ref target, state));
+            this.reader.DeclareField(name, (ref TEntity target, TState state) => recurse.ReadEntity(ref target, state));
 
             return descriptor;
         }
@@ -91,7 +91,7 @@ namespace Verse.ParserDescriptors
             {
                 TField field = constructor(target);
 
-                if (!recurse.ReadValue(ref field, state))
+                if (!recurse.ReadEntity(ref field, state))
                     return false;
 
                 assign(ref target, field);
@@ -109,17 +109,12 @@ namespace Verse.ParserDescriptors
 
             this.reader.DeclareArray((ref TEntity target, TState state) =>
             {
-                IBrowser<TElement> browser;
-                TEntity source;
+                var container = target;
+                var browser = recurse.ReadElements(() => constructor(container), state);
 
-                source = target;
-                browser = recurse.ReadArray(() => constructor(source), state);
                 assign(ref target, new Walker<TElement>(browser));
 
-                while (browser.MoveNext())
-                    ;
-
-                return browser.Success;
+                return browser.Complete();
             });
 
             return descriptor;

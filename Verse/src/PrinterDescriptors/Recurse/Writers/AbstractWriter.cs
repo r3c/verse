@@ -1,16 +1,14 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 
 namespace Verse.PrinterDescriptors.Recurse
 {
-    abstract class StringWriter<TEntity, TValue, TState> : IWriter<TEntity, TValue, TState>
+    abstract class AbstractWriter<TEntity, TValue, TState> : IWriter<TEntity, TValue, TState>
     {
         #region Attributes
 
         public Enter<TEntity, TState> Array = null;
-
-        public Dictionary<string, Enter<TEntity, TState>> Fields = new Dictionary<string, Enter<TEntity, TState>>();
 
         public Func<TEntity, TValue> Value = null;
 
@@ -20,13 +18,15 @@ namespace Verse.PrinterDescriptors.Recurse
 
         public abstract IWriter<TOther, TValue, TState> Create<TOther>();
 
+        public abstract void DeclareField(string name, Enter<TEntity, TState> enter);
+
         public abstract bool Start(Stream stream, PrinterError onError, out TState state);
 
         public abstract void Stop(TState state);
 
-        public abstract void WriteArray(IEnumerable<TEntity> items, TState state);
+        public abstract void WriteElements(IEnumerable<TEntity> elements, TState state);
 
-        public abstract void WriteValue(TEntity source, TState state);
+        public abstract void WriteEntity(TEntity source, TState state);
 
         #endregion
 
@@ -40,18 +40,10 @@ namespace Verse.PrinterDescriptors.Recurse
             this.Array = enter;            
         }
 
-        public void DeclareField(string name, Enter<TEntity, TState> enter)
-        {
-            if (this.Fields.ContainsKey(name))
-                throw new InvalidOperationException("can't declare same field twice on a descriptor");
-
-            this.Fields[name] = enter;
-        }
-
         public void DeclareValue(Func<TEntity, TValue> access)
         {
             if (this.Value != null)
-                throw new InvalidOperationException("can't declare value twice on a descriptor");
+                throw new InvalidOperationException("can't declare value twice on same descriptor");
 
             this.Value = access;
         }

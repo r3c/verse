@@ -37,7 +37,7 @@ namespace Verse.ParserDescriptors.Recurse
 
             try
             {
-                return this.reader.ReadValue(ref output, state);
+                return this.reader.ReadEntity(ref output, state);
             }
             finally
             {

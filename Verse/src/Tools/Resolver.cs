@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace Verse.Tools
 {
-    internal static class Resolver
+    static class Resolver
     {
         #region Methods
 

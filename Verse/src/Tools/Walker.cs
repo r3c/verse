@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Verse.Tools
 {
-    internal class Walker<T> : IEnumerable<T>
+    class Walker<T> : IEnumerable<T>
     {
         #region Attributes
 

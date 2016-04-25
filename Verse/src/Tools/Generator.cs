@@ -4,7 +4,7 @@ using System.Reflection.Emit;
 
 namespace Verse.Tools
 {
-    internal static class Generator
+    static class Generator
     {
         #region Attributes
 

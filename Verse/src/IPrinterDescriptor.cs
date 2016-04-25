@@ -70,9 +70,9 @@ namespace Verse
         /// <summary>
         /// Declare accessible value within current entity.
         /// </summary>
-        /// <typeparam name="TValue">Value type</typeparam>
+        /// <typeparam name="TCompatible">Value type before conversion</typeparam>
         /// <param name="access">Parent entity to value accessor delegate</param>
-        void IsValue<TValue>(Func<TEntity, TValue> access);
+        void IsValue<TCompatible>(Func<TEntity, TCompatible> access);
 
         /// <summary>
         /// Declare entity as a value. Entity type must have a known encoder

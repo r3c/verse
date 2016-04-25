@@ -102,21 +102,25 @@
     <Compile Include="src\ParserDescriptors\Recurse\Browser.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\BrowserMove.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\BrowserState.cs" />
-    <Compile Include="src\ParserDescriptors\Recurse\Readers\StringReader.cs" />
-    <Compile Include="src\ParserDescriptors\Recurse\Readers\String\INode.cs" />
+    <Compile Include="src\ParserDescriptors\Recurse\Readers\AbstractReader.cs" />
+    <Compile Include="src\ParserDescriptors\Recurse\Readers\LookupReader.cs" />
+    <Compile Include="src\ParserDescriptors\Recurse\Readers\PatternReader.cs" />
+    <Compile Include="src\ParserDescriptors\Recurse\Readers\Pattern\INode.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\Enter.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\IBrowser.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\IReader.cs" />
     <Compile Include="src\ParserDescriptors\Recurse\Parser.cs" />
-    <Compile Include="src\ParserDescriptors\Recurse\Readers\String\Nodes\BranchNode.cs" />
-    <Compile Include="src\ParserDescriptors\Recurse\Readers\String\Nodes\EmptyNode.cs" />
+    <Compile Include="src\ParserDescriptors\Recurse\Readers\Pattern\Nodes\BranchNode.cs" />
+    <Compile Include="src\ParserDescriptors\Recurse\Readers\Pattern\Nodes\EmptyNode.cs" />
     <Compile Include="src\PrinterDescriptors\AbstractPrinterDescriptor.cs" />
     <Compile Include="src\PrinterDescriptors\Abstract\IEncoderConverter.cs" />
     <Compile Include="src\PrinterDescriptors\RecursePrinterDescriptor.cs" />
     <Compile Include="src\PrinterDescriptors\Recurse\Enter.cs" />
     <Compile Include="src\PrinterDescriptors\Recurse\IWriter.cs" />
     <Compile Include="src\PrinterDescriptors\Recurse\Printer.cs" />
-    <Compile Include="src\PrinterDescriptors\Recurse\Writers\StringWriter.cs" />
+    <Compile Include="src\PrinterDescriptors\Recurse\Writers\AbstractWriter.cs" />
+    <Compile Include="src\PrinterDescriptors\Recurse\Writers\LookupWriter.cs" />
+    <Compile Include="src\PrinterDescriptors\Recurse\Writers\PatternWriter.cs" />
     <Compile Include="src\PrinterError.cs" />
     <Compile Include="src\Schemas\AbstractSchema.cs" />
     <Compile Include="src\Schemas\JSON\ContentType.cs" />
@@ -160,7 +164,7 @@
   <ItemGroup>
     <Folder Include="src\ParserDescriptors\Abstract" />
     <Folder Include="src\ParserDescriptors\Recurse\Readers" />
-    <Folder Include="src\ParserDescriptors\Recurse\Readers\String" />
+    <Folder Include="src\ParserDescriptors\Recurse\Readers\Pattern" />
     <Folder Include="src\PrinterDescriptors\Abstract" />
     <Folder Include="src\PrinterDescriptors\Recurse\Writers" />
   </ItemGroup>

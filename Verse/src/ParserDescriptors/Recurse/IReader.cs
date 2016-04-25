@@ -33,9 +33,9 @@ namespace Verse.ParserDescriptors.Recurse
 
         void ProcessValue(ref TEntity entity, TValue value);
 
-        IBrowser<TEntity> ReadArray(Func<TEntity> constructor, TState state);
+        IBrowser<TEntity> ReadElements(Func<TEntity> constructor, TState state);
 
-        bool ReadValue(ref TEntity target, TState state);
+        bool ReadEntity(ref TEntity target, TState state);
 
         bool Start(Stream stream, ParserError onError, out TState state);
 

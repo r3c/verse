@@ -6,11 +6,11 @@ using ProtoBuf;
 
 using Verse.ParserDescriptors.Recurse;
 using Verse.ParserDescriptors.Recurse.Readers;
-using Verse.ParserDescriptors.Recurse.Readers.String;
+using Verse.ParserDescriptors.Recurse.Readers.Pattern;
 
 namespace Verse.Schemas.Protobuf
 {
-    class Reader<TEntity> : StringReader<TEntity, Value, ReaderState>
+    class Reader<TEntity> : PatternReader<TEntity, Value, ReaderState>
     {
         #region Attributes
 
@@ -25,7 +25,7 @@ namespace Verse.Schemas.Protobuf
             return new Reader<TOther>();
         }
 
-        public override IBrowser<TEntity> ReadArray(Func<TEntity> constructor, ReaderState state)
+        public override IBrowser<TEntity> ReadElements(Func<TEntity> constructor, ReaderState state)
         {
             switch (state.Reader.WireType)
             {
@@ -38,7 +38,7 @@ namespace Verse.Schemas.Protobuf
             }
         }
 
-        public override bool ReadValue(ref TEntity target, ReaderState state)
+        public override bool ReadEntity(ref TEntity target, ReaderState state)
         {
             switch (state.ReadingAction)
             {
@@ -229,7 +229,7 @@ namespace Verse.Schemas.Protobuf
                     return BrowserState.Success;
                 }
 
-                if (!this.ReadValue(ref current, state))
+                if (!this.ReadEntity(ref current, state))
                     return BrowserState.Failure;
 
                 return BrowserState.Continue;
@@ -255,7 +255,7 @@ namespace Verse.Schemas.Protobuf
 
                 if (first)
                 {
-                    if (!this.ReadValue(ref current, state))
+                    if (!this.ReadEntity(ref current, state))
                         return BrowserState.Failure;
 
                     first = false;

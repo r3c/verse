@@ -5,7 +5,7 @@ using Verse.PrinterDescriptors.Recurse;
 
 namespace Verse.Schemas.Protobuf
 {
-    class Writer<TEntity> : StringWriter<TEntity, Value, WriterState>
+    class Writer<TEntity> : PatternWriter<TEntity, Value, WriterState>
     {
         #region Methods
 
@@ -25,13 +25,13 @@ namespace Verse.Schemas.Protobuf
         {
         }
 
-        public override void WriteArray(IEnumerable<TEntity> items, WriterState state)
+        public override void WriteElements(IEnumerable<TEntity> elements, WriterState state)
         {
-            foreach (var item in items)
-                this.WriteValue(item, state);
+            foreach (var item in elements)
+                this.WriteEntity(item, state);
         }
 
-        public override void WriteValue(TEntity source, WriterState state)
+        public override void WriteEntity(TEntity source, WriterState state)
         {
             if (source == null)
                 return;

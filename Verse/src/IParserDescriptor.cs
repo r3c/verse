@@ -9,7 +9,6 @@ namespace Verse
     /// an actual parser is used to read entity from a stream.
     /// </summary>
     /// <typeparam name="TEntity">Entity type</typeparam>
-    /// <typeparam name="TKey">Key type</typeparam>
     public interface IParserDescriptor<TEntity>
     {
         #region Methods
@@ -76,9 +75,9 @@ namespace Verse
         /// <summary>
         /// Declare assignable value within current entity.
         /// </summary>
-        /// <typeparam name="TRaw">Raw value type</typeparam>
-        /// <param name="assign">Raw value to parent entity assignment delegate</param>
-        void IsValue<TRaw>(ParserAssign<TEntity, TRaw> assign);
+        /// <typeparam name="TCompatible">Value type after conversion</typeparam>
+        /// <param name="assign">Value to parent entity assignment delegate</param>
+        void IsValue<TCompatible>(ParserAssign<TEntity, TCompatible> assign);
 
         /// <summary>
         /// Declare entity as a value. Entity type must have a known decoder

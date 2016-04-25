@@ -75,7 +75,7 @@ namespace Verse.PrinterDescriptors
         {
             var recurse = descriptor.writer;
 
-            this.writer.DeclareField(name, (source, state) => recurse.WriteValue(access(source), state));
+            this.writer.DeclareField(name, (source, state) => recurse.WriteEntity(access(source), state));
 
             return descriptor;
         }
@@ -84,7 +84,7 @@ namespace Verse.PrinterDescriptors
         {
             var recurse = descriptor.writer;
 
-            this.writer.DeclareArray((source, state) => recurse.WriteArray(access(source), state));
+            this.writer.DeclareArray((source, state) => recurse.WriteElements(access(source), state));
 
             return descriptor;
         }

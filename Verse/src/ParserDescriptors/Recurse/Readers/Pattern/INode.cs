@@ -1,6 +1,6 @@
 using System;
 
-namespace Verse.ParserDescriptors.Recurse.Readers.String
+namespace Verse.ParserDescriptors.Recurse.Readers.Pattern
 {
     interface INode<TEntity, TValue, TState>
     {

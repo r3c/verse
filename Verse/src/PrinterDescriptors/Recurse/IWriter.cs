@@ -20,9 +20,9 @@ namespace Verse.PrinterDescriptors.Recurse
 
         void Stop(TState state);
 
-        void WriteArray(IEnumerable<TEntity> items, TState state);
+        void WriteElements(IEnumerable<TEntity> elements, TState state);
 
-        void WriteValue(TEntity source, TState state);
+        void WriteEntity(TEntity source, TState state);
 
         #endregion
     }

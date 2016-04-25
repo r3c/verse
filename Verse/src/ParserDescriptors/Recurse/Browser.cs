@@ -3,7 +3,7 @@ using System.Collections;
 
 namespace Verse.ParserDescriptors.Recurse
 {
-    internal class Browser<TEntity> : IBrowser<TEntity>
+    class Browser<TEntity> : IBrowser<TEntity>
     {
         #region Properties / Public
 
@@ -12,14 +12,6 @@ namespace Verse.ParserDescriptors.Recurse
             get
             {
                 return this.current;
-            }
-        }
-
-        public bool Success
-        {
-            get
-            {
-                return this.state == BrowserState.Success;
             }
         }
 
@@ -61,6 +53,14 @@ namespace Verse.ParserDescriptors.Recurse
         #endregion
 
         #region Methods
+
+        public bool Complete()
+        {
+            while (this.state == BrowserState.Continue)
+                this.MoveNext();
+
+            return this.state == BrowserState.Success;
+        }
 
         public void Dispose()
         {

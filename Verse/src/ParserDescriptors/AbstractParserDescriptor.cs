@@ -37,7 +37,7 @@ namespace Verse.ParserDescriptors
 
         public abstract IParserDescriptor<TElement> IsArray<TElement>(ParserAssign<TEntity, IEnumerable<TElement>> assign);
 
-        public abstract void IsValue<TRaw>(ParserAssign<TEntity, TRaw> assign);
+        public abstract void IsValue<TCompatible>(ParserAssign<TEntity, TCompatible> assign);
 
         #endregion
 

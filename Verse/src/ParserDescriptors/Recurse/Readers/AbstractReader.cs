@@ -1,12 +1,10 @@
-using System;
+﻿using System;
 using System.IO;
 using Verse.ParserDescriptors.Recurse;
-using Verse.ParserDescriptors.Recurse.Readers.String;
-using Verse.ParserDescriptors.Recurse.Readers.String.Nodes;
 
 namespace Verse.ParserDescriptors.Recurse.Readers
 {
-    abstract class StringReader<TEntity, TValue, TState> : IReader<TEntity, TValue, TState>
+    abstract class AbstractReader<TEntity, TValue, TState> : IReader<TEntity, TValue, TState>
     {
         #region Properties
 
@@ -26,21 +24,11 @@ namespace Verse.ParserDescriptors.Recurse.Readers
             }
         }
 
-        public BranchNode<TEntity, TValue, TState> RootNode
-        {
-            get
-            {
-                return this.rootNode;
-            }
-        }
-
         #endregion
 
         #region Attributes
 
         private Enter<TEntity, TState> array = null;
-
-        private BranchNode<TEntity, TValue, TState> rootNode = new BranchNode<TEntity, TValue, TState>();
 
         private ParserAssign<TEntity, TValue> value = null;
 
@@ -50,9 +38,11 @@ namespace Verse.ParserDescriptors.Recurse.Readers
 
         public abstract IReader<TOther, TValue, TState> Create<TOther>();
 
-        public abstract IBrowser<TEntity> ReadArray(Func<TEntity> constructor, TState state);
+        public abstract void DeclareField(string name, Enter<TEntity, TState> enter);
 
-        public abstract bool ReadValue(ref TEntity target, TState state);
+        public abstract IBrowser<TEntity> ReadElements(Func<TEntity> constructor, TState state);
+
+        public abstract bool ReadEntity(ref TEntity target, TState state);
 
         public abstract bool Start(Stream stream, ParserError onError, out TState state);
 
@@ -65,28 +55,15 @@ namespace Verse.ParserDescriptors.Recurse.Readers
         public void DeclareArray(Enter<TEntity, TState> enter)
         {
             if (this.array != null)
-                throw new InvalidOperationException("can't declare array twice on a descriptor");
+                throw new InvalidOperationException("can't declare array twice on same descriptor");
 
             this.array = enter;
-        }
-
-        public void DeclareField(string name, Enter<TEntity, TState> enter)
-        {
-            BranchNode<TEntity, TValue, TState> next = this.rootNode;
-
-            foreach (char character in name)
-                next = next.Connect(character);
-
-            if (next.enter != null)
-                throw new InvalidOperationException("can't declare same field twice on a descriptor");
-
-            next.enter = enter;
         }
 
         public void DeclareValue(ParserAssign<TEntity, TValue> assign)
         {
             if (this.value != null)
-                throw new InvalidOperationException("can't declare value twice on a descriptor");
+                throw new InvalidOperationException("can't declare value twice on same descriptor");
 
             this.value = assign;
         }

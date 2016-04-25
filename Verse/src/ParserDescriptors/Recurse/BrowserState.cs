@@ -1,11 +1,9 @@
 namespace Verse.ParserDescriptors.Recurse
 {
-    internal enum BrowserState
+    enum BrowserState
     {
         Continue,
-
         Failure,
-
         Success
     }
 }

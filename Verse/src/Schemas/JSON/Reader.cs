@@ -4,11 +4,11 @@ using System.IO;
 using System.Text;
 using Verse.ParserDescriptors.Recurse;
 using Verse.ParserDescriptors.Recurse.Readers;
-using Verse.ParserDescriptors.Recurse.Readers.String;
+using Verse.ParserDescriptors.Recurse.Readers.Pattern;
 
 namespace Verse.Schemas.JSON
 {
-    class Reader<TEntity> : StringReader<TEntity, Value, ReaderState>
+    class Reader<TEntity> : PatternReader<TEntity, Value, ReaderState>
     {
         #region Constants
 
@@ -24,7 +24,7 @@ namespace Verse.Schemas.JSON
 
         #region Attributes / Static
 
-        private static readonly Reader<TEntity> unknown = new Reader<TEntity>(Encoding.Default);
+        private static readonly Reader<TEntity> unknown = new Reader<TEntity>(null);
 
         #endregion
 
@@ -44,7 +44,7 @@ namespace Verse.Schemas.JSON
             return new Reader<TOther>(this.encoding);
         }
 
-        public override IBrowser<TEntity> ReadArray(Func<TEntity> constructor, ReaderState state)
+        public override IBrowser<TEntity> ReadElements(Func<TEntity> constructor, ReaderState state)
         {
             switch (state.Current)
             {
@@ -59,7 +59,7 @@ namespace Verse.Schemas.JSON
                     {
                         current = default (TEntity);
 
-                        if (!this.ReadValue(ref current, state))
+                        if (!this.ReadEntity(ref current, state))
                             return BrowserState.Failure;
 
                         return BrowserState.Success;
@@ -67,7 +67,7 @@ namespace Verse.Schemas.JSON
             }
         }
 
-        public override bool ReadValue(ref TEntity target, ReaderState state)
+        public override bool ReadEntity(ref TEntity target, ReaderState state)
         {
             if (this.HoldArray)
                 return this.ProcessArray(ref target, state);
@@ -92,9 +92,9 @@ namespace Verse.Schemas.JSON
                     return this.ScanNumberAsEntity(ref target, state);
 
                 case (int)'f':
-                    state.Pull();
+                    state.Read();
 
-                    if (!this.PullExpected(state, 'a') || !this.PullExpected(state, 'l') || !this.PullExpected(state, 's') || !this.PullExpected(state, 'e'))
+                    if (!state.PullExpected('a') || !state.PullExpected('l') || !state.PullExpected('s') || !state.PullExpected('e'))
                         return false;
 
                     if (this.HoldValue)
@@ -103,9 +103,9 @@ namespace Verse.Schemas.JSON
                     return true;
 
                 case (int)'n':
-                    state.Pull();
+                    state.Read();
 
-                    if (!this.PullExpected(state, 'u') || !this.PullExpected(state, 'l') || !this.PullExpected(state, 'l'))
+                    if (!state.PullExpected('u') || !state.PullExpected('l') || !state.PullExpected('l'))
                         return false;
 
                     if (this.HoldValue)
@@ -114,9 +114,9 @@ namespace Verse.Schemas.JSON
                     return true;
 
                 case (int)'t':
-                    state.Pull();
+                    state.Read();
 
-                    if (!this.PullExpected(state, 'r') || !this.PullExpected(state, 'u') || !this.PullExpected(state, 'e'))
+                    if (!state.PullExpected('r') || !state.PullExpected('u') || !state.PullExpected('e'))
                         return false;
 
                     if (this.HoldValue)
@@ -140,8 +140,7 @@ namespace Verse.Schemas.JSON
         public override bool Start(Stream stream, ParserError onError, out ReaderState state)
         {
             state = new ReaderState(stream, this.encoding, onError);
-
-            this.PullIgnored(state);
+            state.PullIgnored();
 
             if (state.Current < 0)
             {
@@ -161,156 +160,19 @@ namespace Verse.Schemas.JSON
 
         #region Methods / Private
 
-        private bool PullCharacter(ReaderState state, out char character)
-        {
-            int nibble;
-            int previous;
-            int value;
-
-            previous = state.Current;
-
-            state.Pull();
-
-            if (previous < 0)
-            {
-                character = default (char);
-
-                return false;
-            }
-
-            if (previous != (int)'\\')
-            {
-                character = (char)previous;
-
-                return true;
-            }
-
-            previous = state.Current;
-
-            state.Pull();
-
-            switch (previous)
-            {
-                case -1:
-                    character = default (char);
-
-                    return false;
-
-                case (int)'"':
-                    character = '"';
-
-                    return true;
-
-                case (int)'\\':
-                    character = '\\';
-
-                    return true;
-
-                case (int)'b':
-                    character = '\b';
-
-                    return true;
-
-                case (int)'f':
-                    character = '\f';
-
-                    return true;
-
-                case (int)'n':
-                    character = '\n';
-
-                    return true;
-
-                case (int)'r':
-                    character = '\r';
-
-                    return true;
-
-                case (int)'t':
-                    character = '\t';
-
-                    return true;
-
-                case (int)'u':
-                    value = 0;
-
-                    for (int i = 0; i < 4; ++i)
-                    {
-                        previous = state.Current;
-
-                        state.Pull();
-
-                        if (previous >= (int)'0' && previous <= (int)'9')
-                            nibble = previous - (int)'0';
-                        else if (previous >= (int)'A' && previous <= (int)'F')
-                            nibble = previous - (int)'A' + 10;
-                        else if (previous >= (int)'a' && previous <= (int)'f')
-                            nibble = previous - (int)'a' + 10;
-                        else
-                        {
-                            state.OnError(state.Position, "unknown character in unicode escape sequence");
-
-                            character = default (char);
-
-                            return false;
-                        }
-
-                        value = (value << 4) + nibble;
-                    }
-
-                    character = (char)value;
-
-                    return true;
-
-                default:
-                    character = (char)previous;
-
-                    return true;
-            }
-        }
-
-        private bool PullExpected(ReaderState state, char expected)
-        {
-            if (state.Current != (int)expected)
-            {
-                state.OnError(state.Position, string.Format(CultureInfo.InvariantCulture, "expected '{0}'", expected));
-
-                return false;
-            }
-
-            state.Pull();
-
-            return true;
-        }
-
-        private void PullIgnored(ReaderState state)
-        {
-            int current;
-
-            while (true)
-            {
-                current = state.Current;
-
-                if (current < 0 || current > (int)' ')
-                    return;
-
-                state.Pull();
-            }
-        }
-
         private BrowserMove<TEntity> ScanArrayAsArray(Func<TEntity> constructor, ReaderState state)
         {
-            state.Pull();
+            state.Read();
 
             return (int index, out TEntity current) =>
             {
                 current = constructor();
 
-                this.PullIgnored(state);
+                state.PullIgnored();
 
                 if (state.Current == (int)']')
                 {
-                    state.Pull();
+                    state.Read();
 
                     return BrowserState.Success;
                 }
@@ -318,14 +180,14 @@ namespace Verse.Schemas.JSON
                 // Read comma separator if any
                 if (index > 0)
                 {
-                    if (!this.PullExpected(state, ','))
+                    if (!state.PullExpected(','))
                         return BrowserState.Failure;
 
-                    this.PullIgnored(state);
+                    state.PullIgnored();
                 }
 
                 // Read array value
-                if (!this.ReadValue(ref current, state))
+                if (!this.ReadEntity(ref current, state))
                     return BrowserState.Failure;
 
                 return BrowserState.Continue;
@@ -336,11 +198,11 @@ namespace Verse.Schemas.JSON
         {
             INode<TEntity, Value, ReaderState> node;
 
-            state.Pull();
+            state.Read();
 
             for (int index = 0; true; ++index)
             {
-                this.PullIgnored(state);
+                state.PullIgnored();
 
                 if (state.Current == (int)']')
                     break;
@@ -348,10 +210,10 @@ namespace Verse.Schemas.JSON
                 // Read comma separator if any
                 if (index > 0)
                 {
-                    if (!this.PullExpected(state, ','))
+                    if (!state.PullExpected(','))
                         return false;
 
-                    this.PullIgnored(state);
+                    state.PullIgnored();
                 }
 
                 // Build and move to array index
@@ -370,7 +232,7 @@ namespace Verse.Schemas.JSON
                     return false;
             }
 
-            state.Pull();
+            state.Read();
 
             return true;
         }
@@ -394,7 +256,7 @@ namespace Verse.Schemas.JSON
                 // Read number sign
                 if (state.Current == (int)'-')
                 {
-                    state.Pull();
+                    state.Read();
 
                     numberMantissaMask = ~0UL;
                     numberMantissaPlus = 1;
@@ -406,7 +268,7 @@ namespace Verse.Schemas.JSON
                 }
 
                 // Read integral part
-                for (; state.Current >= (int)'0' && state.Current <= (int)'9'; state.Pull())
+                for (; state.Current >= (int)'0' && state.Current <= (int)'9'; state.Read())
                 {
                     if (numberMantissa > MANTISSA_MAX)
                     {
@@ -421,9 +283,9 @@ namespace Verse.Schemas.JSON
                 // Read decimal part if any
                 if (state.Current == (int)'.')
                 {
-                    state.Pull();
+                    state.Read();
 
-                    for (; state.Current >= (int)'0' && state.Current <= (int)'9'; state.Pull())
+                    for (; state.Current >= (int)'0' && state.Current <= (int)'9'; state.Read())
                     {
                         if (numberMantissa > MANTISSA_MAX)
                             continue;
@@ -437,12 +299,12 @@ namespace Verse.Schemas.JSON
                 // Read exponent if any
                 if (state.Current == (int)'E' || state.Current == (int)'e')
                 {
-                    state.Pull();
+                    state.Read();
 
                     switch (state.Current)
                     {
                         case (int)'+':
-                            state.Pull();
+                            state.Read();
 
                             numberExponentMask = 0;
                             numberExponentPlus = 0;
@@ -450,7 +312,7 @@ namespace Verse.Schemas.JSON
                             break;
 
                         case (int)'-':
-                            state.Pull();
+                            state.Read();
 
                             numberExponentMask = ~0U;
                             numberExponentPlus = 1;
@@ -464,7 +326,7 @@ namespace Verse.Schemas.JSON
                             break;
                     }
 
-                    for (numberExponent = 0; state.Current >= (int)'0' && state.Current <= (int)'9'; state.Pull())
+                    for (numberExponent = 0; state.Current >= (int)'0' && state.Current <= (int)'9'; state.Read())
                         numberExponent = numberExponent*10 + (uint)(state.Current - (int)'0');
 
                     numberPower += (int)((numberExponent ^ numberExponentMask) + numberExponentPlus);
@@ -486,7 +348,7 @@ namespace Verse.Schemas.JSON
 
         private BrowserMove<TEntity> ScanObjectAsArray(Func<TEntity> constructor, ReaderState state)
         {
-            state.Pull();
+            state.Read();
 
             return (int index, out TEntity current) =>
             {
@@ -494,11 +356,11 @@ namespace Verse.Schemas.JSON
 
                 current = constructor();
 
-                this.PullIgnored(state);
+                state.PullIgnored();
 
                 if (state.Current == (int)'}')
                 {
-                    state.Pull();
+                    state.Read();
 
                     return BrowserState.Success;
                 }
@@ -506,19 +368,19 @@ namespace Verse.Schemas.JSON
                 // Read comma separator if any
                 if (index > 0)
                 {
-                    if (!this.PullExpected(state, ','))
+                    if (!state.PullExpected(','))
                         return BrowserState.Failure;
 
-                    this.PullIgnored(state);
+                    state.PullIgnored();
                 }
 
-                if (!this.PullExpected(state, '"'))
+                if (!state.PullExpected('"'))
                     return BrowserState.Failure;
 
                 // Read and move to object key
                 while (state.Current != (int)'"')
                 {
-                    if (!this.PullCharacter(state, out ignore))
+                    if (!state.PullCharacter(out ignore))
                     {
                         state.OnError(state.Position, "invalid character in object key");
 
@@ -526,19 +388,19 @@ namespace Verse.Schemas.JSON
                     }
                 }
 
-                state.Pull();
+                state.Read();
 
                 // Read object separator
-                this.PullIgnored(state);
+                state.PullIgnored();
 
-                if (!this.PullExpected(state, ':'))
+                if (!state.PullExpected(':'))
                     return BrowserState.Failure;
 
                 // Read object value
-                this.PullIgnored(state);
+                state.PullIgnored();
 
                 // Read array value
-                if (!this.ReadValue(ref current, state))
+                if (!this.ReadEntity(ref current, state))
                     return BrowserState.Failure;
 
                 return BrowserState.Continue;
@@ -550,11 +412,11 @@ namespace Verse.Schemas.JSON
             char character;
             INode<TEntity, Value, ReaderState> node;
 
-            state.Pull();
+            state.Read();
 
             for (int index = 0; true; ++index)
             {
-                this.PullIgnored(state);
+                state.PullIgnored();
 
                 if (state.Current == (int)'}')
                     break;
@@ -562,13 +424,13 @@ namespace Verse.Schemas.JSON
                 // Read comma separator if any
                 if (index > 0)
                 {
-                    if (!this.PullExpected(state, ','))
+                    if (!state.PullExpected(','))
                         return false;
 
-                    this.PullIgnored(state);
+                    state.PullIgnored();
                 }
 
-                if (!this.PullExpected(state, '"'))
+                if (!state.PullExpected('"'))
                     return false;
 
                 // Read and move to object key
@@ -576,7 +438,7 @@ namespace Verse.Schemas.JSON
 
                 while (state.Current != (int)'"')
                 {
-                    if (!this.PullCharacter(state, out character))
+                    if (!state.PullCharacter(out character))
                     {
                         state.OnError(state.Position, "invalid character in object key");
 
@@ -586,22 +448,22 @@ namespace Verse.Schemas.JSON
                     node = node.Follow(character);
                 }
 
-                state.Pull();
+                state.Read();
 
                 // Read object separator
-                this.PullIgnored(state);
+                state.PullIgnored();
 
-                if (!this.PullExpected(state, ':'))
+                if (!state.PullExpected(':'))
                     return false;
 
                 // Read object value
-                this.PullIgnored(state);
+                state.PullIgnored();
 
                 if (!node.Enter(ref target, Reader<TEntity>.unknown, state))
                     return false;
             }
 
-            state.Pull();
+            state.Read();
 
             return true;
         }
@@ -611,7 +473,7 @@ namespace Verse.Schemas.JSON
             StringBuilder buffer;
             char character;
 
-            state.Pull();
+            state.Read();
 
             // Read and store string in a buffer if its value is needed
             if (this.HoldValue)
@@ -620,7 +482,7 @@ namespace Verse.Schemas.JSON
 
                 while (state.Current != (int)'"')
                 {
-                    if (!this.PullCharacter(state, out character))
+                    if (!state.PullCharacter(out character))
                     {
                         state.OnError(state.Position, "invalid character in string value");
 
@@ -638,7 +500,7 @@ namespace Verse.Schemas.JSON
             {
                 while (state.Current != (int)'"')
                 {
-                    if (!this.PullCharacter(state, out character))
+                    if (!state.PullCharacter(out character))
                     {
                         state.OnError(state.Position, "invalid character in string value");
 
@@ -647,7 +509,7 @@ namespace Verse.Schemas.JSON
                 }
             }
 
-            state.Pull();
+            state.Read();
 
             return true;
         }

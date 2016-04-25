@@ -37,7 +37,7 @@ namespace Verse.PrinterDescriptors.Recurse
 
             try
             {
-                this.writer.WriteValue(input, state);
+                this.writer.WriteEntity(input, state);
             }
             finally
             {

@@ -6,7 +6,7 @@ using Verse.PrinterDescriptors.Recurse;
 
 namespace Verse.Schemas.JSON
 {
-    class Writer<TEntity> : StringWriter<TEntity, Value, WriterState>
+    class Writer<TEntity> : PatternWriter<TEntity, Value, WriterState>
     {
         #region Attributes
 
@@ -42,20 +42,20 @@ namespace Verse.Schemas.JSON
             state.Flush();
         }
 
-        public override void WriteArray(IEnumerable<TEntity> items, WriterState state)
+        public override void WriteElements(IEnumerable<TEntity> elements, WriterState state)
         {
             IEnumerator<TEntity> item;
 
             state.ArrayBegin();
-            item = items.GetEnumerator();
+            item = elements.GetEnumerator();
 
             while (item.MoveNext())
-                this.WriteValue(item.Current, state);
+                this.WriteEntity(item.Current, state);
 
             state.ArrayEnd();
         }
 
-        public override void WriteValue(TEntity source, WriterState state)
+        public override void WriteEntity(TEntity source, WriterState state)
         {
             IEnumerator<KeyValuePair<string, Enter<TEntity, WriterState>>> field;
 

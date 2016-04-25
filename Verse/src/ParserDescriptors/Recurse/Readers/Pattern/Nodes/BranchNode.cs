@@ -2,10 +2,16 @@ using System;
 using System.Collections.Generic;
 using Verse.ParserDescriptors.Recurse;
 
-namespace Verse.ParserDescriptors.Recurse.Readers.String.Nodes
+namespace Verse.ParserDescriptors.Recurse.Readers.Pattern.Nodes
 {
     class BranchNode<TEntity, TValue, TState> : INode<TEntity, TValue, TState>
     {
+        #region Constants
+
+        private const int INDEX_SIZE = 128;
+
+        #endregion
+
         public bool HasSubNode
         {
             get
@@ -26,9 +32,9 @@ namespace Verse.ParserDescriptors.Recurse.Readers.String.Nodes
 
         public ParserAssign<TEntity, TValue> assign = null;
 
-        public BranchNode<TEntity, TValue, TState>[] branchASCII = null;
+        public BranchNode<TEntity, TValue, TState>[] branchIndex = null;
 
-        public Dictionary<char, BranchNode<TEntity, TValue, TState>> branchOther = null;
+        public Dictionary<char, BranchNode<TEntity, TValue, TState>> branchHash = null;
 
         public Enter<TEntity, TState> enter = null;
 
@@ -50,30 +56,30 @@ namespace Verse.ParserDescriptors.Recurse.Readers.String.Nodes
 
             this.hasSubNode = true;
 
-            if (c < 128)
+            if (c < INDEX_SIZE)
             {
-                if (this.branchASCII == null)
-                    this.branchASCII = new BranchNode<TEntity, TValue, TState>[128];
+                if (this.branchIndex == null)
+                    this.branchIndex = new BranchNode<TEntity, TValue, TState>[INDEX_SIZE];
 
-                if (this.branchASCII[c] != null)
-                    next = this.branchASCII[c];
+                if (this.branchIndex[c] != null)
+                    next = this.branchIndex[c];
                 else
                 {
                     next = new BranchNode<TEntity, TValue, TState>();
 
-                    this.branchASCII[c] = next;
+                    this.branchIndex[c] = next;
                 }
             }
             else
             {
-                if (this.branchOther == null)
-                    this.branchOther = new Dictionary<char, BranchNode<TEntity, TValue, TState>>();
+                if (this.branchHash == null)
+                    this.branchHash = new Dictionary<char, BranchNode<TEntity, TValue, TState>>();
 
-                if (!this.branchOther.TryGetValue(c, out next))
+                if (!this.branchHash.TryGetValue(c, out next))
                 {
                     next = new BranchNode<TEntity, TValue, TState>();
 
-                    this.branchOther[c] = next;
+                    this.branchHash[c] = next;
                 }
             }
 
@@ -85,21 +91,21 @@ namespace Verse.ParserDescriptors.Recurse.Readers.String.Nodes
             if (this.enter != null)
                 return this.enter(ref target, state);
 
-            return unknown.ReadValue(ref target, state);
+            return unknown.ReadEntity(ref target, state);
         }
 
         public INode<TEntity, TValue, TState> Follow(char c)
         {
             BranchNode<TEntity, TValue, TState> next;
 
-            if (c < 128)
+            if (c < INDEX_SIZE)
             {
-                if (this.branchASCII != null && this.branchASCII[c] != null)
-                    return this.branchASCII[c];
+                if (this.branchIndex != null && this.branchIndex[c] != null)
+                    return this.branchIndex[c];
             }
             else
             {
-                if (this.branchOther != null && this.branchOther.TryGetValue(c, out next))
+                if (this.branchHash != null && this.branchHash.TryGetValue(c, out next))
                     return next;
             }
 

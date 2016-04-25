@@ -4,17 +4,17 @@ using Verse.PrinterDescriptors.Abstract;
 
 namespace Verse.PrinterDescriptors
 {
-    abstract class AbstractPrinterDescriptor<TEntity, TNative> : IPrinterDescriptor<TEntity>
+    abstract class AbstractPrinterDescriptor<TEntity, TValue> : IPrinterDescriptor<TEntity>
     {
         #region Attributes
 
-        protected readonly IEncoderConverter<TNative> converter;
+        protected readonly IEncoderConverter<TValue> converter;
 
         #endregion
 
         #region Constructors
 
-        protected AbstractPrinterDescriptor(IEncoderConverter<TNative> converter)
+        protected AbstractPrinterDescriptor(IEncoderConverter<TValue> converter)
         {
             this.converter = converter;
         }
@@ -31,7 +31,7 @@ namespace Verse.PrinterDescriptors
 
         public abstract IPrinterDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> access);
 
-        public abstract void IsValue<TValue>(Func<TEntity, TValue> access);
+        public abstract void IsValue<TRaw>(Func<TEntity, TRaw> access);
 
         #endregion
 
@@ -51,9 +51,9 @@ namespace Verse.PrinterDescriptors
 
         #region Methods / Protected
 
-        protected Converter<TValue, TNative> GetConverter<TValue>()
+        protected Converter<TRaw, TValue> GetConverter<TRaw>()
         {
-            return this.converter.Get<TValue>();
+            return this.converter.Get<TRaw>();
         }
 
         #endregion

@@ -1,6 +1,6 @@
 using Verse.ParserDescriptors.Recurse;
 
-namespace Verse.ParserDescriptors.Recurse.Readers.String.Nodes
+namespace Verse.ParserDescriptors.Recurse.Readers.Pattern.Nodes
 {
     class EmptyNode<TEntity, TValue, TState> : INode<TEntity, TValue, TState>
     {
@@ -26,7 +26,7 @@ namespace Verse.ParserDescriptors.Recurse.Readers.String.Nodes
 
         public bool Enter(ref TEntity target, IReader<TEntity, TValue, TState> unknown, TState state)
         {
-            return unknown.ReadValue(ref target, state);
+            return unknown.ReadEntity(ref target, state);
         }
 
         public INode<TEntity, TValue, TState> Follow(char c)
