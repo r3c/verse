@@ -1,0 +1,9 @@
+language: csharp
+solution: Verse.sln
+install:
+  - nuget restore Verse.sln
+  - nuget install NUnit.Runners -Version 2.6.2 -OutputDirectory tests
+script:
+  - xbuild /p:Configuration=Release Verse.sln
+  - mono ./tests/NUnit.Runners.2.6.2/tools/nunit-console.exe ./Verse.UTest/bin/Release/Verse.UTest.dll
+# - nuget pack -Prop Configuration=Release -Prop Platform=AnyCPU ./Verse/Verse.csproj
