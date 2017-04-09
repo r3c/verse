@@ -2,9 +2,9 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using Verse.ParserDescriptors.Recurse;
-using Verse.ParserDescriptors.Recurse.Readers;
-using Verse.ParserDescriptors.Recurse.Readers.Pattern;
+using Verse.DecoderDescriptors.Recurse;
+using Verse.DecoderDescriptors.Recurse.Readers;
+using Verse.DecoderDescriptors.Recurse.Readers.Pattern;
 
 namespace Verse.Schemas.JSON
 {
@@ -131,20 +131,20 @@ namespace Verse.Schemas.JSON
                     return this.ScanObjectAsEntity(ref target, state);
 
                 default:
-                    state.OnError(state.Position, "expected array, object or value");
+                    state.Error(state.Position, "expected array, object or value");
 
                     return false;
             }
         }
 
-        public override bool Start(Stream stream, ParserError onError, out ReaderState state)
+        public override bool Start(Stream stream, DecodeError error, out ReaderState state)
         {
-            state = new ReaderState(stream, this.encoding, onError);
+            state = new ReaderState(stream, this.encoding, error);
             state.PullIgnored();
 
             if (state.Current < 0)
             {
-                state.OnError(state.Position, "empty input stream");
+                state.Error(state.Position, "empty input stream");
 
                 return false;
             }
@@ -382,7 +382,7 @@ namespace Verse.Schemas.JSON
                 {
                     if (!state.PullCharacter(out ignore))
                     {
-                        state.OnError(state.Position, "invalid character in object key");
+                        state.Error(state.Position, "invalid character in object key");
 
                         return BrowserState.Failure;
                     }
@@ -440,7 +440,7 @@ namespace Verse.Schemas.JSON
                 {
                     if (!state.PullCharacter(out character))
                     {
-                        state.OnError(state.Position, "invalid character in object key");
+                        state.Error(state.Position, "invalid character in object key");
 
                         return false;
                     }
@@ -484,7 +484,7 @@ namespace Verse.Schemas.JSON
                 {
                     if (!state.PullCharacter(out character))
                     {
-                        state.OnError(state.Position, "invalid character in string value");
+                        state.Error(state.Position, "invalid character in string value");
 
                         return false;
                     }
@@ -502,7 +502,7 @@ namespace Verse.Schemas.JSON
                 {
                     if (!state.PullCharacter(out character))
                     {
-                        state.OnError(state.Position, "invalid character in string value");
+                        state.Error(state.Position, "invalid character in string value");
 
                         return false;
                     }

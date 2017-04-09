@@ -1,6 +1,6 @@
 using System;
 using System.Text;
-using Verse.ParserDescriptors;
+using Verse.DecoderDescriptors;
 using Verse.Schemas.QueryString;
 
 namespace Verse.Schemas
@@ -9,19 +9,19 @@ namespace Verse.Schemas
     {
         #region Properties
 
-        public override IPrinterDescriptor<TEntity> PrinterDescriptor
+        public override IDecoderDescriptor<TEntity> DecoderDescriptor
         {
             get
             {
-                throw new NotImplementedException("printing not implemented");
+                return this.decoderDescriptor;
             }
         }
 
-        public override IParserDescriptor<TEntity> ParserDescriptor
+        public override IEncoderDescriptor<TEntity> EncoderDescriptor
         {
             get
             {
-                return this.parserDescriptor;
+                throw new NotImplementedException("encoding not implemented");
             }
         }
 
@@ -31,9 +31,9 @@ namespace Verse.Schemas
 
         private readonly DecoderConverter decoderConverter;
 
-        private readonly Encoding encoding;
+        private readonly FlatDecoderDescriptor<TEntity, ReaderContext> decoderDescriptor;
 
-        private readonly FlatParserDescriptor<TEntity, ReaderContext> parserDescriptor;
+        private readonly Encoding encoding;
 
         #endregion
 
@@ -43,9 +43,9 @@ namespace Verse.Schemas
         {
             var sourceConverter = new DecoderConverter();
 
-            this.encoding = encoding;
-            this.parserDescriptor = new FlatParserDescriptor<TEntity, ReaderContext>(sourceConverter);
             this.decoderConverter = sourceConverter;
+            this.decoderDescriptor = new FlatDecoderDescriptor<TEntity, ReaderContext>(sourceConverter);
+            this.encoding = encoding;
         }
 
         public QueryStringSchema() :
@@ -57,14 +57,14 @@ namespace Verse.Schemas
 
         #region Methods / Public
 
-        public override IParser<TEntity> CreateParser()
+        public override IDecoder<TEntity> CreateDecoder()
         {
-            return this.parserDescriptor.CreateParser(new Reader(this.encoding));
+            return this.decoderDescriptor.CreateDecoder(new Reader(this.encoding));
         }
 
-        public override IPrinter<TEntity> CreatePrinter()
+        public override IEncoder<TEntity> CreateEncoder()
         {
-            throw new NotImplementedException("printing not implemented");
+            throw new NotImplementedException("encoding not implemented");
         }
 
         public void SetDecoder<U>(Converter<string, U> converter)

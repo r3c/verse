@@ -4,9 +4,9 @@ using System.IO;
 
 using ProtoBuf;
 
-using Verse.ParserDescriptors.Recurse;
-using Verse.ParserDescriptors.Recurse.Readers;
-using Verse.ParserDescriptors.Recurse.Readers.Pattern;
+using Verse.DecoderDescriptors.Recurse;
+using Verse.DecoderDescriptors.Recurse.Readers;
+using Verse.DecoderDescriptors.Recurse.Readers.Pattern;
 
 namespace Verse.Schemas.Protobuf
 {
@@ -98,7 +98,7 @@ namespace Verse.Schemas.Protobuf
                             break;
 
                         default:
-                            state.OnError(state.Position, "wire type not supported, skipped");
+                            state.Error(state.Position, "wire type not supported, skipped");
                             state.Reader.SkipField();
 
                             break;
@@ -165,9 +165,9 @@ namespace Verse.Schemas.Protobuf
             return true;
         }
 
-        public override bool Start(Stream stream, ParserError onError, out ReaderState state)
+        public override bool Start(Stream stream, DecodeError error, out ReaderState state)
         {
-            state = new ReaderState(stream, onError);
+            state = new ReaderState(stream, error);
 
             return true;
         }

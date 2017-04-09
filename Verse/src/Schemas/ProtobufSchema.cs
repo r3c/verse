@@ -1,6 +1,6 @@
 ﻿using System;
-using Verse.ParserDescriptors;
-using Verse.PrinterDescriptors;
+using Verse.DecoderDescriptors;
+using Verse.EncoderDescriptors;
 using Verse.Schemas.Protobuf;
 
 namespace Verse.Schemas
@@ -9,19 +9,19 @@ namespace Verse.Schemas
     {
         #region Properties
 
-        public override IPrinterDescriptor<TEntity> PrinterDescriptor
+        public override IDecoderDescriptor<TEntity> DecoderDescriptor
         {
             get
             {
-                return this.printerDescriptor;
+                return this.decoderDescriptor;
             }
         }
 
-        public override IParserDescriptor<TEntity> ParserDescriptor
+        public override IEncoderDescriptor<TEntity> EncoderDescriptor
         {
             get
             {
-                return this.parserDescriptor;
+                return this.encoderDescriptor;
             }
         }
 
@@ -31,11 +31,11 @@ namespace Verse.Schemas
 
         private readonly DecoderConverter decoderConverter;
 
+        private readonly RecurseDecoderDescriptor<TEntity, Value, ReaderState> decoderDescriptor;
+
         private readonly EncoderConverter encoderConverter;
 
-        private readonly RecurseParserDescriptor<TEntity, Value, ReaderState> parserDescriptor;
-
-        private readonly RecursePrinterDescriptor<TEntity, Value, WriterState> printerDescriptor;
+        private readonly RecurseEncoderDescriptor<TEntity, Value, WriterState> encoderDescriptor;
 
         #endregion
 
@@ -48,22 +48,22 @@ namespace Verse.Schemas
 
             this.decoderConverter = sourceConverter;
             this.encoderConverter = targetConverter;
-            this.parserDescriptor = new RecurseParserDescriptor<TEntity, Value, ReaderState>(sourceConverter, new Reader<TEntity>());
-            this.printerDescriptor = new RecursePrinterDescriptor<TEntity, Value, WriterState>(targetConverter, new Writer<TEntity>());
+            this.decoderDescriptor = new RecurseDecoderDescriptor<TEntity, Value, ReaderState>(sourceConverter, new Reader<TEntity>());
+            this.encoderDescriptor = new RecurseEncoderDescriptor<TEntity, Value, WriterState>(targetConverter, new Writer<TEntity>());
         }
 
         #endregion
 
         #region Methods / Public
 
-        public override IParser<TEntity> CreateParser()
+        public override IDecoder<TEntity> CreateDecoder()
         {
-            return this.parserDescriptor.CreateParser();
+            return this.decoderDescriptor.CreateDecoder();
         }
 
-        public override IPrinter<TEntity> CreatePrinter()
+        public override IEncoder<TEntity> CreateEncoder()
         {
-            return this.printerDescriptor.CreatePrinter();
+            return this.encoderDescriptor.CreateEncoder();
         }
 
         public void SetDecoder<U>(Converter<Value, U> converter)

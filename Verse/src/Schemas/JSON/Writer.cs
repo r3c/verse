@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using Verse.PrinterDescriptors.Recurse;
+using Verse.EncoderDescriptors.Recurse;
 
 namespace Verse.Schemas.JSON
 {
@@ -30,9 +30,9 @@ namespace Verse.Schemas.JSON
             return new Writer<TOther>(this.settings);
         }
 
-        public override bool Start(Stream stream, PrinterError onError, out WriterState state)
+        public override bool Start(Stream stream, EncodeError error, out WriterState state)
         {
-            state = new WriterState(stream, onError, this.settings);
+            state = new WriterState(stream, error, this.settings);
 
             return true;
         }

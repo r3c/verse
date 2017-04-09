@@ -14,15 +14,15 @@ namespace Verse.Bench
     public class CompareNewtonsoft
     {
         [Test]
-        public void ParseFlatStructure()
+        public void DecodeFlatStructure()
         {
-            IParser<MyFlatStructure> parser;
+            IDecoder<MyFlatStructure> decoder;
             string source;
 
-            parser = Linker.CreateParser(new JSONSchema<MyFlatStructure>());
+            decoder = Linker.CreateDecoder(new JSONSchema<MyFlatStructure>());
             source = "{\"lorem\":0,\"ipsum\":65464658634633,\"sit\":1.1,\"amet\":\"Hello, World!\",\"consectetur\":255,\"adipiscing\":64,\"elit\":\"z\",\"sed\":53.25,\"pulvinar\":\"I sense a soul in search of answers\",\"fermentum\":6553,\"hendrerit\":-32768}";
 
-            this.BenchParse(parser, () => new MyFlatStructure(), source, 10000);
+            this.BenchDecode(decoder, () => new MyFlatStructure(), source, 10000);
         }
 
         [Test]
@@ -30,10 +30,10 @@ namespace Verse.Bench
         [TestCase(1000, 100)]
         [TestCase(10000, 10)]
         [TestCase(100000, 1)]
-        public void ParseLargeArray(int length, int count)
+        public void DecodeLargeArray(int length, int count)
         {
             StringBuilder builder;
-            IParser<long[]> parser;
+            IDecoder<long[]> decoder;
             Random random;
             ISchema<long[]> schema;
 
@@ -58,25 +58,25 @@ namespace Verse.Bench
             builder.Append("]");
 
             schema = new JSONSchema<long[]>();
-            schema.ParserDescriptor.IsArray((ref long[] target, IEnumerable<long> value) => target = value.ToArray()).IsValue();
-            parser = schema.CreateParser();
+            schema.DecoderDescriptor.IsArray((ref long[] target, IEnumerable<long> value) => target = value.ToArray()).IsValue();
+            decoder = schema.CreateDecoder();
 
-            this.BenchParse(parser, () => null, builder.ToString(), count);
+            this.BenchDecode(decoder, () => null, builder.ToString(), count);
         }
 
         [Test]
-        public void ParseNestedArray()
+        public void DecodeNestedArray()
         {
-            IParser<MyNestedArray> parser;
+            IDecoder<MyNestedArray> decoder;
             string source;
 
-            parser = Linker.CreateParser(new JSONSchema<MyNestedArray>());
+            decoder = Linker.CreateDecoder(new JSONSchema<MyNestedArray>());
             source = "{\"children\":[{\"children\":[],\"value\":\"a\"},{\"children\":[{\"children\":[],\"value\":\"b\"},{\"children\":[],\"value\":\"c\"}],\"value\":\"d\"},{\"children\":[],\"value\":\"e\"}],\"value\":\"f\"}";
 
-            this.BenchParse(parser, () => new MyNestedArray(), source, 10000);
+            this.BenchDecode(decoder, () => new MyNestedArray(), source, 10000);
         }
 
-        private void BenchParse<T>(IParser<T> parser, Func<T> constructor, string source, int count)
+        private void BenchDecode<T>(IDecoder<T> decoder, Func<T> constructor, string source, int count)
         {
             byte[] buffer;
             T instance;
@@ -103,7 +103,7 @@ namespace Verse.Bench
                 {
                     instance = constructor();
 
-                    Assert.IsTrue(parser.Parse(stream, ref instance));
+                    Assert.IsTrue(decoder.Decode(stream, ref instance));
                 }
             }
 
@@ -113,7 +113,7 @@ namespace Verse.Bench
             {
                 instance = constructor();
 
-                Assert.IsTrue(parser.Parse(stream, ref instance));
+                Assert.IsTrue(decoder.Decode(stream, ref instance));
             }
 
             Assert.AreEqual(instance, reference);
@@ -133,12 +133,12 @@ namespace Verse.Bench
         }
 
         [Test]
-        public void PrintFlatStructure()
+        public void EncodeFlatStructure()
         {
-            IPrinter<MyFlatStructure> printer;
+            IEncoder<MyFlatStructure> encoder;
             MyFlatStructure instance;
 
-            printer = Linker.CreatePrinter(new JSONSchema<MyFlatStructure>());
+            encoder = Linker.CreateEncoder(new JSONSchema<MyFlatStructure>());
 
             instance = new MyFlatStructure
             {
@@ -155,16 +155,16 @@ namespace Verse.Bench
                 sit = 1.1
             };
 
-            this.BenchPrint(printer, instance, 10000);
+            this.BenchEncode(encoder, instance, 10000);
         }
 
         [Test]
-        public void PrintNestedArray()
+        public void EncodeNestedArray()
         {
-            IPrinter<MyNestedArray> printer;
+            IEncoder<MyNestedArray> encoder;
             MyNestedArray instance;
 
-            printer = Linker.CreatePrinter(new JSONSchema<MyNestedArray>());
+            encoder = Linker.CreateEncoder(new JSONSchema<MyNestedArray>());
 
             instance = new MyNestedArray
             {
@@ -201,10 +201,10 @@ namespace Verse.Bench
                 value = "f"
             };
 
-            this.BenchPrint(printer, instance, 10000);
+            this.BenchEncode(encoder, instance, 10000);
         }
 
-        private void BenchPrint<T>(IPrinter<T> printer, T instance, int count)
+        private void BenchEncode<T>(IEncoder<T> encoder, T instance, int count)
         {
             string expected;
             TimeSpan timeNewton;
@@ -224,14 +224,14 @@ namespace Verse.Bench
             for (int i = count; i-- > 0;)
             {
                 using (MemoryStream stream = new MemoryStream())
-                    Assert.IsTrue(printer.Print(instance, stream));
+                    Assert.IsTrue(encoder.Encode(instance, stream));
             }
 
             timeVerse = watch.Elapsed;
 
             using (MemoryStream stream = new MemoryStream())
             {
-                Assert.IsTrue(printer.Print(instance, stream));
+                Assert.IsTrue(encoder.Encode(instance, stream));
                 Assert.AreEqual(expected, Encoding.UTF8.GetString(stream.ToArray()));
             }
 

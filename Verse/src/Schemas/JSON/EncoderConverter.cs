@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using Verse.PrinterDescriptors.Abstract;
+using Verse.EncoderDescriptors.Abstract;
 
 namespace Verse.Schemas.JSON
 {

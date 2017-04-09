@@ -29,7 +29,7 @@ namespace Verse.Schemas.Protobuf
 
         #region Attributes / Public
 
-        public readonly PrinterError OnError;
+        public readonly EncodeError Error;
 
         #endregion
 
@@ -47,9 +47,9 @@ namespace Verse.Schemas.Protobuf
 
         #region Constructor
 
-        public WriterState(Stream stream, PrinterError onError)
+        public WriterState(Stream stream, EncodeError error)
         {
-            this.OnError = onError;
+            this.Error = error;
 
             this.fieldIndex = 0;
             this.parentOffset = 0;

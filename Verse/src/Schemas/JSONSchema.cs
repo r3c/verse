@@ -1,7 +1,7 @@
 using System;
 using System.Text;
-using Verse.ParserDescriptors;
-using Verse.PrinterDescriptors;
+using Verse.DecoderDescriptors;
+using Verse.EncoderDescriptors;
 using Verse.Schemas.JSON;
 
 namespace Verse.Schemas
@@ -15,20 +15,20 @@ namespace Verse.Schemas
         #region Properties
 
         /// <inheritdoc/>
-        public override IPrinterDescriptor<TEntity> PrinterDescriptor
+        public override IDecoderDescriptor<TEntity> DecoderDescriptor
         {
             get
             {
-                return this.printerDescriptor;
+                return this.decoderDescriptor;
             }
         }
 
         /// <inheritdoc/>
-        public override IParserDescriptor<TEntity> ParserDescriptor
+        public override IEncoderDescriptor<TEntity> EncoderDescriptor
         {
             get
             {
-                return this.parserDescriptor;
+                return this.encoderDescriptor;
             }
         }
 
@@ -38,11 +38,11 @@ namespace Verse.Schemas
 
         private readonly DecoderConverter decoderConverter;
 
+        private readonly RecurseDecoderDescriptor<TEntity, Value, ReaderState> decoderDescriptor;
+
         private readonly EncoderConverter encoderConverter;
 
-        private readonly RecurseParserDescriptor<TEntity, Value, ReaderState> parserDescriptor;
-
-        private readonly RecursePrinterDescriptor<TEntity, Value, WriterState> printerDescriptor;
+        private readonly RecurseEncoderDescriptor<TEntity, Value, WriterState> encoderDescriptor;
 
         #endregion
 
@@ -54,16 +54,13 @@ namespace Verse.Schemas
         /// <param name="settings">Text encoding, ignore null...</param>
         public JSONSchema(JSONSettings settings)
         {
-            DecoderConverter decoderConverter;
-            EncoderConverter encoderConverter;
-
-            decoderConverter = new DecoderConverter();
-            encoderConverter = new EncoderConverter();
+            var decoderConverter = new DecoderConverter();
+            var encoderConverter = new EncoderConverter();
 
             this.decoderConverter = decoderConverter;
             this.encoderConverter = encoderConverter;
-            this.parserDescriptor = new RecurseParserDescriptor<TEntity, Value, ReaderState>(decoderConverter, new Reader<TEntity>(settings.Encoding));
-            this.printerDescriptor = new RecursePrinterDescriptor<TEntity, Value, WriterState>(encoderConverter, new Writer<TEntity>(settings));
+            this.decoderDescriptor = new RecurseDecoderDescriptor<TEntity, Value, ReaderState>(decoderConverter, new Reader<TEntity>(settings.Encoding));
+            this.encoderDescriptor = new RecurseEncoderDescriptor<TEntity, Value, WriterState>(encoderConverter, new Writer<TEntity>(settings));
         }
 
         /// <summary>
@@ -88,15 +85,15 @@ namespace Verse.Schemas
         #region Methods
 
         /// <inheritdoc/>
-        public override IParser<TEntity> CreateParser()
+        public override IDecoder<TEntity> CreateDecoder()
         {
-            return this.parserDescriptor.CreateParser();
+            return this.decoderDescriptor.CreateDecoder();
         }
 
         /// <inheritdoc/>
-        public override IPrinter<TEntity> CreatePrinter()
+        public override IEncoder<TEntity> CreateEncoder()
         {
-            return this.printerDescriptor.CreatePrinter();
+            return this.encoderDescriptor.CreateEncoder();
         }
 
         /// <summary>

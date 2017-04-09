@@ -11,18 +11,18 @@ namespace Verse.UTest.Schemas
         [Test]
         [TestCase("?a&b&c")]
         [TestCase("?a&")]
-        public void ParseSuccess(string query)
+        public void DecodeSuccess(string query)
         {
-            IParser<string> parser;
+            IDecoder<string> decoder;
             QueryStringSchema<string> schema;
             string value;
 
             schema = new QueryStringSchema<string>();
             value = string.Empty;
 
-            parser = schema.CreateParser();
+            decoder = schema.CreateDecoder();
 
-            Assert.IsTrue(parser.Parse(new MemoryStream(Encoding.UTF8.GetBytes(query)), ref value));
+            Assert.IsTrue(decoder.Decode(new MemoryStream(Encoding.UTF8.GetBytes(query)), ref value));
         }
 
         [Test]
@@ -40,19 +40,19 @@ namespace Verse.UTest.Schemas
         [TestCase("f0", "?f0=v0'v1", "v0'v1")]
         [TestCase("f0", "?f0=a,b&f1=c", "a,b")]
         [TestCase("f1", "?f0=a,b&f1=c", "c")]
-        public void ParseFieldValue<T>(string name, string query, T expected)
+        public void DecodeFieldValue<T>(string name, string query, T expected)
         {
-            IParser<T> parser;
+            IDecoder<T> decoder;
             QueryStringSchema<T> schema;
             T value;
 
             schema = new QueryStringSchema<T>();
-            schema.ParserDescriptor.HasField(name).IsValue();
+            schema.DecoderDescriptor.HasField(name).IsValue();
 
-            parser = schema.CreateParser();
+            decoder = schema.CreateDecoder();
             value = default(T);
 
-            Assert.IsTrue(parser.Parse(new MemoryStream(Encoding.UTF8.GetBytes(query)), ref value));
+            Assert.IsTrue(decoder.Decode(new MemoryStream(Encoding.UTF8.GetBytes(query)), ref value));
             Assert.AreEqual(expected, value);
         }
 
@@ -61,19 +61,19 @@ namespace Verse.UTest.Schemas
         [TestCase("f0", "?f0=v0%3Dv1", "v0=v1")]
         [TestCase("f0", "?f0=v0%3dv1", "v0=v1")]
         [TestCase("f0", "?f0=http%3a%2f%2fwww.pokewiki.de%2fSchillern+de_Pok%c3%a9mon", "http://www.pokewiki.de/Schillern de_Pokémon")]
-        public void ParseSpecialCharacter<T>(string name, string query, T expected)
+        public void DecodeSpecialCharacter<T>(string name, string query, T expected)
         {
-            IParser<T> parser;
+            IDecoder<T> decoder;
             QueryStringSchema<T> schema;
             T value;
 
             schema = new QueryStringSchema<T>();
-            schema.ParserDescriptor.HasField(name).IsValue();
+            schema.DecoderDescriptor.HasField(name).IsValue();
 
-            parser = schema.CreateParser();
+            decoder = schema.CreateDecoder();
             value = default(T);
 
-            Assert.IsTrue(parser.Parse(new MemoryStream(Encoding.UTF8.GetBytes(query)), ref value));
+            Assert.IsTrue(decoder.Decode(new MemoryStream(Encoding.UTF8.GetBytes(query)), ref value));
             Assert.AreEqual(expected, value);
         }
 
@@ -81,17 +81,17 @@ namespace Verse.UTest.Schemas
         [TestCase("?=v0")]
         [TestCase("?&f0")]
         [TestCase("?f0==v0")]
-        public void ParseFail(string query)
+        public void DecodeFail(string query)
         {
-            IParser<string> parser;
+            IDecoder<string> decoder;
             QueryStringSchema<string> schema;
             string value;
 
             schema = new QueryStringSchema<string>();
-            parser = schema.CreateParser();
+            decoder = schema.CreateDecoder();
             value = string.Empty;
 
-            Assert.IsFalse(parser.Parse(new MemoryStream(Encoding.UTF8.GetBytes(query)), ref value));
+            Assert.IsFalse(decoder.Decode(new MemoryStream(Encoding.UTF8.GetBytes(query)), ref value));
         }
     }
 }

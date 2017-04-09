@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using Verse.ParserDescriptors.Flat;
+using Verse.DecoderDescriptors.Flat;
 
 namespace Verse.Schemas.QueryString
 {
@@ -9,7 +9,7 @@ namespace Verse.Schemas.QueryString
     {
         #region Events
 
-        public event ParserError Error;
+        public event DecodeError Error;
 
         #endregion
 
@@ -200,7 +200,7 @@ namespace Verse.Schemas.QueryString
 
         private void OnError(int position, string message)
         {
-            ParserError error;
+            DecodeError error;
 
             error = this.Error;
 

@@ -11,13 +11,13 @@ namespace Verse.Schemas
         #region Properties
 
         /// <inheritdoc/>
-        public abstract IPrinterDescriptor<TEntity> PrinterDescriptor
+        public abstract IDecoderDescriptor<TEntity> DecoderDescriptor
         {
             get;
         }
 
         /// <inheritdoc/>
-        public abstract IParserDescriptor<TEntity> ParserDescriptor
+        public abstract IEncoderDescriptor<TEntity> EncoderDescriptor
         {
             get;
         }
@@ -27,10 +27,10 @@ namespace Verse.Schemas
         #region Methods
 
         /// <inheritdoc/>
-        public abstract IPrinter<TEntity> CreatePrinter();
+        public abstract IDecoder<TEntity> CreateDecoder();
 
         /// <inheritdoc/>
-        public abstract IParser<TEntity> CreateParser();
+        public abstract IEncoder<TEntity> CreateEncoder();
 
         #endregion
     }

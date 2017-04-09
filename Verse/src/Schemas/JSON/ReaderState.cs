@@ -10,7 +10,7 @@ namespace Verse.Schemas.JSON
 
         public int Current;
 
-        public readonly ParserError OnError;
+        public readonly DecodeError Error;
 
         public int Position;
 
@@ -24,11 +24,11 @@ namespace Verse.Schemas.JSON
 
         #region Constructors
 
-        public ReaderState(Stream stream, Encoding encoding, ParserError onError)
+        public ReaderState(Stream stream, Encoding encoding, DecodeError error)
         {
             this.reader = new StreamReader(stream, encoding);
 
-            this.OnError = onError;
+            this.Error = error;
             this.Position = 0;
 
             this.Read();
@@ -125,7 +125,7 @@ namespace Verse.Schemas.JSON
                             nibble = previous - (int)'a' + 10;
                         else
                         {
-                            this.OnError(this.Position, "unknown character in unicode escape sequence");
+                            this.Error(this.Position, "unknown character in unicode escape sequence");
 
                             character = default (char);
 
@@ -150,7 +150,7 @@ namespace Verse.Schemas.JSON
         {
             if (this.Current != (int)expected)
             {
-                this.OnError(this.Position, "expected '" + expected + "'");
+                this.Error(this.Position, "expected '" + expected + "'");
 
                 return false;
             }

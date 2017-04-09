@@ -10,7 +10,7 @@ namespace Verse
 {
     /// <summary>
     /// Utility class able to scan any type (using reflection) to automatically
-    /// declare its fields to a printer or parser descriptor.
+    /// declare its fields to a decoder or encoder descriptor.
     /// </summary>
     public class Linker
     {
@@ -26,25 +26,25 @@ namespace Verse
         #region Methods / Public / Instance
 
         /// <summary>
-        /// Scan entity type and declare fields using given parser descriptor.
+        /// Scan entity type and declare fields using given decoder descriptor.
         /// </summary>
         /// <typeparam name="TEntity">Entity type</typeparam>
-        /// <param name="descriptor">Parser descriptor</param>
+        /// <param name="descriptor">Decoder descriptor</param>
         /// <returns>True if binding succeeded, false otherwise</returns>
-        public bool LinkParser<TEntity>(IParserDescriptor<TEntity> descriptor)
+        public bool LinkDecoder<TEntity>(IDecoderDescriptor<TEntity> descriptor)
         {
-            return this.LinkParser(descriptor, new Dictionary<Type, object>());
+            return this.LinkDecoder(descriptor, new Dictionary<Type, object>());
         }
 
         /// <summary>
-        /// Scan entity type and declare fields using given printer descriptor.
+        /// Scan entity type and declare fields using given encoder descriptor.
         /// </summary>
         /// <typeparam name="TEntity">Entity type</typeparam>
-        /// <param name="descriptor">Printer descriptor</param>
+        /// <param name="descriptor">Encoder descriptor</param>
         /// <returns>True if binding succeeded, false otherwise</returns>
-        public bool LinkPrinter<TEntity>(IPrinterDescriptor<TEntity> descriptor)
+        public bool LinkEncoder<TEntity>(IEncoderDescriptor<TEntity> descriptor)
         {
-            return this.LinkPrinter(descriptor, new Dictionary<Type, object>());
+            return this.LinkEncoder(descriptor, new Dictionary<Type, object>());
         }
 
         #endregion
@@ -52,14 +52,14 @@ namespace Verse
         #region Methods / Public / Static
 
         /// <summary>
-        /// Shorthand method to create a parser from given schema. This is
-        /// equivalent to creating a new linker, use it on schema's parser
+        /// Shorthand method to create a decoder from given schema. This is
+        /// equivalent to creating a new linker, use it on schema's decoder
         /// descriptor and throw exception whenever error event is fired.
         /// </summary>
         /// <typeparam name="TEntity">Entity type</typeparam>
         /// <param name="schema">Entity schema</param>
-        /// <returns>Entity parser</returns>
-        public static IParser<TEntity> CreateParser<TEntity>(ISchema<TEntity> schema)
+        /// <returns>Entity decoder</returns>
+        public static IDecoder<TEntity> CreateDecoder<TEntity>(ISchema<TEntity> schema)
         {
             Linker linker;
             string message;
@@ -75,21 +75,21 @@ namespace Verse
             message = "unknown";
             type = typeof (TEntity);
 
-            if (!linker.LinkParser(schema.ParserDescriptor))
-                throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, "can't link parser for type '{0}' (error with type '{1}', {2})", typeof (TEntity), type, message), "schema");
+            if (!linker.LinkDecoder(schema.DecoderDescriptor))
+                throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, "can't link decoder for type '{0}' (error with type '{1}', {2})", typeof (TEntity), type, message), "schema");
 
-            return schema.CreateParser();
+            return schema.CreateDecoder();
         }
 
         /// <summary>
-        /// Shorthand method to create a printer from given schema. This is
-        /// equivalent to creating a new linker, use it on schema's Printer
+        /// Shorthand method to create an encoder from given schema. This is
+        /// equivalent to creating a new linker, use it on schema's encoder
         /// descriptor and throw exception whenever error event is fired.
         /// </summary>
         /// <typeparam name="TEntity">Entity type</typeparam>
         /// <param name="schema">Entity schema</param>
-        /// <returns>Entity Printer</returns>
-        public static IPrinter<TEntity> CreatePrinter<TEntity>(ISchema<TEntity> schema)
+        /// <returns>Entity encoder</returns>
+        public static IEncoder<TEntity> CreateEncoder<TEntity>(ISchema<TEntity> schema)
         {
             Linker linker;
             string message;
@@ -105,17 +105,17 @@ namespace Verse
             message = "unknown";
             type = typeof (TEntity);
 
-            if (!linker.LinkPrinter(schema.PrinterDescriptor))
-                throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, "can't link printer for type '{0}' (error with type '{1}', {2})", typeof (TEntity), type, message), "schema");
+            if (!linker.LinkEncoder(schema.EncoderDescriptor))
+                throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, "can't link encoder for type '{0}' (error with type '{1}', {2})", typeof (TEntity), type, message), "schema");
 
-            return schema.CreatePrinter();
+            return schema.CreateEncoder();
         }
 
         #endregion
 
         #region Methods / Private / Instance
 
-        private bool LinkParser<T>(IParserDescriptor<T> descriptor, Dictionary<Type, object> parents)
+        private bool LinkDecoder<T>(IDecoderDescriptor<T> descriptor, Dictionary<Type, object> parents)
         {
             Type[] arguments;
             object assign;
@@ -146,7 +146,7 @@ namespace Verse
                 inner = type.GetElementType();
                 assign = Linker.MakeAssignArray(inner);
 
-                return this.LinkParserArray(descriptor, inner, assign, parents);
+                return this.LinkDecoderArray(descriptor, inner, assign, parents);
             }
 
             // Target type implements IEnumerable<> interface
@@ -181,7 +181,7 @@ namespace Verse
 
                         assign = Linker.MakeAssignArray(constructor, inner);
 
-                        return this.LinkParserArray(descriptor, inner, assign, parents);
+                        return this.LinkDecoderArray(descriptor, inner, assign, parents);
                     }
                 }
             }
@@ -194,7 +194,7 @@ namespace Verse
 
                 assign = Linker.MakeAssignField(property);
 
-                if (!this.LinkParserField(descriptor, property.PropertyType, property.Name, assign, parents))
+                if (!this.LinkDecoderField(descriptor, property.PropertyType, property.Name, assign, parents))
                     return false;
             }
 
@@ -206,14 +206,14 @@ namespace Verse
 
                 assign = Linker.MakeAssignField(field);
 
-                if (!this.LinkParserField(descriptor, field.FieldType, field.Name, assign, parents))
+                if (!this.LinkDecoderField(descriptor, field.FieldType, field.Name, assign, parents))
                     return false;
             }
 
             return true;
         }
 
-        private bool LinkParserArray<TEntity>(IParserDescriptor<TEntity> descriptor, Type type, object assign, IDictionary<Type, object> parents)
+        private bool LinkDecoderArray<TEntity>(IDecoderDescriptor<TEntity> descriptor, Type type, object assign, IDictionary<Type, object> parents)
         {
             object recurse;
             object result;
@@ -221,17 +221,17 @@ namespace Verse
             if (parents.TryGetValue(type, out recurse))
             {
                 Resolver
-                    .Method<Func<IParserDescriptor<TEntity>, ParserAssign<TEntity, IEnumerable<object>>, IParserDescriptor<object>, IParserDescriptor<object>>>((d, a, p) => d.IsArray(a, p), null, new[] { type })
+                    .Method<Func<IDecoderDescriptor<TEntity>, DecodeAssign<TEntity, IEnumerable<object>>, IDecoderDescriptor<object>, IDecoderDescriptor<object>>>((d, a, p) => d.IsArray(a, p), null, new[] { type })
                     .Invoke(descriptor, new[] { assign, recurse });
             }
             else
             {
                 recurse = Resolver
-                    .Method<Func<IParserDescriptor<TEntity>, ParserAssign<TEntity, IEnumerable<object>>, IParserDescriptor<object>>>((d, a) => d.IsArray(a), null, new[] { type })
+                    .Method<Func<IDecoderDescriptor<TEntity>, DecodeAssign<TEntity, IEnumerable<object>>, IDecoderDescriptor<object>>>((d, a) => d.IsArray(a), null, new[] { type })
                     .Invoke(descriptor, new[] { assign });
 
                 result = Resolver
-                    .Method<Func<Linker, IParserDescriptor<object>, Dictionary<Type, object>, bool>>((l, d, p) => l.LinkParser(d, p), null, new[] { type })
+                    .Method<Func<Linker, IDecoderDescriptor<object>, Dictionary<Type, object>, bool>>((l, d, p) => l.LinkDecoder(d, p), null, new[] { type })
                     .Invoke(this, new object[] { recurse, parents });
 
                 if (!(result is bool))
@@ -244,7 +244,7 @@ namespace Verse
             return true;
         }
 
-        private bool LinkParserField<TEntity>(IParserDescriptor<TEntity> descriptor, Type type, string name, object assign, IDictionary<Type, object> parents)
+        private bool LinkDecoderField<TEntity>(IDecoderDescriptor<TEntity> descriptor, Type type, string name, object assign, IDictionary<Type, object> parents)
         {
             object recurse;
             object result;
@@ -252,17 +252,17 @@ namespace Verse
             if (parents.TryGetValue(type, out recurse))
             {
                 Resolver
-                    .Method<Func<IParserDescriptor<TEntity>, string, ParserAssign<TEntity, object>, IParserDescriptor<object>, IParserDescriptor<object>>>((d, n, a, p) => d.HasField(n, a, p), null, new[] { type })
+                    .Method<Func<IDecoderDescriptor<TEntity>, string, DecodeAssign<TEntity, object>, IDecoderDescriptor<object>, IDecoderDescriptor<object>>>((d, n, a, p) => d.HasField(n, a, p), null, new[] { type })
                     .Invoke(descriptor, new object[] { name, assign, recurse });
             }
             else
             {
                 recurse = Resolver
-                    .Method<Func<IParserDescriptor<TEntity>, string, ParserAssign<TEntity, object>, IParserDescriptor<object>>>((d, n, a) => d.HasField(n, a), null, new[] { type })
+                    .Method<Func<IDecoderDescriptor<TEntity>, string, DecodeAssign<TEntity, object>, IDecoderDescriptor<object>>>((d, n, a) => d.HasField(n, a), null, new[] { type })
                     .Invoke(descriptor, new object[] { name, assign });
 
                 result = Resolver
-                    .Method<Func<Linker, IParserDescriptor<object>, Dictionary<Type, object>, bool>>((l, d, p) => l.LinkParser(d, p), null, new[] { type })
+                    .Method<Func<Linker, IDecoderDescriptor<object>, Dictionary<Type, object>, bool>>((l, d, p) => l.LinkDecoder(d, p), null, new[] { type })
                     .Invoke(this, new object[] { recurse, parents });
 
                 if (!(result is bool))
@@ -275,7 +275,7 @@ namespace Verse
             return true;
         }
 
-        private bool LinkPrinter<T>(IPrinterDescriptor<T> descriptor, Dictionary<Type, object> parents)
+        private bool LinkEncoder<T>(IEncoderDescriptor<T> descriptor, Dictionary<Type, object> parents)
         {
             object access;
             Type[] arguments;
@@ -304,7 +304,7 @@ namespace Verse
                 inner = type.GetElementType();
                 access = Linker.MakeAccessArray(inner);
 
-                return this.LinkPrinterArray(descriptor, inner, access, parents);
+                return this.LinkEncoderArray(descriptor, inner, access, parents);
             }
 
             // Target type implements IEnumerable<> interface
@@ -320,7 +320,7 @@ namespace Verse
                     inner = arguments[0];
                     access = Linker.MakeAccessArray(inner);
 
-                    return this.LinkPrinterArray(descriptor, inner, access, parents);
+                    return this.LinkEncoderArray(descriptor, inner, access, parents);
                 }
             }
 
@@ -332,7 +332,7 @@ namespace Verse
 
                 access = Linker.MakeAccessField(property);
 
-                if (!this.LinkPrinterField(descriptor, property.PropertyType, property.Name, access, parents))
+                if (!this.LinkEncoderField(descriptor, property.PropertyType, property.Name, access, parents))
                     return false;
             }
 
@@ -344,14 +344,14 @@ namespace Verse
 
                 access = Linker.MakeAccessField(field);
 
-                if (!this.LinkPrinterField(descriptor, field.FieldType, field.Name, access, parents))
+                if (!this.LinkEncoderField(descriptor, field.FieldType, field.Name, access, parents))
                     return false;
             }
 
             return true;
         }
 
-        private bool LinkPrinterArray<T>(IPrinterDescriptor<T> descriptor, Type type, object access, IDictionary<Type, object> parents)
+        private bool LinkEncoderArray<T>(IEncoderDescriptor<T> descriptor, Type type, object access, IDictionary<Type, object> parents)
         {
             object recurse;
             object result;
@@ -359,17 +359,17 @@ namespace Verse
             if (parents.TryGetValue(type, out recurse))
             {
                 Resolver
-                    .Method<Func<IPrinterDescriptor<T>, Func<T, IEnumerable<object>>, IPrinterDescriptor<object>, IPrinterDescriptor<object>>>((d, a, p) => d.IsArray(a, p), null, new[] { type })
+                    .Method<Func<IEncoderDescriptor<T>, Func<T, IEnumerable<object>>, IEncoderDescriptor<object>, IEncoderDescriptor<object>>>((d, a, p) => d.IsArray(a, p), null, new[] { type })
                     .Invoke(descriptor, new[] { access, recurse });
             }
             else
             {
                 recurse = Resolver
-                    .Method<Func<IPrinterDescriptor<T>, Func<T, IEnumerable<object>>, IPrinterDescriptor<object>>>((d, a) => d.IsArray(a), null, new[] { type })
+                    .Method<Func<IEncoderDescriptor<T>, Func<T, IEnumerable<object>>, IEncoderDescriptor<object>>>((d, a) => d.IsArray(a), null, new[] { type })
                     .Invoke(descriptor, new[] { access });
 
                 result = Resolver
-                    .Method<Func<Linker, IPrinterDescriptor<object>, Dictionary<Type, object>, bool>>((l, d, p) => l.LinkPrinter(d, p), null, new[] { type })
+                    .Method<Func<Linker, IEncoderDescriptor<object>, Dictionary<Type, object>, bool>>((l, d, p) => l.LinkEncoder(d, p), null, new[] { type })
                     .Invoke(this, new object[] { recurse, parents });
 
                 if (!(result is bool))
@@ -382,7 +382,7 @@ namespace Verse
             return true;
         }
 
-        private bool LinkPrinterField<T>(IPrinterDescriptor<T> descriptor, Type type, string name, object access, IDictionary<Type, object> parents)
+        private bool LinkEncoderField<T>(IEncoderDescriptor<T> descriptor, Type type, string name, object access, IDictionary<Type, object> parents)
         {
             object recurse;
             object result;
@@ -390,17 +390,17 @@ namespace Verse
             if (parents.TryGetValue(type, out recurse))
             {
                 Resolver
-                    .Method<Func<IPrinterDescriptor<T>, string, Func<T, object>, IPrinterDescriptor<object>, IPrinterDescriptor<object>>>((d, n, a, p) => d.HasField(n, a, p), null, new[] { type })
+                    .Method<Func<IEncoderDescriptor<T>, string, Func<T, object>, IEncoderDescriptor<object>, IEncoderDescriptor<object>>>((d, n, a, p) => d.HasField(n, a, p), null, new[] { type })
                     .Invoke(descriptor, new object[] { name, access, recurse });
             }
             else
             {
                 recurse = Resolver
-                    .Method<Func<IPrinterDescriptor<T>, string, Func<T, object>, IPrinterDescriptor<object>>>((d, n, a) => d.HasField(n, a), null, new[] { type })
+                    .Method<Func<IEncoderDescriptor<T>, string, Func<T, object>, IEncoderDescriptor<object>>>((d, n, a) => d.HasField(n, a), null, new[] { type })
                     .Invoke(descriptor, new object[] { name, access });
 
                 result = Resolver
-                    .Method<Func<Linker, IPrinterDescriptor<object>, Dictionary<Type, object>, bool>>((l, d, p) => l.LinkPrinter(d, p), null, new[] { type })
+                    .Method<Func<Linker, IEncoderDescriptor<object>, Dictionary<Type, object>, bool>>((l, d, p) => l.LinkEncoder(d, p), null, new[] { type })
                     .Invoke(this, new object[] { recurse, parents });
 
                 if (!(result is bool))
@@ -474,12 +474,12 @@ namespace Verse
         }
 
         /// <summary>
-        /// Generate ParserAssign delegate from IEnumerable to any compatible
+        /// Generate DecoderAssign delegate from IEnumerable to any compatible
         /// object, using a constructor taking the IEnumerable as its argument.
         /// </summary>
         /// <param name="constructor">Compatible constructor</param>
         /// <param name="inner">Inner elements type</param>
-        /// <returns>ParserAssign delegate</returns>
+        /// <returns>DecoderAssign delegate</returns>
         private static object MakeAssignArray(ConstructorInfo constructor, Type inner)
         {
             Type enumerable;
@@ -501,15 +501,15 @@ namespace Verse
 
             generator.Emit(OpCodes.Ret);
 
-            return method.CreateDelegate(typeof (ParserAssign<,>).MakeGenericType(constructor.DeclaringType, enumerable));
+            return method.CreateDelegate(typeof (DecodeAssign<,>).MakeGenericType(constructor.DeclaringType, enumerable));
         }
 
         /// <summary>
-        /// Generate ParserAssign delegate from IEnumerable to compatible array
+        /// Generate DecoderAssign delegate from IEnumerable to compatible array
         /// type, using Linq Enumerable.ToArray conversion.
         /// </summary>
         /// <param name="inner">Inner elements type</param>
-        /// <returns>ParserAssign delegate</returns>
+        /// <returns>DecoderAssign delegate</returns>
         private static object MakeAssignArray(Type inner)
         {
             MethodInfo converter;
@@ -528,7 +528,7 @@ namespace Verse
             generator.Emit(OpCodes.Stind_Ref);
             generator.Emit(OpCodes.Ret);
 
-            return method.CreateDelegate(typeof (ParserAssign<,>).MakeGenericType(inner.MakeArrayType(), enumerable));
+            return method.CreateDelegate(typeof (DecodeAssign<,>).MakeGenericType(inner.MakeArrayType(), enumerable));
         }
 
         private static object MakeAssignField(FieldInfo field)
@@ -548,7 +548,7 @@ namespace Verse
             generator.Emit(OpCodes.Stfld, field);
             generator.Emit(OpCodes.Ret);
 
-            return method.CreateDelegate(typeof (ParserAssign<,>).MakeGenericType(field.DeclaringType, field.FieldType));
+            return method.CreateDelegate(typeof (DecodeAssign<,>).MakeGenericType(field.DeclaringType, field.FieldType));
         }
 
         private static object MakeAssignField(PropertyInfo property)
@@ -568,7 +568,7 @@ namespace Verse
             generator.Emit(OpCodes.Call, property.GetSetMethod());
             generator.Emit(OpCodes.Ret);
 
-            return method.CreateDelegate(typeof (ParserAssign<,>).MakeGenericType(property.DeclaringType, property.PropertyType));
+            return method.CreateDelegate(typeof (DecodeAssign<,>).MakeGenericType(property.DeclaringType, property.PropertyType));
         }
 
         #endregion

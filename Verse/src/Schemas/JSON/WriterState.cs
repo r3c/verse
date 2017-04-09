@@ -8,7 +8,7 @@ namespace Verse.Schemas.JSON
     {
         #region Attributes / Public
 
-        public readonly PrinterError OnError;
+        public readonly EncodeError Error;
 
         public int Position;
 
@@ -36,14 +36,14 @@ namespace Verse.Schemas.JSON
 
         #region Constructors
 
-        public WriterState(Stream stream, PrinterError onError, JSONSettings settings)
+        public WriterState(Stream stream, EncodeError error, JSONSettings settings)
         {
             this.ignoreNull = settings.IgnoreNull;
             this.currentKey = null;
             this.addComma = false;
             this.writer = new StreamWriter(stream, settings.Encoding);
 
-            this.OnError = onError;
+            this.Error = error;
             this.Position = 0;
         }
 

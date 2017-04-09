@@ -10,16 +10,16 @@ namespace Verse.UTest
         {
             byte[] first;
             T other;
-            IParser<T> parser;
-            IPrinter<T> printer;
+            IDecoder<T> decoder;
+            IEncoder<T> encoder;
             byte[] second;
 
-            parser = Linker.CreateParser(schema);
-            printer = Linker.CreatePrinter(schema);
+            decoder = Linker.CreateDecoder(schema);
+            encoder = Linker.CreateEncoder(schema);
 
             using (MemoryStream stream = new MemoryStream())
             {
-                Assert.IsTrue(printer.Print(instance, stream));
+                Assert.IsTrue(encoder.Encode(instance, stream));
 
                 first = stream.ToArray();
             }
@@ -28,14 +28,14 @@ namespace Verse.UTest
             {
                 other = constructor();
 
-                Assert.IsTrue(parser.Parse(stream, ref other));
+                Assert.IsTrue(decoder.Decode(stream, ref other));
             }
 
             Assert.IsTrue(equalityTester(instance, other));
 
             using (MemoryStream stream = new MemoryStream())
             {
-                Assert.IsTrue(printer.Print(other, stream));
+                Assert.IsTrue(encoder.Encode(other, stream));
 
                 second = stream.ToArray();
             }

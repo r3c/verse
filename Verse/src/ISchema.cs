@@ -3,8 +3,8 @@ using System;
 namespace Verse
 {
     /// <summary>
-    /// Schema describes how to print (through a printer descriptor) or parse
-    /// (through a parser descriptor) any instance of type
+    /// Schema describes how to read (through a decoder descriptor) or read
+    /// (through an encoder descriptor) any instance of type
     /// <typeparamref name="TEntity"/> using a given serialization format which
     /// depends on the actual implementation.
     /// </summary>
@@ -14,17 +14,17 @@ namespace Verse
         #region Properties
 
         /// <summary>
-        /// Get parser descriptor for this schema and entity type.
+        /// Get decoder descriptor for this schema and entity type.
         /// </summary>
-        IParserDescriptor<TEntity> ParserDescriptor
+        IDecoderDescriptor<TEntity> DecoderDescriptor
         {
             get;
         }
 
         /// <summary>
-        /// Get printer descriptor for this schema and entity type.
+        /// Get encoder descriptor for this schema and entity type.
         /// </summary>
-        IPrinterDescriptor<TEntity> PrinterDescriptor
+        IEncoderDescriptor<TEntity> EncoderDescriptor
         {
             get;
         }
@@ -34,18 +34,18 @@ namespace Verse
         #region Methods
 
         /// <summary>
-        /// Create an entity parser based on instructions passed to the
-        /// parser descriptor associated to this schema.
+        /// Create an entity decoder based on instructions passed to the
+        /// decoder descriptor associated to this schema.
         /// </summary>
-        /// <returns>Parser descriptor</returns>
-        IParser<TEntity> CreateParser();
+        /// <returns>Decoder descriptor</returns>
+        IDecoder<TEntity> CreateDecoder();
 
         /// <summary>
-        /// Create an entity printer based on instructions passed to the
-        /// Printer descriptor associated to this schema.
+        /// Create an entity encoder based on instructions passed to the
+        /// encoder descriptor associated to this schema.
         /// </summary>
-        /// <returns>Printer descriptor</returns>
-        IPrinter<TEntity> CreatePrinter();
+        /// <returns>Encoder descriptor</returns>
+        IEncoder<TEntity> CreateEncoder();
 
         #endregion
     }

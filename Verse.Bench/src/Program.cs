@@ -8,8 +8,8 @@ namespace Verse.Bench
         {
             CompareNewtonsoft compare = new CompareNewtonsoft();
 
-            compare.ParseFlatStructure();
-            compare.PrintFlatStructure();
+            compare.DecodeFlatStructure();
+            compare.EncodeFlatStructure();
         }
     }
 }

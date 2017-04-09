@@ -13,30 +13,30 @@ namespace Verse.Bench
         [TestCase(100000)]
         public void Bench(int repeat)
         {
-            IParser<A> parser1;
-            IParser<A> parser2;
+            IDecoder<A> decoder1;
+            IDecoder<A> decoder2;
             JSONSchema<A> schema;
             A value;
 
             schema = new JSONSchema<A>();
-            schema.ParserDescriptor.HasField("b", (ref A a, int b) => a.b = b).IsValue();
+            schema.DecoderDescriptor.HasField("b", (ref A a, int b) => a.b = b).IsValue();
 
-            parser1 = schema.CreateParser();
+            decoder1 = schema.CreateDecoder();
 
             schema = new JSONSchema<A>();
-            schema.ParserDescriptor.HasField("b").IsValue((ref A a, int b) => a.b = b);
+            schema.DecoderDescriptor.HasField("b").IsValue((ref A a, int b) => a.b = b);
 
-            parser2 = schema.CreateParser();
+            decoder2 = schema.CreateDecoder();
 
             var j1 = Encoding.UTF8.GetBytes("{\"b\": 5}");
             var j2 = Encoding.UTF8.GetBytes("{\"b\": 7}");
 
             value = new A();
-            Assert.IsTrue(parser1.Parse(new MemoryStream(j1), ref value));
+            Assert.IsTrue(decoder1.Decode(new MemoryStream(j1), ref value));
             Assert.AreEqual(5, value.b);
 
             value = new A();
-            Assert.IsTrue(parser2.Parse(new MemoryStream(j2), ref value));
+            Assert.IsTrue(decoder2.Decode(new MemoryStream(j2), ref value));
             Assert.AreEqual(7, value.b);
 
             var m1 = new MemoryStream(j1);
@@ -44,7 +44,7 @@ namespace Verse.Bench
 
             for (int i = 0; i < repeat; ++i)
             {
-                parser1.Parse(m1, ref value);
+                decoder1.Decode(m1, ref value);
                 m1.Seek(0, SeekOrigin.Begin);
             }
 
@@ -55,7 +55,7 @@ namespace Verse.Bench
 
             for (int i = 0; i < repeat; ++i)
             {
-                parser2.Parse(m2, ref value);
+                decoder2.Decode(m2, ref value);
                 m2.Seek(0, SeekOrigin.Begin);
             }
 
