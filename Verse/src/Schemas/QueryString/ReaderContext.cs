@@ -31,8 +31,6 @@ namespace Verse.Schemas.QueryString
 
         private int position;
 
-        public bool IsField;
-
         private readonly StreamReader reader;
 
         #endregion
@@ -43,7 +41,6 @@ namespace Verse.Schemas.QueryString
         {
             this.current = 0;
             this.position = 0;
-            this.IsField = true;
             this.reader = new StreamReader(stream, encoding);
 
             this.Pull();
