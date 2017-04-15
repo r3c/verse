@@ -16,11 +16,11 @@ namespace Verse.Schemas.JSON
 
         #region Attributes / Private
 
-        private bool addComma;
-
         private string currentKey;
 
         private readonly bool ignoreNull;
+
+        private bool needComma;
 
         private readonly StreamWriter writer;
 
@@ -38,9 +38,9 @@ namespace Verse.Schemas.JSON
 
         public WriterState(Stream stream, EncodeError error, JSONSettings settings)
         {
-            this.ignoreNull = settings.IgnoreNull;
             this.currentKey = null;
-            this.addComma = false;
+            this.ignoreNull = settings.IgnoreNull;
+            this.needComma = false;
             this.writer = new StreamWriter(stream, settings.Encoding);
 
             this.Error = error;
@@ -66,19 +66,21 @@ namespace Verse.Schemas.JSON
 
         #endregion
 
-        #region Methods
+        #region Methods / Public
 
         public void ArrayBegin()
         {
-            this.PrepareToInsertEntry();
+            this.BeforeNonNull();
             this.writer.Write('[');
-            this.addComma = false;
+
+            this.needComma = false;
         }
 
         public void ArrayEnd()
         {
             this.writer.Write(']');
-            this.addComma = true;
+
+            this.needComma = true;
         }
 
         public void Key(string key)
@@ -93,15 +95,17 @@ namespace Verse.Schemas.JSON
 
         public void ObjectBegin()
         {
-            this.PrepareToInsertEntry();
+            this.BeforeNonNull();
             this.writer.Write('{');
-            this.addComma = false;
+
+            this.needComma = false;
         }
 
         public void ObjectEnd()
         {
             this.writer.Write('}');
-            this.addComma = true;
+
+            this.needComma = true;
         }
 
         public void String(string value)
@@ -131,19 +135,19 @@ namespace Verse.Schemas.JSON
             switch (value.Type)
             {
                 case ContentType.Boolean:
-                    this.PrepareToInsertEntry();
+                    this.BeforeNonNull();
                     this.writer.Write(value.Boolean ? "true" : "false");
 
                     break;
 
                 case ContentType.Number:
-                    this.PrepareToInsertEntry();
+                    this.BeforeNonNull();
                     this.writer.Write(value.Number.ToString(CultureInfo.InvariantCulture));
 
                     break;
 
                 case ContentType.String:
-                    this.PrepareToInsertEntry();
+                    this.BeforeNonNull();
                     this.String(value.String);
 
                     break;
@@ -156,18 +160,22 @@ namespace Verse.Schemas.JSON
                         return;
                     }
 
-                    this.PrepareToInsertEntry();
+                    this.BeforeNonNull();
                     this.writer.Write("null");
 
                     break;
             }
 
-            this.addComma = true;
+            this.needComma = true;
         }
 
-        private void PrepareToInsertEntry()
+        #endregion
+
+        #region Methods / Private
+
+        private void BeforeNonNull()
         {
-            if (this.addComma)
+            if (this.needComma)
                 this.writer.Write(',');
 
             if (this.currentKey != null)
