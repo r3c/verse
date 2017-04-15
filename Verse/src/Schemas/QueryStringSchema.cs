@@ -67,7 +67,7 @@ namespace Verse.Schemas
             throw new NotImplementedException("encoding not implemented");
         }
 
-        public void SetDecoder<U>(Converter<string, U> converter)
+        public void SetDecoderConverter<U>(Converter<string, U> converter)
         {
             this.decoderConverter.Set(converter);
         }

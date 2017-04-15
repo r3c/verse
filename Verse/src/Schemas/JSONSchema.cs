@@ -75,8 +75,8 @@ namespace Verse.Schemas
         /// <summary>
         /// Create JSON schema using default UTF8 encoding.
         /// </summary>
-        public JSONSchema() :
-            this(new UTF8Encoding(false))
+        public JSONSchema()
+        	: this(new UTF8Encoding(false))
         {
         }
 
@@ -101,7 +101,7 @@ namespace Verse.Schemas
         /// </summary>
         /// <typeparam name="TOutput">Target output type</typeparam>
         /// <param name="converter">Converter from JSON native value to output type</param>
-        public void SetDecoder<TOutput>(Converter<Value, TOutput> converter)
+        public void SetDecoderConverter<TOutput>(Converter<Value, TOutput> converter)
         {
             this.decoderConverter.Set(converter);
         }
@@ -111,7 +111,7 @@ namespace Verse.Schemas
         /// </summary>
         /// <typeparam name="TInput">Target input type</typeparam>
         /// <param name="converter">Converter from input type to JSON native value</param>
-        public void SetEncoder<TInput>(Converter<TInput, Value> converter)
+        public void SetEncoderConverter<TInput>(Converter<TInput, Value> converter)
         {
             this.encoderConverter.Set(converter);
         }

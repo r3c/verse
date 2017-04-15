@@ -158,7 +158,7 @@ namespace Verse.Test.Schemas
             JSONSchema<Guid> schema;
 
             schema = new JSONSchema<Guid>();
-            schema.SetDecoder((v) => Guid.Parse(v.String));
+            schema.SetDecoderConverter((v) => Guid.Parse(v.String));
             schema.DecoderDescriptor.IsValue();
 
             this.AssertDecodeAndEqual(schema, json, Guid.Parse(expected));
@@ -250,7 +250,7 @@ namespace Verse.Test.Schemas
             JSONSchema<Guid> schema;
 
             schema = new JSONSchema<Guid>();
-            schema.SetEncoder<Guid>((v) => Value.FromString(v.ToString()));
+            schema.SetEncoderConverter<Guid>((v) => Value.FromString(v.ToString()));
             schema.EncoderDescriptor.IsValue();
 
             this.AssertEncodeAndEqual(schema, Guid.Parse(guid), expected);

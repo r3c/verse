@@ -43,13 +43,13 @@ namespace Verse.Schemas
 
         public ProtobufSchema()
         {
-            var sourceConverter = new DecoderConverter();
-            var targetConverter = new EncoderConverter();
+            var decoderConverter = new DecoderConverter();
+            var encoderConverter = new EncoderConverter();
 
-            this.decoderConverter = sourceConverter;
-            this.encoderConverter = targetConverter;
-            this.decoderDescriptor = new RecurseDecoderDescriptor<TEntity, Value, ReaderState>(sourceConverter, new Reader<TEntity>());
-            this.encoderDescriptor = new RecurseEncoderDescriptor<TEntity, Value, WriterState>(targetConverter, new Writer<TEntity>());
+            this.decoderConverter = decoderConverter;
+            this.encoderConverter = encoderConverter;
+            this.decoderDescriptor = new RecurseDecoderDescriptor<TEntity, Value, ReaderState>(decoderConverter, new Reader<TEntity>());
+            this.encoderDescriptor = new RecurseEncoderDescriptor<TEntity, Value, WriterState>(encoderConverter, new Writer<TEntity>());
         }
 
         #endregion
@@ -66,12 +66,12 @@ namespace Verse.Schemas
             return this.encoderDescriptor.CreateEncoder();
         }
 
-        public void SetDecoder<U>(Converter<Value, U> converter)
+        public void SetDecoderConverter<U>(Converter<Value, U> converter)
         {
             this.decoderConverter.Set(converter);
         }
 
-        public void SetEncoder<U>(Converter<U, Value> converter)
+        public void SetEncoderConverter<U>(Converter<U, Value> converter)
         {
             this.encoderConverter.Set(converter);
         }
