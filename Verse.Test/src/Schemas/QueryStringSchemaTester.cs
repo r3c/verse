@@ -6,7 +6,7 @@ using Verse.Schemas;
 namespace Verse.Test.Schemas
 {
     [TestFixture]
-    public class QueryStringSchemaTester : SchemaTester
+    public class QueryStringSchemaTester
     {
         [Test]
         [TestCase("?a&b&c")]

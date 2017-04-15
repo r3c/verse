@@ -10,7 +10,7 @@ using Verse.Schemas.JSON;
 namespace Verse.Test.Schemas
 {
     [TestFixture]
-    public class JSONSchemaTester : SchemaTester
+    public class JSONSchemaTester : AbstractSchemaTester
     {
         [Test]
         [TestCase("[]", new double[0])]
@@ -331,12 +331,24 @@ namespace Verse.Test.Schemas
             this.AssertEncodeAndEqual(schema, Value.FromString("test"), expected);
         }
 
-        [Test]
-        public void Roundtrip()
-        {
-            this.AssertRoundtrip(new JSONSchema<string>(), "Hello", () => string.Empty, (a, b) => a == b);
-            this.AssertRoundtrip(new JSONSchema<double>(), 25.5, () => 0, (a, b) => Math.Abs(a - b) < double.Epsilon);
-        }
+		[Test]
+		public void	RoundTripCustomType()
+		{
+			var schema = new JSONSchema<GuidContainer>();
+
+			schema.SetDecoderConverter<Guid>(v => Guid.Parse(v.String));
+			schema.SetEncoderConverter<Guid>(g => Value.FromString(g.ToString()));
+
+			AbstractSchemaTester.AssertRoundTrip(Linker.CreateDecoder(schema), Linker.CreateEncoder(schema), new GuidContainer
+			{
+				guid = Guid.NewGuid()
+			});
+		}
+
+		protected override ISchema<T> CreateSchema<T>()
+		{
+			return new JSONSchema<T>();
+		}
 
         private void AssertDecodeAndEqual<T>(ISchema<T> schema, string json, T expected)
         {
@@ -362,6 +374,15 @@ namespace Verse.Test.Schemas
                 Assert.AreEqual(expected, Encoding.UTF8.GetString(stream.ToArray()));
             }
         }
+
+		private class GuidContainer
+		{
+			public Guid	guid
+			{
+				get;
+				set;
+			}
+		}
 
         private class RecursiveEntity
         {

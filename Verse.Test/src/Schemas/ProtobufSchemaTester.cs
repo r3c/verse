@@ -3,17 +3,15 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-
 using NUnit.Framework;
 using ProtoBuf;
-
 using Verse.Schemas.Protobuf;
 using Verse.Schemas;
 
 namespace Verse.Test.Schemas
 {
     [TestFixture]
-    class ProtobufSchemaTester : SchemaTester
+    class ProtobufSchemaTester
     {
         private const long MIN_LONG = 0;
         private const long MAX_LONG = 9223372036854775807;
