@@ -5,7 +5,7 @@ using System.Text;
 using NUnit.Framework;
 using Verse.Schemas;
 
-namespace Verse.UTest
+namespace Verse.Test
 {
     [TestFixture]
     public class LinkerTester

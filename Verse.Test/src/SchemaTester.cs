@@ -2,7 +2,7 @@
 using System.IO;
 using NUnit.Framework;
 
-namespace Verse.UTest
+namespace Verse.Test
 {
     public class SchemaTester
     {

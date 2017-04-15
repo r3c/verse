@@ -9,7 +9,7 @@ using NUnit.Framework;
 using Verse.Models.JSON;
 using Verse.Test.Helpers;
 
-namespace Verse.UTest.Models
+namespace Verse.Test.Models
 {
 	[TestFixture]
 	class TypeSchemaTester

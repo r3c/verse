@@ -3,7 +3,7 @@ using System.Text;
 using NUnit.Framework;
 using Verse.Schemas;
 
-namespace Verse.UTest.Schemas
+namespace Verse.Test.Schemas
 {
     [TestFixture]
     public class QueryStringSchemaTester : SchemaTester

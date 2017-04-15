@@ -7,7 +7,7 @@ using NUnit.Framework;
 using Verse.Schemas;
 using Verse.Schemas.JSON;
 
-namespace Verse.UTest.Schemas
+namespace Verse.Test.Schemas
 {
     [TestFixture]
     public class JSONSchemaTester : SchemaTester

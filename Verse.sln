@@ -1,13 +1,14 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
+# Visual Studio 2012
+# SharpDevelop 5.1
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Verse", "Verse\Verse.csproj", "{5848CC59-8957-4B18-906C-0BAA7875DF62}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Verse.Bench", "Verse.Bench\Verse.Bench.csproj", "{375D9DA3-097B-4695-9FC6-7F4D3B3B18D5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Verse.UTest", "Verse.UTest\Verse.UTest.csproj", "{1FA0776B-24EA-482B-9BB1-2EAF6EBB01BC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Verse.Test", "Verse.Test\Verse.Test.csproj", "{1FA0776B-24EA-482B-9BB1-2EAF6EBB01BC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

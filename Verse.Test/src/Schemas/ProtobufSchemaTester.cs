@@ -10,7 +10,7 @@ using ProtoBuf;
 using Verse.Schemas.Protobuf;
 using Verse.Schemas;
 
-namespace Verse.UTest.Schemas
+namespace Verse.Test.Schemas
 {
     [TestFixture]
     class ProtobufSchemaTester : SchemaTester
