@@ -4,10 +4,14 @@ Verse TODO list
 TODO
 ----
 
-- Allow JSON writer customization
-- Add JSON option "omit null values in object fields"
-- Optimize IBuilder code
 - Remove duplicated code from Linker
+- Extend "omit null values" options to support arrays
+- Switch API to expose .HasMany / .HasOne / .IsValue methods
+- Avoid using inheritance for PatternReader nodes
+- Support "ignore case" option in schemas using PatternReader
 
 DONE
 ----
+
+- Allow JSON writer customization
+- Add JSON option "omit null values in object fields"
