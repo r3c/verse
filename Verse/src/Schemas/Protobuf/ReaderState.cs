@@ -74,25 +74,28 @@ namespace Verse.Schemas.Protobuf
             }
         }
 
-        public bool EnterObject()
+        public bool EnterObject(out int visitCount)
         {
-            return this.ParentVisitingNode.Children.TryGetValue(this.Reader.FieldNumber, out this.ParentVisitingNode);
+        	VisitingNode node;
+
+        	if (!this.ParentVisitingNode.Children.TryGetValue(this.Reader.FieldNumber, out node))
+        	{
+        		visitCount = 0;
+
+        		return false;
+        	}
+
+        	this.ParentVisitingNode = node;
+
+        	visitCount = node.VisitCount;
+
+        	return true;
         }
 
         public void LeaveObject()
         {
             this.ParentVisitingNode.Children.Clear();
             this.ParentVisitingNode = this.ParentVisitingNode.Parent;
-        }
-
-        public int VisitCount()
-        {
-            VisitingNode node;
-
-            if (!this.ParentVisitingNode.Children.TryGetValue(this.Reader.FieldNumber, out node))
-                return -1;
-
-            return node.VisitCount;
         }
 
         #endregion

@@ -37,11 +37,6 @@ namespace Verse.EncoderDescriptors
 
         #region Methods / Public
 
-        public IEncoderDescriptor<TEntity> HasField(string name)
-        {
-            return this.HasField(name, (source) => source);
-        }
-
         public void IsValue()
         {
             this.IsValue((target) => target);

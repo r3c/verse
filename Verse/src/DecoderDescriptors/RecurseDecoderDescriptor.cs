@@ -28,7 +28,7 @@ namespace Verse.DecoderDescriptors
 
         public IDecoder<TEntity> CreateDecoder()
         {
-            return new Decoder<TEntity, TValue, TState>(this.reader);
+            return new Decoder<TEntity, TValue, TState>(this.GetConstructor<TEntity>(), this.reader);
         }
 
         public override IDecoderDescriptor<TField> HasField<TField>(string name, DecodeAssign<TEntity, TField> assign, IDecoderDescriptor<TField> parent)
@@ -44,16 +44,6 @@ namespace Verse.DecoderDescriptors
         public override IDecoderDescriptor<TField> HasField<TField>(string name, DecodeAssign<TEntity, TField> assign)
         {
             return this.HasField(name, assign, new RecurseDecoderDescriptor<TField, TValue, TState>(this.converter, this.reader.Create<TField>()));
-        }
-
-        public override IDecoderDescriptor<TEntity> HasField(string name)
-        {
-            var descriptor = new RecurseDecoderDescriptor<TEntity, TValue, TState>(this.converter, this.reader.Create<TEntity>());
-            var recurse = descriptor.reader;
-
-            this.reader.DeclareField(name, (ref TEntity target, TState state) => recurse.ReadEntity(ref target, state));
-
-            return descriptor;
         }
 
         public override IDecoderDescriptor<TElement> IsArray<TElement>(DecodeAssign<TEntity, IEnumerable<TElement>> assign, IDecoderDescriptor<TElement> parent)
@@ -89,9 +79,9 @@ namespace Verse.DecoderDescriptors
 
             this.reader.DeclareField(name, (ref TEntity target, TState state) =>
             {
-                TField field = constructor(target);
+                TField field;
 
-                if (!recurse.ReadEntity(ref field, state))
+                if (!recurse.ReadEntity(constructor, state, out field))
                     return false;
 
                 assign(ref target, field);
@@ -109,8 +99,7 @@ namespace Verse.DecoderDescriptors
 
             this.reader.DeclareArray((ref TEntity target, TState state) =>
             {
-                var container = target;
-                var browser = recurse.ReadElements(() => constructor(container), state);
+                var browser = recurse.ReadElements(constructor, state);
 
                 assign(ref target, new Walker<TElement>(browser));
 

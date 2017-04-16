@@ -22,7 +22,7 @@ namespace Verse.Test.Schemas
 
             decoder = schema.CreateDecoder();
 
-            Assert.IsTrue(decoder.Decode(new MemoryStream(Encoding.UTF8.GetBytes(query)), ref value));
+            Assert.IsTrue(decoder.Decode(new MemoryStream(Encoding.UTF8.GetBytes(query)), out value));
         }
 
         [Test]
@@ -47,12 +47,12 @@ namespace Verse.Test.Schemas
             T value;
 
             schema = new QueryStringSchema<T>();
-            schema.DecoderDescriptor.HasField(name).IsValue();
+            schema.DecoderDescriptor.HasField(name, Identity<T>.Assign).IsValue();
 
             decoder = schema.CreateDecoder();
             value = default(T);
 
-            Assert.IsTrue(decoder.Decode(new MemoryStream(Encoding.UTF8.GetBytes(query)), ref value));
+            Assert.IsTrue(decoder.Decode(new MemoryStream(Encoding.UTF8.GetBytes(query)), out value));
             Assert.AreEqual(expected, value);
         }
 
@@ -68,12 +68,12 @@ namespace Verse.Test.Schemas
             T value;
 
             schema = new QueryStringSchema<T>();
-            schema.DecoderDescriptor.HasField(name).IsValue();
+            schema.DecoderDescriptor.HasField(name, Identity<T>.Assign).IsValue();
 
             decoder = schema.CreateDecoder();
             value = default(T);
 
-            Assert.IsTrue(decoder.Decode(new MemoryStream(Encoding.UTF8.GetBytes(query)), ref value));
+            Assert.IsTrue(decoder.Decode(new MemoryStream(Encoding.UTF8.GetBytes(query)), out value));
             Assert.AreEqual(expected, value);
         }
 
@@ -91,7 +91,7 @@ namespace Verse.Test.Schemas
             decoder = schema.CreateDecoder();
             value = string.Empty;
 
-            Assert.IsFalse(decoder.Decode(new MemoryStream(Encoding.UTF8.GetBytes(query)), ref value));
+            Assert.IsFalse(decoder.Decode(new MemoryStream(Encoding.UTF8.GetBytes(query)), out value));
         }
     }
 }

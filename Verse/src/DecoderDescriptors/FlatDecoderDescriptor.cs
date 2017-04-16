@@ -28,7 +28,7 @@ namespace Verse.DecoderDescriptors
 
         public IDecoder<TEntity> CreateDecoder(IReader<TContext, string> reader)
         {
-            return new Decoder<TEntity, TContext, string>(this.container, reader);
+            return new Decoder<TEntity, TContext, string>(this.GetConstructor<TEntity>(), this.container, reader);
         }
 
         public override IDecoderDescriptor<TField> HasField<TField>(string name, DecodeAssign<TEntity, TField> assign, IDecoderDescriptor<TField> parent)
@@ -46,19 +46,6 @@ namespace Verse.DecoderDescriptors
         public override IDecoderDescriptor<TField> HasField<TField>(string name, DecodeAssign<TEntity, TField> assign)
         {
             return this.HasField(name, assign, new FlatDecoderDescriptor<TField, TContext>(this.converter));
-        }
-
-        public override IDecoderDescriptor<TEntity> HasField(string name)
-        {
-            FlatDecoderDescriptor<TEntity, TContext> descriptor;
-            Container<TEntity, TContext, string> container;
-
-            descriptor = new FlatDecoderDescriptor<TEntity, TContext>(this.converter);
-            container = descriptor.container;
-
-            this.Connect(name, (ref TEntity target, IReader<TContext, string> reader, TContext context) => reader.ReadValue(ref target, container, context));
-
-            return descriptor;
         }
 
         public override IDecoderDescriptor<TElement> IsArray<TElement>(DecodeAssign<TEntity, IEnumerable<TElement>> assign, IDecoderDescriptor<TElement> parent)
@@ -96,7 +83,7 @@ namespace Verse.DecoderDescriptors
 
         private IDecoderDescriptor<TField> HasField<TField>(string name, DecodeAssign<TEntity, TField> assign, FlatDecoderDescriptor<TField, TContext> descriptor)
         {
-            Func<TEntity, TField> constructor;
+            Func<TField> constructor;
             Container<TField, TContext, string> container;
 
             constructor = this.GetConstructor<TField>();
@@ -106,9 +93,7 @@ namespace Verse.DecoderDescriptors
             {
                 TField inner;
 
-                inner = constructor(target);
-
-                if (!reader.ReadValue(ref inner, container, context))
+                if (!reader.ReadValue(constructor, container, context, out inner))
                     return false;
 
                 assign(ref target, inner);

@@ -88,10 +88,12 @@ namespace Verse.DecoderDescriptors.Recurse.Readers.Pattern.Nodes
 
         public bool Enter(ref TEntity target, IReader<TEntity, TValue, TState> unknown, TState state)
         {
+        	TEntity dummy;
+
             if (this.enter != null)
                 return this.enter(ref target, state);
 
-            return unknown.ReadEntity(ref target, state);
+            return unknown.ReadEntity(() => default(TEntity), state, out dummy);
         }
 
         public INode<TEntity, TValue, TState> Follow(char c)

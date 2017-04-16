@@ -15,7 +15,7 @@ namespace Verse.DecoderDescriptors.Flat
 
         void Assign(ref TEntity target, TNative value);
 
-        bool Enter(ref TEntity target, IReader<TContext, TNative> reader, TContext context);
+        bool Enter(ref TEntity target, IReader<TContext, TNative> unknown, TContext context);
 
         INode<TEntity, TContext, TNative> Follow(char c);
 

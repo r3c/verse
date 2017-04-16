@@ -35,14 +35,6 @@ namespace Verse
         IEncoderDescriptor<TField> HasField<TField>(string name, Func<TEntity, TField> access);
 
         /// <summary>
-        /// Declare new named field in current entity, but keep describing its
-        /// content on parent entity type rather than a new type.
-        /// </summary>
-        /// <param name="name">Field name</param>
-        /// <returns>Entity encoder descriptor</returns>
-        IEncoderDescriptor<TEntity> HasField(string name);
-
-        /// <summary>
         /// Declare new elements collection within current entity, and reuse
         /// existing encoder to describe them.
         /// </summary>

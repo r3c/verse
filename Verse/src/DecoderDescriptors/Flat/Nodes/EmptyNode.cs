@@ -26,9 +26,11 @@ namespace Verse.DecoderDescriptors.Flat.Nodes
         {
         }
 
-        public bool Enter(ref TEntity target, IReader<TContext, TNative> reader, TContext context)
+        public bool Enter(ref TEntity target, IReader<TContext, TNative> unknown, TContext context)
         {
-            return reader.ReadValue(ref target, EmptyNode<TEntity, TContext, TNative>.blank, context);
+        	TEntity dummy;
+
+        	return unknown.ReadValue(() => default(TEntity), EmptyNode<TEntity, TContext, TNative>.blank, context, out dummy);
         }
 
         public INode<TEntity, TContext, TNative> Follow(char c)

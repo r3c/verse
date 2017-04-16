@@ -50,10 +50,10 @@ namespace Verse.Test.Schemas
             decodedValue = new Value();
 
             schema = new ProtobufSchema<Value>();
-            schema.DecoderDescriptor.HasField("_1").IsValue();
+            schema.DecoderDescriptor.HasField("_1", Identity<Value>.Assign).IsValue();
             decoder = schema.CreateDecoder();
 
-            Assert.IsTrue(decoder.Decode(stream, ref decodedValue));
+            Assert.IsTrue(decoder.Decode(stream, out decodedValue));
             Assert.AreEqual(type, decodedValue.Type);
 
             switch (type)
@@ -105,12 +105,14 @@ namespace Verse.Test.Schemas
             stream.Seek(0, SeekOrigin.Begin);
 
             schema = new ProtobufSchema<List<T>>();
-            IDecoderDescriptor<List<T>> fieldDecoder = schema.DecoderDescriptor.HasField("_2");
-            fieldDecoder.IsArray((ref List<T> target, IEnumerable<T> enumerable) => target.AddRange(enumerable)).IsValue();
+            schema.DecoderDescriptor
+            	.HasField("_2", (ref List<T> target, List<T> values) => target.AddRange(values))
+            	.IsArray((ref List<T> target, IEnumerable<T> enumerable) => target.AddRange(enumerable))
+            	.IsValue();
 
             value = new List<T>();
             decoder = schema.CreateDecoder();
-            Assert.IsTrue(decoder.Decode(stream, ref value));
+            Assert.IsTrue(decoder.Decode(stream, out value));
             CollectionAssert.AreEqual(testFieldClass.items, value);
         }
 
@@ -137,12 +139,12 @@ namespace Verse.Test.Schemas
             stream.Seek(0, SeekOrigin.Begin);
 
             ProtobufSchema<T> schema = new ProtobufSchema<T>();
-            schema.DecoderDescriptor.HasField("_3").HasField("_4").IsValue();
+            schema.DecoderDescriptor.HasField("_3", Identity<T>.Assign).HasField("_4", Identity<T>.Assign).IsValue();
 
             IDecoder<T> decoder = schema.CreateDecoder();
 
             T value = default(T);
-            Assert.IsTrue(decoder.Decode(stream, ref value));
+            Assert.IsTrue(decoder.Decode(stream, out value));
             Assert.AreEqual(expectedValue, value);
         }
 
@@ -183,8 +185,8 @@ namespace Verse.Test.Schemas
 
             schema = new ProtobufSchema<TestFieldClass<TestFieldClass<T>>>();
             schema.DecoderDescriptor
-                .HasField("_2")
-                .IsArray((ref TestFieldClass<TestFieldClass<T>> target, IEnumerable<TestFieldClass<T>> value) => target.items.AddRange(value))
+            	.HasField("_2", (ref TestFieldClass<TestFieldClass<T>> target, List<TestFieldClass<T>> value) => target.items.AddRange(value))
+            	.IsArray((ref List<TestFieldClass<T>> target, IEnumerable<TestFieldClass<T>> value) => target.AddRange(value))
                 .HasField("_3", (ref TestFieldClass<T> target, SubTestFieldClass<T> value) => target.subValue  = value)
                 .HasField("_4", (ref SubTestFieldClass<T> target, T value) => target.value = value)
                 .IsValue();
@@ -192,7 +194,7 @@ namespace Verse.Test.Schemas
             decoder = schema.CreateDecoder();
 
             decodedValue = new TestFieldClass<TestFieldClass<T>>();
-            Assert.IsTrue(decoder.Decode(stream, ref decodedValue));
+            Assert.IsTrue(decoder.Decode(stream, out decodedValue));
 
             Assert.AreEqual(expectedValues.Length, decodedValue.items.Count);
 
@@ -292,22 +294,24 @@ namespace Verse.Test.Schemas
 
             schema = new ProtobufSchema<int>();
 
-            IDecoderDescriptor<int> result = schema.DecoderDescriptor.HasField("_2");
+            IDecoderDescriptor<int?> result = schema.DecoderDescriptor
+            	.HasField("_2", (ref int target, int? v) => target = v.GetValueOrDefault(target));
 
             if (index0.HasValue)
-                result = result.HasField(index0.Value.ToString(CultureInfo.InvariantCulture));
+                result = result.HasField(index0.Value.ToString(CultureInfo.InvariantCulture), (ref int? target, int? v) => target = target ?? v);
 
-            result = result.HasField("_2");
+            result = result
+            	.HasField("_2", (ref int? target, int? v) => target = target ?? v);
 
             if (index1.HasValue)
-                result = result.HasField(index1.Value.ToString(CultureInfo.InvariantCulture));
+            	result = result.HasField(index1.Value.ToString(CultureInfo.InvariantCulture), (ref int? target, int? v) => target = target ?? v);
 
-            result = result.HasField("_4");
-            result.IsValue();
+            result
+            	.HasField("_4", (ref int? target, int v) => target = v)
+            	.IsValue();
 
-            value = 0;
             decoder = schema.CreateDecoder();
-            Assert.IsTrue(decoder.Decode(stream, ref value));
+            Assert.IsTrue(decoder.Decode(stream, out value));
             Assert.AreEqual(expected, value);
         }
 
@@ -328,7 +332,7 @@ namespace Verse.Test.Schemas
             TestFieldClass<T> testFieldClass;
 
             schema = new ProtobufSchema<Value>();
-            schema.EncoderDescriptor.HasField("_1").IsValue();
+            schema.EncoderDescriptor.HasField("_1", Identity<Value>.Access).IsValue();
 
             stream = new MemoryStream();
 
@@ -379,7 +383,7 @@ namespace Verse.Test.Schemas
         {
             ProtobufSchema<List<T>> schema;
             schema = new ProtobufSchema<List<T>>();
-            IEncoderDescriptor<List<T>> encoderDescriptor = schema.EncoderDescriptor.HasField("_2");
+            IEncoderDescriptor<List<T>> encoderDescriptor = schema.EncoderDescriptor.HasField("_2", Identity<List<T>>.Access);
             encoderDescriptor.IsArray(source => source).IsValue();
             T[] expectedItems = {a, b, c};
 
@@ -462,7 +466,7 @@ namespace Verse.Test.Schemas
 
             schema = new ProtobufSchema<TestFieldClass<TestFieldClass<T>>>();
             schema.EncoderDescriptor
-                .HasField("_2")
+                .HasField("_2", Identity<TestFieldClass<TestFieldClass<T>>>.Access)
                 .IsArray(source => source.items)
                 .HasField("_3", target => target.subValue)
                 .HasField("_4", target => target.value)

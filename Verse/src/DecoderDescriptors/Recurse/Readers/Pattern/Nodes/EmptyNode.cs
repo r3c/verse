@@ -26,7 +26,9 @@ namespace Verse.DecoderDescriptors.Recurse.Readers.Pattern.Nodes
 
         public bool Enter(ref TEntity target, IReader<TEntity, TValue, TState> unknown, TState state)
         {
-            return unknown.ReadEntity(ref target, state);
+        	TEntity dummy;
+
+        	return unknown.ReadEntity(() => default(TEntity), state, out dummy);
         }
 
         public INode<TEntity, TValue, TState> Follow(char c)

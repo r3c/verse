@@ -26,7 +26,7 @@ namespace Verse
         /// <param name="input">Input stream</param>
         /// <param name="output">Output entity</param>
         /// <returns>True if decoding succeeded, false otherwise</returns>
-        bool Decode(Stream input, ref TEntity output);
+        bool Decode(Stream input, out TEntity output);
 
         #endregion
     }

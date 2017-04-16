@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 
 namespace Verse.DecoderDescriptors.Flat
@@ -12,6 +13,8 @@ namespace Verse.DecoderDescriptors.Flat
 
         #region Attributes
 
+        private readonly Func<TEntity> constructor;
+
         private readonly Container<TEntity, TContext, TNative> container;
 
         private readonly IReader<TContext, TNative> reader;
@@ -20,10 +23,11 @@ namespace Verse.DecoderDescriptors.Flat
 
         #region Constructors
 
-        public Decoder(Container<TEntity, TContext, TNative> container, IReader<TContext, TNative> reader)
+        public Decoder(Func<TEntity> constructor, Container<TEntity, TContext, TNative> container, IReader<TContext, TNative> reader)
         {
             reader.Error += this.OnError;
 
+            this.constructor = constructor;
             this.container = container;
             this.reader = reader;
         }
@@ -32,16 +36,20 @@ namespace Verse.DecoderDescriptors.Flat
 
         #region Methods / Public
 
-        public bool Decode(Stream input, ref TEntity output)
+        public bool Decode(Stream input, out TEntity output)
         {
             TContext context;
 
             if (!this.reader.Start(input, out context))
+            {
+            	output = default(TEntity);
+
                 return false;
+            }
 
             try
             {
-                return this.reader.Read(ref output, this.container, context);
+                return this.reader.Read(this.constructor, this.container, context, out output);
             }
             finally
             {

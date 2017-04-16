@@ -42,7 +42,7 @@ namespace Verse.DecoderDescriptors.Recurse.Readers
 
         public abstract IBrowser<TEntity> ReadElements(Func<TEntity> constructor, TState state);
 
-        public abstract bool ReadEntity(ref TEntity target, TState state);
+        public abstract bool ReadEntity(Func<TEntity> constructor, TState state, out TEntity target);
 
         public abstract bool Start(Stream stream, DecodeError error, out TState state);
 
@@ -68,15 +68,21 @@ namespace Verse.DecoderDescriptors.Recurse.Readers
             this.value = assign;
         }
 
-        public bool ProcessArray(ref TEntity entity, TState state)
+        #endregion
+
+        #region Methods / Protected
+
+        protected bool ProcessArray(ref TEntity entity, TState state)
         {
             if (this.array != null)
                 return this.array(ref entity, state);
 
+            entity = default(TEntity);
+
             return false;
         }
 
-        public void ProcessValue(ref TEntity entity, TValue value)
+        protected void ProcessValue(ref TEntity entity, TValue value)
         {
             if (this.value != null)
                 this.value(ref entity, value);

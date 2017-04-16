@@ -20,7 +20,7 @@ namespace Verse
         /// </summary>
         /// <typeparam name="TMember">Constructed type</typeparam>
         /// <param name="constructor">Type constructor</param>
-        void CanCreate<TMember>(Func<TEntity, TMember> constructor);
+        void CanCreate<TMember>(Func<TMember> constructor);
 
         /// <summary>
         /// Declare new named field in current entity, and reuse existing decoder
@@ -43,15 +43,6 @@ namespace Verse
         /// <param name="assign">Field to parent entity assignment delegate</param>
         /// <returns>Field decoder descriptor</returns>
         IDecoderDescriptor<TField> HasField<TField>(string name, DecodeAssign<TEntity, TField> assign);
-
-        /// <summary>
-        /// Declare new named field in current entity, but keep describing its
-        /// content on parent entity type rather than a new type.
-        /// </summary>
-        /// <param name="name">Field name</param>
-        /// <typeparam name="TEntity">Field type</typeparam>
-        /// <returns>Entity decoder descriptor</returns>
-        IDecoderDescriptor<TEntity> HasField(string name);
 
         /// <summary>
         /// Declare new elements collection within current entity, and reuse

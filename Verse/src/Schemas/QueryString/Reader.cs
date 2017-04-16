@@ -70,12 +70,18 @@ namespace Verse.Schemas.QueryString
             throw new NotImplementedException("QueryString schema doesn't support arrays");
         }
 
-        public bool ReadValue<T>(ref T target, Container<T, ReaderContext, string> container, ReaderContext context)
+        public bool ReadValue<T>(Func<T> constructor, Container<T, ReaderContext, string> container, ReaderContext context, out T target)
         {
             string value;
 
             if (!this.ReadFieldValue(context, out value))
+            {
+            	target = default(T);
+
                 return false;
+            }
+
+            target = constructor();
 
             if (container.value != null)
                 container.value(ref target, value);
@@ -83,8 +89,10 @@ namespace Verse.Schemas.QueryString
             return true;
         }
 
-        public bool Read<T>(ref T target, Container<T, ReaderContext, string> container, ReaderContext context)
+        public bool Read<T>(Func<T> constructor, Container<T, ReaderContext, string> container, ReaderContext context, out T target)
         {
+        	target = constructor();
+
             while (context.Current != -1)
             {
                 bool isKeyEmpty;
@@ -112,6 +120,8 @@ namespace Verse.Schemas.QueryString
                 if (isKeyEmpty)
                 {
                     this.OnError(context.Position, "empty field");
+
+                    target = default(T);
 
                     return false;
                 }

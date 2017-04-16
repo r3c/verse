@@ -22,7 +22,7 @@ namespace Verse.Bench
             decoder = Linker.CreateDecoder(new JSONSchema<MyFlatStructure>());
             source = "{\"lorem\":0,\"ipsum\":65464658634633,\"sit\":1.1,\"amet\":\"Hello, World!\",\"consectetur\":255,\"adipiscing\":64,\"elit\":\"z\",\"sed\":53.25,\"pulvinar\":\"I sense a soul in search of answers\",\"fermentum\":6553,\"hendrerit\":-32768}";
 
-            this.BenchDecode(decoder, () => new MyFlatStructure(), source, 10000);
+            this.BenchDecode(decoder, source, 10000);
         }
 
         [Test]
@@ -61,7 +61,7 @@ namespace Verse.Bench
             schema.DecoderDescriptor.IsArray((ref long[] target, IEnumerable<long> value) => target = value.ToArray()).IsValue();
             decoder = schema.CreateDecoder();
 
-            this.BenchDecode(decoder, () => null, builder.ToString(), count);
+            this.BenchDecode(decoder, builder.ToString(), count);
         }
 
         [Test]
@@ -73,10 +73,10 @@ namespace Verse.Bench
             decoder = Linker.CreateDecoder(new JSONSchema<MyNestedArray>());
             source = "{\"children\":[{\"children\":[],\"value\":\"a\"},{\"children\":[{\"children\":[],\"value\":\"b\"},{\"children\":[],\"value\":\"c\"}],\"value\":\"d\"},{\"children\":[],\"value\":\"e\"}],\"value\":\"f\"}";
 
-            this.BenchDecode(decoder, () => new MyNestedArray(), source, 10000);
+            this.BenchDecode(decoder, source, 10000);
         }
 
-        private void BenchDecode<T>(IDecoder<T> decoder, Func<T> constructor, string source, int count)
+        private void BenchDecode<T>(IDecoder<T> decoder, string source, int count)
         {
             byte[] buffer;
             T instance;
@@ -101,9 +101,7 @@ namespace Verse.Bench
             {
                 using (MemoryStream stream = new MemoryStream(buffer))
                 {
-                    instance = constructor();
-
-                    Assert.IsTrue(decoder.Decode(stream, ref instance));
+                    Assert.IsTrue(decoder.Decode(stream, out instance));
                 }
             }
 
@@ -111,9 +109,7 @@ namespace Verse.Bench
 
             using (MemoryStream stream = new MemoryStream(buffer))
             {
-                instance = constructor();
-
-                Assert.IsTrue(decoder.Decode(stream, ref instance));
+                Assert.IsTrue(decoder.Decode(stream, out instance));
             }
 
             Assert.AreEqual(instance, reference);

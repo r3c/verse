@@ -29,13 +29,9 @@ namespace Verse.DecoderDescriptors.Recurse
 
         void DeclareValue(DecodeAssign<TEntity, TValue> assign);
 
-        bool ProcessArray(ref TEntity entity, TState state);
-
-        void ProcessValue(ref TEntity entity, TValue value);
-
         IBrowser<TEntity> ReadElements(Func<TEntity> constructor, TState state);
 
-        bool ReadEntity(ref TEntity target, TState state);
+        bool ReadEntity(Func<TEntity> constructor, TState state, out TEntity target);
 
         bool Start(Stream stream, DecodeError error, out TState state);
 

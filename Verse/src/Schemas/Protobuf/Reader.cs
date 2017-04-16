@@ -38,7 +38,40 @@ namespace Verse.Schemas.Protobuf
             }
         }
 
-        public override bool ReadEntity(ref TEntity target, ReaderState state)
+        public override bool ReadEntity(Func<TEntity> constructor, ReaderState state, out TEntity target)
+        {
+        	target = constructor();
+
+        	return this.ReadEntity(ref target, state);
+        }
+
+        public override bool Start(Stream stream, DecodeError error, out ReaderState state)
+        {
+            state = new ReaderState(stream, error);
+
+            return true;
+        }
+
+        public override void Stop(ReaderState state)
+        {
+        }
+
+        #endregion
+
+        #region Methods / Private
+
+        private void FollowNode(int fieldIndex, ref TEntity target, ReaderState state)
+        {
+            INode<TEntity, Value, ReaderState> node;
+
+            node = Reader<TEntity>.GetNode(this.RootNode, fieldIndex);
+
+            state.ReadingAction = ReaderState.ReadingActionType.ReadValue;
+
+            node.Enter(ref target, Reader<TEntity>.unknown, state);
+        }
+
+        private bool ReadEntity(ref TEntity target, ReaderState state)
         {
             switch (state.ReadingAction)
             {
@@ -116,12 +149,8 @@ namespace Verse.Schemas.Protobuf
             SubItemToken lastSubItem;
 
             lastSubItem = ProtoReader.StartSubItem(state.Reader);
-            visitCount = state.VisitCount();
 
-            if (visitCount == -1)
-                return false;
-
-            if (!state.EnterObject())
+            if (!state.EnterObject(out visitCount))
                 return false;
 
             while (ProtoReader.HasSubValue(WireType.None, state.Reader))
@@ -165,36 +194,9 @@ namespace Verse.Schemas.Protobuf
             return true;
         }
 
-        public override bool Start(Stream stream, DecodeError error, out ReaderState state)
+        private IBrowser<TEntity> ReadSubItemArray(Func<TEntity> constructor, ReaderState state)
         {
-            state = new ReaderState(stream, error);
-
-            return true;
-        }
-
-        public override void Stop(ReaderState state)
-        {
-        }
-
-        #endregion
-
-        #region Methods / Private
-
-        private void FollowNode(int fieldIndex, ref TEntity target, ReaderState state)
-        {
-            INode<TEntity, Value, ReaderState> node;
-
-            node = Reader<TEntity>.GetNode(this.RootNode, fieldIndex);
-
-            state.ReadingAction = ReaderState.ReadingActionType.ReadValue;
-
-            node.Enter(ref target, Reader<TEntity>.unknown, state);
-        }
-
-        private IBrowser<TEntity> ReadSubItemArray(
-            Func<TEntity> constructor,
-            ReaderState state)
-        {
+        	int dummy;
             SubItemToken lastSubItem;
             BrowserMove<TEntity> move;
 
@@ -205,7 +207,7 @@ namespace Verse.Schemas.Protobuf
 
             lastSubItem = ProtoReader.StartSubItem(state.Reader);
 
-            if (!state.EnterObject())
+            if (!state.EnterObject(out dummy))
             {
                 return new Browser<TEntity>((int index, out TEntity current) =>
                 {
@@ -216,12 +218,12 @@ namespace Verse.Schemas.Protobuf
 
             move = (int index, out TEntity current) =>
             {
-                current = constructor();
-
                 state.AddObject(index);
 
                 if (!ProtoReader.HasSubValue(WireType.None, state.Reader))
                 {
+                	current = default(TEntity);
+
                     state.LeaveObject();
 
                     ProtoReader.EndSubItem(lastSubItem, state.Reader);
@@ -229,55 +231,46 @@ namespace Verse.Schemas.Protobuf
                     return BrowserState.Success;
                 }
 
-                if (!this.ReadEntity(ref current, state))
-                    return BrowserState.Failure;
+                if (this.ReadEntity(constructor, state, out current))
+                	return BrowserState.Continue;
 
-                return BrowserState.Continue;
+                current = default(TEntity);
+
+                return BrowserState.Failure;
             };
 
             return new Browser<TEntity>(move);
         }
 
-        private IBrowser<TEntity> ReadValueArray(
-            Func<TEntity> constructor,
-            ReaderState state)
+        private IBrowser<TEntity> ReadValueArray(Func<TEntity> constructor, ReaderState state)
         {
             BrowserMove<TEntity> move;
 
             state.ReadingAction = ReaderState.ReadingActionType.ReadValue;
 
-            bool first = true;
-
             move = (int index, out TEntity current) =>
             {
-                current = constructor();
                 state.AddObject(index);
 
-                if (first)
+                if (index > 0)
                 {
-                    if (!this.ReadEntity(ref current, state))
-                        return BrowserState.Failure;
+                	current = default(TEntity);
 
-                    first = false;
-                }
-                else
-                {
                     return BrowserState.Success;
                 }
 
-                return BrowserState.Continue;
+				if (!this.ReadEntity(constructor, state, out current))
+					return BrowserState.Failure;
+
+				return BrowserState.Continue;
             };
 
             return new Browser<TEntity>(move);
         }
 
-        private static INode<TEntity, Value, ReaderState> GetNode(
-            INode<TEntity, Value, ReaderState> rootNode,
-            int fieldIndex)
+        private static INode<TEntity, Value, ReaderState> GetNode(INode<TEntity, Value, ReaderState> rootNode, int fieldIndex)
         {
-            INode<TEntity, Value, ReaderState> node;
-
-            node = rootNode.Follow('_');
+            INode<TEntity, Value, ReaderState> node = rootNode.Follow('_');
 
             foreach (char digit in fieldIndex.ToString(CultureInfo.InvariantCulture))
                 node = node.Follow(digit);
@@ -287,5 +280,4 @@ namespace Verse.Schemas.Protobuf
 
         #endregion
     }
-
 }

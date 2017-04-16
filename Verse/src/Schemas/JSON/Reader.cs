@@ -57,9 +57,7 @@ namespace Verse.Schemas.JSON
                 default:
                     return new Browser<TEntity>((int index, out TEntity current) =>
                     {
-                        current = default (TEntity);
-
-                        if (!this.ReadEntity(ref current, state))
+                        if (!this.ReadEntity(constructor, state, out current))
                             return BrowserState.Failure;
 
                         return BrowserState.Success;
@@ -67,14 +65,20 @@ namespace Verse.Schemas.JSON
             }
         }
 
-        public override bool ReadEntity(ref TEntity target, ReaderState state)
+        public override bool ReadEntity(Func<TEntity> constructor, ReaderState state, out TEntity target)
         {
             if (this.HoldArray)
+            {
+            	target = constructor();
+
                 return this.ProcessArray(ref target, state);
+            }
 
             switch (state.Current)
             {
                 case (int)'"':
+            		target = constructor();
+
                     return this.ScanStringAsEntity(ref target, state);
 
                 case (int)'-':
@@ -89,16 +93,28 @@ namespace Verse.Schemas.JSON
                 case (int)'7':
                 case (int)'8':
                 case (int)'9':
+                    target = constructor();
+
                     return this.ScanNumberAsEntity(ref target, state);
 
                 case (int)'f':
                     state.Read();
 
                     if (!state.PullExpected('a') || !state.PullExpected('l') || !state.PullExpected('s') || !state.PullExpected('e'))
+                    {
+                    	target = default(TEntity);
+
                         return false;
+                    }
 
                     if (this.HoldValue)
+                    {
+                    	target = constructor();
+
                         this.ProcessValue(ref target, Value.FromBoolean(false));
+                    }
+                    else
+                    	target = default(TEntity);
 
                     return true;
 
@@ -106,10 +122,20 @@ namespace Verse.Schemas.JSON
                     state.Read();
 
                     if (!state.PullExpected('u') || !state.PullExpected('l') || !state.PullExpected('l'))
+                    {
+                    	target = default(TEntity);
+
                         return false;
+                    }
 
                     if (this.HoldValue)
+                    {
+                    	target = constructor();
+
                         this.ProcessValue(ref target, Value.Void);
+                    }
+                    else
+                    	target = default(TEntity);
 
                     return true;
 
@@ -117,21 +143,37 @@ namespace Verse.Schemas.JSON
                     state.Read();
 
                     if (!state.PullExpected('r') || !state.PullExpected('u') || !state.PullExpected('e'))
+                    {
+                    	target = default(TEntity);
+
                         return false;
+                    }
 
                     if (this.HoldValue)
+                    {
+                    	target = constructor();
+
                         this.ProcessValue(ref target, Value.FromBoolean(true));
+                    }
+                    else
+                    	target = default(TEntity);
 
                     return true;
 
                 case (int)'[':
+                    target = constructor();
+
                     return this.ScanArrayAsEntity(ref target, state);
 
                 case (int)'{':
+                    target = constructor();
+
                     return this.ScanObjectAsEntity(ref target, state);
 
                 default:
                     state.Error(state.Position, "expected array, object or value");
+
+                    target = default(TEntity);
 
                     return false;
             }
@@ -166,12 +208,12 @@ namespace Verse.Schemas.JSON
 
             return (int index, out TEntity current) =>
             {
-                current = constructor();
-
                 state.PullIgnored();
 
                 if (state.Current == (int)']')
                 {
+                	current = default(TEntity);
+
                     state.Read();
 
                     return BrowserState.Success;
@@ -181,13 +223,17 @@ namespace Verse.Schemas.JSON
                 if (index > 0)
                 {
                     if (!state.PullExpected(','))
+                    {
+                    	current = default(TEntity);
+
                         return BrowserState.Failure;
+                    }
 
                     state.PullIgnored();
                 }
 
                 // Read array value
-                if (!this.ReadEntity(ref current, state))
+                if (!this.ReadEntity(constructor, state, out current))
                     return BrowserState.Failure;
 
                 return BrowserState.Continue;
@@ -354,13 +400,13 @@ namespace Verse.Schemas.JSON
             {
                 char ignore;
 
-                current = constructor();
-
                 state.PullIgnored();
 
                 if (state.Current == (int)'}')
                 {
                     state.Read();
+
+                    current = default(TEntity);
 
                     return BrowserState.Success;
                 }
@@ -369,13 +415,21 @@ namespace Verse.Schemas.JSON
                 if (index > 0)
                 {
                     if (!state.PullExpected(','))
+                    {
+                    	current = default(TEntity);
+
                         return BrowserState.Failure;
+                    }
 
                     state.PullIgnored();
                 }
 
                 if (!state.PullExpected('"'))
+                {
+                	current = default(TEntity);
+
                     return BrowserState.Failure;
+                }
 
                 // Read and move to object key
                 while (state.Current != (int)'"')
@@ -383,6 +437,8 @@ namespace Verse.Schemas.JSON
                     if (!state.PullCharacter(out ignore))
                     {
                         state.Error(state.Position, "invalid character in object key");
+
+                        current = default(TEntity);
 
                         return BrowserState.Failure;
                     }
@@ -394,13 +450,17 @@ namespace Verse.Schemas.JSON
                 state.PullIgnored();
 
                 if (!state.PullExpected(':'))
+                {
+                	current = default(TEntity);
+
                     return BrowserState.Failure;
+                }
 
                 // Read object value
                 state.PullIgnored();
 
                 // Read array value
-                if (!this.ReadEntity(ref current, state))
+                if (!this.ReadEntity(constructor, state, out current))
                     return BrowserState.Failure;
 
                 return BrowserState.Continue;

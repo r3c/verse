@@ -79,12 +79,14 @@ namespace Verse.DecoderDescriptors.Flat.Nodes
             return next;
         }
 
-        public bool Enter(ref TEntity target, IReader<TContext, TNative> reader, TContext context)
+        public bool Enter(ref TEntity target, IReader<TContext, TNative> unknown, TContext context)
         {
-            if (this.enter != null)
-                return this.enter(ref target, reader, context);
+        	TEntity dummy;
 
-            return reader.ReadValue(ref target, BranchNode<TEntity, TContext, TNative>.blank, context);
+            if (this.enter != null)
+                return this.enter(ref target, unknown, context);
+
+            return unknown.ReadValue(() => default(TEntity), BranchNode<TEntity, TContext, TNative>.blank, context, out dummy);
         }
 
         public INode<TEntity, TContext, TNative> Follow(char c)

@@ -9,7 +9,7 @@ namespace Verse.Test.Schemas
     public abstract class AbstractSchemaTester
     {
 		[Test]
-		[Ignore]
+		[Ignore("Arrays are always built before reading, so decoding 'null' would still create an empty array")]
 		public virtual void RoundTripNestedArray()
 		{
 			ISchema<NestedArray> schema = this.CreateSchema<NestedArray>();
@@ -51,7 +51,7 @@ namespace Verse.Test.Schemas
 		}
 
 		[Test]
-		[Ignore]
+		[Ignore("Enum types are not handled by linker yet.")]
 		public void	RoundTripMixedTypes()
 		{
 			ISchema<MixedContainer> schema = this.CreateSchema<MixedContainer>();
@@ -71,7 +71,6 @@ namespace Verse.Test.Schemas
 		}
 
 		[Test]
-		[Ignore]
 		public virtual void RoundTripNestedValue()
 		{
 			ISchema<NestedValue> schema = this.CreateSchema<NestedValue>();
@@ -94,7 +93,6 @@ namespace Verse.Test.Schemas
 		[Test]
 		[TestCase("Hello")]
 		[TestCase(25.5)]
-		[Ignore]
         public virtual void RoundTripValueNative<T>(T instance)
         {
             ISchema<T> schema = this.CreateSchema<T>();
@@ -103,7 +101,7 @@ namespace Verse.Test.Schemas
         }
 
 		[Test]
-		[Ignore]
+		[Ignore("Nullable types are not handled by linker yet.")]
 		public virtual void RoundTripValueNullable()
 		{
 			ISchema<double?> schema = this.CreateSchema<double?>();
@@ -130,7 +128,7 @@ namespace Verse.Test.Schemas
 			{
 				decoded = type.IsValueType || type == typeof(string) ? default(T) : (T)Activator.CreateInstance(type);
 
-				Assert.IsTrue(decoder.Decode(stream, ref decoded));
+				Assert.IsTrue(decoder.Decode(stream, out decoded));
 			}
 
 			CollectionAssert.IsEmpty(new CompareLogic().Compare(instance, decoded).Differences);

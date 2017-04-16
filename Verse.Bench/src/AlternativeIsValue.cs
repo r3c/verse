@@ -24,19 +24,17 @@ namespace Verse.Bench
             decoder1 = schema.CreateDecoder();
 
             schema = new JSONSchema<A>();
-            schema.DecoderDescriptor.HasField("b").IsValue((ref A a, int b) => a.b = b);
+            schema.DecoderDescriptor.HasField("b", (ref A a, A b) => a = b).IsValue((ref A a, int b) => a.b = b);
 
             decoder2 = schema.CreateDecoder();
 
             var j1 = Encoding.UTF8.GetBytes("{\"b\": 5}");
             var j2 = Encoding.UTF8.GetBytes("{\"b\": 7}");
 
-            value = new A();
-            Assert.IsTrue(decoder1.Decode(new MemoryStream(j1), ref value));
+            Assert.IsTrue(decoder1.Decode(new MemoryStream(j1), out value));
             Assert.AreEqual(5, value.b);
 
-            value = new A();
-            Assert.IsTrue(decoder2.Decode(new MemoryStream(j2), ref value));
+            Assert.IsTrue(decoder2.Decode(new MemoryStream(j2), out value));
             Assert.AreEqual(7, value.b);
 
             var m1 = new MemoryStream(j1);
@@ -44,7 +42,7 @@ namespace Verse.Bench
 
             for (int i = 0; i < repeat; ++i)
             {
-                decoder1.Decode(m1, ref value);
+                decoder1.Decode(m1, out value);
                 m1.Seek(0, SeekOrigin.Begin);
             }
 
@@ -55,7 +53,7 @@ namespace Verse.Bench
 
             for (int i = 0; i < repeat; ++i)
             {
-                decoder2.Decode(m2, ref value);
+                decoder2.Decode(m2, out value);
                 m2.Seek(0, SeekOrigin.Begin);
             }
 

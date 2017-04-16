@@ -108,7 +108,7 @@ namespace Verse.Test
             decoder = Linker.CreateDecoder(new JSONSchema<double[]>());
             value = new double[0];
 
-            Assert.IsTrue(decoder.Decode(new MemoryStream(Encoding.UTF8.GetBytes(json)), ref value));
+            Assert.IsTrue(decoder.Decode(new MemoryStream(Encoding.UTF8.GetBytes(json)), out value));
             CollectionAssert.AreEqual(expected, value);
         }
 
@@ -123,7 +123,7 @@ namespace Verse.Test
             decoder = Linker.CreateDecoder(new JSONSchema<List<double>>());
             value = new List<double>();
 
-            Assert.IsTrue(decoder.Decode(new MemoryStream(Encoding.UTF8.GetBytes(json)), ref value));
+            Assert.IsTrue(decoder.Decode(new MemoryStream(Encoding.UTF8.GetBytes(json)), out value));
             CollectionAssert.AreEqual(expected, value);
         }
 
@@ -138,7 +138,7 @@ namespace Verse.Test
             decoder = Linker.CreateDecoder(new JSONSchema<FieldContainer<T>>());
             value = new FieldContainer<T>();
 
-            Assert.IsTrue(decoder.Decode(new MemoryStream(Encoding.UTF8.GetBytes(json)), ref value));
+            Assert.IsTrue(decoder.Decode(new MemoryStream(Encoding.UTF8.GetBytes(json)), out value));
             Assert.AreEqual(expected, value.Field);
         }
 
@@ -153,7 +153,7 @@ namespace Verse.Test
             decoder = Linker.CreateDecoder(new JSONSchema<PropertyContainer<T>>());
             value = new PropertyContainer<T>();
 
-            Assert.IsTrue(decoder.Decode(new MemoryStream(Encoding.UTF8.GetBytes(json)), ref value));
+            Assert.IsTrue(decoder.Decode(new MemoryStream(Encoding.UTF8.GetBytes(json)), out value));
             Assert.AreEqual(expected, value.Property);
         }
 
@@ -166,7 +166,7 @@ namespace Verse.Test
             decoder = Linker.CreateDecoder(new JSONSchema<Recursive>());
             value = new Recursive();
 
-            Assert.IsTrue(decoder.Decode(new MemoryStream(Encoding.UTF8.GetBytes("{\"r\": {\"r\": {\"v\": 42}, \"v\": 17}, \"v\": 3}")), ref value));
+            Assert.IsTrue(decoder.Decode(new MemoryStream(Encoding.UTF8.GetBytes("{\"r\": {\"r\": {\"v\": 42}, \"v\": 17}, \"v\": 3}")), out value));
 
             Assert.AreEqual(42, value.r.r.v);
             Assert.AreEqual(17, value.r.v);

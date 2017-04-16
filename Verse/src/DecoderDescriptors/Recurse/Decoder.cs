@@ -13,14 +13,17 @@ namespace Verse.DecoderDescriptors.Recurse
 
         #region Attributes
 
+        private readonly Func<TEntity> constructor;
+
         private readonly IReader<TEntity, TValue, TState> reader;
 
         #endregion
 
         #region Constructors
 
-        public Decoder(IReader<TEntity, TValue, TState> reader)
+        public Decoder(Func<TEntity> constructor, IReader<TEntity, TValue, TState> reader)
         {
+        	this.constructor = constructor;
             this.reader = reader;
         }
 
@@ -28,16 +31,20 @@ namespace Verse.DecoderDescriptors.Recurse
 
         #region Methods / Public
 
-        public bool Decode(Stream input, ref TEntity output)
+        public bool Decode(Stream input, out TEntity output)
         {
             TState state;
 
             if (!this.reader.Start(input, this.OnError, out state))
+            {
+            	output = default(TEntity);
+
                 return false;
+            }
 
             try
             {
-                return this.reader.ReadEntity(ref output, state);
+                return this.reader.ReadEntity(this.constructor, state, out output);
             }
             finally
             {

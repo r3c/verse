@@ -15,9 +15,9 @@ namespace Verse.DecoderDescriptors.Flat
 
         IBrowser<TEntity> ReadArray<TEntity>(Func<TEntity> constructor, Container<TEntity, TContext, TNative> container, TContext context);
 
-        bool Read<TEntity>(ref TEntity target, Container<TEntity, TContext, TNative> container, TContext context);
+        bool Read<TEntity>(Func<TEntity> constructor, Container<TEntity, TContext, TNative> container, TContext context, out TEntity target);
 
-        bool ReadValue<TEntity>(ref TEntity target, Container<TEntity, TContext, TNative> container, TContext context);
+        bool ReadValue<TEntity>(Func<TEntity> constructor, Container<TEntity, TContext, TNative> container, TContext context, out TEntity target);
 
         bool Start(Stream stream, out TContext context);
 

@@ -31,8 +31,6 @@ namespace Verse.DecoderDescriptors
 
         public abstract IDecoderDescriptor<TField> HasField<TField>(string name, DecodeAssign<TEntity, TField> assign);
 
-        public abstract IDecoderDescriptor<TEntity> HasField(string name);
-
         public abstract IDecoderDescriptor<TElement> IsArray<TElement>(DecodeAssign<TEntity, IEnumerable<TElement>> assign, IDecoderDescriptor<TElement> parent);
 
         public abstract IDecoderDescriptor<TElement> IsArray<TElement>(DecodeAssign<TEntity, IEnumerable<TElement>> assign);
@@ -43,7 +41,7 @@ namespace Verse.DecoderDescriptors
 
         #region Methods / Public
 
-        public void CanCreate<TField>(Func<TEntity, TField> constructor)
+        public void CanCreate<TField>(Func<TField> constructor)
         {
             if (constructor == null)
                 throw new ArgumentNullException("constructor");
@@ -60,19 +58,14 @@ namespace Verse.DecoderDescriptors
 
         #region Methods / Protected
 
-        protected Func<TEntity, TField> GetConstructor<TField>()
+        protected Func<TField> GetConstructor<TField>()
         {
-            object box;
-            Func<TField> constructor;
+            object constructor;
 
-            if (!this.constructors.TryGetValue(typeof (TField), out box))
-            {
-                constructor = Generator.Constructor<TField>();
+            if (this.constructors.TryGetValue(typeof (TField), out constructor))
+            	return (Func<TField>)constructor;
 
-                return (source) => constructor();
-            }
-
-            return (Func<TEntity, TField>)box;
+            return Generator.Constructor<TField>();
         }
 
         protected Converter<TValue, TRaw> GetConverter<TRaw>()
