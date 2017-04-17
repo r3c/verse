@@ -4,11 +4,11 @@ using Verse.EncoderDescriptors.Recurse.RecurseWriters;
 
 namespace Verse.Schemas.Protobuf
 {
-	class Writer<TEntity> : PatternRecurseWriter<TEntity, WriterState, Value>
+	class Writer<TEntity> : PatternRecurseWriter<TEntity, WriterState, ProtobufValue>
 	{
 		#region Methods
 
-		public override IRecurseWriter<TOther, WriterState, Value> Create<TOther>()
+		public override IRecurseWriter<TOther, WriterState, ProtobufValue> Create<TOther>()
 		{
 			return new Writer<TOther>();
 		}

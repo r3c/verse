@@ -1,6 +1,6 @@
 namespace Verse.Schemas.Protobuf
 {
-	public struct Value
+	public struct ProtobufValue
 	{
 		#region Attributes
 
@@ -12,50 +12,50 @@ namespace Verse.Schemas.Protobuf
 
 		public readonly string StringContent;
 
-		public readonly ContentType Type;
+		public readonly ProtobufType Type;
 
 		#endregion
 
 		#region Constructor
 
-		public Value(double value)
+		public ProtobufValue(double value)
 		{
 			this.DoubleContent = value;
 			this.FloatContent = 0f;
 			this.LongContent = 0;
 			this.StringContent = string.Empty;
 
-			this.Type = ContentType.Double;
+			this.Type = ProtobufType.Double;
 		}
 
-		public Value(float value)
+		public ProtobufValue(float value)
 		{
 			this.DoubleContent = 0.0;
 			this.FloatContent = value;
 			this.LongContent = 0;
 			this.StringContent = string.Empty;
 
-			this.Type = ContentType.Float;
+			this.Type = ProtobufType.Float;
 		}
 
-		public Value(long value)
+		public ProtobufValue(long value)
 		{
 			this.DoubleContent = 0.0;
 			this.FloatContent = 0f;
 			this.LongContent = value;
 			this.StringContent = string.Empty;
 
-			this.Type = ContentType.Long;
+			this.Type = ProtobufType.Long;
 		}
 
-		public Value(string value)
+		public ProtobufValue(string value)
 		{
 			this.DoubleContent = 0.0;
 			this.FloatContent = 0f;
 			this.LongContent = 0;
 			this.StringContent = value;
 
-			this.Type = ContentType.String;
+			this.Type = ProtobufType.String;
 		}
 
 		#endregion

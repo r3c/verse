@@ -7,7 +7,7 @@ using Verse.DecoderDescriptors.Recurse.RecurseReaders.PatternRecurse;
 
 namespace Verse.Schemas.JSON
 {
-	class Reader<TEntity> : PatternRecurseReader<TEntity, ReaderState, Value>
+	class Reader<TEntity> : PatternRecurseReader<TEntity, ReaderState, JSONValue>
 	{
 		#region Constants
 
@@ -23,7 +23,7 @@ namespace Verse.Schemas.JSON
 
 		#region Methods / Public
 
-		public override IRecurseReader<TOther, ReaderState, Value> Create<TOther>()
+		public override IRecurseReader<TOther, ReaderState, JSONValue> Create<TOther>()
 		{
 			return new Reader<TOther>();
 		}
@@ -84,7 +84,7 @@ namespace Verse.Schemas.JSON
 					}
 
 					if (this.IsValue)
-						entity = this.ProcessValue(Value.FromBoolean(false));
+						entity = this.ProcessValue(JSONValue.FromBoolean(false));
 					else
 						entity = default(TEntity);
 
@@ -101,7 +101,7 @@ namespace Verse.Schemas.JSON
 					}
 
 					if (this.IsValue)
-						entity = this.ProcessValue(Value.Void);
+						entity = this.ProcessValue(JSONValue.Void);
 					else
 						entity = default(TEntity);
 
@@ -118,7 +118,7 @@ namespace Verse.Schemas.JSON
 					}
 
 					if (this.IsValue)
-						entity = this.ProcessValue(Value.FromBoolean(true));
+						entity = this.ProcessValue(JSONValue.FromBoolean(true));
 					else
 						entity = default(TEntity);
 
@@ -183,7 +183,7 @@ namespace Verse.Schemas.JSON
 
 		private bool ScanArrayAsEntity(Func<TEntity> constructor, ReaderState state, out TEntity entity)
 		{
-			INode<TEntity, Value, ReaderState> node;
+			INode<TEntity, JSONValue, ReaderState> node;
 
 			state.Read();
 
@@ -328,7 +328,7 @@ namespace Verse.Schemas.JSON
 						(long)((numberMantissa ^ numberMantissaMask) + numberMantissaPlus) *
 						(decimal)Math.Pow(10, numberPower);
 
-					entity = this.ProcessValue(Value.FromNumber(number));
+					entity = this.ProcessValue(JSONValue.FromNumber(number));
 				}
 				else
 					entity = default(TEntity);
@@ -415,7 +415,7 @@ namespace Verse.Schemas.JSON
 		private bool ScanObjectAsEntity(Func<TEntity> constructor, ReaderState state, out TEntity entity)
 		{
 			char character;
-			INode<TEntity, Value, ReaderState> node;
+			INode<TEntity, JSONValue, ReaderState> node;
 
 			state.Read();
 
@@ -501,7 +501,7 @@ namespace Verse.Schemas.JSON
 					buffer.Append(character);
 				}
 
-				entity = this.ProcessValue(Value.FromString(buffer.ToString()));
+				entity = this.ProcessValue(JSONValue.FromString(buffer.ToString()));
 			}
 
 			// Read and discard string otherwise

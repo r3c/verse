@@ -72,7 +72,7 @@ namespace Verse.Schemas.Protobuf
 			return true;
 		}
 
-		public bool Value(Value value)
+		public bool Value(ProtobufValue value)
 		{
 			ProtoWriter destWriter;
 
@@ -83,27 +83,27 @@ namespace Verse.Schemas.Protobuf
 
 			switch (value.Type)
 			{
-				case ContentType.Double:
+				case ProtobufType.Double:
 					ProtoWriter.WriteFieldHeader(this.fieldIndex, WireType.Fixed64, destWriter);
 					ProtoWriter.WriteDouble(value.DoubleContent, destWriter);
 					break;
 
-				case ContentType.Float:
+				case ProtobufType.Float:
 					ProtoWriter.WriteFieldHeader(this.fieldIndex, WireType.Fixed32, destWriter);
 					ProtoWriter.WriteSingle(value.FloatContent, destWriter);
 					break;
 
-				case ContentType.Long:
+				case ProtobufType.Long:
 					ProtoWriter.WriteFieldHeader(this.fieldIndex, WireType.Variant, destWriter);
 					ProtoWriter.WriteInt64(value.LongContent, destWriter);
 					break;
 
-				case ContentType.String:
+				case ProtobufType.String:
 					ProtoWriter.WriteFieldHeader(this.fieldIndex, WireType.String, destWriter);
 					ProtoWriter.WriteString(value.StringContent ?? string.Empty, destWriter);
 					break;
 
-				case ContentType.Void:
+				case ProtobufType.Void:
 					// do nothing
 					break;
 			}

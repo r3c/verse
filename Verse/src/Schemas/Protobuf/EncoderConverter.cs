@@ -5,34 +5,34 @@ using Verse.EncoderDescriptors.Abstract;
 
 namespace Verse.Schemas.Protobuf
 {
-	class EncoderConverter : IEncoderConverter<Value>
+	class EncoderConverter : IEncoderConverter<ProtobufValue>
 	{
 		#region Attributes
 
 		private readonly Dictionary<Type, object> converters = new Dictionary<Type, object>
 		{
-			{ typeof (bool), new Converter<bool, Value>(v => new Value(v ? 1 : 0)) },
-			{ typeof (char), new Converter<char, Value>((v) => new Value(new string(v, 1))) },
-			{ typeof (decimal), new Converter<decimal, Value>(v => new Value((double)v)) },
-			{ typeof (float), new Converter<float, Value>(v => new Value(v)) },
-			{ typeof (double), new Converter<double, Value>(v => new Value(v)) },
-			{ typeof (sbyte), new Converter<sbyte, Value>((v) => new Value((long)v)) },
-			{ typeof (byte), new Converter<byte, Value>((v) => new Value((long)v)) },
-			{ typeof (short), new Converter<short, Value>((v) => new Value((long)v)) },
-			{ typeof (ushort), new Converter<ushort, Value>((v) => new Value((long)v)) },
-			{ typeof (int), new Converter<int, Value>((v) => new Value((long)v)) },
-			{ typeof (uint), new Converter<uint, Value>((v) => new Value((long)v)) },
-			{ typeof (long), new Converter<long, Value>((v) => new Value(v)) },
-			{ typeof (ulong), new Converter<ulong, Value>((v) => new Value((long)v)) },
-			{ typeof (string), new Converter<string, Value>((v) => new Value(v)) },
-			{ typeof (Value), new Converter<Value, Value>((v) => v) }
+			{ typeof (bool), new Converter<bool, ProtobufValue>(v => new ProtobufValue(v ? 1 : 0)) },
+			{ typeof (char), new Converter<char, ProtobufValue>((v) => new ProtobufValue(new string(v, 1))) },
+			{ typeof (decimal), new Converter<decimal, ProtobufValue>(v => new ProtobufValue((double)v)) },
+			{ typeof (float), new Converter<float, ProtobufValue>(v => new ProtobufValue(v)) },
+			{ typeof (double), new Converter<double, ProtobufValue>(v => new ProtobufValue(v)) },
+			{ typeof (sbyte), new Converter<sbyte, ProtobufValue>((v) => new ProtobufValue((long)v)) },
+			{ typeof (byte), new Converter<byte, ProtobufValue>((v) => new ProtobufValue((long)v)) },
+			{ typeof (short), new Converter<short, ProtobufValue>((v) => new ProtobufValue((long)v)) },
+			{ typeof (ushort), new Converter<ushort, ProtobufValue>((v) => new ProtobufValue((long)v)) },
+			{ typeof (int), new Converter<int, ProtobufValue>((v) => new ProtobufValue((long)v)) },
+			{ typeof (uint), new Converter<uint, ProtobufValue>((v) => new ProtobufValue((long)v)) },
+			{ typeof (long), new Converter<long, ProtobufValue>((v) => new ProtobufValue(v)) },
+			{ typeof (ulong), new Converter<ulong, ProtobufValue>((v) => new ProtobufValue((long)v)) },
+			{ typeof (string), new Converter<string, ProtobufValue>((v) => new ProtobufValue(v)) },
+			{ typeof (ProtobufValue), new Converter<ProtobufValue, ProtobufValue>((v) => v) }
 		};
 
 		#endregion
 
 		#region Methods
 
-		public Converter<TFrom, Value> Get<TFrom>()
+		public Converter<TFrom, ProtobufValue> Get<TFrom>()
 		{
 			object box;
 
@@ -45,10 +45,10 @@ namespace Verse.Schemas.Protobuf
 						typeof (TFrom)));
 			}
 
-			return (Converter<TFrom, Value>)box;
+			return (Converter<TFrom, ProtobufValue>)box;
 		}
 
-		public void Set<TFrom>(Converter<TFrom, Value> converter)
+		public void Set<TFrom>(Converter<TFrom, ProtobufValue> converter)
 		{
 			if (converter == null)
 				throw new ArgumentNullException("converter");

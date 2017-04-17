@@ -5,44 +5,44 @@ using Verse.EncoderDescriptors.Abstract;
 
 namespace Verse.Schemas.JSON
 {
-	class EncoderConverter : IEncoderConverter<Value>
+	class EncoderConverter : IEncoderConverter<JSONValue>
 	{
 		#region Attributes
 
 		private readonly Dictionary<Type, object> converters = new Dictionary<Type, object>
 		{
-			{ typeof (bool), new Converter<bool, Value>(Value.FromBoolean) },
-			{ typeof (char), new Converter<char, Value>((v) => Value.FromString(new string(v, 1))) },
-			{ typeof (decimal), new Converter<decimal, Value>(Value.FromNumber) },
-			{ typeof (float), new Converter<float, Value>(v => Value.FromNumber((decimal)v)) },
-			{ typeof (double), new Converter<double, Value>(v => Value.FromNumber((decimal)v)) },
-			{ typeof (sbyte), new Converter<sbyte, Value>((v) => Value.FromNumber(v)) },
-			{ typeof (byte), new Converter<byte, Value>((v) => Value.FromNumber(v)) },
-			{ typeof (short), new Converter<short, Value>((v) => Value.FromNumber(v)) },
-			{ typeof (ushort), new Converter<ushort, Value>((v) => Value.FromNumber(v)) },
-			{ typeof (int), new Converter<int, Value>((v) => Value.FromNumber(v)) },
-			{ typeof (uint), new Converter<uint, Value>((v) => Value.FromNumber(v)) },
-			{ typeof (long), new Converter<long, Value>((v) => Value.FromNumber(v)) },
-			{ typeof (ulong), new Converter<ulong, Value>((v) => Value.FromNumber(v)) },
-			{ typeof (string), new Converter<string, Value>(Value.FromString) },
-			{ typeof (Value), new Converter<Value, Value>((v) => v) }
+			{ typeof (bool), new Converter<bool, JSONValue>(JSONValue.FromBoolean) },
+			{ typeof (char), new Converter<char, JSONValue>((v) => JSONValue.FromString(new string(v, 1))) },
+			{ typeof (decimal), new Converter<decimal, JSONValue>(JSONValue.FromNumber) },
+			{ typeof (float), new Converter<float, JSONValue>(v => JSONValue.FromNumber((decimal)v)) },
+			{ typeof (double), new Converter<double, JSONValue>(v => JSONValue.FromNumber((decimal)v)) },
+			{ typeof (sbyte), new Converter<sbyte, JSONValue>((v) => JSONValue.FromNumber(v)) },
+			{ typeof (byte), new Converter<byte, JSONValue>((v) => JSONValue.FromNumber(v)) },
+			{ typeof (short), new Converter<short, JSONValue>((v) => JSONValue.FromNumber(v)) },
+			{ typeof (ushort), new Converter<ushort, JSONValue>((v) => JSONValue.FromNumber(v)) },
+			{ typeof (int), new Converter<int, JSONValue>((v) => JSONValue.FromNumber(v)) },
+			{ typeof (uint), new Converter<uint, JSONValue>((v) => JSONValue.FromNumber(v)) },
+			{ typeof (long), new Converter<long, JSONValue>((v) => JSONValue.FromNumber(v)) },
+			{ typeof (ulong), new Converter<ulong, JSONValue>((v) => JSONValue.FromNumber(v)) },
+			{ typeof (string), new Converter<string, JSONValue>(JSONValue.FromString) },
+			{ typeof (JSONValue), new Converter<JSONValue, JSONValue>((v) => v) }
 		};
 
 		#endregion
 
 		#region Methods
 
-		public Converter<TFrom, Value> Get<TFrom>()
+		public Converter<TFrom, JSONValue> Get<TFrom>()
 		{
 			object box;
 
 			if (!this.converters.TryGetValue(typeof (TFrom), out box))
 				throw new InvalidCastException(string.Format(CultureInfo.InvariantCulture, "cannot convert '{0}' into JSON value, please register a converter using schema's SetEncoderConverter method", typeof (TFrom)));
 
-			return (Converter<TFrom, Value>)box;
+			return (Converter<TFrom, JSONValue>)box;
 		}
 
-		public void Set<TFrom>(Converter<TFrom, Value> converter)
+		public void Set<TFrom>(Converter<TFrom, JSONValue> converter)
 		{
 			if (converter == null)
 				throw new ArgumentNullException("converter");

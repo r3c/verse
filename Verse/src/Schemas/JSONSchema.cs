@@ -38,11 +38,11 @@ namespace Verse.Schemas
 
 		private readonly DecoderConverter decoderConverter;
 
-		private readonly RecurseDecoderDescriptor<TEntity, ReaderState, Value> decoderDescriptor;
+		private readonly RecurseDecoderDescriptor<TEntity, ReaderState, JSONValue> decoderDescriptor;
 
 		private readonly EncoderConverter encoderConverter;
 
-		private readonly RecurseEncoderDescriptor<TEntity, WriterState, Value> encoderDescriptor;
+		private readonly RecurseEncoderDescriptor<TEntity, WriterState, JSONValue> encoderDescriptor;
 
 		#endregion
 
@@ -59,8 +59,8 @@ namespace Verse.Schemas
 
 			this.decoderConverter = decoderConverter;
 			this.encoderConverter = encoderConverter;
-			this.decoderDescriptor = new RecurseDecoderDescriptor<TEntity, ReaderState, Value>(decoderConverter, new ReaderSession(settings.Encoding), new Reader<TEntity>());
-			this.encoderDescriptor = new RecurseEncoderDescriptor<TEntity, WriterState, Value>(encoderConverter, new WriterSession(settings), new Writer<TEntity>());
+			this.decoderDescriptor = new RecurseDecoderDescriptor<TEntity, ReaderState, JSONValue>(decoderConverter, new ReaderSession(settings.Encoding), new Reader<TEntity>());
+			this.encoderDescriptor = new RecurseEncoderDescriptor<TEntity, WriterState, JSONValue>(encoderConverter, new WriterSession(settings), new Writer<TEntity>());
 		}
 
 		/// <summary>
@@ -101,7 +101,7 @@ namespace Verse.Schemas
 		/// </summary>
 		/// <typeparam name="TOutput">Target output type</typeparam>
 		/// <param name="converter">Converter from JSON native value to output type</param>
-		public void SetDecoderConverter<TOutput>(Converter<Value, TOutput> converter)
+		public void SetDecoderConverter<TOutput>(Converter<JSONValue, TOutput> converter)
 		{
 			this.decoderConverter.Set(converter);
 		}
@@ -111,7 +111,7 @@ namespace Verse.Schemas
 		/// </summary>
 		/// <typeparam name="TInput">Target input type</typeparam>
 		/// <param name="converter">Converter from input type to JSON native value</param>
-		public void SetEncoderConverter<TInput>(Converter<TInput, Value> converter)
+		public void SetEncoderConverter<TInput>(Converter<TInput, JSONValue> converter)
 		{
 			this.encoderConverter.Set(converter);
 		}

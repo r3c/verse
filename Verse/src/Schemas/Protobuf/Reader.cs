@@ -7,7 +7,7 @@ using Verse.DecoderDescriptors.Recurse.RecurseReaders.PatternRecurse;
 
 namespace Verse.Schemas.Protobuf
 {
-	class Reader<TEntity> : PatternRecurseReader<TEntity, ReaderState, Value>
+	class Reader<TEntity> : PatternRecurseReader<TEntity, ReaderState, ProtobufValue>
 	{
 		#region Attributes
 
@@ -17,7 +17,7 @@ namespace Verse.Schemas.Protobuf
 
 		#region Methods / Public
 
-		public override IRecurseReader<TOther, ReaderState, Value> Create<TOther>()
+		public override IRecurseReader<TOther, ReaderState, ProtobufValue> Create<TOther>()
 		{
 			return new Reader<TOther>();
 		}
@@ -85,22 +85,22 @@ namespace Verse.Schemas.Protobuf
 					switch (state.Reader.WireType)
 					{
 						case WireType.Fixed32:
-							entity = this.ProcessValue(new Value(state.Reader.ReadSingle()));
+							entity = this.ProcessValue(new ProtobufValue(state.Reader.ReadSingle()));
 
 							return true;
 
 						case WireType.Fixed64:
-							entity = this.ProcessValue(new Value(state.Reader.ReadDouble()));
+							entity = this.ProcessValue(new ProtobufValue(state.Reader.ReadDouble()));
 
 							return true;
 
 						case WireType.String:
-							entity = this.ProcessValue(new Value(state.Reader.ReadString()));
+							entity = this.ProcessValue(new ProtobufValue(state.Reader.ReadString()));
 
 							return true;
 
 						case WireType.Variant:
-							entity = this.ProcessValue(new Value(state.Reader.ReadInt64()));
+							entity = this.ProcessValue(new ProtobufValue(state.Reader.ReadInt64()));
 
 							return true;
 					}
@@ -120,7 +120,7 @@ namespace Verse.Schemas.Protobuf
 
 		private void FollowNode(int fieldIndex, ref TEntity target, ReaderState state)
 		{
-			INode<TEntity, Value, ReaderState> node;
+			INode<TEntity, ProtobufValue, ReaderState> node;
 
 			node = Reader<TEntity>.GetNode(this.RootNode, fieldIndex);
 
@@ -142,7 +142,7 @@ namespace Verse.Schemas.Protobuf
 			while (ProtoReader.HasSubValue(WireType.None, state.Reader))
 			{
 				int fieldIndex;
-				INode<TEntity, Value, ReaderState> node;
+				INode<TEntity, ProtobufValue, ReaderState> node;
 
 				state.ReadHeader(out fieldIndex);
 				state.AddObject(fieldIndex);
@@ -247,9 +247,9 @@ namespace Verse.Schemas.Protobuf
 			};
 		}
 
-		private static INode<TEntity, Value, ReaderState> GetNode(INode<TEntity, Value, ReaderState> rootNode, int fieldIndex)
+		private static INode<TEntity, ProtobufValue, ReaderState> GetNode(INode<TEntity, ProtobufValue, ReaderState> rootNode, int fieldIndex)
 		{
-			INode<TEntity, Value, ReaderState> node = rootNode.Follow('_');
+			INode<TEntity, ProtobufValue, ReaderState> node = rootNode.Follow('_');
 
 			foreach (char digit in fieldIndex.ToString(CultureInfo.InvariantCulture))
 				node = node.Follow(digit);

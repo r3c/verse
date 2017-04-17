@@ -5,34 +5,34 @@ using Verse.DecoderDescriptors.Abstract;
 
 namespace Verse.Schemas.Protobuf
 {
-	class DecoderConverter : IDecoderConverter<Value>
+	class DecoderConverter : IDecoderConverter<ProtobufValue>
 	{
 		#region Attributes
 
 		private readonly Dictionary<Type, object> converters = new Dictionary<Type, object>
 		{
-			{ typeof (bool), new Converter<Value, bool>(DecoderConverter.ToBoolean) },
-			{ typeof (char), new Converter<Value, char>(DecoderConverter.ToCharacter) },
-			{ typeof (decimal), new Converter<Value, decimal>(DecoderConverter.ToDecimal) },
-			{ typeof (float), new Converter<Value, float>(DecoderConverter.ToFloat32) },
-			{ typeof (double), new Converter<Value, double>(DecoderConverter.ToFloat64) },
-			{ typeof (sbyte), new Converter<Value, sbyte>(DecoderConverter.ToInteger8s) },
-			{ typeof (byte), new Converter<Value, byte>(DecoderConverter.ToInteger8u) },
-			{ typeof (short), new Converter<Value, short>(DecoderConverter.ToInteger16s) },
-			{ typeof (ushort), new Converter<Value, ushort>(DecoderConverter.ToInteger16u) },
-			{ typeof (int), new Converter<Value, int>(DecoderConverter.ToInteger32s) },
-			{ typeof (uint), new Converter<Value, uint>(DecoderConverter.ToInteger32u) },
-			{ typeof (long), new Converter<Value, long>(DecoderConverter.ToInteger64s) },
-			{ typeof (ulong), new Converter<Value, ulong>(DecoderConverter.ToInteger64u) },
-			{ typeof (string), new Converter<Value, string>(DecoderConverter.ToString) },
-			{ typeof (Value), new Converter<Value, Value>((v) => v) }
+			{ typeof (bool), new Converter<ProtobufValue, bool>(DecoderConverter.ToBoolean) },
+			{ typeof (char), new Converter<ProtobufValue, char>(DecoderConverter.ToCharacter) },
+			{ typeof (decimal), new Converter<ProtobufValue, decimal>(DecoderConverter.ToDecimal) },
+			{ typeof (float), new Converter<ProtobufValue, float>(DecoderConverter.ToFloat32) },
+			{ typeof (double), new Converter<ProtobufValue, double>(DecoderConverter.ToFloat64) },
+			{ typeof (sbyte), new Converter<ProtobufValue, sbyte>(DecoderConverter.ToInteger8s) },
+			{ typeof (byte), new Converter<ProtobufValue, byte>(DecoderConverter.ToInteger8u) },
+			{ typeof (short), new Converter<ProtobufValue, short>(DecoderConverter.ToInteger16s) },
+			{ typeof (ushort), new Converter<ProtobufValue, ushort>(DecoderConverter.ToInteger16u) },
+			{ typeof (int), new Converter<ProtobufValue, int>(DecoderConverter.ToInteger32s) },
+			{ typeof (uint), new Converter<ProtobufValue, uint>(DecoderConverter.ToInteger32u) },
+			{ typeof (long), new Converter<ProtobufValue, long>(DecoderConverter.ToInteger64s) },
+			{ typeof (ulong), new Converter<ProtobufValue, ulong>(DecoderConverter.ToInteger64u) },
+			{ typeof (string), new Converter<ProtobufValue, string>(DecoderConverter.ToString) },
+			{ typeof (ProtobufValue), new Converter<ProtobufValue, ProtobufValue>((v) => v) }
 		};
 
 		#endregion
 
 		#region Methods / Public
 
-		public Converter<Value, TTo> Get<TTo>()
+		public Converter<ProtobufValue, TTo> Get<TTo>()
 		{
 			object box;
 
@@ -45,10 +45,10 @@ namespace Verse.Schemas.Protobuf
 						typeof (TTo)));
 			}
 
-			return (Converter<Value, TTo>)box;
+			return (Converter<ProtobufValue, TTo>)box;
 		}
 
-		public void Set<TTo>(Converter<Value, TTo> converter)
+		public void Set<TTo>(Converter<ProtobufValue, TTo> converter)
 		{
 			if (converter == null)
 				throw new ArgumentNullException("converter");
@@ -60,20 +60,20 @@ namespace Verse.Schemas.Protobuf
 
 		#region Methods / Private
 
-		private static bool ToBoolean(Value value)
+		private static bool ToBoolean(ProtobufValue value)
 		{
 			switch (value.Type)
 			{
-				case ContentType.Float:
+				case ProtobufType.Float:
 					return Math.Abs(value.FloatContent) >= float.Epsilon;
 
-				case ContentType.Double:
+				case ProtobufType.Double:
 					return Math.Abs(value.DoubleContent) >= double.Epsilon;
 
-				case ContentType.Long:
+				case ProtobufType.Long:
 					return value.LongContent != 0;
 
-				case ContentType.String:
+				case ProtobufType.String:
 					return !string.IsNullOrEmpty(value.StringContent);
 
 				default:
@@ -81,20 +81,20 @@ namespace Verse.Schemas.Protobuf
 			}
 		}
 
-		private static char ToCharacter(Value value)
+		private static char ToCharacter(ProtobufValue value)
 		{
 			switch (value.Type)
 			{
-				case ContentType.Float:
+				case ProtobufType.Float:
 					return Math.Abs(value.FloatContent) >= float.Epsilon ? '1' : '\0';
 
-				case ContentType.Double:
+				case ProtobufType.Double:
 					return Math.Abs(value.DoubleContent) >= double.Epsilon ? '1' : '\0';
 
-				case ContentType.Long:
+				case ProtobufType.Long:
 					return value.LongContent != 0 ? '1' : '\0';
 
-				case ContentType.String:
+				case ProtobufType.String:
 					return value.StringContent.Length > 0 ? value.StringContent[0] : '\0';
 
 				default:
@@ -102,20 +102,20 @@ namespace Verse.Schemas.Protobuf
 			}
 		}
 
-		private static decimal ToDecimal(Value value)
+		private static decimal ToDecimal(ProtobufValue value)
 		{
 			switch (value.Type)
 			{
-				case ContentType.Float:
+				case ProtobufType.Float:
 					return (decimal)value.FloatContent;
 
-				case ContentType.Double:
+				case ProtobufType.Double:
 					return (decimal)value.DoubleContent;
 
-				case ContentType.Long:
+				case ProtobufType.Long:
 					return value.LongContent;
 
-				case ContentType.String:
+				case ProtobufType.String:
 					decimal number;
 
 					if (decimal.TryParse(value.StringContent, NumberStyles.Float, CultureInfo.InvariantCulture, out number))
@@ -128,20 +128,20 @@ namespace Verse.Schemas.Protobuf
 			}
 		}
 
-		private static float ToFloat32(Value value)
+		private static float ToFloat32(ProtobufValue value)
 		{
 			switch (value.Type)
 			{
-				case ContentType.Float:
+				case ProtobufType.Float:
 					return value.FloatContent;
 
-				case ContentType.Double:
+				case ProtobufType.Double:
 					return (float)value.DoubleContent;
 
-				case ContentType.Long:
+				case ProtobufType.Long:
 					return value.LongContent;
 
-				case ContentType.String:
+				case ProtobufType.String:
 					float number;
 
 					if (float.TryParse(value.StringContent, NumberStyles.Float, CultureInfo.InvariantCulture, out number))
@@ -154,20 +154,20 @@ namespace Verse.Schemas.Protobuf
 			}
 		}
 
-		private static double ToFloat64(Value value)
+		private static double ToFloat64(ProtobufValue value)
 		{
 			switch (value.Type)
 			{
-				case ContentType.Float:
+				case ProtobufType.Float:
 					return value.FloatContent;
 
-				case ContentType.Double:
+				case ProtobufType.Double:
 					return value.DoubleContent;
 
-				case ContentType.Long:
+				case ProtobufType.Long:
 					return value.LongContent;
 
-				case ContentType.String:
+				case ProtobufType.String:
 					double number;
 
 					if (double.TryParse(value.StringContent, NumberStyles.Float, CultureInfo.InvariantCulture, out number))
@@ -180,20 +180,20 @@ namespace Verse.Schemas.Protobuf
 			}
 		}
 
-		private static sbyte ToInteger8s(Value value)
+		private static sbyte ToInteger8s(ProtobufValue value)
 		{
 			switch (value.Type)
 			{
-				case ContentType.Float:
+				case ProtobufType.Float:
 					return (sbyte)value.FloatContent;
 
-				case ContentType.Double:
+				case ProtobufType.Double:
 					return (sbyte)value.DoubleContent;
 
-				case ContentType.Long:
+				case ProtobufType.Long:
 					return (sbyte)value.LongContent;
 
-				case ContentType.String:
+				case ProtobufType.String:
 					sbyte number;
 
 					if (sbyte.TryParse(value.StringContent, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
@@ -206,20 +206,20 @@ namespace Verse.Schemas.Protobuf
 			}
 		}
 
-		private static byte ToInteger8u(Value value)
+		private static byte ToInteger8u(ProtobufValue value)
 		{
 			switch (value.Type)
 			{
-				case ContentType.Float:
+				case ProtobufType.Float:
 					return (byte)value.FloatContent;
 
-				case ContentType.Double:
+				case ProtobufType.Double:
 					return (byte)value.DoubleContent;
 
-				case ContentType.Long:
+				case ProtobufType.Long:
 					return (byte)value.LongContent;
 
-				case ContentType.String:
+				case ProtobufType.String:
 					byte number;
 
 					if (byte.TryParse(value.StringContent, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
@@ -232,20 +232,20 @@ namespace Verse.Schemas.Protobuf
 			}
 		}
 
-		private static short ToInteger16s(Value value)
+		private static short ToInteger16s(ProtobufValue value)
 		{
 			switch (value.Type)
 			{
-				case ContentType.Float:
+				case ProtobufType.Float:
 					return (short)value.FloatContent;
 
-				case ContentType.Double:
+				case ProtobufType.Double:
 					return (short)value.DoubleContent;
 
-				case ContentType.Long:
+				case ProtobufType.Long:
 					return (short)value.LongContent;
 
-				case ContentType.String:
+				case ProtobufType.String:
 					short number;
 
 					if (short.TryParse(value.StringContent, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
@@ -258,20 +258,20 @@ namespace Verse.Schemas.Protobuf
 			}
 		}
 
-		private static ushort ToInteger16u(Value value)
+		private static ushort ToInteger16u(ProtobufValue value)
 		{
 			switch (value.Type)
 			{
-				case ContentType.Float:
+				case ProtobufType.Float:
 					return (ushort)value.FloatContent;
 
-				case ContentType.Double:
+				case ProtobufType.Double:
 					return (ushort)value.DoubleContent;
 
-				case ContentType.Long:
+				case ProtobufType.Long:
 					return (ushort)value.LongContent;
 
-				case ContentType.String:
+				case ProtobufType.String:
 					ushort number;
 
 					if (ushort.TryParse(value.StringContent, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
@@ -284,20 +284,20 @@ namespace Verse.Schemas.Protobuf
 			}
 		}
 
-		private static int ToInteger32s(Value value)
+		private static int ToInteger32s(ProtobufValue value)
 		{
 			switch (value.Type)
 			{
-				case ContentType.Float:
+				case ProtobufType.Float:
 					return (int)value.FloatContent;
 
-				case ContentType.Double:
+				case ProtobufType.Double:
 					return (int)value.DoubleContent;
 
-				case ContentType.Long:
+				case ProtobufType.Long:
 					return (int)value.LongContent;
 
-				case ContentType.String:
+				case ProtobufType.String:
 					int number;
 
 					if (int.TryParse(value.StringContent, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
@@ -310,20 +310,20 @@ namespace Verse.Schemas.Protobuf
 			}
 		}
 
-		private static uint ToInteger32u(Value value)
+		private static uint ToInteger32u(ProtobufValue value)
 		{
 			switch (value.Type)
 			{
-				case ContentType.Float:
+				case ProtobufType.Float:
 					return (uint)value.FloatContent;
 
-				case ContentType.Double:
+				case ProtobufType.Double:
 					return (uint)value.DoubleContent;
 
-				case ContentType.Long:
+				case ProtobufType.Long:
 					return (uint)value.LongContent;
 
-				case ContentType.String:
+				case ProtobufType.String:
 					uint number;
 
 					if (uint.TryParse(value.StringContent, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
@@ -336,20 +336,20 @@ namespace Verse.Schemas.Protobuf
 			}
 		}
 
-		private static long ToInteger64s(Value value)
+		private static long ToInteger64s(ProtobufValue value)
 		{
 			switch (value.Type)
 			{
-				case ContentType.Float:
+				case ProtobufType.Float:
 					return (long)value.FloatContent;
 
-				case ContentType.Double:
+				case ProtobufType.Double:
 					return (long)value.DoubleContent;
 
-				case ContentType.Long:
+				case ProtobufType.Long:
 					return value.LongContent;
 
-				case ContentType.String:
+				case ProtobufType.String:
 					long number;
 
 					if (long.TryParse(value.StringContent, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
@@ -362,20 +362,20 @@ namespace Verse.Schemas.Protobuf
 			}
 		}
 
-		private static ulong ToInteger64u(Value value)
+		private static ulong ToInteger64u(ProtobufValue value)
 		{
 			switch (value.Type)
 			{
-				case ContentType.Float:
+				case ProtobufType.Float:
 					return (ulong)value.FloatContent;
 
-				case ContentType.Double:
+				case ProtobufType.Double:
 					return (ulong)value.DoubleContent;
 
-				case ContentType.Long:
+				case ProtobufType.Long:
 					return (ulong)value.LongContent;
 
-				case ContentType.String:
+				case ProtobufType.String:
 					ulong number;
 
 					if (ulong.TryParse(value.StringContent, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
@@ -388,20 +388,20 @@ namespace Verse.Schemas.Protobuf
 			}
 		}
 
-		private static string ToString(Value value)
+		private static string ToString(ProtobufValue value)
 		{
 			switch (value.Type)
 			{
-				case ContentType.Float:
+				case ProtobufType.Float:
 					return value.FloatContent.ToString(CultureInfo.InvariantCulture);
 
-				case ContentType.Double:
+				case ProtobufType.Double:
 					return value.DoubleContent.ToString(CultureInfo.InvariantCulture);
 
-				case ContentType.Long:
+				case ProtobufType.Long:
 					return value.LongContent.ToString(CultureInfo.InvariantCulture);
 
-				case ContentType.String:
+				case ProtobufType.String:
 					return value.StringContent;
 
 				default:

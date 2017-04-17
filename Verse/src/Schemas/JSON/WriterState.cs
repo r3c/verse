@@ -125,23 +125,23 @@ namespace Verse.Schemas.JSON
 			this.writer.Write('"');
 		}
 
-		public void Value(Value value)
+		public void Value(JSONValue value)
 		{
 			switch (value.Type)
 			{
-				case ContentType.Boolean:
+				case JSONType.Boolean:
 					this.BeforeNonNull();
 					this.writer.Write(value.Boolean ? "true" : "false");
 
 					break;
 
-				case ContentType.Number:
+				case JSONType.Number:
 					this.BeforeNonNull();
 					this.writer.Write(value.Number.ToString(CultureInfo.InvariantCulture));
 
 					break;
 
-				case ContentType.String:
+				case JSONType.String:
 					this.BeforeNonNull();
 					this.String(value.String);
 

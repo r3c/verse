@@ -31,11 +31,11 @@ namespace Verse.Schemas
 
 		private readonly DecoderConverter decoderConverter;
 
-		private readonly RecurseDecoderDescriptor<TEntity, ReaderState, Value> decoderDescriptor;
+		private readonly RecurseDecoderDescriptor<TEntity, ReaderState, ProtobufValue> decoderDescriptor;
 
 		private readonly EncoderConverter encoderConverter;
 
-		private readonly RecurseEncoderDescriptor<TEntity, WriterState, Value> encoderDescriptor;
+		private readonly RecurseEncoderDescriptor<TEntity, WriterState, ProtobufValue> encoderDescriptor;
 
 		#endregion
 
@@ -48,8 +48,8 @@ namespace Verse.Schemas
 
 			this.decoderConverter = decoderConverter;
 			this.encoderConverter = encoderConverter;
-			this.decoderDescriptor = new RecurseDecoderDescriptor<TEntity, ReaderState, Value>(decoderConverter, new ReaderSession(), new Reader<TEntity>());
-			this.encoderDescriptor = new RecurseEncoderDescriptor<TEntity, WriterState, Value>(encoderConverter, new WriterSession(), new Writer<TEntity>());
+			this.decoderDescriptor = new RecurseDecoderDescriptor<TEntity, ReaderState, ProtobufValue>(decoderConverter, new ReaderSession(), new Reader<TEntity>());
+			this.encoderDescriptor = new RecurseEncoderDescriptor<TEntity, WriterState, ProtobufValue>(encoderConverter, new WriterSession(), new Writer<TEntity>());
 		}
 
 		#endregion
@@ -66,12 +66,12 @@ namespace Verse.Schemas
 			return this.encoderDescriptor.CreateEncoder();
 		}
 
-		public void SetDecoderConverter<U>(Converter<Value, U> converter)
+		public void SetDecoderConverter<U>(Converter<ProtobufValue, U> converter)
 		{
 			this.decoderConverter.Set(converter);
 		}
 
-		public void SetEncoderConverter<U>(Converter<U, Value> converter)
+		public void SetEncoderConverter<U>(Converter<U, ProtobufValue> converter)
 		{
 			this.encoderConverter.Set(converter);
 		}

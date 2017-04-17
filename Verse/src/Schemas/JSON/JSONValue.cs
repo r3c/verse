@@ -5,7 +5,7 @@ namespace Verse.Schemas.JSON
 	/// <summary>
 	/// Native JSON value.
 	/// </summary>
-	public struct Value
+	public struct JSONValue
 	{
 		#region Attributes / Instance
 
@@ -27,7 +27,7 @@ namespace Verse.Schemas.JSON
 		/// <summary>
 		/// Value content type.
 		/// </summary>
-		public ContentType Type;
+		public JSONType Type;
 
 		#endregion
 
@@ -36,7 +36,7 @@ namespace Verse.Schemas.JSON
 		/// <summary>
 		/// Static instance of undefined value.
 		/// </summary>
-		public static readonly Value Void = new Value();
+		public static readonly JSONValue Void = new JSONValue();
 
 		#endregion
 
@@ -47,9 +47,9 @@ namespace Verse.Schemas.JSON
 		/// </summary>
 		/// <param name="value">Boolean value</param>
 		/// <returns>JSON boolean value</returns>
-		public static Value FromBoolean(bool value)
+		public static JSONValue FromBoolean(bool value)
 		{
-			return new Value { Boolean = value, Type = ContentType.Boolean };
+			return new JSONValue { Boolean = value, Type = JSONType.Boolean };
 		}
 
 		/// <summary>
@@ -57,9 +57,9 @@ namespace Verse.Schemas.JSON
 		/// </summary>
 		/// <param name="value">Number value</param>
 		/// <returns>JSON number value</returns>
-		public static Value FromNumber(decimal value)
+		public static JSONValue FromNumber(decimal value)
 		{
-			return new Value { Number = value, Type = ContentType.Number };
+			return new JSONValue { Number = value, Type = JSONType.Number };
 		}
 
 		/// <summary>
@@ -67,9 +67,9 @@ namespace Verse.Schemas.JSON
 		/// </summary>
 		/// <param name="value">String value</param>
 		/// <returns>JSON string value</returns>
-		public static Value FromString(string value)
+		public static JSONValue FromString(string value)
 		{
-			return new Value { String = value, Type = ContentType.String };
+			return new JSONValue { String = value, Type = JSONType.String };
 		}
 
 		#endregion

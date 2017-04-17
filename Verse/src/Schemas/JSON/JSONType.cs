@@ -5,7 +5,7 @@ namespace Verse.Schemas.JSON
 	/// <summary>
 	/// JSON native value content type.
 	/// </summary>
-	public enum ContentType
+	public enum JSONType
 	{
 		/// <summary>
 		/// Undefined (null) value.

@@ -125,18 +125,18 @@
     <Compile Include="src\EncoderDescriptors\Recurse\RecurseWriters\PatternRecurseWriter.cs" />
     <Compile Include="src\EncodeError.cs" />
     <Compile Include="src\Schemas\AbstractSchema.cs" />
-    <Compile Include="src\Schemas\JSON\ContentType.cs" />
+    <Compile Include="src\Schemas\JSON\JSONType.cs" />
     <Compile Include="src\Schemas\JSONSettings.cs" />
     <Compile Include="src\Schemas\JSON\ReaderSession.cs" />
     <Compile Include="src\Schemas\JSON\WriterSession.cs" />
     <Compile Include="src\Schemas\ProtobufSchema.cs" />
-    <Compile Include="src\Schemas\Protobuf\ContentType.cs" />
+    <Compile Include="src\Schemas\Protobuf\ProtobufType.cs" />
     <Compile Include="src\Schemas\Protobuf\ReaderSession.cs" />
     <Compile Include="src\Schemas\Protobuf\VisitingNode.cs" />
     <Compile Include="src\Schemas\Protobuf\Reader.cs" />
     <Compile Include="src\Schemas\Protobuf\ReaderState.cs" />
     <Compile Include="src\Schemas\Protobuf\SubObjectInstance.cs" />
-    <Compile Include="src\Schemas\Protobuf\Value.cs" />
+    <Compile Include="src\Schemas\Protobuf\ProtobufValue.cs" />
     <Compile Include="src\Schemas\Protobuf\DecoderConverter.cs" />
     <Compile Include="src\Schemas\Protobuf\EncoderConverter.cs" />
     <Compile Include="src\Schemas\Protobuf\Writer.cs" />
@@ -165,7 +165,7 @@
     <Compile Include="src\Schemas\JSONSchema.cs" />
     <Compile Include="src\Schemas\JSON\ReaderState.cs" />
     <Compile Include="src\Schemas\JSON\Reader.cs" />
-    <Compile Include="src\Schemas\JSON\Value.cs" />
+    <Compile Include="src\Schemas\JSON\JSONValue.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="src\DecoderDescriptors\Abstract" />

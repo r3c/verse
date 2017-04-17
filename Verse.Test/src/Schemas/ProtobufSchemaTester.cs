@@ -22,21 +22,21 @@ namespace Verse.Test.Schemas
 		private const string LONG_STRING = "Verum ad istam omnem orationem brevis est defensio. Nam quoad aetas M. Caeli dare potuit isti suspicioni locum, fuit primum ipsius pudore, deinde etiam patris diligentia disciplinaque munita. Qui ut huic virilem togam deditšnihil dicam hoc loco de me; tantum sit, quantum vos existimatis; hoc dicam, hunc a patre continuo ad me esse deductum; nemo hunc M. Caelium in illo aetatis flore vidit nisi aut cum patre aut mecum aut in M. Crassi castissima domo, cum artibus honestissimis erudiretur.";
 
 		[Test]
-		[TestCase(MIN_LONG, ContentType.Long)]
-		[TestCase(MAX_LONG, ContentType.Long)]
-		[TestCase(MIN_FLOAT, ContentType.Float)]
-		[TestCase(MAX_FLOAT, ContentType.Float)]
-		[TestCase(0f, ContentType.Float)]
-		[TestCase(MIN_DOUBLE, ContentType.Double)]
-		[TestCase(MAX_DOUBLE, ContentType.Double)]
-		[TestCase(0.0, ContentType.Double)]
-		[TestCase("", ContentType.String)]
-		[TestCase(LONG_STRING, ContentType.String)]
-		public void TestDecodeValue<T>(T value, ContentType type)
+		[TestCase(MIN_LONG, ProtobufType.Long)]
+		[TestCase(MAX_LONG, ProtobufType.Long)]
+		[TestCase(MIN_FLOAT, ProtobufType.Float)]
+		[TestCase(MAX_FLOAT, ProtobufType.Float)]
+		[TestCase(0f, ProtobufType.Float)]
+		[TestCase(MIN_DOUBLE, ProtobufType.Double)]
+		[TestCase(MAX_DOUBLE, ProtobufType.Double)]
+		[TestCase(0.0, ProtobufType.Double)]
+		[TestCase("", ProtobufType.String)]
+		[TestCase(LONG_STRING, ProtobufType.String)]
+		public void TestDecodeValue<T>(T value, ProtobufType type)
 		{
-			Value decodedValue;
-			IDecoder<Value> decoder;
-			ISchema<Value> schema;
+			ProtobufValue decodedValue;
+			IDecoder<ProtobufValue> decoder;
+			ISchema<ProtobufValue> schema;
 			MemoryStream stream;
 			TestFieldClass<T> testFieldClass;
 
@@ -47,10 +47,10 @@ namespace Verse.Test.Schemas
 			Serializer.Serialize(stream, testFieldClass);
 			stream.Seek(0, SeekOrigin.Begin);
 
-			decodedValue = new Value();
+			decodedValue = new ProtobufValue();
 
-			schema = new ProtobufSchema<Value>();
-			schema.DecoderDescriptor.HasField("_1", Identity<Value>.Assign).IsValue();
+			schema = new ProtobufSchema<ProtobufValue>();
+			schema.DecoderDescriptor.HasField("_1", Identity<ProtobufValue>.Assign).IsValue();
 			decoder = schema.CreateDecoder();
 
 			Assert.IsTrue(decoder.Decode(stream, out decodedValue));
@@ -58,19 +58,19 @@ namespace Verse.Test.Schemas
 
 			switch (type)
 			{
-				case ContentType.Double:
+				case ProtobufType.Double:
 					Assert.AreEqual(value, decodedValue.DoubleContent);
 					break;
 
-				case ContentType.Float:
+				case ProtobufType.Float:
 					Assert.AreEqual(value, decodedValue.FloatContent);
 					break;
 
-				case ContentType.Long:
+				case ProtobufType.Long:
 					Assert.AreEqual(value, decodedValue.LongContent);
 					break;
 
-				case ContentType.String:
+				case ProtobufType.String:
 					Assert.AreEqual(value, decodedValue.StringContent);
 					break;
 
@@ -316,43 +316,43 @@ namespace Verse.Test.Schemas
 		}
 
 		[Test]
-		[TestCase(MIN_LONG, ContentType.Long)]
-		[TestCase(MAX_LONG, ContentType.Long)]
-		[TestCase(MIN_FLOAT, ContentType.Float)]
-		[TestCase(MAX_FLOAT, ContentType.Float)]
-		[TestCase(MIN_DOUBLE, ContentType.Double)]
-		[TestCase(MAX_DOUBLE, ContentType.Double)]
-		[TestCase("", ContentType.String)]
-		[TestCase(LONG_STRING, ContentType.String)]
-		public void TestEncodeValue<T>(T value, ContentType type)
+		[TestCase(MIN_LONG, ProtobufType.Long)]
+		[TestCase(MAX_LONG, ProtobufType.Long)]
+		[TestCase(MIN_FLOAT, ProtobufType.Float)]
+		[TestCase(MAX_FLOAT, ProtobufType.Float)]
+		[TestCase(MIN_DOUBLE, ProtobufType.Double)]
+		[TestCase(MAX_DOUBLE, ProtobufType.Double)]
+		[TestCase("", ProtobufType.String)]
+		[TestCase(LONG_STRING, ProtobufType.String)]
+		public void TestEncodeValue<T>(T value, ProtobufType type)
 		{
-			IEncoder<Value> encoder;
-			ISchema<Value> schema;
+			IEncoder<ProtobufValue> encoder;
+			ISchema<ProtobufValue> schema;
 			MemoryStream stream;
 			TestFieldClass<T> testFieldClass;
 
-			schema = new ProtobufSchema<Value>();
-			schema.EncoderDescriptor.HasField("_1", Identity<Value>.Access).IsValue();
+			schema = new ProtobufSchema<ProtobufValue>();
+			schema.EncoderDescriptor.HasField("_1", Identity<ProtobufValue>.Access).IsValue();
 
 			stream = new MemoryStream();
 
-			Value protoValue;
+			ProtobufValue protoValue;
 			switch (type)
 			{
-				case ContentType.Float:
-					protoValue = new Value((float)(object)value);
+				case ProtobufType.Float:
+					protoValue = new ProtobufValue((float)(object)value);
 					break;
 
-				case ContentType.Double:
-					protoValue = new Value((double)(object)value);
+				case ProtobufType.Double:
+					protoValue = new ProtobufValue((double)(object)value);
 					break;
 
-				case ContentType.Long:
-					protoValue = new Value((long)(object)value);
+				case ProtobufType.Long:
+					protoValue = new ProtobufValue((long)(object)value);
 					break;
 
-				case ContentType.String:
-					protoValue = new Value((string)(object)value);
+				case ProtobufType.String:
+					protoValue = new ProtobufValue((string)(object)value);
 					break;
 
 				default:

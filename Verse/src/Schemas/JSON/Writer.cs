@@ -5,11 +5,11 @@ using Verse.EncoderDescriptors.Recurse.RecurseWriters;
 
 namespace Verse.Schemas.JSON
 {
-	class Writer<TEntity> : PatternRecurseWriter<TEntity, WriterState, Value>
+	class Writer<TEntity> : PatternRecurseWriter<TEntity, WriterState, JSONValue>
 	{
 		#region Methods
 
-		public override IRecurseWriter<TOther, WriterState, Value> Create<TOther>()
+		public override IRecurseWriter<TOther, WriterState, JSONValue> Create<TOther>()
 		{
 			return new Writer<TOther>();
 		}
@@ -32,7 +32,7 @@ namespace Verse.Schemas.JSON
 			IEnumerator<KeyValuePair<string, WriteEntity<TEntity, WriterState>>> field;
 
 			if (source == null)
-				state.Value(JSON.Value.Void);
+				state.Value(JSON.JSONValue.Void);
 			else if (this.IsArray)
 				this.ProcessArray(source, state);
 			else if (this.IsValue)
