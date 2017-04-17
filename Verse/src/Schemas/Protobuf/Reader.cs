@@ -10,274 +10,274 @@ using Verse.DecoderDescriptors.Recurse.Readers.Pattern;
 
 namespace Verse.Schemas.Protobuf
 {
-    class Reader<TEntity> : PatternReader<TEntity, Value, ReaderState>
-    {
-        #region Attributes
+	class Reader<TEntity> : PatternReader<TEntity, Value, ReaderState>
+	{
+		#region Attributes
 
-        private static readonly Reader<TEntity> unknown = new Reader<TEntity>();
+		private static readonly Reader<TEntity> unknown = new Reader<TEntity>();
 
-        #endregion
+		#endregion
 
-        #region Methods / Public
+		#region Methods / Public
 
-        public override IReader<TOther, Value, ReaderState> Create<TOther>()
-        {
-            return new Reader<TOther>();
-        }
+		public override IReader<TOther, Value, ReaderState> Create<TOther>()
+		{
+			return new Reader<TOther>();
+		}
 
-        public override IBrowser<TEntity> ReadElements(Func<TEntity> constructor, ReaderState state)
-        {
-            switch (state.Reader.WireType)
-            {
-                case WireType.StartGroup:
-                case WireType.String:
-                    return this.ReadSubItemArray(constructor, state);
+		public override IBrowser<TEntity> ReadElements(Func<TEntity> constructor, ReaderState state)
+		{
+			switch (state.Reader.WireType)
+			{
+				case WireType.StartGroup:
+				case WireType.String:
+					return this.ReadSubItemArray(constructor, state);
 
-                default:
-                    return this.ReadValueArray(constructor, state);
-            }
-        }
+				default:
+					return this.ReadValueArray(constructor, state);
+			}
+		}
 
-        public override bool ReadEntity(Func<TEntity> constructor, ReaderState state, out TEntity target)
-        {
-        	target = constructor();
+		public override bool ReadEntity(Func<TEntity> constructor, ReaderState state, out TEntity target)
+		{
+			target = constructor();
 
-        	return this.ReadEntity(ref target, state);
-        }
+			return this.ReadEntity(ref target, state);
+		}
 
-        public override bool Start(Stream stream, DecodeError error, out ReaderState state)
-        {
-            state = new ReaderState(stream, error);
+		public override bool Start(Stream stream, DecodeError error, out ReaderState state)
+		{
+			state = new ReaderState(stream, error);
 
-            return true;
-        }
+			return true;
+		}
 
-        public override void Stop(ReaderState state)
-        {
-        }
+		public override void Stop(ReaderState state)
+		{
+		}
 
-        #endregion
+		#endregion
 
-        #region Methods / Private
+		#region Methods / Private
 
-        private void FollowNode(int fieldIndex, ref TEntity target, ReaderState state)
-        {
-            INode<TEntity, Value, ReaderState> node;
+		private void FollowNode(int fieldIndex, ref TEntity target, ReaderState state)
+		{
+			INode<TEntity, Value, ReaderState> node;
 
-            node = Reader<TEntity>.GetNode(this.RootNode, fieldIndex);
+			node = Reader<TEntity>.GetNode(this.RootNode, fieldIndex);
 
-            state.ReadingAction = ReaderState.ReadingActionType.ReadValue;
+			state.ReadingAction = ReaderState.ReadingActionType.ReadValue;
 
-            node.Enter(ref target, Reader<TEntity>.unknown, state);
-        }
+			node.Enter(ref target, Reader<TEntity>.unknown, state);
+		}
 
-        private bool ReadEntity(ref TEntity target, ReaderState state)
-        {
-            switch (state.ReadingAction)
-            {
-                case ReaderState.ReadingActionType.UseHeader:
-                    this.FollowNode(state.Reader.FieldNumber, ref target, state);
+		private bool ReadEntity(ref TEntity target, ReaderState state)
+		{
+			switch (state.ReadingAction)
+			{
+				case ReaderState.ReadingActionType.UseHeader:
+					this.FollowNode(state.Reader.FieldNumber, ref target, state);
 
-                    break;
+					break;
 
-                case ReaderState.ReadingActionType.ReadHeader:
-                    int fieldIndex;
+				case ReaderState.ReadingActionType.ReadHeader:
+					int fieldIndex;
 
-                    while (state.ReadHeader(out fieldIndex))
-                    {
-                        state.AddObject(fieldIndex);
+					while (state.ReadHeader(out fieldIndex))
+					{
+						state.AddObject(fieldIndex);
 
-                        this.FollowNode(fieldIndex, ref target, state);
-                    }
+						this.FollowNode(fieldIndex, ref target, state);
+					}
 
-                    break;
+					break;
 
-                default:
-                    state.ReadingAction = ReaderState.ReadingActionType.ReadHeader;
+				default:
+					state.ReadingAction = ReaderState.ReadingActionType.ReadHeader;
 
-                    if (this.HoldArray)
-                        return this.ProcessArray(ref target, state);
+					if (this.HoldArray)
+						return this.ProcessArray(ref target, state);
 
-                    if (!this.HoldValue)
-                    {
-                        // if it's not object, ignore
-                        if ((state.Reader.WireType != WireType.StartGroup && state.Reader.WireType != WireType.String) ||
-                            !this.RootNode.HasSubNode)
-                        {
-                            state.Reader.SkipField();
+					if (!this.HoldValue)
+					{
+						// if it's not object, ignore
+						if ((state.Reader.WireType != WireType.StartGroup && state.Reader.WireType != WireType.String) ||
+							!this.RootNode.HasSubNode)
+						{
+							state.Reader.SkipField();
 
-                            return true;
-                        }
+							return true;
+						}
 
-                        return this.ReadObjectValue(ref target, state);
-                    }
+						return this.ReadObjectValue(ref target, state);
+					}
 
-                    switch (state.Reader.WireType)
-                    {
-                        case WireType.Fixed32:
-                            this.ProcessValue(ref target, new Value(state.Reader.ReadSingle()));
-                            break;
+					switch (state.Reader.WireType)
+					{
+						case WireType.Fixed32:
+							this.ProcessValue(ref target, new Value(state.Reader.ReadSingle()));
+							break;
 
-                        case WireType.Fixed64:
-                            this.ProcessValue(ref target, new Value(state.Reader.ReadDouble()));
-                            break;
+						case WireType.Fixed64:
+							this.ProcessValue(ref target, new Value(state.Reader.ReadDouble()));
+							break;
 
-                        case WireType.String:
-                            this.ProcessValue(ref target, new Value(state.Reader.ReadString()));
-                            break;
+						case WireType.String:
+							this.ProcessValue(ref target, new Value(state.Reader.ReadString()));
+							break;
 
-                        case WireType.Variant:
-                            this.ProcessValue(ref target, new Value(state.Reader.ReadInt64()));
-                            break;
+						case WireType.Variant:
+							this.ProcessValue(ref target, new Value(state.Reader.ReadInt64()));
+							break;
 
-                        default:
-                            state.Error(state.Position, "wire type not supported, skipped");
-                            state.Reader.SkipField();
+						default:
+							state.Error(state.Position, "wire type not supported, skipped");
+							state.Reader.SkipField();
 
-                            break;
-                    }
+							break;
+					}
 
-                    break;
-            }
+					break;
+			}
 
-            return true;
-        }
+			return true;
+		}
 
-        private bool ReadObjectValue(ref TEntity target, ReaderState state)
-        {
-            int visitCount;
-            SubItemToken lastSubItem;
+		private bool ReadObjectValue(ref TEntity target, ReaderState state)
+		{
+			int visitCount;
+			SubItemToken lastSubItem;
 
-            lastSubItem = ProtoReader.StartSubItem(state.Reader);
+			lastSubItem = ProtoReader.StartSubItem(state.Reader);
 
-            if (!state.EnterObject(out visitCount))
-                return false;
+			if (!state.EnterObject(out visitCount))
+				return false;
 
-            while (ProtoReader.HasSubValue(WireType.None, state.Reader))
-            {
-                int fieldIndex;
-                INode<TEntity, Value, ReaderState> node;
+			while (ProtoReader.HasSubValue(WireType.None, state.Reader))
+			{
+				int fieldIndex;
+				INode<TEntity, Value, ReaderState> node;
 
-                state.ReadHeader(out fieldIndex);
-                state.AddObject(fieldIndex);
+				state.ReadHeader(out fieldIndex);
+				state.AddObject(fieldIndex);
 
-                node = Reader<TEntity>.GetNode(this.RootNode, fieldIndex);
+				node = Reader<TEntity>.GetNode(this.RootNode, fieldIndex);
 
-                if (visitCount == 1 && node.IsConnected)
-                {
-                    state.ReadingAction = ReaderState.ReadingActionType.ReadValue;
+				if (visitCount == 1 && node.IsConnected)
+				{
+					state.ReadingAction = ReaderState.ReadingActionType.ReadValue;
 
-                    if (!node.Enter(ref target, Reader<TEntity>.unknown, state))
-                        return false;
-                }
-                else
-                {
-                    int index;
+					if (!node.Enter(ref target, Reader<TEntity>.unknown, state))
+						return false;
+				}
+				else
+				{
+					int index;
 
-                    node = this.RootNode;
-                    index = visitCount - 1;
+					node = this.RootNode;
+					index = visitCount - 1;
 
-                    foreach (char digit in index.ToString(CultureInfo.InvariantCulture))
-                        node = node.Follow(digit);
+					foreach (char digit in index.ToString(CultureInfo.InvariantCulture))
+						node = node.Follow(digit);
 
-                    state.ReadingAction = ReaderState.ReadingActionType.UseHeader;
+					state.ReadingAction = ReaderState.ReadingActionType.UseHeader;
 
-                    if (!node.Enter(ref target, Reader<TEntity>.unknown, state))
-                        return false;
-                }
-            }
+					if (!node.Enter(ref target, Reader<TEntity>.unknown, state))
+						return false;
+				}
+			}
 
-            state.LeaveObject();
+			state.LeaveObject();
 
-            ProtoReader.EndSubItem(lastSubItem, state.Reader);
+			ProtoReader.EndSubItem(lastSubItem, state.Reader);
 
-            return true;
-        }
+			return true;
+		}
 
-        private IBrowser<TEntity> ReadSubItemArray(Func<TEntity> constructor, ReaderState state)
-        {
-        	int dummy;
-            SubItemToken lastSubItem;
-            BrowserMove<TEntity> move;
+		private IBrowser<TEntity> ReadSubItemArray(Func<TEntity> constructor, ReaderState state)
+		{
+			int dummy;
+			SubItemToken lastSubItem;
+			BrowserMove<TEntity> move;
 
-            if (this.HoldValue)
-                return this.ReadValueArray(constructor, state);
+			if (this.HoldValue)
+				return this.ReadValueArray(constructor, state);
 
-            state.ReadingAction = ReaderState.ReadingActionType.ReadHeader;
+			state.ReadingAction = ReaderState.ReadingActionType.ReadHeader;
 
-            lastSubItem = ProtoReader.StartSubItem(state.Reader);
+			lastSubItem = ProtoReader.StartSubItem(state.Reader);
 
-            if (!state.EnterObject(out dummy))
-            {
-                return new Browser<TEntity>((int index, out TEntity current) =>
-                {
-                    current = default(TEntity);
-                    return BrowserState.Failure;
-                });
-            }
+			if (!state.EnterObject(out dummy))
+			{
+				return new Browser<TEntity>((int index, out TEntity current) =>
+				{
+					current = default(TEntity);
+					return BrowserState.Failure;
+				});
+			}
 
-            move = (int index, out TEntity current) =>
-            {
-                state.AddObject(index);
+			move = (int index, out TEntity current) =>
+			{
+				state.AddObject(index);
 
-                if (!ProtoReader.HasSubValue(WireType.None, state.Reader))
-                {
-                	current = default(TEntity);
+				if (!ProtoReader.HasSubValue(WireType.None, state.Reader))
+				{
+					current = default(TEntity);
 
-                    state.LeaveObject();
+					state.LeaveObject();
 
-                    ProtoReader.EndSubItem(lastSubItem, state.Reader);
+					ProtoReader.EndSubItem(lastSubItem, state.Reader);
 
-                    return BrowserState.Success;
-                }
+					return BrowserState.Success;
+				}
 
-                if (this.ReadEntity(constructor, state, out current))
-                	return BrowserState.Continue;
+				if (this.ReadEntity(constructor, state, out current))
+					return BrowserState.Continue;
 
-                current = default(TEntity);
+				current = default(TEntity);
 
-                return BrowserState.Failure;
-            };
+				return BrowserState.Failure;
+			};
 
-            return new Browser<TEntity>(move);
-        }
+			return new Browser<TEntity>(move);
+		}
 
-        private IBrowser<TEntity> ReadValueArray(Func<TEntity> constructor, ReaderState state)
-        {
-            BrowserMove<TEntity> move;
+		private IBrowser<TEntity> ReadValueArray(Func<TEntity> constructor, ReaderState state)
+		{
+			BrowserMove<TEntity> move;
 
-            state.ReadingAction = ReaderState.ReadingActionType.ReadValue;
+			state.ReadingAction = ReaderState.ReadingActionType.ReadValue;
 
-            move = (int index, out TEntity current) =>
-            {
-                state.AddObject(index);
+			move = (int index, out TEntity current) =>
+			{
+				state.AddObject(index);
 
-                if (index > 0)
-                {
-                	current = default(TEntity);
+				if (index > 0)
+				{
+					current = default(TEntity);
 
-                    return BrowserState.Success;
-                }
+					return BrowserState.Success;
+				}
 
 				if (!this.ReadEntity(constructor, state, out current))
 					return BrowserState.Failure;
 
 				return BrowserState.Continue;
-            };
+			};
 
-            return new Browser<TEntity>(move);
-        }
+			return new Browser<TEntity>(move);
+		}
 
-        private static INode<TEntity, Value, ReaderState> GetNode(INode<TEntity, Value, ReaderState> rootNode, int fieldIndex)
-        {
-            INode<TEntity, Value, ReaderState> node = rootNode.Follow('_');
+		private static INode<TEntity, Value, ReaderState> GetNode(INode<TEntity, Value, ReaderState> rootNode, int fieldIndex)
+		{
+			INode<TEntity, Value, ReaderState> node = rootNode.Follow('_');
 
-            foreach (char digit in fieldIndex.ToString(CultureInfo.InvariantCulture))
-                node = node.Follow(digit);
+			foreach (char digit in fieldIndex.ToString(CultureInfo.InvariantCulture))
+				node = node.Follow(digit);
 
-            return node;
-        }
+			return node;
+		}
 
-        #endregion
-    }
+		#endregion
+	}
 }

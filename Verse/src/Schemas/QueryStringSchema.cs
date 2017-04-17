@@ -5,73 +5,73 @@ using Verse.Schemas.QueryString;
 
 namespace Verse.Schemas
 {
-    public sealed class QueryStringSchema<TEntity> : AbstractSchema<TEntity>
-    {
-        #region Properties
+	public sealed class QueryStringSchema<TEntity> : AbstractSchema<TEntity>
+	{
+		#region Properties
 
-        public override IDecoderDescriptor<TEntity> DecoderDescriptor
-        {
-            get
-            {
-                return this.decoderDescriptor;
-            }
-        }
+		public override IDecoderDescriptor<TEntity> DecoderDescriptor
+		{
+			get
+			{
+				return this.decoderDescriptor;
+			}
+		}
 
-        public override IEncoderDescriptor<TEntity> EncoderDescriptor
-        {
-            get
-            {
-                throw new NotImplementedException("encoding not implemented");
-            }
-        }
+		public override IEncoderDescriptor<TEntity> EncoderDescriptor
+		{
+			get
+			{
+				throw new NotImplementedException("encoding not implemented");
+			}
+		}
 
-        #endregion
+		#endregion
 
-        #region Attributes
+		#region Attributes
 
-        private readonly DecoderConverter decoderConverter;
+		private readonly DecoderConverter decoderConverter;
 
-        private readonly FlatDecoderDescriptor<TEntity, ReaderContext> decoderDescriptor;
+		private readonly FlatDecoderDescriptor<TEntity, ReaderContext> decoderDescriptor;
 
-        private readonly Encoding encoding;
+		private readonly Encoding encoding;
 
-        #endregion
+		#endregion
 
-        #region Constructor
+		#region Constructor
 
-        public QueryStringSchema(Encoding encoding)
-        {
-            var sourceConverter = new DecoderConverter();
+		public QueryStringSchema(Encoding encoding)
+		{
+			var sourceConverter = new DecoderConverter();
 
-            this.decoderConverter = sourceConverter;
-            this.decoderDescriptor = new FlatDecoderDescriptor<TEntity, ReaderContext>(sourceConverter);
-            this.encoding = encoding;
-        }
+			this.decoderConverter = sourceConverter;
+			this.decoderDescriptor = new FlatDecoderDescriptor<TEntity, ReaderContext>(sourceConverter);
+			this.encoding = encoding;
+		}
 
-        public QueryStringSchema() :
-            this(new UTF8Encoding(false))
-        {
-        }
+		public QueryStringSchema() :
+			this(new UTF8Encoding(false))
+		{
+		}
 
-        #endregion
+		#endregion
 
-        #region Methods / Public
+		#region Methods / Public
 
-        public override IDecoder<TEntity> CreateDecoder()
-        {
-            return this.decoderDescriptor.CreateDecoder(new Reader(this.encoding));
-        }
+		public override IDecoder<TEntity> CreateDecoder()
+		{
+			return this.decoderDescriptor.CreateDecoder(new Reader(this.encoding));
+		}
 
-        public override IEncoder<TEntity> CreateEncoder()
-        {
-            throw new NotImplementedException("encoding not implemented");
-        }
+		public override IEncoder<TEntity> CreateEncoder()
+		{
+			throw new NotImplementedException("encoding not implemented");
+		}
 
-        public void SetDecoderConverter<U>(Converter<string, U> converter)
-        {
-            this.decoderConverter.Set(converter);
-        }
+		public void SetDecoderConverter<U>(Converter<string, U> converter)
+		{
+			this.decoderConverter.Set(converter);
+		}
 
-        #endregion
-    }
+		#endregion
+	}
 }

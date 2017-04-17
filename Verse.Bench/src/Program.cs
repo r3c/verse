@@ -2,14 +2,14 @@
 
 namespace Verse.Bench
 {
-    public class Program
-    {
-        public static void Main()
-        {
-            CompareNewtonsoft compare = new CompareNewtonsoft();
+	public class Program
+	{
+		public static void Main()
+		{
+			CompareNewtonsoft compare = new CompareNewtonsoft();
 
-            compare.DecodeFlatStructure();
-            compare.EncodeFlatStructure();
-        }
-    }
+			compare.DecodeFlatStructure();
+			compare.EncodeFlatStructure();
+		}
+	}
 }

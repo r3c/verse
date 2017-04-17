@@ -2,36 +2,36 @@ using System;
 
 namespace Verse.Schemas
 {
-    /// <summary>
-    /// Base class for schema implementations.
-    /// </summary>
-    /// <typeparam name="TEntity">Entity type</typeparam>
-    public abstract class AbstractSchema<TEntity> : ISchema<TEntity>
-    {
-        #region Properties
+	/// <summary>
+	/// Base class for schema implementations.
+	/// </summary>
+	/// <typeparam name="TEntity">Entity type</typeparam>
+	public abstract class AbstractSchema<TEntity> : ISchema<TEntity>
+	{
+		#region Properties
 
-        /// <inheritdoc/>
-        public abstract IDecoderDescriptor<TEntity> DecoderDescriptor
-        {
-            get;
-        }
+		/// <inheritdoc/>
+		public abstract IDecoderDescriptor<TEntity> DecoderDescriptor
+		{
+			get;
+		}
 
-        /// <inheritdoc/>
-        public abstract IEncoderDescriptor<TEntity> EncoderDescriptor
-        {
-            get;
-        }
+		/// <inheritdoc/>
+		public abstract IEncoderDescriptor<TEntity> EncoderDescriptor
+		{
+			get;
+		}
 
-        #endregion
+		#endregion
 
-        #region Methods
+		#region Methods
 
-        /// <inheritdoc/>
-        public abstract IDecoder<TEntity> CreateDecoder();
+		/// <inheritdoc/>
+		public abstract IDecoder<TEntity> CreateDecoder();
 
-        /// <inheritdoc/>
-        public abstract IEncoder<TEntity> CreateEncoder();
+		/// <inheritdoc/>
+		public abstract IEncoder<TEntity> CreateEncoder();
 
-        #endregion
-    }
+		#endregion
+	}
 }

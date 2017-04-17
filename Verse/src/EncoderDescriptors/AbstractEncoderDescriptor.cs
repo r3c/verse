@@ -4,53 +4,53 @@ using Verse.EncoderDescriptors.Abstract;
 
 namespace Verse.EncoderDescriptors
 {
-    abstract class AbstractEncoderDescriptor<TEntity, TValue> : IEncoderDescriptor<TEntity>
-    {
-        #region Attributes
+	abstract class AbstractEncoderDescriptor<TEntity, TValue> : IEncoderDescriptor<TEntity>
+	{
+		#region Attributes
 
-        protected readonly IEncoderConverter<TValue> converter;
+		protected readonly IEncoderConverter<TValue> converter;
 
-        #endregion
+		#endregion
 
-        #region Constructors
+		#region Constructors
 
-        protected AbstractEncoderDescriptor(IEncoderConverter<TValue> converter)
-        {
-            this.converter = converter;
-        }
+		protected AbstractEncoderDescriptor(IEncoderConverter<TValue> converter)
+		{
+			this.converter = converter;
+		}
 
-        #endregion
+		#endregion
 
-        #region Methods / Abstract
+		#region Methods / Abstract
 
-        public abstract IEncoderDescriptor<TField> HasField<TField>(string name, Func<TEntity, TField> access, IEncoderDescriptor<TField> parent);
+		public abstract IEncoderDescriptor<TField> HasField<TField>(string name, Func<TEntity, TField> access, IEncoderDescriptor<TField> parent);
 
-        public abstract IEncoderDescriptor<TField> HasField<TField>(string name, Func<TEntity, TField> access);
+		public abstract IEncoderDescriptor<TField> HasField<TField>(string name, Func<TEntity, TField> access);
 
-        public abstract IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> access, IEncoderDescriptor<TElement> parent);
+		public abstract IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> access, IEncoderDescriptor<TElement> parent);
 
-        public abstract IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> access);
+		public abstract IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> access);
 
-        public abstract void IsValue<TRaw>(Func<TEntity, TRaw> access);
+		public abstract void IsValue<TRaw>(Func<TEntity, TRaw> access);
 
-        #endregion
+		#endregion
 
-        #region Methods / Public
+		#region Methods / Public
 
-        public void IsValue()
-        {
-            this.IsValue((target) => target);
-        }
+		public void IsValue()
+		{
+			this.IsValue((target) => target);
+		}
 
-        #endregion
+		#endregion
 
-        #region Methods / Protected
+		#region Methods / Protected
 
-        protected Converter<TRaw, TValue> GetConverter<TRaw>()
-        {
-            return this.converter.Get<TRaw>();
-        }
+		protected Converter<TRaw, TValue> GetConverter<TRaw>()
+		{
+			return this.converter.Get<TRaw>();
+		}
 
-        #endregion
-    }
+		#endregion
+	}
 }

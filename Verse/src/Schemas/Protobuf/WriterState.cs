@@ -7,153 +7,153 @@ using ProtoBuf;
 
 namespace Verse.Schemas.Protobuf
 {
-    class WriterState
-    {
-        #region Property
+	class WriterState
+	{
+		#region Property
 
-        public int Position
-        {
-            get
-            {
-                long localPosition;
+		public int Position
+		{
+			get
+			{
+				long localPosition;
 
-                localPosition = this.subObjectInstances.Count > 0
-                    ? this.subObjectInstances.Peek().Stream.Position
-                    : 0;
+				localPosition = this.subObjectInstances.Count > 0
+					? this.subObjectInstances.Peek().Stream.Position
+					: 0;
 
-                return (int)(this.parentOffset + localPosition);
-            }
-        }
+				return (int)(this.parentOffset + localPosition);
+			}
+		}
 
-        #endregion
+		#endregion
 
-        #region Attributes / Public
+		#region Attributes / Public
 
-        public readonly EncodeError Error;
+		public readonly EncodeError Error;
 
-        #endregion
+		#endregion
 
-        #region Attributes / Private
+		#region Attributes / Private
 
-        private int fieldIndex;
+		private int fieldIndex;
 
-        private long parentOffset;
+		private long parentOffset;
 
-        private readonly Stream stream;
+		private readonly Stream stream;
 
-        private readonly Stack<SubObjectInstance> subObjectInstances;
+		private readonly Stack<SubObjectInstance> subObjectInstances;
 
-        #endregion
+		#endregion
 
-        #region Constructor
+		#region Constructor
 
-        public WriterState(Stream stream, EncodeError error)
-        {
-            this.Error = error;
+		public WriterState(Stream stream, EncodeError error)
+		{
+			this.Error = error;
 
-            this.fieldIndex = 0;
-            this.parentOffset = 0;
-            this.stream = stream;
-            this.subObjectInstances = new Stack<SubObjectInstance>();
-        }
+			this.fieldIndex = 0;
+			this.parentOffset = 0;
+			this.stream = stream;
+			this.subObjectInstances = new Stack<SubObjectInstance>();
+		}
 
-        #endregion
+		#endregion
 
-        #region Methods
+		#region Methods
 
-        public void Key(string key)
-        {
-            this.fieldIndex = int.Parse(key, CultureInfo.InvariantCulture);
-        }
+		public void Key(string key)
+		{
+			this.fieldIndex = int.Parse(key, CultureInfo.InvariantCulture);
+		}
 
-        public void ObjectBegin()
-        {
-            SubObjectInstance subObjectInstance;
+		public void ObjectBegin()
+		{
+			SubObjectInstance subObjectInstance;
 
-            if (this.subObjectInstances.Count > 0)
-                this.parentOffset += this.subObjectInstances.Peek().Stream.Position;
+			if (this.subObjectInstances.Count > 0)
+				this.parentOffset += this.subObjectInstances.Peek().Stream.Position;
 
-            subObjectInstance = new SubObjectInstance(this.fieldIndex);
+			subObjectInstance = new SubObjectInstance(this.fieldIndex);
 
-            this.subObjectInstances.Push(subObjectInstance);
-        }
+			this.subObjectInstances.Push(subObjectInstance);
+		}
 
-        public bool ObjectEnd()
-        {
-            SubObjectInstance subObjectInstance;
+		public bool ObjectEnd()
+		{
+			SubObjectInstance subObjectInstance;
 
-            if (this.subObjectInstances.Count == 0)
-                return false;
+			if (this.subObjectInstances.Count == 0)
+				return false;
 
-            subObjectInstance = this.subObjectInstances.Pop();
+			subObjectInstance = this.subObjectInstances.Pop();
 
-            this.parentOffset -= subObjectInstance.Stream.Position;
-            this.fieldIndex = subObjectInstance.Index;
+			this.parentOffset -= subObjectInstance.Stream.Position;
+			this.fieldIndex = subObjectInstance.Index;
 
-            this.CopyToParent(subObjectInstance);
+			this.CopyToParent(subObjectInstance);
 
-            return true;
-        }
+			return true;
+		}
 
-        public bool Value(Value value)
-        {
-            ProtoWriter destWriter;
+		public bool Value(Value value)
+		{
+			ProtoWriter destWriter;
 
-            if (this.subObjectInstances.Count == 0)
-                return false;
+			if (this.subObjectInstances.Count == 0)
+				return false;
 
-            destWriter = this.subObjectInstances.Peek().Writer;
+			destWriter = this.subObjectInstances.Peek().Writer;
 
-            switch (value.Type)
-            {
-                case ContentType.Double:
-                    ProtoWriter.WriteFieldHeader(this.fieldIndex, WireType.Fixed64, destWriter);
-                    ProtoWriter.WriteDouble(value.DoubleContent, destWriter);
-                    break;
+			switch (value.Type)
+			{
+				case ContentType.Double:
+					ProtoWriter.WriteFieldHeader(this.fieldIndex, WireType.Fixed64, destWriter);
+					ProtoWriter.WriteDouble(value.DoubleContent, destWriter);
+					break;
 
-                case ContentType.Float:
-                    ProtoWriter.WriteFieldHeader(this.fieldIndex, WireType.Fixed32, destWriter);
-                    ProtoWriter.WriteSingle(value.FloatContent, destWriter);
-                    break;
+				case ContentType.Float:
+					ProtoWriter.WriteFieldHeader(this.fieldIndex, WireType.Fixed32, destWriter);
+					ProtoWriter.WriteSingle(value.FloatContent, destWriter);
+					break;
 
-                case ContentType.Long:
-                    ProtoWriter.WriteFieldHeader(this.fieldIndex, WireType.Variant, destWriter);
-                    ProtoWriter.WriteInt64(value.LongContent, destWriter);
-                    break;
+				case ContentType.Long:
+					ProtoWriter.WriteFieldHeader(this.fieldIndex, WireType.Variant, destWriter);
+					ProtoWriter.WriteInt64(value.LongContent, destWriter);
+					break;
 
-                case ContentType.String:
-                    ProtoWriter.WriteFieldHeader(this.fieldIndex, WireType.String, destWriter);
-                    ProtoWriter.WriteString(value.StringContent ?? string.Empty, destWriter);
-                    break;
+				case ContentType.String:
+					ProtoWriter.WriteFieldHeader(this.fieldIndex, WireType.String, destWriter);
+					ProtoWriter.WriteString(value.StringContent ?? string.Empty, destWriter);
+					break;
 
-                case ContentType.Void:
-                    // do nothing
-                    break;
-            }
+				case ContentType.Void:
+					// do nothing
+					break;
+			}
 
-            return true;
-        }
+			return true;
+		}
 
-        private void CopyToParent(SubObjectInstance subObjectInstance)
-        {
-            subObjectInstance.Writer.Close();
-            subObjectInstance.Stream.Seek(0, SeekOrigin.Begin);
+		private void CopyToParent(SubObjectInstance subObjectInstance)
+		{
+			subObjectInstance.Writer.Close();
+			subObjectInstance.Stream.Seek(0, SeekOrigin.Begin);
 
-            if (this.subObjectInstances.Count == 0)
-            {
-                subObjectInstance.Stream.CopyTo(this.stream);
-            }
-            else
-            {
-                ProtoWriter destWriter;
+			if (this.subObjectInstances.Count == 0)
+			{
+				subObjectInstance.Stream.CopyTo(this.stream);
+			}
+			else
+			{
+				ProtoWriter destWriter;
 
-                destWriter = this.subObjectInstances.Peek().Writer;
+				destWriter = this.subObjectInstances.Peek().Writer;
 
-                ProtoWriter.WriteFieldHeader(subObjectInstance.Index, WireType.String, destWriter);
-                ProtoWriter.WriteBytes(subObjectInstance.Stream.ToArray(), destWriter);
-            }
-        }
+				ProtoWriter.WriteFieldHeader(subObjectInstance.Index, WireType.String, destWriter);
+				ProtoWriter.WriteBytes(subObjectInstance.Stream.ToArray(), destWriter);
+			}
+		}
 
-        #endregion
-    }
+		#endregion
+	}
 }

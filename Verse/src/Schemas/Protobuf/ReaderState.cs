@@ -5,99 +5,99 @@ using ProtoBuf.Meta;
 
 namespace Verse.Schemas.Protobuf
 {
-    class ReaderState
-    {
-        #region Properties
+	class ReaderState
+	{
+		#region Properties
 
-        public int Position
-        {
-            get
-            {
-                return this.Reader.Position;
-            }
-        }
+		public int Position
+		{
+			get
+			{
+				return this.Reader.Position;
+			}
+		}
 
-        public enum ReadingActionType
-        {
-            ReadHeader,
+		public enum ReadingActionType
+		{
+			ReadHeader,
 
-            UseHeader,
+			UseHeader,
 
-            ReadValue
-        };
+			ReadValue
+		};
 
-        public readonly DecodeError Error;        
+		public readonly DecodeError Error;        
 
-        public VisitingNode ParentVisitingNode;
+		public VisitingNode ParentVisitingNode;
 
-        public ProtoReader Reader;
+		public ProtoReader Reader;
 
-        public ReadingActionType ReadingAction;
+		public ReadingActionType ReadingAction;
 
-        public VisitingNode Root;
+		public VisitingNode Root;
 
-        private static readonly VisitingNode NoParent = null;
+		private static readonly VisitingNode NoParent = null;
 
-        #endregion
+		#endregion
 
-        #region Constructors
+		#region Constructors
 
-        public ReaderState(Stream stream, DecodeError error)
-        {
-            this.Error = error;
-            this.Reader = new ProtoReader(stream, TypeModel.Create(), null);
-            this.ReadingAction = ReadingActionType.ReadHeader;
-            this.Root = new VisitingNode(NoParent);
-            this.ParentVisitingNode = this.Root;
-        }
+		public ReaderState(Stream stream, DecodeError error)
+		{
+			this.Error = error;
+			this.Reader = new ProtoReader(stream, TypeModel.Create(), null);
+			this.ReadingAction = ReadingActionType.ReadHeader;
+			this.Root = new VisitingNode(NoParent);
+			this.ParentVisitingNode = this.Root;
+		}
 
-        public bool ReadHeader(out int index)
-        {
-            index = this.Reader.ReadFieldHeader();
+		public bool ReadHeader(out int index)
+		{
+			index = this.Reader.ReadFieldHeader();
 
-            return index > 0;
-        }
+			return index > 0;
+		}
 
-        public void AddObject(int index)
-        {
-            VisitingNode obj;
+		public void AddObject(int index)
+		{
+			VisitingNode obj;
 
-            if (!this.ParentVisitingNode.Children.TryGetValue(index, out obj))
-            {
-                obj = new VisitingNode(this.ParentVisitingNode);
+			if (!this.ParentVisitingNode.Children.TryGetValue(index, out obj))
+			{
+				obj = new VisitingNode(this.ParentVisitingNode);
 
-                this.ParentVisitingNode.Children.Add(index, obj);
-            }
-            else
-            {
-                ++obj.VisitCount;
-            }
-        }
+				this.ParentVisitingNode.Children.Add(index, obj);
+			}
+			else
+			{
+				++obj.VisitCount;
+			}
+		}
 
-        public bool EnterObject(out int visitCount)
-        {
-        	VisitingNode node;
+		public bool EnterObject(out int visitCount)
+		{
+			VisitingNode node;
 
-        	if (!this.ParentVisitingNode.Children.TryGetValue(this.Reader.FieldNumber, out node))
-        	{
-        		visitCount = 0;
+			if (!this.ParentVisitingNode.Children.TryGetValue(this.Reader.FieldNumber, out node))
+			{
+				visitCount = 0;
 
-        		return false;
-        	}
+				return false;
+			}
 
-        	this.ParentVisitingNode = node;
+			this.ParentVisitingNode = node;
 
-        	visitCount = node.VisitCount;
+			visitCount = node.VisitCount;
 
-        	return true;
-        }
+			return true;
+		}
 
-        public void LeaveObject()
-        {
-            this.ParentVisitingNode.Children.Clear();
-            this.ParentVisitingNode = this.ParentVisitingNode.Parent;
-        }
+		public void LeaveObject()
+		{
+			this.ParentVisitingNode.Children.Clear();
+			this.ParentVisitingNode = this.ParentVisitingNode.Parent;
+		}
 
-        #endregion
-    }
+		#endregion
+	}
 }

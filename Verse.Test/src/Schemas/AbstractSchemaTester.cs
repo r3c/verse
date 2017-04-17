@@ -6,8 +6,8 @@ using NUnit.Framework;
 
 namespace Verse.Test.Schemas
 {
-    public abstract class AbstractSchemaTester
-    {
+	public abstract class AbstractSchemaTester
+	{
 		[Test]
 		[Ignore("Arrays are always built before reading, so decoding 'null' would still create an empty array")]
 		public virtual void RoundTripNestedArray()
@@ -93,12 +93,12 @@ namespace Verse.Test.Schemas
 		[Test]
 		[TestCase("Hello")]
 		[TestCase(25.5)]
-        public virtual void RoundTripValueNative<T>(T instance)
-        {
-            ISchema<T> schema = this.CreateSchema<T>();
+		public virtual void RoundTripValueNative<T>(T instance)
+		{
+			ISchema<T> schema = this.CreateSchema<T>();
 
-            AbstractSchemaTester.AssertRoundTrip(Linker.CreateDecoder(schema), Linker.CreateEncoder(schema), instance);
-        }
+			AbstractSchemaTester.AssertRoundTrip(Linker.CreateDecoder(schema), Linker.CreateEncoder(schema), instance);
+		}
 
 		[Test]
 		[Ignore("Nullable types are not handled by linker yet.")]
@@ -172,5 +172,5 @@ namespace Verse.Test.Schemas
 			B,
 			C
 		}
-    }
+	}
 }

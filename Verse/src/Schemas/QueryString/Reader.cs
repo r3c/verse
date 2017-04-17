@@ -5,241 +5,241 @@ using Verse.DecoderDescriptors.Flat;
 
 namespace Verse.Schemas.QueryString
 {
-    class Reader : IReader<ReaderContext, string>
-    {
-        #region Events
+	class Reader : IReader<ReaderContext, string>
+	{
+		#region Events
 
-        public event DecodeError Error;
+		public event DecodeError Error;
 
-        #endregion
+		#endregion
 
-        #region Attributes / Instance
+		#region Attributes / Instance
 
-        private readonly Encoding encoding;
+		private readonly Encoding encoding;
 
-        #endregion
+		#endregion
 
-        #region Attributes / Static
+		#region Attributes / Static
 
-        private static readonly bool[] unreserved = new bool[128];
+		private static readonly bool[] unreserved = new bool[128];
 
-        #endregion
+		#endregion
 
-        #region Constructors
+		#region Constructors
 
-        public Reader(Encoding encoding)
-        {
-            this.encoding = encoding;
-        }
+		public Reader(Encoding encoding)
+		{
+			this.encoding = encoding;
+		}
 
-        static Reader()
-        {
-            for (int c = '0'; c <= '9'; ++c)
-                Reader.unreserved[c] = true;
+		static Reader()
+		{
+			for (int c = '0'; c <= '9'; ++c)
+				Reader.unreserved[c] = true;
 
-            for (int c = 'A'; c <= 'Z'; ++c)
-                Reader.unreserved[c] = true;
+			for (int c = 'A'; c <= 'Z'; ++c)
+				Reader.unreserved[c] = true;
 
-            for (int c = 'a'; c <= 'z'; ++c)
-                Reader.unreserved[c] = true;
+			for (int c = 'a'; c <= 'z'; ++c)
+				Reader.unreserved[c] = true;
 
-            Reader.unreserved['-'] = true;
-            Reader.unreserved['_'] = true;
-            Reader.unreserved['.'] = true;
-            Reader.unreserved['!'] = true;
-            Reader.unreserved['~'] = true;
-            Reader.unreserved['*'] = true;
-            Reader.unreserved['\''] = true;
-            Reader.unreserved['('] = true;
-            Reader.unreserved[')'] = true;
-            Reader.unreserved[','] = true;
-            Reader.unreserved['"'] = true;
-            Reader.unreserved['$'] = true;
-            Reader.unreserved[':'] = true;
-            Reader.unreserved['@'] = true;
-            Reader.unreserved['/'] = true;
-            Reader.unreserved['?'] = true;
-        }
+			Reader.unreserved['-'] = true;
+			Reader.unreserved['_'] = true;
+			Reader.unreserved['.'] = true;
+			Reader.unreserved['!'] = true;
+			Reader.unreserved['~'] = true;
+			Reader.unreserved['*'] = true;
+			Reader.unreserved['\''] = true;
+			Reader.unreserved['('] = true;
+			Reader.unreserved[')'] = true;
+			Reader.unreserved[','] = true;
+			Reader.unreserved['"'] = true;
+			Reader.unreserved['$'] = true;
+			Reader.unreserved[':'] = true;
+			Reader.unreserved['@'] = true;
+			Reader.unreserved['/'] = true;
+			Reader.unreserved['?'] = true;
+		}
 
-        #endregion
+		#endregion
 
-        #region Methods / Public
+		#region Methods / Public
 
-        public IBrowser<T> ReadArray<T>(Func<T> constructor, Container<T, ReaderContext, string> container, ReaderContext context)
-        {
-            throw new NotImplementedException("QueryString schema doesn't support arrays");
-        }
+		public IBrowser<T> ReadArray<T>(Func<T> constructor, Container<T, ReaderContext, string> container, ReaderContext context)
+		{
+			throw new NotImplementedException("QueryString schema doesn't support arrays");
+		}
 
-        public bool ReadValue<T>(Func<T> constructor, Container<T, ReaderContext, string> container, ReaderContext context, out T target)
-        {
-            string value;
+		public bool ReadValue<T>(Func<T> constructor, Container<T, ReaderContext, string> container, ReaderContext context, out T target)
+		{
+			string value;
 
-            if (!this.ReadFieldValue(context, out value))
-            {
-            	target = default(T);
+			if (!this.ReadFieldValue(context, out value))
+			{
+				target = default(T);
 
-                return false;
-            }
+				return false;
+			}
 
-            target = constructor();
+			target = constructor();
 
-            if (container.value != null)
-                container.value(ref target, value);
+			if (container.value != null)
+				container.value(ref target, value);
 
-            return true;
-        }
+			return true;
+		}
 
-        public bool Read<T>(Func<T> constructor, Container<T, ReaderContext, string> container, ReaderContext context, out T target)
-        {
-        	target = constructor();
+		public bool Read<T>(Func<T> constructor, Container<T, ReaderContext, string> container, ReaderContext context, out T target)
+		{
+			target = constructor();
 
-            while (context.Current != -1)
-            {
-                bool isKeyEmpty;
-                INode<T, ReaderContext, string> node;
+			while (context.Current != -1)
+			{
+				bool isKeyEmpty;
+				INode<T, ReaderContext, string> node;
 
-                node = container.fields;
-                isKeyEmpty = true;
+				node = container.fields;
+				isKeyEmpty = true;
 
-                if (Reader.IsUnreserved(context.Current))
-                {
-                    node = node.Follow((char)context.Current);
+				if (Reader.IsUnreserved(context.Current))
+				{
+					node = node.Follow((char)context.Current);
 
-                    isKeyEmpty = false;
+					isKeyEmpty = false;
 
-                    context.Pull();
-                }
+					context.Pull();
+				}
 
-                while (Reader.IsUnreserved(context.Current))
-                {
-                    node = node.Follow((char)context.Current);
+				while (Reader.IsUnreserved(context.Current))
+				{
+					node = node.Follow((char)context.Current);
 
-                    context.Pull();
-                }
+					context.Pull();
+				}
 
-                if (isKeyEmpty)
-                {
-                    this.OnError(context.Position, "empty field");
+				if (isKeyEmpty)
+				{
+					this.OnError(context.Position, "empty field");
 
-                    target = default(T);
+					target = default(T);
 
-                    return false;
-                }
+					return false;
+				}
 
-                if (context.Current == '=')
-                {
-                    context.Pull();
+				if (context.Current == '=')
+				{
+					context.Pull();
 
-                    if (!node.Enter(ref target, this, context))
-                        return false;
-                }
+					if (!node.Enter(ref target, this, context))
+						return false;
+				}
 
-                if (context.Current == -1)
-                    break;
+				if (context.Current == -1)
+					break;
 
-                if (!Reader.IsSeparator(context.Current))
-                {
-                    this.OnError(context.Position, "unexpected character");
+				if (!Reader.IsSeparator(context.Current))
+				{
+					this.OnError(context.Position, "unexpected character");
 
-                    return false;
-                }
+					return false;
+				}
 
-                context.Pull();
-            }
+				context.Pull();
+			}
 
-            return true;
-        }
+			return true;
+		}
 
-        public bool Start(Stream stream, out ReaderContext context)
-        {
-            context = new ReaderContext(stream, this.encoding);
+		public bool Start(Stream stream, out ReaderContext context)
+		{
+			context = new ReaderContext(stream, this.encoding);
 
-            if (context.Current < 0)
-            {
-                this.OnError(context.Position, "empty input stream");
+			if (context.Current < 0)
+			{
+				this.OnError(context.Position, "empty input stream");
 
-                return false;
-            }
+				return false;
+			}
 
-            if (context.Current != '?')
-            {
-                this.OnError(context.Position, "invalid character");
+			if (context.Current != '?')
+			{
+				this.OnError(context.Position, "invalid character");
 
-                return false;
-            }
+				return false;
+			}
 
-            context.Pull();
+			context.Pull();
 
-            return true;
-        }
+			return true;
+		}
 
-        public void Stop(ReaderContext context)
-        {
-        }
+		public void Stop(ReaderContext context)
+		{
+		}
 
-        #endregion
+		#endregion
 
-        #region Methods / Private
+		#region Methods / Private
 
-        private bool ReadFieldValue(ReaderContext context, out string value)
-        {
-            StringBuilder builder;
+		private bool ReadFieldValue(ReaderContext context, out string value)
+		{
+			StringBuilder builder;
 
-            builder = new StringBuilder(32);
+			builder = new StringBuilder(32);
 
-            while (context.Current != -1)
-            {
-                int c;
+			while (context.Current != -1)
+			{
+				int c;
 
-                c = context.Current;
+				c = context.Current;
 
-                if (Reader.IsUnreserved(c) || c == '%')
-                    builder.Append((char)c);
-                else if (c == '+')
-                    builder.Append(' ');
-                else
-                    break;
+				if (Reader.IsUnreserved(c) || c == '%')
+					builder.Append((char)c);
+				else if (c == '+')
+					builder.Append(' ');
+				else
+					break;
 
-                context.Pull();
-            }
+				context.Pull();
+			}
 
-            value = Uri.UnescapeDataString(builder.ToString());
+			value = Uri.UnescapeDataString(builder.ToString());
 
-            return true;
-        }
+			return true;
+		}
 
-        private void OnError(int position, string message)
-        {
-            DecodeError error;
+		private void OnError(int position, string message)
+		{
+			DecodeError error;
 
-            error = this.Error;
+			error = this.Error;
 
-            if (error != null)
-                error(position, message);
-        }
+			if (error != null)
+				error(position, message);
+		}
 
-        /// <summary>
-        /// Check if character is a parameters separator (& or ;).
-        /// </summary>
-        /// <param name="c">Input character</param>
-        /// <returns>True if character is a separator, false otherwise</returns>
-        static private bool IsSeparator(int c)
-        {
-            return c == '&' || c == ';';
-        }
+		/// <summary>
+		/// Check if character is a parameters separator (& or ;).
+		/// </summary>
+		/// <param name="c">Input character</param>
+		/// <returns>True if character is a separator, false otherwise</returns>
+		static private bool IsSeparator(int c)
+		{
+			return c == '&' || c == ';';
+		}
 
-        /// <summary>
-        /// Check if character is unreserved, i.e. can be used in a query
-        /// string without having to escape it.
-        /// </summary>
-        /// <param name="c">Input character</param>
-        /// <remarks>Array is not supported yet (",")</remarks>
-        /// <returns>True if character is unreserved, false otherwise</returns>
-        static private bool IsUnreserved(int c)
-        {
-            return c >= 0 && c < Reader.unreserved.Length && Reader.unreserved[c];
-        }
+		/// <summary>
+		/// Check if character is unreserved, i.e. can be used in a query
+		/// string without having to escape it.
+		/// </summary>
+		/// <param name="c">Input character</param>
+		/// <remarks>Array is not supported yet (",")</remarks>
+		/// <returns>True if character is unreserved, false otherwise</returns>
+		static private bool IsUnreserved(int c)
+		{
+			return c >= 0 && c < Reader.unreserved.Length && Reader.unreserved[c];
+		}
 
-        #endregion
-    }
+		#endregion
+	}
 }

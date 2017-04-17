@@ -3,60 +3,60 @@ using System.Text;
 
 namespace Verse.Schemas.QueryString
 {
-    internal class ReaderContext
-    {
-        #region Properties
+	internal class ReaderContext
+	{
+		#region Properties
 
-        public int Current
-        {
-            get
-            {
-                return this.current;
-            }
-        }
+		public int Current
+		{
+			get
+			{
+				return this.current;
+			}
+		}
 
-        public int Position
-        {
-            get
-            {
-                return this.position;
-            }
-        }
+		public int Position
+		{
+			get
+			{
+				return this.position;
+			}
+		}
 
-        #endregion
+		#endregion
 
-        #region Attributes
+		#region Attributes
 
-        private int current;
+		private int current;
 
-        private int position;
+		private int position;
 
-        private readonly StreamReader reader;
+		private readonly StreamReader reader;
 
-        #endregion
+		#endregion
 
-        #region Constructors
+		#region Constructors
 
-        public ReaderContext(Stream stream, Encoding encoding)
-        {
-            this.current = 0;
-            this.position = 0;
-            this.reader = new StreamReader(stream, encoding);
+		public ReaderContext(Stream stream, Encoding encoding)
+		{
+			this.current = 0;
+			this.position = 0;
+			this.reader = new StreamReader(stream, encoding);
 
-            this.Pull();
-        }
+			this.Pull();
+		}
 
-        #endregion
+		#endregion
 
-        #region Methods
+		#region Methods
 
-        public void Pull()
-        {
-            this.current = this.reader.Read();
+		public void Pull()
+		{
+			this.current = this.reader.Read();
 
-            ++this.position;
-        }
+			++this.position;
+		}
 
-        #endregion
-    }
+		#endregion
+	}
 }

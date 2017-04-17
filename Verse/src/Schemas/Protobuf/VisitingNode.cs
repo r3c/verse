@@ -2,19 +2,19 @@
 
 namespace Verse.Schemas.Protobuf
 {
-    public class VisitingNode
-    {
-        public Dictionary<int, VisitingNode> Children;
+	public class VisitingNode
+	{
+		public Dictionary<int, VisitingNode> Children;
 
-        public VisitingNode Parent;
+		public VisitingNode Parent;
 
-        public int VisitCount;
+		public int VisitCount;
 
-        public VisitingNode(VisitingNode parent)
-        {
-            this.VisitCount = 1;
-            this.Children = new Dictionary<int, VisitingNode>();
-            this.Parent = parent;
-        }
-    }
+		public VisitingNode(VisitingNode parent)
+		{
+			this.VisitCount = 1;
+			this.Children = new Dictionary<int, VisitingNode>();
+			this.Parent = parent;
+		}
+	}
 }

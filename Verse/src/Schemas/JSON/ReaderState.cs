@@ -4,184 +4,184 @@ using System.Text;
 
 namespace Verse.Schemas.JSON
 {
-    class ReaderState
-    {
-        #region Attributes / Public
+	class ReaderState
+	{
+		#region Attributes / Public
 
-        public int Current;
+		public int Current;
 
-        public readonly DecodeError Error;
+		public readonly DecodeError Error;
 
-        public int Position;
+		public int Position;
 
-        #endregion
+		#endregion
 
-        #region Attributes / Private
+		#region Attributes / Private
 
-        private readonly StreamReader reader;
+		private readonly StreamReader reader;
 
-        #endregion
+		#endregion
 
-        #region Constructors
+		#region Constructors
 
-        public ReaderState(Stream stream, Encoding encoding, DecodeError error)
-        {
-            this.reader = new StreamReader(stream, encoding);
+		public ReaderState(Stream stream, Encoding encoding, DecodeError error)
+		{
+			this.reader = new StreamReader(stream, encoding);
 
-            this.Error = error;
-            this.Position = 0;
+			this.Error = error;
+			this.Position = 0;
 
-            this.Read();
-        }
+			this.Read();
+		}
 
-        #endregion
+		#endregion
 
-        #region Methods
+		#region Methods
 
-        public bool PullCharacter(out char character)
-        {
-            int nibble;
-            int previous;
-            int value;
+		public bool PullCharacter(out char character)
+		{
+			int nibble;
+			int previous;
+			int value;
 
-            previous = this.Current;
+			previous = this.Current;
 
-            this.Read();
+			this.Read();
 
-            if (previous < 0)
-            {
-                character = default (char);
+			if (previous < 0)
+			{
+				character = default (char);
 
-                return false;
-            }
+				return false;
+			}
 
-            if (previous != (int)'\\')
-            {
-                character = (char)previous;
+			if (previous != (int)'\\')
+			{
+				character = (char)previous;
 
-                return true;
-            }
+				return true;
+			}
 
-            previous = this.Current;
+			previous = this.Current;
 
-            this.Read();
+			this.Read();
 
-            switch (previous)
-            {
-                case -1:
-                    character = default (char);
+			switch (previous)
+			{
+				case -1:
+					character = default (char);
 
-                    return false;
+					return false;
 
-                case (int)'"':
-                    character = '"';
+				case (int)'"':
+					character = '"';
 
-                    return true;
+					return true;
 
-                case (int)'\\':
-                    character = '\\';
+				case (int)'\\':
+					character = '\\';
 
-                    return true;
+					return true;
 
-                case (int)'b':
-                    character = '\b';
+				case (int)'b':
+					character = '\b';
 
-                    return true;
+					return true;
 
-                case (int)'f':
-                    character = '\f';
+				case (int)'f':
+					character = '\f';
 
-                    return true;
+					return true;
 
-                case (int)'n':
-                    character = '\n';
+				case (int)'n':
+					character = '\n';
 
-                    return true;
+					return true;
 
-                case (int)'r':
-                    character = '\r';
+				case (int)'r':
+					character = '\r';
 
-                    return true;
+					return true;
 
-                case (int)'t':
-                    character = '\t';
+				case (int)'t':
+					character = '\t';
 
-                    return true;
+					return true;
 
-                case (int)'u':
-                    value = 0;
+				case (int)'u':
+					value = 0;
 
-                    for (int i = 0; i < 4; ++i)
-                    {
-                        previous = this.Current;
+					for (int i = 0; i < 4; ++i)
+					{
+						previous = this.Current;
 
-                        this.Read();
+						this.Read();
 
-                        if (previous >= (int)'0' && previous <= (int)'9')
-                            nibble = previous - (int)'0';
-                        else if (previous >= (int)'A' && previous <= (int)'F')
-                            nibble = previous - (int)'A' + 10;
-                        else if (previous >= (int)'a' && previous <= (int)'f')
-                            nibble = previous - (int)'a' + 10;
-                        else
-                        {
-                            this.Error(this.Position, "unknown character in unicode escape sequence");
+						if (previous >= (int)'0' && previous <= (int)'9')
+							nibble = previous - (int)'0';
+						else if (previous >= (int)'A' && previous <= (int)'F')
+							nibble = previous - (int)'A' + 10;
+						else if (previous >= (int)'a' && previous <= (int)'f')
+							nibble = previous - (int)'a' + 10;
+						else
+						{
+							this.Error(this.Position, "unknown character in unicode escape sequence");
 
-                            character = default (char);
+							character = default (char);
 
-                            return false;
-                        }
+							return false;
+						}
 
-                        value = (value << 4) + nibble;
-                    }
+						value = (value << 4) + nibble;
+					}
 
-                    character = (char)value;
+					character = (char)value;
 
-                    return true;
+					return true;
 
-                default:
-                    character = (char)previous;
+				default:
+					character = (char)previous;
 
-                    return true;
-            }
-        }
+					return true;
+			}
+		}
 
-        public bool PullExpected(char expected)
-        {
-            if (this.Current != (int)expected)
-            {
-                this.Error(this.Position, "expected '" + expected + "'");
+		public bool PullExpected(char expected)
+		{
+			if (this.Current != (int)expected)
+			{
+				this.Error(this.Position, "expected '" + expected + "'");
 
-                return false;
-            }
+				return false;
+			}
 
-            this.Read();
+			this.Read();
 
-            return true;
-        }
+			return true;
+		}
 
-        public void PullIgnored()
-        {
-            int current;
+		public void PullIgnored()
+		{
+			int current;
 
-            while (true)
-            {
-                current = this.Current;
+			while (true)
+			{
+				current = this.Current;
 
-                if (current < 0 || current > (int)' ')
-                    return;
+				if (current < 0 || current > (int)' ')
+					return;
 
-                this.Read();
-            }
-        }
+				this.Read();
+			}
+		}
 
-        public void Read()
-        {
-            this.Current = this.reader.Read();
+		public void Read()
+		{
+			this.Current = this.reader.Read();
 
-            ++this.Position;
-        }
+			++this.Position;
+		}
 
-        #endregion
-    }
+		#endregion
+	}
 }

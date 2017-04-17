@@ -4,189 +4,189 @@ using System.IO;
 
 namespace Verse.Schemas.JSON
 {
-    class WriterState
-    {
-        #region Attributes / Public
+	class WriterState
+	{
+		#region Attributes / Public
 
-        public readonly EncodeError Error;
+		public readonly EncodeError Error;
 
-        public int Position;
+		public int Position;
 
-        #endregion
+		#endregion
 
-        #region Attributes / Private
+		#region Attributes / Private
 
-        private string currentKey;
+		private string currentKey;
 
-        private readonly bool ignoreNull;
+		private readonly bool ignoreNull;
 
-        private bool needComma;
+		private bool needComma;
 
-        private readonly StreamWriter writer;
+		private readonly StreamWriter writer;
 
-        #endregion
+		#endregion
 
-        #region Attributes / Static
+		#region Attributes / Static
 
-        private static readonly char[][] ascii = new char[128][];
+		private static readonly char[][] ascii = new char[128][];
 
-        private static readonly char[] hexa = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+		private static readonly char[] hexa = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
 
-        #endregion
+		#endregion
 
-        #region Constructors
+		#region Constructors
 
-        public WriterState(Stream stream, EncodeError error, JSONSettings settings)
-        {
-            this.currentKey = null;
-            this.ignoreNull = settings.IgnoreNull;
-            this.needComma = false;
-            this.writer = new StreamWriter(stream, settings.Encoding);
+		public WriterState(Stream stream, EncodeError error, JSONSettings settings)
+		{
+			this.currentKey = null;
+			this.ignoreNull = settings.IgnoreNull;
+			this.needComma = false;
+			this.writer = new StreamWriter(stream, settings.Encoding);
 
-            this.Error = error;
-            this.Position = 0;
-        }
+			this.Error = error;
+			this.Position = 0;
+		}
 
-        static WriterState()
-        {
-            for (int i = 0; i < 32; ++i)
-                WriterState.ascii[i] = new[] { '\\', 'u', '0', '0', WriterState.hexa[(i >> 4) & 0xF], WriterState.hexa[(i >> 0) & 0xF] };
+		static WriterState()
+		{
+			for (int i = 0; i < 32; ++i)
+				WriterState.ascii[i] = new[] { '\\', 'u', '0', '0', WriterState.hexa[(i >> 4) & 0xF], WriterState.hexa[(i >> 0) & 0xF] };
 
-            for (int i = 32; i < 128; ++i)
-                WriterState.ascii[i] = new[] { (char)i };
+			for (int i = 32; i < 128; ++i)
+				WriterState.ascii[i] = new[] { (char)i };
 
-            WriterState.ascii['\b'] = new[] { '\\', 'b' };
-            WriterState.ascii['\f'] = new[] { '\\', 'f' };
-            WriterState.ascii['\n'] = new[] { '\\', 'n' };
-            WriterState.ascii['\r'] = new[] { '\\', 'r' };
-            WriterState.ascii['\t'] = new[] { '\\', 't' };
-            WriterState.ascii['\\'] = new[] { '\\', '\\' };
-            WriterState.ascii['"'] = new[] { '\\', '\"' };
-        }
+			WriterState.ascii['\b'] = new[] { '\\', 'b' };
+			WriterState.ascii['\f'] = new[] { '\\', 'f' };
+			WriterState.ascii['\n'] = new[] { '\\', 'n' };
+			WriterState.ascii['\r'] = new[] { '\\', 'r' };
+			WriterState.ascii['\t'] = new[] { '\\', 't' };
+			WriterState.ascii['\\'] = new[] { '\\', '\\' };
+			WriterState.ascii['"'] = new[] { '\\', '\"' };
+		}
 
-        #endregion
+		#endregion
 
-        #region Methods / Public
+		#region Methods / Public
 
-        public void ArrayBegin()
-        {
-            this.BeforeNonNull();
-            this.writer.Write('[');
+		public void ArrayBegin()
+		{
+			this.BeforeNonNull();
+			this.writer.Write('[');
 
-            this.needComma = false;
-        }
+			this.needComma = false;
+		}
 
-        public void ArrayEnd()
-        {
-            this.writer.Write(']');
+		public void ArrayEnd()
+		{
+			this.writer.Write(']');
 
-            this.needComma = true;
-        }
+			this.needComma = true;
+		}
 
-        public void Key(string key)
-        {
-            this.currentKey = key;
-        }
+		public void Key(string key)
+		{
+			this.currentKey = key;
+		}
 
-        public void Flush()
-        {
-            this.writer.Flush();
-        }
+		public void Flush()
+		{
+			this.writer.Flush();
+		}
 
-        public void ObjectBegin()
-        {
-            this.BeforeNonNull();
-            this.writer.Write('{');
+		public void ObjectBegin()
+		{
+			this.BeforeNonNull();
+			this.writer.Write('{');
 
-            this.needComma = false;
-        }
+			this.needComma = false;
+		}
 
-        public void ObjectEnd()
-        {
-            this.writer.Write('}');
+		public void ObjectEnd()
+		{
+			this.writer.Write('}');
 
-            this.needComma = true;
-        }
+			this.needComma = true;
+		}
 
-        public void String(string value)
-        {
-            this.writer.Write('"');
+		public void String(string value)
+		{
+			this.writer.Write('"');
 
-            foreach (char c in value)
-            {
-                if (c < 128)
-                    this.writer.Write(WriterState.ascii[(int)c]);
-                else
-                {
-                    this.writer.Write('\\');
-                    this.writer.Write('u');
-                    this.writer.Write(WriterState.hexa[(c >> 12) & 0xF]);
-                    this.writer.Write(WriterState.hexa[(c >> 8) & 0xF]);
-                    this.writer.Write(WriterState.hexa[(c >> 4) & 0xF]);
-                    this.writer.Write(WriterState.hexa[(c >> 0) & 0xF]);
-                }
-            }
+			foreach (char c in value)
+			{
+				if (c < 128)
+					this.writer.Write(WriterState.ascii[(int)c]);
+				else
+				{
+					this.writer.Write('\\');
+					this.writer.Write('u');
+					this.writer.Write(WriterState.hexa[(c >> 12) & 0xF]);
+					this.writer.Write(WriterState.hexa[(c >> 8) & 0xF]);
+					this.writer.Write(WriterState.hexa[(c >> 4) & 0xF]);
+					this.writer.Write(WriterState.hexa[(c >> 0) & 0xF]);
+				}
+			}
 
-            this.writer.Write('"');
-        }
+			this.writer.Write('"');
+		}
 
-        public void Value(Value value)
-        {
-            switch (value.Type)
-            {
-                case ContentType.Boolean:
-                    this.BeforeNonNull();
-                    this.writer.Write(value.Boolean ? "true" : "false");
+		public void Value(Value value)
+		{
+			switch (value.Type)
+			{
+				case ContentType.Boolean:
+					this.BeforeNonNull();
+					this.writer.Write(value.Boolean ? "true" : "false");
 
-                    break;
+					break;
 
-                case ContentType.Number:
-                    this.BeforeNonNull();
-                    this.writer.Write(value.Number.ToString(CultureInfo.InvariantCulture));
+				case ContentType.Number:
+					this.BeforeNonNull();
+					this.writer.Write(value.Number.ToString(CultureInfo.InvariantCulture));
 
-                    break;
+					break;
 
-                case ContentType.String:
-                    this.BeforeNonNull();
-                    this.String(value.String);
+				case ContentType.String:
+					this.BeforeNonNull();
+					this.String(value.String);
 
-                    break;
+					break;
 
-                default:
-                    if (this.ignoreNull)
-                    {
-                        this.currentKey = null;
+				default:
+					if (this.ignoreNull)
+					{
+						this.currentKey = null;
 
-                        return;
-                    }
+						return;
+					}
 
-                    this.BeforeNonNull();
-                    this.writer.Write("null");
+					this.BeforeNonNull();
+					this.writer.Write("null");
 
-                    break;
-            }
+					break;
+			}
 
-            this.needComma = true;
-        }
+			this.needComma = true;
+		}
 
-        #endregion
+		#endregion
 
-        #region Methods / Private
+		#region Methods / Private
 
-        private void BeforeNonNull()
-        {
-            if (this.needComma)
-                this.writer.Write(',');
+		private void BeforeNonNull()
+		{
+			if (this.needComma)
+				this.writer.Write(',');
 
-            if (this.currentKey != null)
-            {
-                this.String(this.currentKey);
+			if (this.currentKey != null)
+			{
+				this.String(this.currentKey);
 
-                this.writer.Write(':');
-                this.currentKey = null;
-            }
-        }
+				this.writer.Write(':');
+				this.currentKey = null;
+			}
+		}
 
-        #endregion
-    }
+		#endregion
+	}
 }

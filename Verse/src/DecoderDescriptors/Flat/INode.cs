@@ -1,24 +1,24 @@
 namespace Verse.DecoderDescriptors.Flat
 {
-    internal interface INode<TEntity, TContext, TNative>
-    {
-        #region Properties
+	internal interface INode<TEntity, TContext, TNative>
+	{
+		#region Properties
 
-        bool CanAssign
-        {
-            get;
-        }
+		bool CanAssign
+		{
+			get;
+		}
 
-        #endregion
+		#endregion
 
-        #region Methods
+		#region Methods
 
-        void Assign(ref TEntity target, TNative value);
+		void Assign(ref TEntity target, TNative value);
 
-        bool Enter(ref TEntity target, IReader<TContext, TNative> unknown, TContext context);
+		bool Enter(ref TEntity target, IReader<TContext, TNative> unknown, TContext context);
 
-        INode<TEntity, TContext, TNative> Follow(char c);
+		INode<TEntity, TContext, TNative> Follow(char c);
 
-        #endregion
-    }
+		#endregion
+	}
 }

@@ -2,32 +2,32 @@ using System.IO;
 
 namespace Verse
 {
-    /// <summary>
-    /// Entity decoder, reads an entity from input stream using a serialization
-    /// format depending on implementation.
-    /// </summary>
-    /// <typeparam name="TEntity">Entity type</typeparam>
-    public interface IDecoder<TEntity>
-    {
-        #region Events
+	/// <summary>
+	/// Entity decoder, reads an entity from input stream using a serialization
+	/// format depending on implementation.
+	/// </summary>
+	/// <typeparam name="TEntity">Entity type</typeparam>
+	public interface IDecoder<TEntity>
+	{
+		#region Events
 
-        /// <summary>
-        /// Decoding error event.
-        /// </summary>
-        event DecodeError Error;
+		/// <summary>
+		/// Decoding error event.
+		/// </summary>
+		event DecodeError Error;
 
-        #endregion
+		#endregion
 
-        #region Methods
+		#region Methods
 
-        /// <summary>
-        /// Read entity from input stream.
-        /// </summary>
-        /// <param name="input">Input stream</param>
-        /// <param name="output">Output entity</param>
-        /// <returns>True if decoding succeeded, false otherwise</returns>
-        bool Decode(Stream input, out TEntity output);
+		/// <summary>
+		/// Read entity from input stream.
+		/// </summary>
+		/// <param name="input">Input stream</param>
+		/// <param name="output">Output entity</param>
+		/// <returns>True if decoding succeeded, false otherwise</returns>
+		bool Decode(Stream input, out TEntity output);
 
-        #endregion
-    }
+		#endregion
+	}
 }
