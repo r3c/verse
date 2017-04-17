@@ -2,40 +2,38 @@
 using System.Collections.Generic;
 using Verse.DecoderDescriptors.Abstract;
 using Verse.DecoderDescriptors.Flat;
-using Verse.DecoderDescriptors.Flat.Nodes;
 
 namespace Verse.DecoderDescriptors
 {
-	internal class FlatDecoderDescriptor<TEntity, TContext> : AbstractDecoderDescriptor<TEntity, string>
+	class FlatDecoderDescriptor<TEntity, TState, TValue> : AbstractDecoderDescriptor<TEntity, TState, TValue>
 	{
 		#region Attributes
 
-		private readonly Container<TEntity, TContext, string> container;
+		private readonly IDecoderConverter<TValue> converter;
+
+		private readonly IFlatReader<TEntity, TState, TValue> reader;
+
+		private readonly IReaderSession<TState> session;
 
 		#endregion
 
 		#region Constructors
 
-		public FlatDecoderDescriptor(IDecoderConverter<string> converter) :
-			base(converter)
+		public FlatDecoderDescriptor(IDecoderConverter<TValue> converter, IReaderSession<TState> session, IFlatReader<TEntity, TState, TValue> reader) :
+			base(converter, session, reader)
 		{
-			this.container = new Container<TEntity, TContext, string>();
+			this.converter = converter;
+			this.reader = reader;
+			this.session = session;
 		}
 
 		#endregion
 
 		#region Methods / Public
 
-		public IDecoder<TEntity> CreateDecoder(IReader<TContext, string> reader)
-		{
-			return new Decoder<TEntity, TContext, string>(this.GetConstructor<TEntity>(), this.container, reader);
-		}
-
 		public override IDecoderDescriptor<TField> HasField<TField>(string name, DecodeAssign<TEntity, TField> assign, IDecoderDescriptor<TField> parent)
 		{
-			FlatDecoderDescriptor<TField, TContext> descriptor;
-
-			descriptor = parent as FlatDecoderDescriptor<TField, TContext>;
+			var descriptor = parent as FlatDecoderDescriptor<TField, TState, TValue>;
 
 			if (descriptor == null)
 				throw new ArgumentOutOfRangeException("parent", "invalid target descriptor type");
@@ -45,7 +43,7 @@ namespace Verse.DecoderDescriptors
 
 		public override IDecoderDescriptor<TField> HasField<TField>(string name, DecodeAssign<TEntity, TField> assign)
 		{
-			return this.HasField(name, assign, new FlatDecoderDescriptor<TField, TContext>(this.converter));
+			return this.HasField(name, assign, new FlatDecoderDescriptor<TField, TState, TValue>(this.converter, this.session, this.reader.Create<TField>()));
 		}
 
 		public override IDecoderDescriptor<TElement> IsArray<TElement>(DecodeAssign<TEntity, IEnumerable<TElement>> assign, IDecoderDescriptor<TElement> parent)
@@ -60,38 +58,23 @@ namespace Verse.DecoderDescriptors
 
 		public override void IsValue()
 		{
-			this.container.value = this.GetConverter();
+			this.reader.DeclareValue(this.GetConverter());
 		}
 
 		#endregion
 
 		#region Methods / Private
 
-		private void Connect(string name, Follow<TEntity, TContext, string> enter)
+		private IDecoderDescriptor<TField> HasField<TField>(string name, DecodeAssign<TEntity, TField> assign, FlatDecoderDescriptor<TField, TState, TValue> descriptor)
 		{
-			BranchNode<TEntity, TContext, string> next;
+			var constructor = this.GetConstructor<TField>();
+			var field = descriptor.reader;
 
-			next = this.container.fields;
-
-			foreach (char c in name)
-				next = next.Connect(c);
-
-			next.enter = enter;
-		}
-
-		private IDecoderDescriptor<TField> HasField<TField>(string name, DecodeAssign<TEntity, TField> assign, FlatDecoderDescriptor<TField, TContext> descriptor)
-		{
-			Func<TField> constructor;
-			Container<TField, TContext, string> container;
-
-			constructor = this.GetConstructor<TField>();
-			container = descriptor.container;
-
-			this.Connect(name, (ref TEntity target, IReader<TContext, string> reader, TContext context) =>
+			this.reader.DeclareField(name, (ref TEntity target, TState state) =>
 			{
 				TField inner;
 
-				if (!reader.ReadValue(constructor, container, context, out inner))
+				if (!field.ReadValue(constructor, state, out inner))
 					return false;
 
 				assign(ref target, inner);

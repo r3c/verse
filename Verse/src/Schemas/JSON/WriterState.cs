@@ -6,19 +6,15 @@ namespace Verse.Schemas.JSON
 {
 	class WriterState
 	{
-		#region Attributes / Public
-
-		public readonly EncodeError Error;
-
-		public int Position;
-
-		#endregion
-
-		#region Attributes / Private
+		#region Attributes / Instance
 
 		private string currentKey;
 
+		private readonly EncodeError error;
+
 		private readonly bool ignoreNull;
+
+		private int position;
 
 		private bool needComma;
 
@@ -39,12 +35,11 @@ namespace Verse.Schemas.JSON
 		public WriterState(Stream stream, EncodeError error, JSONSettings settings)
 		{
 			this.currentKey = null;
+			this.error = error;
 			this.ignoreNull = settings.IgnoreNull;
 			this.needComma = false;
+			this.position = 0;
 			this.writer = new StreamWriter(stream, settings.Encoding);
-
-			this.Error = error;
-			this.Position = 0;
 		}
 
 		static WriterState()

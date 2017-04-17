@@ -1,6 +1,6 @@
 using Verse.DecoderDescriptors.Recurse;
 
-namespace Verse.DecoderDescriptors.Recurse.Readers.Pattern.Nodes
+namespace Verse.DecoderDescriptors.Recurse.RecurseReaders.PatternRecurse.Nodes
 {
 	class EmptyNode<TEntity, TValue, TState> : INode<TEntity, TValue, TState>
 	{
@@ -24,7 +24,7 @@ namespace Verse.DecoderDescriptors.Recurse.Readers.Pattern.Nodes
 		{
 		}
 
-		public bool Enter(ref TEntity target, IReader<TEntity, TValue, TState> unknown, TState state)
+		public bool Enter(ref TEntity target, IRecurseReader<TEntity, TState, TValue> unknown, TState state)
 		{
 			TEntity dummy;
 

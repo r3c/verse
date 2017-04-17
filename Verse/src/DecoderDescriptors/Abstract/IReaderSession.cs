@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Verse.DecoderDescriptors.Recurse
+namespace Verse.DecoderDescriptors.Abstract
 {
 	interface IReaderSession<TState>
 	{

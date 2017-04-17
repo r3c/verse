@@ -3,7 +3,7 @@ using System.IO;
 using System.Text;
 using Verse.DecoderDescriptors.Abstract;
 
-namespace Verse.Schemas.JSON
+namespace Verse.Schemas.QueryString
 {
 	class ReaderSession : IReaderSession<ReaderState>
 	{
@@ -17,7 +17,6 @@ namespace Verse.Schemas.JSON
 		public bool Start(Stream stream, DecodeError error, out ReaderState state)
 		{
 			state = new ReaderState(stream, this.encoding, error);
-			state.PullIgnored();
 
 			if (state.Current < 0)
 			{
@@ -26,10 +25,19 @@ namespace Verse.Schemas.JSON
 				return false;
 			}
 
+			if (state.Current != '?')
+			{
+				state.Error("query string must start with a '?' character");
+
+				return false;
+			}
+
+			state.Pull();
+
 			return true;
 		}
 
-		public void Stop(ReaderState state)
+		public void Stop(ReaderState context)
 		{
 		}
 	}

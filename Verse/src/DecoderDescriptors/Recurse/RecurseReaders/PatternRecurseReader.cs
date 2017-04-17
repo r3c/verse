@@ -1,10 +1,10 @@
 using System;
 using Verse.DecoderDescriptors.Recurse;
-using Verse.DecoderDescriptors.Recurse.Readers.Pattern.Nodes;
+using Verse.DecoderDescriptors.Recurse.RecurseReaders.PatternRecurse.Nodes;
 
-namespace Verse.DecoderDescriptors.Recurse.Readers
+namespace Verse.DecoderDescriptors.Recurse.RecurseReaders
 {
-	abstract class PatternReader<TEntity, TValue, TState> : AbstractReader<TEntity, TValue, TState>
+	abstract class PatternRecurseReader<TEntity, TState, TValue> : RecurseReader<TEntity, TState, TValue>
 	{
 		public readonly BranchNode<TEntity, TValue, TState> RootNode = new BranchNode<TEntity, TValue, TState>();
 

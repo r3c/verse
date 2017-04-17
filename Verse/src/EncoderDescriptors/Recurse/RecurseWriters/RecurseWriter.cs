@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Verse.EncoderDescriptors.Recurse
+namespace Verse.EncoderDescriptors.Recurse.RecurseWriters
 {
-	abstract class AbstractWriter<TEntity, TValue, TState> : IWriter<TEntity, TValue, TState>
+	abstract class RecurseWriter<TEntity, TState, TValue> : IRecurseWriter<TEntity, TState, TValue>
 	{
 		#region Properties
 
@@ -27,7 +27,7 @@ namespace Verse.EncoderDescriptors.Recurse
 
 		#region Attributes
 
-		private Enter<TEntity, TState> array = null;
+		private WriteEntity<TEntity, TState> array = null;
 
 		private Converter<TEntity, TValue> value = null;
 
@@ -35,9 +35,9 @@ namespace Verse.EncoderDescriptors.Recurse
 
 		#region Methods / Abstract
 
-		public abstract IWriter<TOther, TValue, TState> Create<TOther>();
+		public abstract IRecurseWriter<TOther, TState, TValue> Create<TOther>();
 
-		public abstract void DeclareField(string name, Enter<TEntity, TState> enter);
+		public abstract void DeclareField(string name, WriteEntity<TEntity, TState> enter);
 
 		public abstract void WriteElements(IEnumerable<TEntity> elements, TState state);
 
@@ -47,7 +47,7 @@ namespace Verse.EncoderDescriptors.Recurse
 
 		#region Methods / Public
 
-		public void DeclareArray(Enter<TEntity, TState> enter)
+		public void DeclareArray(WriteEntity<TEntity, TState> enter)
 		{
 			if (this.array != null)
 				throw new InvalidOperationException("can't declare array twice on same descriptor");

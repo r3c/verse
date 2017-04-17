@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Verse.DecoderDescriptors.Recurse;
 
-namespace Verse.DecoderDescriptors.Recurse.Readers.Pattern.Nodes
+namespace Verse.DecoderDescriptors.Recurse.RecurseReaders.PatternRecurse.Nodes
 {
 	class BranchNode<TEntity, TValue, TState> : INode<TEntity, TValue, TState>
 	{
@@ -86,7 +86,7 @@ namespace Verse.DecoderDescriptors.Recurse.Readers.Pattern.Nodes
 			return next;
 		}
 
-		public bool Enter(ref TEntity target, IReader<TEntity, TValue, TState> unknown, TState state)
+		public bool Enter(ref TEntity target, IRecurseReader<TEntity, TState, TValue> unknown, TState state)
 		{
 			TEntity dummy;
 

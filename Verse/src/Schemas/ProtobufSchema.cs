@@ -31,11 +31,11 @@ namespace Verse.Schemas
 
 		private readonly DecoderConverter decoderConverter;
 
-		private readonly RecurseDecoderDescriptor<TEntity, Value, ReaderState> decoderDescriptor;
+		private readonly RecurseDecoderDescriptor<TEntity, ReaderState, Value> decoderDescriptor;
 
 		private readonly EncoderConverter encoderConverter;
 
-		private readonly RecurseEncoderDescriptor<TEntity, Value, WriterState> encoderDescriptor;
+		private readonly RecurseEncoderDescriptor<TEntity, WriterState, Value> encoderDescriptor;
 
 		#endregion
 
@@ -48,8 +48,8 @@ namespace Verse.Schemas
 
 			this.decoderConverter = decoderConverter;
 			this.encoderConverter = encoderConverter;
-			this.decoderDescriptor = new RecurseDecoderDescriptor<TEntity, Value, ReaderState>(decoderConverter, new ReaderSession(), new Reader<TEntity>());
-			this.encoderDescriptor = new RecurseEncoderDescriptor<TEntity, Value, WriterState>(encoderConverter, new WriterSession(), new Writer<TEntity>());
+			this.decoderDescriptor = new RecurseDecoderDescriptor<TEntity, ReaderState, Value>(decoderConverter, new ReaderSession(), new Reader<TEntity>());
+			this.encoderDescriptor = new RecurseEncoderDescriptor<TEntity, WriterState, Value>(encoderConverter, new WriterSession(), new Writer<TEntity>());
 		}
 
 		#endregion

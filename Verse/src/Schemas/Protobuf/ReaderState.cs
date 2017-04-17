@@ -7,16 +7,6 @@ namespace Verse.Schemas.Protobuf
 {
 	class ReaderState
 	{
-		#region Properties
-
-		public int Position
-		{
-			get
-			{
-				return this.Reader.Position;
-			}
-		}
-
 		public enum ReadingActionType
 		{
 			ReadHeader,
@@ -24,9 +14,7 @@ namespace Verse.Schemas.Protobuf
 			UseHeader,
 
 			ReadValue
-		};
-
-		public readonly DecodeError Error;        
+		};      
 
 		public VisitingNode ParentVisitingNode;
 
@@ -36,19 +24,18 @@ namespace Verse.Schemas.Protobuf
 
 		public VisitingNode Root;
 
+		private readonly DecodeError error;
+
 		private static readonly VisitingNode NoParent = null;
-
-		#endregion
-
-		#region Constructors
 
 		public ReaderState(Stream stream, DecodeError error)
 		{
-			this.Error = error;
 			this.Reader = new ProtoReader(stream, TypeModel.Create(), null);
 			this.ReadingAction = ReadingActionType.ReadHeader;
 			this.Root = new VisitingNode(NoParent);
 			this.ParentVisitingNode = this.Root;
+
+			this.error = error;
 		}
 
 		public bool ReadHeader(out int index)
@@ -92,12 +79,15 @@ namespace Verse.Schemas.Protobuf
 			return true;
 		}
 
+		public void Error(string message)
+		{
+			this.error(this.Reader.Position, message);
+		}
+
 		public void LeaveObject()
 		{
 			this.ParentVisitingNode.Children.Clear();
 			this.ParentVisitingNode = this.ParentVisitingNode.Parent;
 		}
-
-		#endregion
 	}
 }

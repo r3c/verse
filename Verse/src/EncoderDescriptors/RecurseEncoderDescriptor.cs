@@ -5,19 +5,19 @@ using Verse.EncoderDescriptors.Recurse;
 
 namespace Verse.EncoderDescriptors
 {
-	class RecurseEncoderDescriptor<TEntity, TValue, TState> : AbstractEncoderDescriptor<TEntity, TValue>
+	class RecurseEncoderDescriptor<TEntity, TState, TValue> : AbstractEncoderDescriptor<TEntity, TValue>
 	{
 		#region Attributes
 
 		private readonly IWriterSession<TState> session;
 
-		private readonly IWriter<TEntity, TValue, TState> writer;
+		private readonly IRecurseWriter<TEntity, TState, TValue> writer;
 
 		#endregion
 
 		#region Constructors
 
-		public RecurseEncoderDescriptor(IEncoderConverter<TValue> converter, IWriterSession<TState> session, IWriter<TEntity, TValue, TState> writer) :
+		public RecurseEncoderDescriptor(IEncoderConverter<TValue> converter, IWriterSession<TState> session, IRecurseWriter<TEntity, TState, TValue> writer) :
 			base(converter)
 		{
 			this.session = session;
@@ -35,7 +35,7 @@ namespace Verse.EncoderDescriptors
 
 		public override IEncoderDescriptor<TField> HasField<TField>(string name, Func<TEntity, TField> access, IEncoderDescriptor<TField> parent)
 		{
-			var descriptor = parent as RecurseEncoderDescriptor<TField, TValue, TState>;
+			var descriptor = parent as RecurseEncoderDescriptor<TField, TState, TValue>;
 
 			if (descriptor == null)
 				throw new ArgumentOutOfRangeException("parent", "incompatible descriptor type");
@@ -45,12 +45,12 @@ namespace Verse.EncoderDescriptors
 
 		public override IEncoderDescriptor<TField> HasField<TField>(string name, Func<TEntity, TField> access)
 		{
-			return this.HasField(name, access, new RecurseEncoderDescriptor<TField, TValue, TState>(this.converter, this.session, this.writer.Create<TField>()));
+			return this.HasField(name, access, new RecurseEncoderDescriptor<TField, TState, TValue>(this.converter, this.session, this.writer.Create<TField>()));
 		}
 
 		public override IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> access, IEncoderDescriptor<TElement> parent)
 		{
-			var descriptor = parent as RecurseEncoderDescriptor<TElement, TValue, TState>;
+			var descriptor = parent as RecurseEncoderDescriptor<TElement, TState, TValue>;
 
 			if (descriptor == null)
 				throw new ArgumentOutOfRangeException("parent", "incompatible descriptor type");
@@ -60,7 +60,7 @@ namespace Verse.EncoderDescriptors
 
 		public override IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> access)
 		{
-			return this.IsArray(access, new RecurseEncoderDescriptor<TElement, TValue, TState>(this.converter, this.session, this.writer.Create<TElement>()));
+			return this.IsArray(access, new RecurseEncoderDescriptor<TElement, TState, TValue>(this.converter, this.session, this.writer.Create<TElement>()));
 		}
 
 		public override void IsValue()
@@ -72,7 +72,7 @@ namespace Verse.EncoderDescriptors
 
 		#region Methods / Private
 
-		private RecurseEncoderDescriptor<TField, TValue, TState> HasField<TField>(string name, Func<TEntity, TField> access, RecurseEncoderDescriptor<TField, TValue, TState> descriptor)
+		private RecurseEncoderDescriptor<TField, TState, TValue> HasField<TField>(string name, Func<TEntity, TField> access, RecurseEncoderDescriptor<TField, TState, TValue> descriptor)
 		{
 			var recurse = descriptor.writer;
 
@@ -81,7 +81,7 @@ namespace Verse.EncoderDescriptors
 			return descriptor;
 		}
 
-		private RecurseEncoderDescriptor<TElement, TValue, TState> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> access, RecurseEncoderDescriptor<TElement, TValue, TState> descriptor)
+		private RecurseEncoderDescriptor<TElement, TState, TValue> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> access, RecurseEncoderDescriptor<TElement, TState, TValue> descriptor)
 		{
 			var recurse = descriptor.writer;
 

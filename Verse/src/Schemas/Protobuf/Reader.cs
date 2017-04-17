@@ -2,12 +2,12 @@
 using System.Globalization;
 using ProtoBuf;
 using Verse.DecoderDescriptors.Recurse;
-using Verse.DecoderDescriptors.Recurse.Readers;
-using Verse.DecoderDescriptors.Recurse.Readers.Pattern;
+using Verse.DecoderDescriptors.Recurse.RecurseReaders;
+using Verse.DecoderDescriptors.Recurse.RecurseReaders.PatternRecurse;
 
 namespace Verse.Schemas.Protobuf
 {
-	class Reader<TEntity> : PatternReader<TEntity, Value, ReaderState>
+	class Reader<TEntity> : PatternRecurseReader<TEntity, ReaderState, Value>
 	{
 		#region Attributes
 
@@ -17,7 +17,7 @@ namespace Verse.Schemas.Protobuf
 
 		#region Methods / Public
 
-		public override IReader<TOther, Value, ReaderState> Create<TOther>()
+		public override IRecurseReader<TOther, ReaderState, Value> Create<TOther>()
 		{
 			return new Reader<TOther>();
 		}
@@ -105,7 +105,7 @@ namespace Verse.Schemas.Protobuf
 							return true;
 					}
 
-					state.Error(state.Position, "wire type not supported, skipped");
+					state.Error("wire type not supported, skipped");
 					state.Reader.SkipField();
 
 					entity = default(TEntity);

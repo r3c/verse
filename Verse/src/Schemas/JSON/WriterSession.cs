@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using Verse.EncoderDescriptors.Recurse;
+using Verse.EncoderDescriptors.Abstract;
 
 namespace Verse.Schemas.JSON
 {

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using Verse.DecoderDescriptors.Recurse;
+using Verse.DecoderDescriptors.Abstract;
 
 namespace Verse.Schemas.Protobuf
 {

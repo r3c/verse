@@ -1,9 +1,9 @@
 ﻿using System;
 using Verse.DecoderDescriptors.Recurse;
 
-namespace Verse.DecoderDescriptors.Recurse.Readers
+namespace Verse.DecoderDescriptors.Recurse.RecurseReaders
 {
-	abstract class AbstractReader<TEntity, TValue, TState> : IReader<TEntity, TValue, TState>
+	abstract class RecurseReader<TEntity, TState, TValue> : IRecurseReader<TEntity, TState, TValue>
 	{
 		#region Properties
 
@@ -35,7 +35,7 @@ namespace Verse.DecoderDescriptors.Recurse.Readers
 
 		#region Methods / Abstract
 
-		public abstract IReader<TOther, TValue, TState> Create<TOther>();
+		public abstract IRecurseReader<TOther, TState, TValue> Create<TOther>();
 
 		public abstract void DeclareField(string name, ReadEntity<TEntity, TState> enter);
 

@@ -2,12 +2,12 @@ using System;
 using System.Globalization;
 using System.Text;
 using Verse.DecoderDescriptors.Recurse;
-using Verse.DecoderDescriptors.Recurse.Readers;
-using Verse.DecoderDescriptors.Recurse.Readers.Pattern;
+using Verse.DecoderDescriptors.Recurse.RecurseReaders;
+using Verse.DecoderDescriptors.Recurse.RecurseReaders.PatternRecurse;
 
 namespace Verse.Schemas.JSON
 {
-	class Reader<TEntity> : PatternReader<TEntity, Value, ReaderState>
+	class Reader<TEntity> : PatternRecurseReader<TEntity, ReaderState, Value>
 	{
 		#region Constants
 
@@ -23,7 +23,7 @@ namespace Verse.Schemas.JSON
 
 		#region Methods / Public
 
-		public override IReader<TOther, Value, ReaderState> Create<TOther>()
+		public override IRecurseReader<TOther, ReaderState, Value> Create<TOther>()
 		{
 			return new Reader<TOther>();
 		}
@@ -131,7 +131,7 @@ namespace Verse.Schemas.JSON
 					return this.ScanObjectAsEntity(constructor, state, out entity);
 
 				default:
-					state.Error(state.Position, "expected array, object or value");
+					state.Error("expected array, object or value");
 
 					entity = default(TEntity);
 
@@ -381,7 +381,7 @@ namespace Verse.Schemas.JSON
 				{
 					if (!state.PullCharacter(out ignore))
 					{
-						state.Error(state.Position, "invalid character in object key");
+						state.Error("invalid character in object key");
 
 						current = default(TEntity);
 
@@ -447,7 +447,7 @@ namespace Verse.Schemas.JSON
 				{
 					if (!state.PullCharacter(out character))
 					{
-						state.Error(state.Position, "invalid character in object key");
+						state.Error("invalid character in object key");
 
 						return false;
 					}
@@ -491,7 +491,7 @@ namespace Verse.Schemas.JSON
 				{
 					if (!state.PullCharacter(out character))
 					{
-						state.Error(state.Position, "invalid character in string value");
+						state.Error("invalid character in string value");
 
 						entity = default(TEntity);
 
@@ -511,7 +511,7 @@ namespace Verse.Schemas.JSON
 				{
 					if (!state.PullCharacter(out character))
 					{
-						state.Error(state.Position, "invalid character in string value");
+						state.Error("invalid character in string value");
 
 						entity = default(TEntity);
 

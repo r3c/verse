@@ -1,38 +1,24 @@
-using System;
+﻿using System;
 using System.IO;
 
-namespace Verse.DecoderDescriptors.Recurse
+namespace Verse.DecoderDescriptors.Abstract
 {
-	class Decoder<TEntity, TValue, TState> : IDecoder<TEntity>
+	class Decoder<TEntity, TState> : IDecoder<TEntity>
 	{
-		#region Events
-
 		public event DecodeError Error;
-
-		#endregion
-
-		#region Attributes
 
 		private readonly Func<TEntity> constructor;
 
-		private readonly IReader<TEntity, TValue, TState> reader;
+		private readonly IReader<TEntity, TState> reader;
 
 		private readonly IReaderSession<TState> session;
 
-		#endregion
-
-		#region Constructors
-
-		public Decoder(Func<TEntity> constructor, IReaderSession<TState> session, IReader<TEntity, TValue, TState> reader)
+		public Decoder(Func<TEntity> constructor, IReaderSession<TState> session, IReader<TEntity, TState> reader)
 		{
 			this.constructor = constructor;
 			this.reader = reader;
 			this.session = session;
 		}
-
-		#endregion
-
-		#region Methods / Public
 
 		public bool Decode(Stream input, out TEntity output)
 		{
@@ -55,10 +41,6 @@ namespace Verse.DecoderDescriptors.Recurse
 			}
 		}
 
-		#endregion
-
-		#region Methods / Private
-
 		private void OnError(int position, string message)
 		{
 			DecodeError error;
@@ -68,7 +50,5 @@ namespace Verse.DecoderDescriptors.Recurse
 			if (error != null)
 				error(position, message);
 		}
-
-		#endregion
 	}
 }

@@ -5,22 +5,28 @@ using Verse.Tools;
 
 namespace Verse.DecoderDescriptors
 {
-	abstract class AbstractDecoderDescriptor<TEntity, TValue> : IDecoderDescriptor<TEntity>
+	abstract class AbstractDecoderDescriptor<TEntity, TState, TValue> : IDecoderDescriptor<TEntity>
 	{
 		#region Attributes
 
 		private readonly Dictionary<Type, object> constructors;
 
-		protected readonly IDecoderConverter<TValue> converter;
+		private readonly IDecoderConverter<TValue> converter;
+
+		private readonly IReader<TEntity, TState> reader;
+
+		private readonly IReaderSession<TState> session;
 
 		#endregion
 
 		#region Constructors
 
-		protected AbstractDecoderDescriptor(IDecoderConverter<TValue> converter)
+		protected AbstractDecoderDescriptor(IDecoderConverter<TValue> converter, IReaderSession<TState> session, IReader<TEntity, TState> reader)
 		{
 			this.constructors = new Dictionary<Type, object>();
 			this.converter = converter;
+			this.reader = reader;
+			this.session = session;
 		}
 
 		#endregion
@@ -47,6 +53,11 @@ namespace Verse.DecoderDescriptors
 				throw new ArgumentNullException("constructor");
 
 			this.constructors[typeof (TField)] = constructor;
+		}
+
+		public IDecoder<TEntity> CreateDecoder()
+		{
+			return new Decoder<TEntity, TState>(this.GetConstructor<TEntity>(), this.session, this.reader);
 		}
 
 		#endregion

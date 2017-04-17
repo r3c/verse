@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Verse.EncoderDescriptors.Recurse
+namespace Verse.EncoderDescriptors.Abstract
 {
 	interface IWriterSession<TState>
 	{

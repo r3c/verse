@@ -87,42 +87,42 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="src\DecoderDescriptors\Recurse\IReaderSession.cs" />
+    <Compile Include="src\DecoderDescriptors\Abstract\Decoder.cs" />
+    <Compile Include="src\DecoderDescriptors\Abstract\IReader.cs" />
+    <Compile Include="src\DecoderDescriptors\Abstract\IReaderSession.cs" />
+    <Compile Include="src\DecoderDescriptors\Flat\FlatReaders\PatternFlatReader.cs" />
+    <Compile Include="src\DecoderDescriptors\Flat\FlatReaders\PatternFlat\INode.cs" />
     <Compile Include="src\DecoderDescriptors\Recurse\ReadArray.cs" />
-    <Compile Include="src\EncoderDescriptors\Recurse\IWriterSession.cs" />
+    <Compile Include="src\EncoderDescriptors\Abstract\Encoder.cs" />
+    <Compile Include="src\EncoderDescriptors\Abstract\IWriter.cs" />
+    <Compile Include="src\EncoderDescriptors\Abstract\IWriterSession.cs" />
     <Compile Include="src\Linker.cs" />
     <Compile Include="src\DecodeAssign.cs" />
     <Compile Include="src\DecoderDescriptors\Abstract\IDecoderConverter.cs" />
     <Compile Include="src\DecoderDescriptors\FlatDecoderDescriptor.cs" />
-    <Compile Include="src\DecoderDescriptors\Flat\Container.cs" />
-    <Compile Include="src\DecoderDescriptors\Flat\Follow.cs" />
-    <Compile Include="src\DecoderDescriptors\Flat\IBrowser.cs" />
-    <Compile Include="src\DecoderDescriptors\Flat\INode.cs" />
-    <Compile Include="src\DecoderDescriptors\Flat\IReader.cs" />
-    <Compile Include="src\DecoderDescriptors\Flat\Nodes\BranchNode.cs" />
-    <Compile Include="src\DecoderDescriptors\Flat\Nodes\EmptyNode.cs" />
-    <Compile Include="src\DecoderDescriptors\Flat\Decoder.cs" />
+    <Compile Include="src\DecoderDescriptors\Flat\ReadEntity.cs" />
+    <Compile Include="src\DecoderDescriptors\Flat\IFlatReader.cs" />
+    <Compile Include="src\DecoderDescriptors\Flat\FlatReaders\PatternFlat\Nodes\BranchNode.cs" />
+    <Compile Include="src\DecoderDescriptors\Flat\FlatReaders\PatternFlat\Nodes\EmptyNode.cs" />
     <Compile Include="src\DecoderDescriptors\Recurse\Browser.cs" />
     <Compile Include="src\DecoderDescriptors\Recurse\BrowserMove.cs" />
     <Compile Include="src\DecoderDescriptors\Recurse\BrowserState.cs" />
-    <Compile Include="src\DecoderDescriptors\Recurse\Readers\AbstractReader.cs" />
-    <Compile Include="src\DecoderDescriptors\Recurse\Readers\LookupReader.cs" />
-    <Compile Include="src\DecoderDescriptors\Recurse\Readers\PatternReader.cs" />
-    <Compile Include="src\DecoderDescriptors\Recurse\Readers\Pattern\INode.cs" />
+    <Compile Include="src\DecoderDescriptors\Recurse\RecurseReaders\RecurseReader.cs" />
+    <Compile Include="src\DecoderDescriptors\Recurse\RecurseReaders\LookupRecurseReader.cs" />
+    <Compile Include="src\DecoderDescriptors\Recurse\RecurseReaders\PatternRecurseReader.cs" />
+    <Compile Include="src\DecoderDescriptors\Recurse\RecurseReaders\PatternRecurse\INode.cs" />
     <Compile Include="src\DecoderDescriptors\Recurse\ReadEntity.cs" />
-    <Compile Include="src\DecoderDescriptors\Recurse\IReader.cs" />
-    <Compile Include="src\DecoderDescriptors\Recurse\Decoder.cs" />
-    <Compile Include="src\DecoderDescriptors\Recurse\Readers\Pattern\Nodes\BranchNode.cs" />
-    <Compile Include="src\DecoderDescriptors\Recurse\Readers\Pattern\Nodes\EmptyNode.cs" />
+    <Compile Include="src\DecoderDescriptors\Recurse\IRecurseReader.cs" />
+    <Compile Include="src\DecoderDescriptors\Recurse\RecurseReaders\PatternRecurse\Nodes\BranchNode.cs" />
+    <Compile Include="src\DecoderDescriptors\Recurse\RecurseReaders\PatternRecurse\Nodes\EmptyNode.cs" />
     <Compile Include="src\EncoderDescriptors\AbstractEncoderDescriptor.cs" />
     <Compile Include="src\EncoderDescriptors\Abstract\IEncoderConverter.cs" />
     <Compile Include="src\EncoderDescriptors\RecurseEncoderDescriptor.cs" />
-    <Compile Include="src\EncoderDescriptors\Recurse\Enter.cs" />
-    <Compile Include="src\EncoderDescriptors\Recurse\IWriter.cs" />
-    <Compile Include="src\EncoderDescriptors\Recurse\Encoder.cs" />
-    <Compile Include="src\EncoderDescriptors\Recurse\Writers\AbstractWriter.cs" />
-    <Compile Include="src\EncoderDescriptors\Recurse\Writers\LookupWriter.cs" />
-    <Compile Include="src\EncoderDescriptors\Recurse\Writers\PatternWriter.cs" />
+    <Compile Include="src\EncoderDescriptors\Recurse\WriteEntity.cs" />
+    <Compile Include="src\EncoderDescriptors\Recurse\IRecurseWriter.cs" />
+    <Compile Include="src\EncoderDescriptors\Recurse\RecurseWriters\RecurseWriter.cs" />
+    <Compile Include="src\EncoderDescriptors\Recurse\RecurseWriters\LookupRecurseWriter.cs" />
+    <Compile Include="src\EncoderDescriptors\Recurse\RecurseWriters\PatternRecurseWriter.cs" />
     <Compile Include="src\EncodeError.cs" />
     <Compile Include="src\Schemas\AbstractSchema.cs" />
     <Compile Include="src\Schemas\JSON\ContentType.cs" />
@@ -147,8 +147,9 @@
     <Compile Include="src\Schemas\JSON\EncoderConverter.cs" />
     <Compile Include="src\Schemas\JSON\Writer.cs" />
     <Compile Include="src\Schemas\JSON\WriterState.cs" />
+    <Compile Include="src\Schemas\QueryString\ReaderSession.cs" />
     <Compile Include="src\Schemas\QueryString\Reader.cs" />
-    <Compile Include="src\Schemas\QueryString\ReaderContext.cs" />
+    <Compile Include="src\Schemas\QueryString\ReaderState.cs" />
     <Compile Include="src\Schemas\QueryString\DecoderConverter.cs" />
     <Compile Include="src\Tools\Generator.cs" />
     <Compile Include="src\Tools\Resolver.cs" />
@@ -168,10 +169,12 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="src\DecoderDescriptors\Abstract" />
-    <Folder Include="src\DecoderDescriptors\Recurse\Readers" />
-    <Folder Include="src\DecoderDescriptors\Recurse\Readers\Pattern" />
+    <Folder Include="src\DecoderDescriptors\Flat\FlatReaders" />
+    <Folder Include="src\DecoderDescriptors\Flat\FlatReaders\PatternFlat" />
+    <Folder Include="src\DecoderDescriptors\Recurse\RecurseReaders" />
+    <Folder Include="src\DecoderDescriptors\Recurse\RecurseReaders\PatternRecurse" />
     <Folder Include="src\EncoderDescriptors\Abstract" />
-    <Folder Include="src\EncoderDescriptors\Recurse\Writers" />
+    <Folder Include="src\EncoderDescriptors\Recurse\RecurseWriters" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

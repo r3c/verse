@@ -1,7 +1,8 @@
 using System;
 using System.IO;
+using Verse.EncoderDescriptors.Abstract;
 
-namespace Verse.EncoderDescriptors.Recurse
+namespace Verse.EncoderDescriptors.Abstract
 {
 	class Encoder<TEntity, TValue, TState> : IEncoder<TEntity>
 	{
@@ -15,13 +16,13 @@ namespace Verse.EncoderDescriptors.Recurse
 
 		private readonly IWriterSession<TState> session;
 
-		private readonly IWriter<TEntity, TValue, TState> writer;
+		private readonly IWriter<TEntity, TState> writer;
 
 		#endregion
 
 		#region Constructors
 
-		public Encoder(IWriterSession<TState> session, IWriter<TEntity, TValue, TState> writer)
+		public Encoder(IWriterSession<TState> session, IWriter<TEntity, TState> writer)
 		{
 			this.session = session;
 			this.writer = writer;

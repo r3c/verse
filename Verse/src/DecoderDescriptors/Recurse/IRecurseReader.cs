@@ -1,12 +1,11 @@
 ﻿using System;
+using Verse.DecoderDescriptors.Abstract;
 
 namespace Verse.DecoderDescriptors.Recurse
 {
-	interface IReader<TEntity, TValue, TState>
+	interface IRecurseReader<TEntity, TState, TValue> : IReader<TEntity, TState>
 	{
-		#region Methods
-
-		IReader<TOther, TValue, TState> Create<TOther>();
+		IRecurseReader<TOther, TState, TValue> Create<TOther>();
 
 		void DeclareArray(ReadArray<TEntity, TState> read);
 
@@ -15,9 +14,5 @@ namespace Verse.DecoderDescriptors.Recurse
 		void DeclareValue(Converter<TValue, TEntity> convert);
 
 		BrowserMove<TEntity> ReadElements(Func<TEntity> constructor, TState state);
-
-		bool ReadEntity(Func<TEntity> constructor, TState state, out TEntity entity);
-
-		#endregion
 	}
 }

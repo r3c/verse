@@ -1,14 +1,15 @@
 using System;
 using System.Collections.Generic;
 using Verse.EncoderDescriptors.Recurse;
+using Verse.EncoderDescriptors.Recurse.RecurseWriters;
 
 namespace Verse.Schemas.JSON
 {
-	class Writer<TEntity> : PatternWriter<TEntity, Value, WriterState>
+	class Writer<TEntity> : PatternRecurseWriter<TEntity, WriterState, Value>
 	{
 		#region Methods
 
-		public override IWriter<TOther, Value, WriterState> Create<TOther>()
+		public override IRecurseWriter<TOther, WriterState, Value> Create<TOther>()
 		{
 			return new Writer<TOther>();
 		}
@@ -28,7 +29,7 @@ namespace Verse.Schemas.JSON
 
 		public override void WriteEntity(TEntity source, WriterState state)
 		{
-			IEnumerator<KeyValuePair<string, Enter<TEntity, WriterState>>> field;
+			IEnumerator<KeyValuePair<string, WriteEntity<TEntity, WriterState>>> field;
 
 			if (source == null)
 				state.Value(JSON.Value.Void);

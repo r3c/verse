@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Verse.EncoderDescriptors.Recurse.Writers
+namespace Verse.EncoderDescriptors.Recurse.RecurseWriters
 {
-	abstract class LookupWriter<TEntity, TValue, TState, TIndex> : AbstractWriter<TEntity, TValue, TState>
+	abstract class LookupRecurseWriter<TEntity, TState, TValue, TIndex> : RecurseWriter<TEntity, TState, TValue>
 	{
-		public readonly Dictionary<TIndex, Enter<TEntity, TState>> Fields = new Dictionary<TIndex, Enter<TEntity, TState>>();
+		public readonly Dictionary<TIndex, WriteEntity<TEntity, TState>> Fields = new Dictionary<TIndex, WriteEntity<TEntity, TState>>();
 
 		protected abstract bool TryLookup(string name, out TIndex index);
 
-		public override void DeclareField(string name, Enter<TEntity, TState> enter)
+		public override void DeclareField(string name, WriteEntity<TEntity, TState> enter)
 		{
 			TIndex index;
 

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Verse.DecoderDescriptors.Recurse.Readers
+namespace Verse.DecoderDescriptors.Recurse.RecurseReaders
 {
-	abstract class LookupReader<TEntity, TValue, TState, TIndex> : AbstractReader<TEntity, TValue, TState>
+	abstract class LookupRecurseReader<TEntity, TState, TValue, TIndex> : RecurseReader<TEntity, TState, TValue>
 	{
 		private readonly Dictionary<TIndex, ReadEntity<TEntity, TState>> fields = new Dictionary<TIndex, ReadEntity<TEntity, TState>>();
 

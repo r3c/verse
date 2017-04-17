@@ -1,39 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Text;
-
 using ProtoBuf;
 
 namespace Verse.Schemas.Protobuf
 {
 	class WriterState
 	{
-		#region Property
-
-		public int Position
-		{
-			get
-			{
-				long localPosition;
-
-				localPosition = this.subObjectInstances.Count > 0
-					? this.subObjectInstances.Peek().Stream.Position
-					: 0;
-
-				return (int)(this.parentOffset + localPosition);
-			}
-		}
-
-		#endregion
-
-		#region Attributes / Public
-
-		public readonly EncodeError Error;
-
-		#endregion
-
-		#region Attributes / Private
+		private readonly EncodeError error;
 
 		private int fieldIndex;
 
@@ -43,13 +17,9 @@ namespace Verse.Schemas.Protobuf
 
 		private readonly Stack<SubObjectInstance> subObjectInstances;
 
-		#endregion
-
-		#region Constructor
-
 		public WriterState(Stream stream, EncodeError error)
 		{
-			this.Error = error;
+			this.error = error;
 
 			this.fieldIndex = 0;
 			this.parentOffset = 0;
@@ -57,9 +27,16 @@ namespace Verse.Schemas.Protobuf
 			this.subObjectInstances = new Stack<SubObjectInstance>();
 		}
 
-		#endregion
+		public void Error(string message)
+		{
+			long localPosition;
 
-		#region Methods
+			localPosition = this.subObjectInstances.Count > 0
+				? this.subObjectInstances.Peek().Stream.Position
+				: 0;
+
+			this.error((int)(this.parentOffset + localPosition), message);
+		}
 
 		public void Key(string key)
 		{
@@ -153,7 +130,5 @@ namespace Verse.Schemas.Protobuf
 				ProtoWriter.WriteBytes(subObjectInstance.Stream.ToArray(), destWriter);
 			}
 		}
-
-		#endregion
 	}
 }
