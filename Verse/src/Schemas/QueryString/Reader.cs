@@ -81,10 +81,10 @@ namespace Verse.Schemas.QueryString
 				return false;
 			}
 
-			target = constructor();
-
 			if (container.value != null)
-				container.value(ref target, value);
+				target = container.value(value);
+			else
+				target = default(T);
 
 			return true;
 		}

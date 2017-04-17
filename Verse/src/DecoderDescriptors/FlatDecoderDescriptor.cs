@@ -58,11 +58,9 @@ namespace Verse.DecoderDescriptors
 			throw new NotImplementedException("array is not supported");
 		}
 
-		public override void IsValue<TValue>(DecodeAssign<TEntity, TValue> assign)
+		public override void IsValue()
 		{
-			Converter<string, TValue> convert = this.GetConverter<TValue>();
-
-			this.container.value = (ref TEntity target, string value) => assign(ref target, convert(value));
+			this.container.value = this.GetConverter();
 		}
 
 		#endregion

@@ -44,42 +44,36 @@ namespace Verse.Schemas.JSON
 			return new Reader<TOther>(this.encoding);
 		}
 
-		public override IBrowser<TEntity> ReadElements(Func<TEntity> constructor, ReaderState state)
+		public override BrowserMove<TEntity> ReadElements(Func<TEntity> constructor, ReaderState state)
 		{
 			switch (state.Current)
 			{
 				case (int)'[':
-					return new Browser<TEntity>(this.ScanArrayAsArray(constructor, state));
+					return this.ScanArrayAsArray(constructor, state);
 
 				case (int)'{':
-					return new Browser<TEntity>(this.ScanObjectAsArray(constructor, state));
+					return this.ScanObjectAsArray(constructor, state);
 
 				default:
-					return new Browser<TEntity>((int index, out TEntity current) =>
+					return (int index, out TEntity current) =>
 					{
 						if (!this.ReadEntity(constructor, state, out current))
 							return BrowserState.Failure;
 
 						return BrowserState.Success;
-					});
+					};
 			}
 		}
 
-		public override bool ReadEntity(Func<TEntity> constructor, ReaderState state, out TEntity target)
+		public override bool ReadEntity(Func<TEntity> constructor, ReaderState state, out TEntity entity)
 		{
-			if (this.HoldArray)
-			{
-				target = constructor();
-
-				return this.ProcessArray(ref target, state);
-			}
+			if (this.IsArray)
+				return this.ProcessArray(constructor, state, out entity);
 
 			switch (state.Current)
 			{
 				case (int)'"':
-					target = constructor();
-
-					return this.ScanStringAsEntity(ref target, state);
+					return this.ScanStringAsEntity(state, out entity);
 
 				case (int)'-':
 				case (int)'.':
@@ -93,28 +87,22 @@ namespace Verse.Schemas.JSON
 				case (int)'7':
 				case (int)'8':
 				case (int)'9':
-					target = constructor();
-
-					return this.ScanNumberAsEntity(ref target, state);
+					return this.ScanNumberAsEntity(state, out entity);
 
 				case (int)'f':
 					state.Read();
 
 					if (!state.PullExpected('a') || !state.PullExpected('l') || !state.PullExpected('s') || !state.PullExpected('e'))
 					{
-						target = default(TEntity);
+						entity = default(TEntity);
 
 						return false;
 					}
 
-					if (this.HoldValue)
-					{
-						target = constructor();
-
-						this.ProcessValue(ref target, Value.FromBoolean(false));
-					}
+					if (this.IsValue)
+						entity = this.ProcessValue(Value.FromBoolean(false));
 					else
-						target = default(TEntity);
+						entity = default(TEntity);
 
 					return true;
 
@@ -123,19 +111,15 @@ namespace Verse.Schemas.JSON
 
 					if (!state.PullExpected('u') || !state.PullExpected('l') || !state.PullExpected('l'))
 					{
-						target = default(TEntity);
+						entity = default(TEntity);
 
 						return false;
 					}
 
-					if (this.HoldValue)
-					{
-						target = constructor();
-
-						this.ProcessValue(ref target, Value.Void);
-					}
+					if (this.IsValue)
+						entity = this.ProcessValue(Value.Void);
 					else
-						target = default(TEntity);
+						entity = default(TEntity);
 
 					return true;
 
@@ -144,36 +128,28 @@ namespace Verse.Schemas.JSON
 
 					if (!state.PullExpected('r') || !state.PullExpected('u') || !state.PullExpected('e'))
 					{
-						target = default(TEntity);
+						entity = default(TEntity);
 
 						return false;
 					}
 
-					if (this.HoldValue)
-					{
-						target = constructor();
-
-						this.ProcessValue(ref target, Value.FromBoolean(true));
-					}
+					if (this.IsValue)
+						entity = this.ProcessValue(Value.FromBoolean(true));
 					else
-						target = default(TEntity);
+						entity = default(TEntity);
 
 					return true;
 
 				case (int)'[':
-					target = constructor();
-
-					return this.ScanArrayAsEntity(ref target, state);
+					return this.ScanArrayAsEntity(constructor, state, out entity);
 
 				case (int)'{':
-					target = constructor();
-
-					return this.ScanObjectAsEntity(ref target, state);
+					return this.ScanObjectAsEntity(constructor, state, out entity);
 
 				default:
 					state.Error(state.Position, "expected array, object or value");
 
-					target = default(TEntity);
+					entity = default(TEntity);
 
 					return false;
 			}
@@ -212,9 +188,9 @@ namespace Verse.Schemas.JSON
 
 				if (state.Current == (int)']')
 				{
-					current = default(TEntity);
-
 					state.Read();
+
+					current = default(TEntity);
 
 					return BrowserState.Success;
 				}
@@ -240,11 +216,13 @@ namespace Verse.Schemas.JSON
 			};
 		}
 
-		private bool ScanArrayAsEntity(ref TEntity target, ReaderState state)
+		private bool ScanArrayAsEntity(Func<TEntity> constructor, ReaderState state, out TEntity entity)
 		{
 			INode<TEntity, Value, ReaderState> node;
 
 			state.Read();
+
+			entity = constructor();
 
 			for (int index = 0; true; ++index)
 			{
@@ -274,7 +252,7 @@ namespace Verse.Schemas.JSON
 					node = node.Follow((char)('0' + index));
 
 				// Read array value
-				if (!node.Enter(ref target, Reader<TEntity>.unknown, state))
+				if (!node.Enter(ref entity, Reader<TEntity>.unknown, state))
 					return false;
 			}
 
@@ -283,7 +261,7 @@ namespace Verse.Schemas.JSON
 			return true;
 		}
 
-		private bool ScanNumberAsEntity(ref TEntity target, ReaderState state)
+		private bool ScanNumberAsEntity(ReaderState state, out TEntity entity)
 		{
 			decimal number;
 			uint numberExponent;
@@ -379,14 +357,16 @@ namespace Verse.Schemas.JSON
 				}
 
 				// Compute result number and assign if needed
-				if (this.HoldValue)
+				if (this.IsValue)
 				{
 					number =
 						(long)((numberMantissa ^ numberMantissaMask) + numberMantissaPlus) *
 						(decimal)Math.Pow(10, numberPower);
 
-					this.ProcessValue(ref target, Value.FromNumber(number));
+					entity = this.ProcessValue(Value.FromNumber(number));
 				}
+				else
+					entity = default(TEntity);
 			}
 
 			return true;
@@ -467,12 +447,14 @@ namespace Verse.Schemas.JSON
 			};
 		}
 
-		private bool ScanObjectAsEntity(ref TEntity target, ReaderState state)
+		private bool ScanObjectAsEntity(Func<TEntity> constructor, ReaderState state, out TEntity entity)
 		{
 			char character;
 			INode<TEntity, Value, ReaderState> node;
 
 			state.Read();
+
+			entity = constructor();
 
 			for (int index = 0; true; ++index)
 			{
@@ -519,7 +501,7 @@ namespace Verse.Schemas.JSON
 				// Read object value
 				state.PullIgnored();
 
-				if (!node.Enter(ref target, Reader<TEntity>.unknown, state))
+				if (!node.Enter(ref entity, Reader<TEntity>.unknown, state))
 					return false;
 			}
 
@@ -528,7 +510,7 @@ namespace Verse.Schemas.JSON
 			return true;
 		}
 
-		private bool ScanStringAsEntity(ref TEntity target, ReaderState state)
+		private bool ScanStringAsEntity(ReaderState state, out TEntity entity)
 		{
 			StringBuilder buffer;
 			char character;
@@ -536,7 +518,7 @@ namespace Verse.Schemas.JSON
 			state.Read();
 
 			// Read and store string in a buffer if its value is needed
-			if (this.HoldValue)
+			if (this.IsValue)
 			{
 				buffer = new StringBuilder(32);
 
@@ -546,13 +528,15 @@ namespace Verse.Schemas.JSON
 					{
 						state.Error(state.Position, "invalid character in string value");
 
+						entity = default(TEntity);
+
 						return false;
 					}
 
 					buffer.Append(character);
 				}
 
-				this.ProcessValue(ref target, Value.FromString(buffer.ToString()));
+				entity = this.ProcessValue(Value.FromString(buffer.ToString()));
 			}
 
 			// Read and discard string otherwise
@@ -564,9 +548,13 @@ namespace Verse.Schemas.JSON
 					{
 						state.Error(state.Position, "invalid character in string value");
 
+						entity = default(TEntity);
+
 						return false;
 					}
 				}
+
+				entity = default(TEntity);
 			}
 
 			state.Read();

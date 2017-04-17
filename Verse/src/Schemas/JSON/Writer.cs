@@ -61,10 +61,10 @@ namespace Verse.Schemas.JSON
 
 			if (source == null)
 				state.Value(JSON.Value.Void);
-			else if (this.Array != null)
-				this.Array(source, state);
-			else if (this.Value != null)
-				state.Value(this.Value(source));
+			else if (this.IsArray)
+				this.ProcessArray(source, state);
+			else if (this.IsValue)
+				state.Value(this.ProcessValue(source));
 			else
 			{
 				state.ObjectBegin();

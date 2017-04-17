@@ -36,11 +36,11 @@ namespace Verse.Schemas.Protobuf
 			if (source == null)
 				return;
 
-			if (this.Array != null)
-				this.Array(source, state);
-			else if (this.Value != null)
+			if (this.IsArray)
+				this.ProcessArray(source, state);
+			else if (this.IsValue)
 			{
-				if (!state.Value(this.Value(source)))
+				if (!state.Value(this.ProcessValue(source)))
 				{
 					state.Error(state.Position, "failed to write value");
 				}

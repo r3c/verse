@@ -36,7 +36,7 @@ namespace Verse.DecoderDescriptors.Recurse.Readers.Pattern.Nodes
 
 		public Dictionary<char, BranchNode<TEntity, TValue, TState>> branchHash = null;
 
-		public Enter<TEntity, TState> enter = null;
+		public ReadEntity<TEntity, TState> enter = null;
 
 		private bool hasSubNode = false;
 

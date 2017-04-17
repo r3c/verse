@@ -1,3 +1,4 @@
+using System;
 using Verse.DecoderDescriptors.Flat.Nodes;
 
 namespace Verse.DecoderDescriptors.Flat
@@ -6,6 +7,6 @@ namespace Verse.DecoderDescriptors.Flat
 	{
 		public BranchNode<TEntity, TContext, TNative> fields = new BranchNode<TEntity, TContext, TNative>();
 
-		public DecodeAssign<TEntity, TNative> value = null;
+		public Converter<TNative, TEntity> value = null;
 	}
 }

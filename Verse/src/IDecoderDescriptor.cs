@@ -64,13 +64,6 @@ namespace Verse
 		IDecoderDescriptor<TElement> IsArray<TElement>(DecodeAssign<TEntity, IEnumerable<TElement>> assign);
 
 		/// <summary>
-		/// Declare assignable value within current entity.
-		/// </summary>
-		/// <typeparam name="TCompatible">Value type after conversion</typeparam>
-		/// <param name="assign">Value to parent entity assignment delegate</param>
-		void IsValue<TCompatible>(DecodeAssign<TEntity, TCompatible> assign);
-
-		/// <summary>
 		/// Declare entity as a value. Entity type must have a known decoder
 		/// declared (through its schema), otherwise you'll get a type error
 		/// when calling this method.

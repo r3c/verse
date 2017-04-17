@@ -60,11 +60,9 @@ namespace Verse.EncoderDescriptors
 			return this.IsArray(access, new RecurseEncoderDescriptor<TElement, TValue, TState>(this.converter, this.writer.Create<TElement>()));
 		}
 
-		public override void IsValue<TRaw>(Func<TEntity, TRaw> access)
+		public override void IsValue()
 		{
-			Converter<TRaw, TValue> convert = this.GetConverter<TRaw>();
-
-			this.writer.DeclareValue((source) => convert(access(source)));
+			this.writer.DeclareValue(this.GetConverter());
 		}
 
 		#endregion

@@ -87,7 +87,6 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="src\CompareNewtonsoft.cs" />
-    <Compile Include="src\AlternativeIsValue.cs" />
     <Compile Include="src\Program.cs" />
   </ItemGroup>
   <ItemGroup>

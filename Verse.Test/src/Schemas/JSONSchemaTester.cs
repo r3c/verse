@@ -280,11 +280,11 @@ namespace Verse.Test.Schemas
 				: "{\"firstnull\":null,\"value\":\"test\",\"secondnull\":null,\"item\":{\"values\":[null,\"val1\",null,\"val2\",null]},\"lastnull\":null}";
 
 			schema = new JSONSchema<string>(new JSONSettings(new UTF8Encoding(false), ignoreNull));
-			schema.EncoderDescriptor.HasField("firstnull", Identity<string>.Access).IsValue(v => Value.Void);
+			schema.EncoderDescriptor.HasField("firstnull", s => Value.Void).IsValue();
 			schema.EncoderDescriptor.HasField("value", Identity<string>.Access).IsValue();
-			schema.EncoderDescriptor.HasField("secondnull", Identity<string>.Access).IsValue(v => Value.Void);
+			schema.EncoderDescriptor.HasField("secondnull", s => Value.Void).IsValue();
 			schema.EncoderDescriptor.HasField("item", Identity<string>.Access).HasField("values", Identity<string>.Access).IsArray(v => new[] { null, "val1", null, "val2", null }).IsValue();
-			schema.EncoderDescriptor.HasField("lastnull", Identity<string>.Access).IsValue(v => Value.Void);
+			schema.EncoderDescriptor.HasField("lastnull", s => Value.Void).IsValue();
 
 			this.AssertEncodeAndEqual(schema, "test", expected);
 		}

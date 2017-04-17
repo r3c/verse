@@ -14,7 +14,7 @@ namespace Verse.EncoderDescriptors.Recurse
 
 		void DeclareField(string name, Enter<TEntity, TState> enter);
 
-		void DeclareValue(Func<TEntity, TValue> access);
+		void DeclareValue(Converter<TEntity, TValue> convert);
 
 		bool Start(Stream stream, EncodeError error, out TState state);
 

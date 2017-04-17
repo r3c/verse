@@ -1,43 +1,16 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace Verse.DecoderDescriptors.Recurse
 {
-	class Browser<TEntity> : IBrowser<TEntity>
+	class Browser<TEntity> : IDisposable, IEnumerable<TEntity>
 	{
-		#region Properties / Public
-
-		public TEntity Current
-		{
-			get
-			{
-				return this.current;
-			}
-		}
-
-		#endregion
-
-		#region Properties / Explicit
-
-		object IEnumerator.Current
-		{
-			get
-			{
-				return this.Current;
-			}
-		}
-
-		#endregion
-
 		#region Attributes
 
-		private TEntity current;
+		private Enumerator enumerator;
 
-		private int index;
-
-		private BrowserMove<TEntity> move;
-
-		private BrowserState state;
+		private bool started;
 
 		#endregion
 
@@ -45,41 +18,104 @@ namespace Verse.DecoderDescriptors.Recurse
 
 		public Browser(BrowserMove<TEntity> move)
 		{
-			this.index = 0;
-			this.move = move;
-			this.state = BrowserState.Continue;
+			this.enumerator = new Enumerator(move);
+			this.started = false;
 		}
 
 		#endregion
 
 		#region Methods
 
-		public bool Complete()
-		{
-			while (this.state == BrowserState.Continue)
-				this.MoveNext();
-
-			return this.state == BrowserState.Success;
-		}
-
 		public void Dispose()
 		{
-			this.move = null;
+			this.enumerator.Dispose();
+			this.enumerator = null;
 		}
 
-		public bool MoveNext()
+		public bool Finish()
 		{
-			if (this.state != BrowserState.Continue)
-				return false;
-
-			this.state = this.move(this.index++, out this.current);
-
-			return this.state == BrowserState.Continue;
+			return this.enumerator.Finish();
 		}
 
-		public void Reset()
+		public IEnumerator<TEntity> GetEnumerator()
 		{
-			throw new NotSupportedException("can't iterate over array twice");
+			if (this.started)
+				throw new NotSupportedException("array cannot be enumerated more than once");
+
+			this.started = true;
+
+			return this.enumerator;
+		}
+
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return this.GetEnumerator();
+		}
+
+		#endregion
+
+		#region Types
+
+		private class Enumerator : IDisposable, IEnumerator<TEntity>
+		{
+			public TEntity Current
+			{
+				get
+				{
+					return this.current;
+				}
+			}
+	
+			object IEnumerator.Current
+			{
+				get
+				{
+					return this.Current;
+				}
+			}
+
+			private int index;
+
+			private BrowserMove<TEntity> move;
+	
+			private TEntity current;
+	
+			private BrowserState state;
+
+			public Enumerator(BrowserMove<TEntity> move)
+			{
+				this.index = 0;
+				this.move = move;
+				this.state = BrowserState.Continue;
+			}
+	
+			public void Dispose()
+			{
+				this.move = null;
+			}
+
+			public bool Finish()
+			{
+				while (this.state == BrowserState.Continue)
+					this.MoveNext();
+	
+				return this.state == BrowserState.Success;
+			}
+	
+			public bool MoveNext()
+			{
+				if (this.state != BrowserState.Continue)
+					return false;
+	
+				this.state = this.move(this.index++, out this.current);
+	
+				return this.state == BrowserState.Continue;
+			}
+	
+			public void Reset()
+			{
+				throw new NotSupportedException("array cannot be enumerated more than once");
+			}
 		}
 
 		#endregion

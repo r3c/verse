@@ -6,11 +6,31 @@ namespace Verse.EncoderDescriptors.Recurse
 {
 	abstract class AbstractWriter<TEntity, TValue, TState> : IWriter<TEntity, TValue, TState>
 	{
+		#region Properties
+
+		public bool IsArray
+		{
+			get
+			{
+				return this.array != null;
+			}
+		}
+
+		public bool IsValue
+		{
+			get
+			{
+				return this.value != null;
+			}
+		}
+
+		#endregion
+
 		#region Attributes
 
-		public Enter<TEntity, TState> Array = null;
+		private Enter<TEntity, TState> array = null;
 
-		public Func<TEntity, TValue> Value = null;
+		private Converter<TEntity, TValue> value = null;
 
 		#endregion
 
@@ -34,18 +54,38 @@ namespace Verse.EncoderDescriptors.Recurse
 
 		public void DeclareArray(Enter<TEntity, TState> enter)
 		{
-			if (this.Array != null)
+			if (this.array != null)
 				throw new InvalidOperationException("can't declare array twice on same descriptor");
 
-			this.Array = enter;            
+			this.array = enter;            
 		}
 
-		public void DeclareValue(Func<TEntity, TValue> access)
+		public void DeclareValue(Converter<TEntity, TValue> converter)
 		{
-			if (this.Value != null)
+			if (this.value != null)
 				throw new InvalidOperationException("can't declare value twice on same descriptor");
 
-			this.Value = access;
+			this.value = converter;
+		}
+
+		#endregion
+
+		#region Methods / Protected
+
+		protected void ProcessArray(TEntity entity, TState state)
+		{
+			if (this.array == null)
+				throw new InvalidOperationException("internal error, cannot process undeclared array");
+
+			this.array(entity, state);
+		}
+
+		protected TValue ProcessValue(TEntity entity)
+		{
+			if (this.value == null)
+				throw new InvalidOperationException("internal error, cannot process undeclared value");
+
+			return this.value(entity);
 		}
 
 		#endregion

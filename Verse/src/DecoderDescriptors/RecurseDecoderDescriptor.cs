@@ -61,11 +61,9 @@ namespace Verse.DecoderDescriptors
 			return this.IsArray(assign, new RecurseDecoderDescriptor<TElement, TValue, TState>(this.converter, this.reader.Create<TElement>()));
 		}
 
-		public override void IsValue<TRaw>(DecodeAssign<TEntity, TRaw> assign)
+		public override void IsValue()
 		{
-			Converter<TValue, TRaw> convert = this.GetConverter<TRaw>();
-
-			this.reader.DeclareValue((ref TEntity target, TValue value) => assign(ref target, convert(value)));
+			this.reader.DeclareValue(this.GetConverter());
 		}
 
 		#endregion
@@ -94,16 +92,25 @@ namespace Verse.DecoderDescriptors
 
 		private IDecoderDescriptor<TElement> IsArray<TElement>(DecodeAssign<TEntity, IEnumerable<TElement>> assign, RecurseDecoderDescriptor<TElement, TValue, TState> descriptor)
 		{
-			var constructor = this.GetConstructor<TElement>();
-			var recurse = descriptor.reader;
+			var elementConstructor = this.GetConstructor<TElement>();
+			var elementReader = descriptor.reader;
 
-			this.reader.DeclareArray((ref TEntity target, TState state) =>
+			this.reader.DeclareArray((Func<TEntity> entityConstructor, TState state, out TEntity entity) =>
 			{
-				var browser = recurse.ReadElements(constructor, state);
+				using (var browser = new Browser<TElement>(elementReader.ReadElements(elementConstructor, state)))
+				{
+					// FIXME:
+					// This forces a unnecessary copy, and introduces some
+					// unexpected behavior (e.g. not enumerating the sequence
+					// resulting in an empty array). Method IsArray could just
+					// pass enumerable elements and let parent field assignment
+					// handle the copy if needed.
+					entity = entityConstructor();
 
-				assign(ref target, new Walker<TElement>(browser));
+					assign(ref entity, browser);
 
-				return browser.Complete();
+					return browser.Finish();
+				}
 			});
 
 			return descriptor;

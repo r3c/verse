@@ -5,33 +5,19 @@ namespace Verse.DecoderDescriptors.Recurse
 {
 	interface IReader<TEntity, TValue, TState>
 	{
-		#region Properties
-
-		bool HoldArray
-		{
-			get;
-		}
-
-		bool HoldValue
-		{
-			get;
-		}
-
-		#endregion
-
 		#region Methods
 
 		IReader<TOther, TValue, TState> Create<TOther>();
 
-		void DeclareArray(Enter<TEntity, TState> enter);
+		void DeclareArray(ReadArray<TEntity, TState> read);
 
-		void DeclareField(string name, Enter<TEntity, TState> enter);
+		void DeclareField(string name, ReadEntity<TEntity, TState> enter);
 
-		void DeclareValue(DecodeAssign<TEntity, TValue> assign);
+		void DeclareValue(Converter<TValue, TEntity> convert);
 
-		IBrowser<TEntity> ReadElements(Func<TEntity> constructor, TState state);
+		BrowserMove<TEntity> ReadElements(Func<TEntity> constructor, TState state);
 
-		bool ReadEntity(Func<TEntity> constructor, TState state, out TEntity target);
+		bool ReadEntity(Func<TEntity> constructor, TState state, out TEntity entity);
 
 		bool Start(Stream stream, DecodeError error, out TState state);
 

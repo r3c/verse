@@ -5,11 +5,11 @@ namespace Verse.DecoderDescriptors.Recurse.Readers
 {
 	abstract class LookupReader<TEntity, TValue, TState, TIndex> : AbstractReader<TEntity, TValue, TState>
 	{
-		private readonly Dictionary<TIndex, Enter<TEntity, TState>> fields = new Dictionary<TIndex, Enter<TEntity, TState>>();
+		private readonly Dictionary<TIndex, ReadEntity<TEntity, TState>> fields = new Dictionary<TIndex, ReadEntity<TEntity, TState>>();
 
 		protected abstract bool TryLookup(string name, out TIndex index);
 
-		public override void DeclareField(string name, Enter<TEntity, TState> enter)
+		public override void DeclareField(string name, ReadEntity<TEntity, TState> enter)
 		{
 			TIndex index;
 

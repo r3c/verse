@@ -37,7 +37,7 @@ namespace Verse.Schemas.JSON
 			object box;
 
 			if (!this.converters.TryGetValue(typeof (TTo), out box))
-				throw new InvalidCastException(string.Format(CultureInfo.InvariantCulture, "no available converter from JSON value to type '{0}'", typeof (TTo)));
+				throw new InvalidCastException(string.Format(CultureInfo.InvariantCulture, "cannot convert JSON value into '{0}', please register a converter using schema's SetDecoderConverter method", typeof (TTo)));
 
 			return (Converter<Value, TTo>)box;
 		}

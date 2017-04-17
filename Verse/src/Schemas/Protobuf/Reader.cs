@@ -25,7 +25,7 @@ namespace Verse.Schemas.Protobuf
 			return new Reader<TOther>();
 		}
 
-		public override IBrowser<TEntity> ReadElements(Func<TEntity> constructor, ReaderState state)
+		public override BrowserMove<TEntity> ReadElements(Func<TEntity> constructor, ReaderState state)
 		{
 			switch (state.Reader.WireType)
 			{
@@ -38,11 +38,83 @@ namespace Verse.Schemas.Protobuf
 			}
 		}
 
-		public override bool ReadEntity(Func<TEntity> constructor, ReaderState state, out TEntity target)
+		public override bool ReadEntity(Func<TEntity> constructor, ReaderState state, out TEntity entity)
 		{
-			target = constructor();
+			int fieldIndex;
 
-			return this.ReadEntity(ref target, state);
+			switch (state.ReadingAction)
+			{
+				case ReaderState.ReadingActionType.UseHeader:
+					entity = constructor();
+
+					this.FollowNode(state.Reader.FieldNumber, ref entity, state);
+
+					return true;
+
+				case ReaderState.ReadingActionType.ReadHeader:
+					entity = constructor();
+
+					while (state.ReadHeader(out fieldIndex))
+					{
+						state.AddObject(fieldIndex);
+
+						this.FollowNode(fieldIndex, ref entity, state);
+					}
+
+					return true;
+
+				default:
+					state.ReadingAction = ReaderState.ReadingActionType.ReadHeader;
+
+					if (this.IsArray)
+						return this.ProcessArray(constructor, state, out entity);
+
+					if (!this.IsValue)
+					{
+						entity = constructor();
+
+						// if it's not object, ignore
+						if ((state.Reader.WireType != WireType.StartGroup && state.Reader.WireType != WireType.String) ||
+							!this.RootNode.HasSubNode)
+						{
+							state.Reader.SkipField();
+
+							return true;
+						}
+
+						return this.ReadObjectValue(ref entity, state);
+					}
+
+					switch (state.Reader.WireType)
+					{
+						case WireType.Fixed32:
+							entity = this.ProcessValue(new Value(state.Reader.ReadSingle()));
+
+							return true;
+
+						case WireType.Fixed64:
+							entity = this.ProcessValue(new Value(state.Reader.ReadDouble()));
+
+							return true;
+
+						case WireType.String:
+							entity = this.ProcessValue(new Value(state.Reader.ReadString()));
+
+							return true;
+
+						case WireType.Variant:
+							entity = this.ProcessValue(new Value(state.Reader.ReadInt64()));
+
+							return true;
+					}
+
+					state.Error(state.Position, "wire type not supported, skipped");
+					state.Reader.SkipField();
+
+					entity = default(TEntity);
+
+					return true;
+			}
 		}
 
 		public override bool Start(Stream stream, DecodeError error, out ReaderState state)
@@ -69,78 +141,6 @@ namespace Verse.Schemas.Protobuf
 			state.ReadingAction = ReaderState.ReadingActionType.ReadValue;
 
 			node.Enter(ref target, Reader<TEntity>.unknown, state);
-		}
-
-		private bool ReadEntity(ref TEntity target, ReaderState state)
-		{
-			switch (state.ReadingAction)
-			{
-				case ReaderState.ReadingActionType.UseHeader:
-					this.FollowNode(state.Reader.FieldNumber, ref target, state);
-
-					break;
-
-				case ReaderState.ReadingActionType.ReadHeader:
-					int fieldIndex;
-
-					while (state.ReadHeader(out fieldIndex))
-					{
-						state.AddObject(fieldIndex);
-
-						this.FollowNode(fieldIndex, ref target, state);
-					}
-
-					break;
-
-				default:
-					state.ReadingAction = ReaderState.ReadingActionType.ReadHeader;
-
-					if (this.HoldArray)
-						return this.ProcessArray(ref target, state);
-
-					if (!this.HoldValue)
-					{
-						// if it's not object, ignore
-						if ((state.Reader.WireType != WireType.StartGroup && state.Reader.WireType != WireType.String) ||
-							!this.RootNode.HasSubNode)
-						{
-							state.Reader.SkipField();
-
-							return true;
-						}
-
-						return this.ReadObjectValue(ref target, state);
-					}
-
-					switch (state.Reader.WireType)
-					{
-						case WireType.Fixed32:
-							this.ProcessValue(ref target, new Value(state.Reader.ReadSingle()));
-							break;
-
-						case WireType.Fixed64:
-							this.ProcessValue(ref target, new Value(state.Reader.ReadDouble()));
-							break;
-
-						case WireType.String:
-							this.ProcessValue(ref target, new Value(state.Reader.ReadString()));
-							break;
-
-						case WireType.Variant:
-							this.ProcessValue(ref target, new Value(state.Reader.ReadInt64()));
-							break;
-
-						default:
-							state.Error(state.Position, "wire type not supported, skipped");
-							state.Reader.SkipField();
-
-							break;
-					}
-
-					break;
-			}
-
-			return true;
 		}
 
 		private bool ReadObjectValue(ref TEntity target, ReaderState state)
@@ -194,13 +194,12 @@ namespace Verse.Schemas.Protobuf
 			return true;
 		}
 
-		private IBrowser<TEntity> ReadSubItemArray(Func<TEntity> constructor, ReaderState state)
+		private BrowserMove<TEntity> ReadSubItemArray(Func<TEntity> constructor, ReaderState state)
 		{
 			int dummy;
 			SubItemToken lastSubItem;
-			BrowserMove<TEntity> move;
 
-			if (this.HoldValue)
+			if (this.IsValue)
 				return this.ReadValueArray(constructor, state);
 
 			state.ReadingAction = ReaderState.ReadingActionType.ReadHeader;
@@ -209,14 +208,14 @@ namespace Verse.Schemas.Protobuf
 
 			if (!state.EnterObject(out dummy))
 			{
-				return new Browser<TEntity>((int index, out TEntity current) =>
+				return (int index, out TEntity current) =>
 				{
 					current = default(TEntity);
 					return BrowserState.Failure;
-				});
+				};
 			}
 
-			move = (int index, out TEntity current) =>
+			return (int index, out TEntity current) =>
 			{
 				state.AddObject(index);
 
@@ -238,17 +237,13 @@ namespace Verse.Schemas.Protobuf
 
 				return BrowserState.Failure;
 			};
-
-			return new Browser<TEntity>(move);
 		}
 
-		private IBrowser<TEntity> ReadValueArray(Func<TEntity> constructor, ReaderState state)
+		private BrowserMove<TEntity> ReadValueArray(Func<TEntity> constructor, ReaderState state)
 		{
-			BrowserMove<TEntity> move;
-
 			state.ReadingAction = ReaderState.ReadingActionType.ReadValue;
 
-			move = (int index, out TEntity current) =>
+			return (int index, out TEntity current) =>
 			{
 				state.AddObject(index);
 
@@ -264,8 +259,6 @@ namespace Verse.Schemas.Protobuf
 
 				return BrowserState.Continue;
 			};
-
-			return new Browser<TEntity>(move);
 		}
 
 		private static INode<TEntity, Value, ReaderState> GetNode(INode<TEntity, Value, ReaderState> rootNode, int fieldIndex)

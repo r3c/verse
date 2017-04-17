@@ -35,7 +35,7 @@ namespace Verse.DecoderDescriptors
 
 		public abstract IDecoderDescriptor<TElement> IsArray<TElement>(DecodeAssign<TEntity, IEnumerable<TElement>> assign);
 
-		public abstract void IsValue<TCompatible>(DecodeAssign<TEntity, TCompatible> assign);
+		public abstract void IsValue();
 
 		#endregion
 
@@ -47,11 +47,6 @@ namespace Verse.DecoderDescriptors
 				throw new ArgumentNullException("constructor");
 
 			this.constructors[typeof (TField)] = constructor;
-		}
-
-		public void IsValue()
-		{
-			this.IsValue((ref TEntity target, TEntity value) => target = value);
 		}
 
 		#endregion
@@ -68,9 +63,9 @@ namespace Verse.DecoderDescriptors
 			return Generator.Constructor<TField>();
 		}
 
-		protected Converter<TValue, TRaw> GetConverter<TRaw>()
+		protected Converter<TValue, TEntity> GetConverter()
 		{
-			return this.converter.Get<TRaw>();
+			return this.converter.Get<TEntity>();
 		}
 
 		#endregion

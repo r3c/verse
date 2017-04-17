@@ -8,15 +8,15 @@ namespace Verse.DecoderDescriptors.Recurse.Readers
 	{
 		#region Properties
 
-		public bool HoldArray
+		public bool IsArray
 		{
 			get
 			{
 				return this.array != null;
 			}
 		}
-	
-		public bool HoldValue
+
+		public bool IsValue
 		{
 			get
 			{
@@ -28,9 +28,9 @@ namespace Verse.DecoderDescriptors.Recurse.Readers
 
 		#region Attributes
 
-		private Enter<TEntity, TState> array = null;
+		private ReadArray<TEntity, TState> array = null;
 
-		private DecodeAssign<TEntity, TValue> value = null;
+		private Converter<TValue, TEntity> value = null;
 
 		#endregion
 
@@ -38,11 +38,11 @@ namespace Verse.DecoderDescriptors.Recurse.Readers
 
 		public abstract IReader<TOther, TValue, TState> Create<TOther>();
 
-		public abstract void DeclareField(string name, Enter<TEntity, TState> enter);
+		public abstract void DeclareField(string name, ReadEntity<TEntity, TState> enter);
 
-		public abstract IBrowser<TEntity> ReadElements(Func<TEntity> constructor, TState state);
+		public abstract BrowserMove<TEntity> ReadElements(Func<TEntity> constructor, TState state);
 
-		public abstract bool ReadEntity(Func<TEntity> constructor, TState state, out TEntity target);
+		public abstract bool ReadEntity(Func<TEntity> constructor, TState state, out TEntity entity);
 
 		public abstract bool Start(Stream stream, DecodeError error, out TState state);
 
@@ -52,7 +52,7 @@ namespace Verse.DecoderDescriptors.Recurse.Readers
 
 		#region Methods / Public
 
-		public void DeclareArray(Enter<TEntity, TState> enter)
+		public void DeclareArray(ReadArray<TEntity, TState> enter)
 		{
 			if (this.array != null)
 				throw new InvalidOperationException("can't declare array twice on same descriptor");
@@ -60,32 +60,32 @@ namespace Verse.DecoderDescriptors.Recurse.Readers
 			this.array = enter;
 		}
 
-		public void DeclareValue(DecodeAssign<TEntity, TValue> assign)
+		public void DeclareValue(Converter<TValue, TEntity> convert)
 		{
 			if (this.value != null)
 				throw new InvalidOperationException("can't declare value twice on same descriptor");
 
-			this.value = assign;
+			this.value = convert;
 		}
 
 		#endregion
 
 		#region Methods / Protected
 
-		protected bool ProcessArray(ref TEntity entity, TState state)
+		protected bool ProcessArray(Func<TEntity> constructor, TState state, out TEntity entity)
 		{
-			if (this.array != null)
-				return this.array(ref entity, state);
+			if (this.array == null)
+				throw new InvalidOperationException("internal error, cannot process undeclared array");
 
-			entity = default(TEntity);
-
-			return false;
+			return this.array(constructor, state, out entity);
 		}
 
-		protected void ProcessValue(ref TEntity entity, TValue value)
+		protected TEntity ProcessValue(TValue value)
 		{
-			if (this.value != null)
-				this.value(ref entity, value);
+			if (this.value == null)
+				throw new InvalidOperationException("internal error, cannot process undeclared value");
+
+			return this.value(value);
 		}
 
 		#endregion

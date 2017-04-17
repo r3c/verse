@@ -87,6 +87,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\DecoderDescriptors\Recurse\ReadArray.cs" />
     <Compile Include="src\Linker.cs" />
     <Compile Include="src\DecodeAssign.cs" />
     <Compile Include="src\DecoderDescriptors\Abstract\IDecoderConverter.cs" />
@@ -106,8 +107,7 @@
     <Compile Include="src\DecoderDescriptors\Recurse\Readers\LookupReader.cs" />
     <Compile Include="src\DecoderDescriptors\Recurse\Readers\PatternReader.cs" />
     <Compile Include="src\DecoderDescriptors\Recurse\Readers\Pattern\INode.cs" />
-    <Compile Include="src\DecoderDescriptors\Recurse\Enter.cs" />
-    <Compile Include="src\DecoderDescriptors\Recurse\IBrowser.cs" />
+    <Compile Include="src\DecoderDescriptors\Recurse\ReadEntity.cs" />
     <Compile Include="src\DecoderDescriptors\Recurse\IReader.cs" />
     <Compile Include="src\DecoderDescriptors\Recurse\Decoder.cs" />
     <Compile Include="src\DecoderDescriptors\Recurse\Readers\Pattern\Nodes\BranchNode.cs" />
@@ -146,7 +146,6 @@
     <Compile Include="src\Schemas\QueryString\DecoderConverter.cs" />
     <Compile Include="src\Tools\Generator.cs" />
     <Compile Include="src\Tools\Resolver.cs" />
-    <Compile Include="src\Tools\Walker.cs" />
     <Compile Include="src\IEncoder.cs" />
     <Compile Include="src\IEncoderDescriptor.cs" />
     <Compile Include="src\DecoderDescriptors\AbstractDecoderDescriptor.cs" />

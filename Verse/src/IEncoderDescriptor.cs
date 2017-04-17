@@ -53,19 +53,6 @@ namespace Verse
 		/// <returns>Element encoder descriptor</returns>
 		IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> access);
 
-/*
-		IEncoderDescriptor<U> IsMap<U> (Func<T, IEnumerable<KeyValuePair<string, U>>> access, IEncoderDescriptor<U> parent);
-
-		IEncoderDescriptor<U> IsMap<U> (Func<T, IEnumerable<KeyValuePair<string, U>>> access);
-*/
-
-		/// <summary>
-		/// Declare accessible value within current entity.
-		/// </summary>
-		/// <typeparam name="TCompatible">Value type before conversion</typeparam>
-		/// <param name="access">Parent entity to value accessor delegate</param>
-		void IsValue<TCompatible>(Func<TEntity, TCompatible> access);
-
 		/// <summary>
 		/// Declare entity as a value. Entity type must have a known encoder
 		/// declared (through its schema), otherwise you'll get a type error

@@ -31,24 +31,15 @@ namespace Verse.EncoderDescriptors
 
 		public abstract IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> access);
 
-		public abstract void IsValue<TRaw>(Func<TEntity, TRaw> access);
-
-		#endregion
-
-		#region Methods / Public
-
-		public void IsValue()
-		{
-			this.IsValue((target) => target);
-		}
+		public abstract void IsValue();
 
 		#endregion
 
 		#region Methods / Protected
 
-		protected Converter<TRaw, TValue> GetConverter<TRaw>()
+		protected Converter<TEntity, TValue> GetConverter()
 		{
-			return this.converter.Get<TRaw>();
+			return this.converter.Get<TEntity>();
 		}
 
 		#endregion

@@ -8,7 +8,7 @@ namespace Verse.DecoderDescriptors.Recurse.Readers
 	{
 		public readonly BranchNode<TEntity, TValue, TState> RootNode = new BranchNode<TEntity, TValue, TState>();
 
-		public override void DeclareField(string name, Enter<TEntity, TState> enter)
+		public override void DeclareField(string name, ReadEntity<TEntity, TState> enter)
 		{
 			BranchNode<TEntity, TValue, TState> next = this.RootNode;
 
