@@ -1,45 +1,16 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
 using Verse.EncoderDescriptors.Recurse;
 
 namespace Verse.Schemas.JSON
 {
 	class Writer<TEntity> : PatternWriter<TEntity, Value, WriterState>
 	{
-		#region Attributes
-
-		private readonly JSONSettings settings;
-
-		#endregion
-
-		#region Constructors
-
-		public Writer(JSONSettings settings)
-		{
-			this.settings = settings;
-		}
-
-		#endregion
-
 		#region Methods
 
 		public override IWriter<TOther, Value, WriterState> Create<TOther>()
 		{
-			return new Writer<TOther>(this.settings);
-		}
-
-		public override bool Start(Stream stream, EncodeError error, out WriterState state)
-		{
-			state = new WriterState(stream, error, this.settings);
-
-			return true;
-		}
-
-		public override void Stop(WriterState state)
-		{
-			state.Flush();
+			return new Writer<TOther>();
 		}
 
 		public override void WriteElements(IEnumerable<TEntity> elements, WriterState state)

@@ -17,14 +17,17 @@ namespace Verse.DecoderDescriptors.Recurse
 
 		private readonly IReader<TEntity, TValue, TState> reader;
 
+		private readonly IReaderSession<TState> session;
+
 		#endregion
 
 		#region Constructors
 
-		public Decoder(Func<TEntity> constructor, IReader<TEntity, TValue, TState> reader)
+		public Decoder(Func<TEntity> constructor, IReaderSession<TState> session, IReader<TEntity, TValue, TState> reader)
 		{
 			this.constructor = constructor;
 			this.reader = reader;
+			this.session = session;
 		}
 
 		#endregion
@@ -35,7 +38,7 @@ namespace Verse.DecoderDescriptors.Recurse
 		{
 			TState state;
 
-			if (!this.reader.Start(input, this.OnError, out state))
+			if (!this.session.Start(input, this.OnError, out state))
 			{
 				output = default(TEntity);
 
@@ -48,7 +51,7 @@ namespace Verse.DecoderDescriptors.Recurse
 			}
 			finally
 			{
-				this.reader.Stop(state);
+				this.session.Stop(state);
 			}
 		}
 

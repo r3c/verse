@@ -9,15 +9,18 @@ namespace Verse.EncoderDescriptors
 	{
 		#region Attributes
 
+		private readonly IWriterSession<TState> session;
+
 		private readonly IWriter<TEntity, TValue, TState> writer;
 
 		#endregion
 
 		#region Constructors
 
-		public RecurseEncoderDescriptor(IEncoderConverter<TValue> converter, IWriter<TEntity, TValue, TState> writer) :
+		public RecurseEncoderDescriptor(IEncoderConverter<TValue> converter, IWriterSession<TState> session, IWriter<TEntity, TValue, TState> writer) :
 			base(converter)
 		{
+			this.session = session;
 			this.writer = writer;
 		}
 
@@ -27,7 +30,7 @@ namespace Verse.EncoderDescriptors
 
 		public IEncoder<TEntity> CreateEncoder()
 		{
-			return new Encoder<TEntity, TValue, TState>(this.writer);
+			return new Encoder<TEntity, TValue, TState>(this.session, this.writer);
 		}
 
 		public override IEncoderDescriptor<TField> HasField<TField>(string name, Func<TEntity, TField> access, IEncoderDescriptor<TField> parent)
@@ -42,7 +45,7 @@ namespace Verse.EncoderDescriptors
 
 		public override IEncoderDescriptor<TField> HasField<TField>(string name, Func<TEntity, TField> access)
 		{
-			return this.HasField(name, access, new RecurseEncoderDescriptor<TField, TValue, TState>(this.converter, this.writer.Create<TField>()));
+			return this.HasField(name, access, new RecurseEncoderDescriptor<TField, TValue, TState>(this.converter, this.session, this.writer.Create<TField>()));
 		}
 
 		public override IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> access, IEncoderDescriptor<TElement> parent)
@@ -57,7 +60,7 @@ namespace Verse.EncoderDescriptors
 
 		public override IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> access)
 		{
-			return this.IsArray(access, new RecurseEncoderDescriptor<TElement, TValue, TState>(this.converter, this.writer.Create<TElement>()));
+			return this.IsArray(access, new RecurseEncoderDescriptor<TElement, TValue, TState>(this.converter, this.session, this.writer.Create<TElement>()));
 		}
 
 		public override void IsValue()

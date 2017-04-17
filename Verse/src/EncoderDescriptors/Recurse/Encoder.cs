@@ -13,14 +13,17 @@ namespace Verse.EncoderDescriptors.Recurse
 
 		#region Attributes
 
+		private readonly IWriterSession<TState> session;
+
 		private readonly IWriter<TEntity, TValue, TState> writer;
 
 		#endregion
 
 		#region Constructors
 
-		public Encoder(IWriter<TEntity, TValue, TState> writer)
+		public Encoder(IWriterSession<TState> session, IWriter<TEntity, TValue, TState> writer)
 		{
+			this.session = session;
 			this.writer = writer;
 		}
 
@@ -32,7 +35,7 @@ namespace Verse.EncoderDescriptors.Recurse
 		{
 			TState state;
 
-			if (!this.writer.Start(output, this.OnError, out state))
+			if (!this.session.Start(output, this.OnError, out state))
 				return false;
 
 			try
@@ -41,7 +44,7 @@ namespace Verse.EncoderDescriptors.Recurse
 			}
 			finally
 			{
-				this.writer.Stop(state);
+				this.session.Stop(state);
 			}
 
 			return true;

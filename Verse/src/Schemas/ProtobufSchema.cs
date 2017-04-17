@@ -48,8 +48,8 @@ namespace Verse.Schemas
 
 			this.decoderConverter = decoderConverter;
 			this.encoderConverter = encoderConverter;
-			this.decoderDescriptor = new RecurseDecoderDescriptor<TEntity, Value, ReaderState>(decoderConverter, new Reader<TEntity>());
-			this.encoderDescriptor = new RecurseEncoderDescriptor<TEntity, Value, WriterState>(encoderConverter, new Writer<TEntity>());
+			this.decoderDescriptor = new RecurseDecoderDescriptor<TEntity, Value, ReaderState>(decoderConverter, new ReaderSession(), new Reader<TEntity>());
+			this.encoderDescriptor = new RecurseEncoderDescriptor<TEntity, Value, WriterState>(encoderConverter, new WriterSession(), new Writer<TEntity>());
 		}
 
 		#endregion

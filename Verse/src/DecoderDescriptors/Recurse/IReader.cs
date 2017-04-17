@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 
 namespace Verse.DecoderDescriptors.Recurse
 {
@@ -18,10 +17,6 @@ namespace Verse.DecoderDescriptors.Recurse
 		BrowserMove<TEntity> ReadElements(Func<TEntity> constructor, TState state);
 
 		bool ReadEntity(Func<TEntity> constructor, TState state, out TEntity entity);
-
-		bool Start(Stream stream, DecodeError error, out TState state);
-
-		void Stop(TState state);
 
 		#endregion
 	}

@@ -87,7 +87,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\DecoderDescriptors\Recurse\IReaderSession.cs" />
     <Compile Include="src\DecoderDescriptors\Recurse\ReadArray.cs" />
+    <Compile Include="src\EncoderDescriptors\Recurse\IWriterSession.cs" />
     <Compile Include="src\Linker.cs" />
     <Compile Include="src\DecodeAssign.cs" />
     <Compile Include="src\DecoderDescriptors\Abstract\IDecoderConverter.cs" />
@@ -125,8 +127,11 @@
     <Compile Include="src\Schemas\AbstractSchema.cs" />
     <Compile Include="src\Schemas\JSON\ContentType.cs" />
     <Compile Include="src\Schemas\JSONSettings.cs" />
+    <Compile Include="src\Schemas\JSON\ReaderSession.cs" />
+    <Compile Include="src\Schemas\JSON\WriterSession.cs" />
     <Compile Include="src\Schemas\ProtobufSchema.cs" />
     <Compile Include="src\Schemas\Protobuf\ContentType.cs" />
+    <Compile Include="src\Schemas\Protobuf\ReaderSession.cs" />
     <Compile Include="src\Schemas\Protobuf\VisitingNode.cs" />
     <Compile Include="src\Schemas\Protobuf\Reader.cs" />
     <Compile Include="src\Schemas\Protobuf\ReaderState.cs" />
@@ -135,6 +140,7 @@
     <Compile Include="src\Schemas\Protobuf\DecoderConverter.cs" />
     <Compile Include="src\Schemas\Protobuf\EncoderConverter.cs" />
     <Compile Include="src\Schemas\Protobuf\Writer.cs" />
+    <Compile Include="src\Schemas\Protobuf\WriterSession.cs" />
     <Compile Include="src\Schemas\Protobuf\WriterState.cs" />
     <Compile Include="src\Schemas\QueryStringSchema.cs" />
     <Compile Include="src\Schemas\JSON\DecoderConverter.cs" />

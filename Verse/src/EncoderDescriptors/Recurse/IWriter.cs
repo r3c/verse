@@ -16,10 +16,6 @@ namespace Verse.EncoderDescriptors.Recurse
 
 		void DeclareValue(Converter<TEntity, TValue> convert);
 
-		bool Start(Stream stream, EncodeError error, out TState state);
-
-		void Stop(TState state);
-
 		void WriteElements(IEnumerable<TEntity> elements, TState state);
 
 		void WriteEntity(TEntity source, TState state);

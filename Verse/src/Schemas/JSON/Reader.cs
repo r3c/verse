@@ -1,6 +1,5 @@
 using System;
 using System.Globalization;
-using System.IO;
 using System.Text;
 using Verse.DecoderDescriptors.Recurse;
 using Verse.DecoderDescriptors.Recurse.Readers;
@@ -16,24 +15,9 @@ namespace Verse.Schemas.JSON
 
 		#endregion
 
-		#region Attributes / Instance
+		#region Attributes
 
-		private readonly Encoding encoding;
-
-		#endregion
-
-		#region Attributes / Static
-
-		private static readonly Reader<TEntity> unknown = new Reader<TEntity>(null);
-
-		#endregion
-
-		#region Constructors
-
-		public Reader(Encoding encoding)
-		{
-			this.encoding = encoding;
-		}
+		private static readonly Reader<TEntity> unknown = new Reader<TEntity>();
 
 		#endregion
 
@@ -41,7 +25,7 @@ namespace Verse.Schemas.JSON
 
 		public override IReader<TOther, Value, ReaderState> Create<TOther>()
 		{
-			return new Reader<TOther>(this.encoding);
+			return new Reader<TOther>();
 		}
 
 		public override BrowserMove<TEntity> ReadElements(Func<TEntity> constructor, ReaderState state)
@@ -153,25 +137,6 @@ namespace Verse.Schemas.JSON
 
 					return false;
 			}
-		}
-
-		public override bool Start(Stream stream, DecodeError error, out ReaderState state)
-		{
-			state = new ReaderState(stream, this.encoding, error);
-			state.PullIgnored();
-
-			if (state.Current < 0)
-			{
-				state.Error(state.Position, "empty input stream");
-
-				return false;
-			}
-
-			return true;
-		}
-
-		public override void Stop(ReaderState state)
-		{
 		}
 
 		#endregion

@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.IO;
-
 using Verse.EncoderDescriptors.Recurse;
 
 namespace Verse.Schemas.Protobuf
@@ -12,17 +10,6 @@ namespace Verse.Schemas.Protobuf
 		public override IWriter<TOther, Value, WriterState> Create<TOther>()
 		{
 			return new Writer<TOther>();
-		}
-
-		public override bool Start(Stream stream, EncodeError error, out WriterState state)
-		{
-			state = new WriterState(stream, error);
-
-			return true;
-		}
-
-		public override void Stop(WriterState state)
-		{
 		}
 
 		public override void WriteElements(IEnumerable<TEntity> elements, WriterState state)

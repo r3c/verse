@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Globalization;
-using System.IO;
-
 using ProtoBuf;
-
 using Verse.DecoderDescriptors.Recurse;
 using Verse.DecoderDescriptors.Recurse.Readers;
 using Verse.DecoderDescriptors.Recurse.Readers.Pattern;
@@ -115,17 +112,6 @@ namespace Verse.Schemas.Protobuf
 
 					return true;
 			}
-		}
-
-		public override bool Start(Stream stream, DecodeError error, out ReaderState state)
-		{
-			state = new ReaderState(stream, error);
-
-			return true;
-		}
-
-		public override void Stop(ReaderState state)
-		{
 		}
 
 		#endregion

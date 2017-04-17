@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Verse.DecoderDescriptors.Abstract;
 using Verse.DecoderDescriptors.Recurse;
-using Verse.Tools;
 
 namespace Verse.DecoderDescriptors
 {
@@ -12,14 +11,17 @@ namespace Verse.DecoderDescriptors
 
 		private readonly IReader<TEntity, TValue, TState> reader;
 
+		private readonly IReaderSession<TState> session;
+
 		#endregion
 
 		#region Constructors
 
-		public RecurseDecoderDescriptor(IDecoderConverter<TValue> converter, IReader<TEntity, TValue, TState> reader) :
+		public RecurseDecoderDescriptor(IDecoderConverter<TValue> converter, IReaderSession<TState> session, IReader<TEntity, TValue, TState> reader) :
 			base(converter)
 		{
 			this.reader = reader;
+			this.session = session;
 		}
 
 		#endregion
@@ -28,7 +30,7 @@ namespace Verse.DecoderDescriptors
 
 		public IDecoder<TEntity> CreateDecoder()
 		{
-			return new Decoder<TEntity, TValue, TState>(this.GetConstructor<TEntity>(), this.reader);
+			return new Decoder<TEntity, TValue, TState>(this.GetConstructor<TEntity>(), this.session, this.reader);
 		}
 
 		public override IDecoderDescriptor<TField> HasField<TField>(string name, DecodeAssign<TEntity, TField> assign, IDecoderDescriptor<TField> parent)
@@ -43,7 +45,7 @@ namespace Verse.DecoderDescriptors
 
 		public override IDecoderDescriptor<TField> HasField<TField>(string name, DecodeAssign<TEntity, TField> assign)
 		{
-			return this.HasField(name, assign, new RecurseDecoderDescriptor<TField, TValue, TState>(this.converter, this.reader.Create<TField>()));
+			return this.HasField(name, assign, new RecurseDecoderDescriptor<TField, TValue, TState>(this.converter, this.session, this.reader.Create<TField>()));
 		}
 
 		public override IDecoderDescriptor<TElement> IsArray<TElement>(DecodeAssign<TEntity, IEnumerable<TElement>> assign, IDecoderDescriptor<TElement> parent)
@@ -58,7 +60,7 @@ namespace Verse.DecoderDescriptors
 
 		public override IDecoderDescriptor<TElement> IsArray<TElement>(DecodeAssign<TEntity, IEnumerable<TElement>> assign)
 		{
-			return this.IsArray(assign, new RecurseDecoderDescriptor<TElement, TValue, TState>(this.converter, this.reader.Create<TElement>()));
+			return this.IsArray(assign, new RecurseDecoderDescriptor<TElement, TValue, TState>(this.converter, this.session, this.reader.Create<TElement>()));
 		}
 
 		public override void IsValue()

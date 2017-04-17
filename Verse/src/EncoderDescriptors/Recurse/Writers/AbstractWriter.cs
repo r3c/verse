@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 
 namespace Verse.EncoderDescriptors.Recurse
 {
@@ -39,10 +38,6 @@ namespace Verse.EncoderDescriptors.Recurse
 		public abstract IWriter<TOther, TValue, TState> Create<TOther>();
 
 		public abstract void DeclareField(string name, Enter<TEntity, TState> enter);
-
-		public abstract bool Start(Stream stream, EncodeError error, out TState state);
-
-		public abstract void Stop(TState state);
 
 		public abstract void WriteElements(IEnumerable<TEntity> elements, TState state);
 

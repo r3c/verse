@@ -59,8 +59,8 @@ namespace Verse.Schemas
 
 			this.decoderConverter = decoderConverter;
 			this.encoderConverter = encoderConverter;
-			this.decoderDescriptor = new RecurseDecoderDescriptor<TEntity, Value, ReaderState>(decoderConverter, new Reader<TEntity>(settings.Encoding));
-			this.encoderDescriptor = new RecurseEncoderDescriptor<TEntity, Value, WriterState>(encoderConverter, new Writer<TEntity>(settings));
+			this.decoderDescriptor = new RecurseDecoderDescriptor<TEntity, Value, ReaderState>(decoderConverter, new ReaderSession(settings.Encoding), new Reader<TEntity>());
+			this.encoderDescriptor = new RecurseEncoderDescriptor<TEntity, Value, WriterState>(encoderConverter, new WriterSession(settings), new Writer<TEntity>());
 		}
 
 		/// <summary>
