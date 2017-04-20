@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Text;
+using Verse.DecoderDescriptors.Abstract;
 using Verse.DecoderDescriptors.Flat;
-using Verse.DecoderDescriptors.Flat.FlatReaders;
-using Verse.DecoderDescriptors.Flat.FlatReaders.PatternFlat;
 
 namespace Verse.Schemas.QueryString
 {
@@ -62,11 +61,11 @@ namespace Verse.Schemas.QueryString
 		}
 	}
 
-	class Reader<TEntity> : PatternFlatReader<TEntity, ReaderState, string>
+	class Reader<TEntity> : FlatReader<TEntity, ReaderState, string>
 	{
 		#region Methods / Public
 
-		public override IFlatReader<TOther, ReaderState, string> Create<TOther>()
+		public override FlatReader<TOther, ReaderState, string> Create<TOther>()
 		{
 			return new Reader<TOther>();
 		}
@@ -78,7 +77,7 @@ namespace Verse.Schemas.QueryString
 			while (state.Current != -1)
 			{
 				bool isKeyEmpty;
-				INode<TEntity, ReaderState, string> node;
+				EntityTree<TEntity, ReaderState> node;
 
 				node = this.fields;
 				isKeyEmpty = true;
@@ -110,9 +109,13 @@ namespace Verse.Schemas.QueryString
 
 				if (state.Current == '=')
 				{
+					string dummy;
+
 					state.Pull();
 
-					if (!node.Enter(ref entity, this, state))
+					if (node.Read == null)
+						this.ReadFieldValue(state, out dummy);
+					else if (!node.Read(ref entity, state))
 						return false;
 				}
 
@@ -132,7 +135,7 @@ namespace Verse.Schemas.QueryString
 			return true;
 		}
 
-		public override bool ReadValue(Func<TEntity> constructor, ReaderState state, out TEntity target)
+		public override bool ReadValue(ReaderState state, out TEntity target)
 		{
 			string value;
 
@@ -143,8 +146,8 @@ namespace Verse.Schemas.QueryString
 				return false;
 			}
 
-			if (this.value != null)
-				target = this.value(value);
+			if (this.converter != null)
+				target = this.converter(value);
 			else
 				target = default(TEntity);
 
@@ -157,19 +160,15 @@ namespace Verse.Schemas.QueryString
 
 		private bool ReadFieldValue(ReaderState state, out string value)
 		{
-			StringBuilder builder;
-
-			builder = new StringBuilder(32);
+			var builder = new StringBuilder(32);
 
 			while (state.Current != -1)
 			{
-				int c;
+				int current = state.Current;
 
-				c = state.Current;
-
-				if (Reader.IsUnreserved(c) || c == '%')
-					builder.Append((char)c);
-				else if (c == '+')
+				if (Reader.IsUnreserved(current) || current == '%')
+					builder.Append((char)current);
+				else if (current == '+')
 					builder.Append(' ');
 				else
 					break;

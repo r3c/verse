@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using Verse.EncoderDescriptors.Abstract;
 
-namespace Verse.EncoderDescriptors.Recurse.RecurseWriters
+namespace Verse.EncoderDescriptors.Recurse
 {
-	abstract class RecurseWriter<TEntity, TState, TValue> : IRecurseWriter<TEntity, TState, TValue>
+	abstract class RecurseWriter<TEntity, TState, TValue> : IWriter<TEntity, TState>
 	{
 		#region Properties
 
@@ -27,7 +28,7 @@ namespace Verse.EncoderDescriptors.Recurse.RecurseWriters
 
 		#region Attributes
 
-		private WriteEntity<TEntity, TState> array = null;
+		private EntityWriter<TEntity, TState> array = null;
 
 		private Converter<TEntity, TValue> value = null;
 
@@ -35,9 +36,9 @@ namespace Verse.EncoderDescriptors.Recurse.RecurseWriters
 
 		#region Methods / Abstract
 
-		public abstract IRecurseWriter<TOther, TState, TValue> Create<TOther>();
+		public abstract RecurseWriter<TOther, TState, TValue> Create<TOther>();
 
-		public abstract void DeclareField(string name, WriteEntity<TEntity, TState> enter);
+		public abstract void DeclareField(string name, EntityWriter<TEntity, TState> enter);
 
 		public abstract void WriteElements(IEnumerable<TEntity> elements, TState state);
 
@@ -47,7 +48,7 @@ namespace Verse.EncoderDescriptors.Recurse.RecurseWriters
 
 		#region Methods / Public
 
-		public void DeclareArray(WriteEntity<TEntity, TState> enter)
+		public void DeclareArray(EntityWriter<TEntity, TState> enter)
 		{
 			if (this.array != null)
 				throw new InvalidOperationException("can't declare array twice on same descriptor");

@@ -1,13 +1,12 @@
 using System;
 using System.Globalization;
 using System.Text;
+using Verse.DecoderDescriptors.Abstract;
 using Verse.DecoderDescriptors.Recurse;
-using Verse.DecoderDescriptors.Recurse.RecurseReaders;
-using Verse.DecoderDescriptors.Recurse.RecurseReaders.PatternRecurse;
 
 namespace Verse.Schemas.JSON
 {
-	class Reader<TEntity> : PatternRecurseReader<TEntity, ReaderState, JSONValue>
+	class Reader<TEntity> : RecurseReader<TEntity, ReaderState, JSONValue>
 	{
 		#region Constants
 
@@ -17,13 +16,13 @@ namespace Verse.Schemas.JSON
 
 		#region Attributes
 
-		private static readonly Reader<TEntity> unknown = new Reader<TEntity>();
+		private static readonly Reader<TEntity> emptyReader = new Reader<TEntity>();
 
 		#endregion
 
 		#region Methods / Public
 
-		public override IRecurseReader<TOther, ReaderState, JSONValue> Create<TOther>()
+		public override RecurseReader<TOther, ReaderState, JSONValue> Create<TOther>()
 		{
 			return new Reader<TOther>();
 		}
@@ -143,6 +142,13 @@ namespace Verse.Schemas.JSON
 
 		#region Methods / Private
 
+		private static bool Ignore(ReaderState state)
+		{
+			TEntity dummy;
+
+			return Reader<TEntity>.emptyReader.ReadEntity(() => default(TEntity), state, out dummy);
+		}
+
 		private BrowserMove<TEntity> ScanArrayAsArray(Func<TEntity> constructor, ReaderState state)
 		{
 			state.Read();
@@ -183,7 +189,7 @@ namespace Verse.Schemas.JSON
 
 		private bool ScanArrayAsEntity(Func<TEntity> constructor, ReaderState state, out TEntity entity)
 		{
-			INode<TEntity, JSONValue, ReaderState> node;
+			EntityTree<TEntity, ReaderState> node;
 
 			state.Read();
 
@@ -206,7 +212,7 @@ namespace Verse.Schemas.JSON
 				}
 
 				// Build and move to array index
-				node = this.RootNode;
+				node = this.Root;
 
 				if (index > 9)
 				{
@@ -217,7 +223,7 @@ namespace Verse.Schemas.JSON
 					node = node.Follow((char)('0' + index));
 
 				// Read array value
-				if (!node.Enter(ref entity, Reader<TEntity>.unknown, state))
+				if (!(node.Read != null ? node.Read(ref entity, state) : Reader<TEntity>.Ignore(state)))
 					return false;
 			}
 
@@ -415,7 +421,7 @@ namespace Verse.Schemas.JSON
 		private bool ScanObjectAsEntity(Func<TEntity> constructor, ReaderState state, out TEntity entity)
 		{
 			char character;
-			INode<TEntity, JSONValue, ReaderState> node;
+			EntityTree<TEntity, ReaderState> node;
 
 			state.Read();
 
@@ -441,7 +447,7 @@ namespace Verse.Schemas.JSON
 					return false;
 
 				// Read and move to object key
-				node = this.RootNode;
+				node = this.Root;
 
 				while (state.Current != (int)'"')
 				{
@@ -466,7 +472,7 @@ namespace Verse.Schemas.JSON
 				// Read object value
 				state.PullIgnored();
 
-				if (!node.Enter(ref entity, Reader<TEntity>.unknown, state))
+				if (!(node.Read != null ? node.Read(ref entity, state) : Reader<TEntity>.Ignore(state)))
 					return false;
 			}
 

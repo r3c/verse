@@ -11,7 +11,7 @@ namespace Verse.DecoderDescriptors
 
 		private readonly IDecoderConverter<TValue> converter;
 
-		private readonly IFlatReader<TEntity, TState, TValue> reader;
+		private readonly FlatReader<TEntity, TState, TValue> reader;
 
 		private readonly IReaderSession<TState> session;
 
@@ -19,7 +19,7 @@ namespace Verse.DecoderDescriptors
 
 		#region Constructors
 
-		public FlatDecoderDescriptor(IDecoderConverter<TValue> converter, IReaderSession<TState> session, IFlatReader<TEntity, TState, TValue> reader) :
+		public FlatDecoderDescriptor(IDecoderConverter<TValue> converter, IReaderSession<TState> session, FlatReader<TEntity, TState, TValue> reader) :
 			base(converter, session, reader)
 		{
 			this.converter = converter;
@@ -67,14 +67,13 @@ namespace Verse.DecoderDescriptors
 
 		private IDecoderDescriptor<TField> HasField<TField>(string name, DecodeAssign<TEntity, TField> assign, FlatDecoderDescriptor<TField, TState, TValue> descriptor)
 		{
-			var constructor = this.GetConstructor<TField>();
 			var field = descriptor.reader;
 
 			this.reader.DeclareField(name, (ref TEntity target, TState state) =>
 			{
 				TField inner;
 
-				if (!field.ReadValue(constructor, state, out inner))
+				if (!field.ReadValue(state, out inner))
 					return false;
 
 				assign(ref target, inner);

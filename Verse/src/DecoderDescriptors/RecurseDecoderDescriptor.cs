@@ -11,7 +11,7 @@ namespace Verse.DecoderDescriptors
 
 		private readonly IDecoderConverter<TValue> converter;
 
-		private readonly IRecurseReader<TEntity, TState, TValue> reader;
+		private readonly RecurseReader<TEntity, TState, TValue> reader;
 
 		private readonly IReaderSession<TState> session;
 
@@ -19,7 +19,7 @@ namespace Verse.DecoderDescriptors
 
 		#region Constructors
 
-		public RecurseDecoderDescriptor(IDecoderConverter<TValue> converter, IReaderSession<TState> session, IRecurseReader<TEntity, TState, TValue> reader) :
+		public RecurseDecoderDescriptor(IDecoderConverter<TValue> converter, IReaderSession<TState> session, RecurseReader<TEntity, TState, TValue> reader) :
 			base(converter, session, reader)
 		{
 			this.converter = converter;

@@ -1,16 +1,27 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using Verse.EncoderDescriptors.Abstract;
 using Verse.EncoderDescriptors.Recurse;
-using Verse.EncoderDescriptors.Recurse.RecurseWriters;
 
 namespace Verse.Schemas.Protobuf
 {
-	class Writer<TEntity> : PatternRecurseWriter<TEntity, WriterState, ProtobufValue>
+	class Writer<TEntity> : RecurseWriter<TEntity, WriterState, ProtobufValue>
 	{
+		private readonly Dictionary<string, EntityWriter<TEntity, WriterState>> fields = new Dictionary<string, EntityWriter<TEntity, WriterState>>();
+
 		#region Methods
 
-		public override IRecurseWriter<TOther, WriterState, ProtobufValue> Create<TOther>()
+		public override RecurseWriter<TOther, WriterState, ProtobufValue> Create<TOther>()
 		{
 			return new Writer<TOther>();
+		}
+
+		public override void DeclareField(string name, EntityWriter<TEntity, WriterState> enter)
+		{
+			if (this.fields.ContainsKey(name))
+				throw new InvalidOperationException("can't declare same field '" + name + "' twice on same descriptor");
+
+			this.fields[name] = enter;
 		}
 
 		public override void WriteElements(IEnumerable<TEntity> elements, WriterState state)
@@ -35,7 +46,7 @@ namespace Verse.Schemas.Protobuf
 			{
 				state.ObjectBegin();
 
-				foreach (var field in this.Fields)
+				foreach (var field in this.fields)
 				{
 					if (field.Key.Length > 1 && field.Key[0] == '_')
 						state.Key(field.Key.Substring(1));

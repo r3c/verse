@@ -11,13 +11,13 @@ namespace Verse.EncoderDescriptors
 
 		private readonly IWriterSession<TState> session;
 
-		private readonly IRecurseWriter<TEntity, TState, TValue> writer;
+		private readonly RecurseWriter<TEntity, TState, TValue> writer;
 
 		#endregion
 
 		#region Constructors
 
-		public RecurseEncoderDescriptor(IEncoderConverter<TValue> converter, IWriterSession<TState> session, IRecurseWriter<TEntity, TState, TValue> writer) :
+		public RecurseEncoderDescriptor(IEncoderConverter<TValue> converter, IWriterSession<TState> session, RecurseWriter<TEntity, TState, TValue> writer) :
 			base(converter)
 		{
 			this.session = session;

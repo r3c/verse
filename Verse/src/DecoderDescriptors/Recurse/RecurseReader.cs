@@ -1,13 +1,13 @@
 ﻿using System;
-using Verse.DecoderDescriptors.Recurse;
+using Verse.DecoderDescriptors.Abstract;
 
-namespace Verse.DecoderDescriptors.Recurse.RecurseReaders
+namespace Verse.DecoderDescriptors.Recurse
 {
-	abstract class RecurseReader<TEntity, TState, TValue> : IRecurseReader<TEntity, TState, TValue>
+	abstract class RecurseReader<TEntity, TState, TValue> : IReader<TEntity, TState>
 	{
 		#region Properties
 
-		public bool IsArray
+		protected bool IsArray
 		{
 			get
 			{
@@ -15,7 +15,7 @@ namespace Verse.DecoderDescriptors.Recurse.RecurseReaders
 			}
 		}
 
-		public bool IsValue
+		protected bool IsValue
 		{
 			get
 			{
@@ -23,11 +23,21 @@ namespace Verse.DecoderDescriptors.Recurse.RecurseReaders
 			}
 		}
 
+		protected EntityTree<TEntity, TState> Root
+		{
+			get
+			{
+				return this.fields;
+			}
+		}
+
 		#endregion
 
 		#region Attributes
 
-		private ReadArray<TEntity, TState> array = null;
+		private ArrayReader<TEntity, TState> array = null;
+
+		private readonly EntityTree<TEntity, TState> fields = new EntityTree<TEntity, TState>();
 
 		private Converter<TValue, TEntity> value = null;
 
@@ -35,9 +45,7 @@ namespace Verse.DecoderDescriptors.Recurse.RecurseReaders
 
 		#region Methods / Abstract
 
-		public abstract IRecurseReader<TOther, TState, TValue> Create<TOther>();
-
-		public abstract void DeclareField(string name, ReadEntity<TEntity, TState> enter);
+		public abstract RecurseReader<TOther, TState, TValue> Create<TOther>();
 
 		public abstract BrowserMove<TEntity> ReadElements(Func<TEntity> constructor, TState state);
 
@@ -47,12 +55,18 @@ namespace Verse.DecoderDescriptors.Recurse.RecurseReaders
 
 		#region Methods / Public
 
-		public void DeclareArray(ReadArray<TEntity, TState> enter)
+		public void DeclareArray(ArrayReader<TEntity, TState> enter)
 		{
 			if (this.array != null)
 				throw new InvalidOperationException("can't declare array twice on same descriptor");
 
 			this.array = enter;
+		}
+
+		public void DeclareField(string name, EntityReader<TEntity, TState> enter)
+		{
+			if (!this.fields.Connect(name, enter))
+				throw new InvalidOperationException("can't declare same field '" + name + "' twice on same descriptor");
 		}
 
 		public void DeclareValue(Converter<TValue, TEntity> convert)

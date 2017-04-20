@@ -1,17 +1,27 @@
 using System;
 using System.Collections.Generic;
+using Verse.EncoderDescriptors.Abstract;
 using Verse.EncoderDescriptors.Recurse;
-using Verse.EncoderDescriptors.Recurse.RecurseWriters;
 
 namespace Verse.Schemas.JSON
 {
-	class Writer<TEntity> : PatternRecurseWriter<TEntity, WriterState, JSONValue>
+	class Writer<TEntity> : RecurseWriter<TEntity, WriterState, JSONValue>
 	{
+		private readonly Dictionary<string, EntityWriter<TEntity, WriterState>> fields = new Dictionary<string, EntityWriter<TEntity, WriterState>>();
+
 		#region Methods
 
-		public override IRecurseWriter<TOther, WriterState, JSONValue> Create<TOther>()
+		public override RecurseWriter<TOther, WriterState, JSONValue> Create<TOther>()
 		{
 			return new Writer<TOther>();
+		}
+
+		public override void DeclareField(string name, EntityWriter<TEntity, WriterState> enter)
+		{
+			if (this.fields.ContainsKey(name))
+				throw new InvalidOperationException("can't declare same field '" + name + "' twice on same descriptor");
+
+			this.fields[name] = enter;
 		}
 
 		public override void WriteElements(IEnumerable<TEntity> elements, WriterState state)
@@ -29,7 +39,7 @@ namespace Verse.Schemas.JSON
 
 		public override void WriteEntity(TEntity source, WriterState state)
 		{
-			IEnumerator<KeyValuePair<string, WriteEntity<TEntity, WriterState>>> field;
+			IEnumerator<KeyValuePair<string, EntityWriter<TEntity, WriterState>>> field;
 
 			if (source == null)
 				state.Value(JSON.JSONValue.Void);
@@ -40,7 +50,7 @@ namespace Verse.Schemas.JSON
 			else
 			{
 				state.ObjectBegin();
-				field = this.Fields.GetEnumerator();
+				field = this.fields.GetEnumerator();
 
 				while (field.MoveNext())
 				{

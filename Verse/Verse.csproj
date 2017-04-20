@@ -90,39 +90,26 @@
     <Compile Include="src\DecoderDescriptors\Abstract\Decoder.cs" />
     <Compile Include="src\DecoderDescriptors\Abstract\IReader.cs" />
     <Compile Include="src\DecoderDescriptors\Abstract\IReaderSession.cs" />
-    <Compile Include="src\DecoderDescriptors\Flat\FlatReaders\PatternFlatReader.cs" />
-    <Compile Include="src\DecoderDescriptors\Flat\FlatReaders\PatternFlat\INode.cs" />
-    <Compile Include="src\DecoderDescriptors\Recurse\ReadArray.cs" />
+    <Compile Include="src\DecoderDescriptors\Abstract\EntityTree.cs" />
+    <Compile Include="src\DecoderDescriptors\Abstract\EntityReader.cs" />
+    <Compile Include="src\DecoderDescriptors\Flat\FlatReader.cs" />
+    <Compile Include="src\DecoderDescriptors\Recurse\ArrayReader.cs" />
+    <Compile Include="src\DecoderDescriptors\Recurse\RecurseReader.cs" />
     <Compile Include="src\EncoderDescriptors\Abstract\Encoder.cs" />
     <Compile Include="src\EncoderDescriptors\Abstract\IWriter.cs" />
     <Compile Include="src\EncoderDescriptors\Abstract\IWriterSession.cs" />
+    <Compile Include="src\EncoderDescriptors\Abstract\EntityWriter.cs" />
+    <Compile Include="src\EncoderDescriptors\Recurse\RecurseWriter.cs" />
     <Compile Include="src\Linker.cs" />
     <Compile Include="src\DecodeAssign.cs" />
     <Compile Include="src\DecoderDescriptors\Abstract\IDecoderConverter.cs" />
     <Compile Include="src\DecoderDescriptors\FlatDecoderDescriptor.cs" />
-    <Compile Include="src\DecoderDescriptors\Flat\ReadEntity.cs" />
-    <Compile Include="src\DecoderDescriptors\Flat\IFlatReader.cs" />
-    <Compile Include="src\DecoderDescriptors\Flat\FlatReaders\PatternFlat\Nodes\BranchNode.cs" />
-    <Compile Include="src\DecoderDescriptors\Flat\FlatReaders\PatternFlat\Nodes\EmptyNode.cs" />
     <Compile Include="src\DecoderDescriptors\Recurse\Browser.cs" />
     <Compile Include="src\DecoderDescriptors\Recurse\BrowserMove.cs" />
     <Compile Include="src\DecoderDescriptors\Recurse\BrowserState.cs" />
-    <Compile Include="src\DecoderDescriptors\Recurse\RecurseReaders\RecurseReader.cs" />
-    <Compile Include="src\DecoderDescriptors\Recurse\RecurseReaders\LookupRecurseReader.cs" />
-    <Compile Include="src\DecoderDescriptors\Recurse\RecurseReaders\PatternRecurseReader.cs" />
-    <Compile Include="src\DecoderDescriptors\Recurse\RecurseReaders\PatternRecurse\INode.cs" />
-    <Compile Include="src\DecoderDescriptors\Recurse\ReadEntity.cs" />
-    <Compile Include="src\DecoderDescriptors\Recurse\IRecurseReader.cs" />
-    <Compile Include="src\DecoderDescriptors\Recurse\RecurseReaders\PatternRecurse\Nodes\BranchNode.cs" />
-    <Compile Include="src\DecoderDescriptors\Recurse\RecurseReaders\PatternRecurse\Nodes\EmptyNode.cs" />
     <Compile Include="src\EncoderDescriptors\AbstractEncoderDescriptor.cs" />
     <Compile Include="src\EncoderDescriptors\Abstract\IEncoderConverter.cs" />
     <Compile Include="src\EncoderDescriptors\RecurseEncoderDescriptor.cs" />
-    <Compile Include="src\EncoderDescriptors\Recurse\WriteEntity.cs" />
-    <Compile Include="src\EncoderDescriptors\Recurse\IRecurseWriter.cs" />
-    <Compile Include="src\EncoderDescriptors\Recurse\RecurseWriters\RecurseWriter.cs" />
-    <Compile Include="src\EncoderDescriptors\Recurse\RecurseWriters\LookupRecurseWriter.cs" />
-    <Compile Include="src\EncoderDescriptors\Recurse\RecurseWriters\PatternRecurseWriter.cs" />
     <Compile Include="src\EncodeError.cs" />
     <Compile Include="src\Schemas\AbstractSchema.cs" />
     <Compile Include="src\Schemas\JSON\JSONType.cs" />
@@ -169,12 +156,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="src\DecoderDescriptors\Abstract" />
-    <Folder Include="src\DecoderDescriptors\Flat\FlatReaders" />
-    <Folder Include="src\DecoderDescriptors\Flat\FlatReaders\PatternFlat" />
-    <Folder Include="src\DecoderDescriptors\Recurse\RecurseReaders" />
-    <Folder Include="src\DecoderDescriptors\Recurse\RecurseReaders\PatternRecurse" />
     <Folder Include="src\EncoderDescriptors\Abstract" />
-    <Folder Include="src\EncoderDescriptors\Recurse\RecurseWriters" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

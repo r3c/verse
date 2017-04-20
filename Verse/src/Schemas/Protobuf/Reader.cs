@@ -1,23 +1,22 @@
 ﻿using System;
 using System.Globalization;
 using ProtoBuf;
+using Verse.DecoderDescriptors.Abstract;
 using Verse.DecoderDescriptors.Recurse;
-using Verse.DecoderDescriptors.Recurse.RecurseReaders;
-using Verse.DecoderDescriptors.Recurse.RecurseReaders.PatternRecurse;
 
 namespace Verse.Schemas.Protobuf
 {
-	class Reader<TEntity> : PatternRecurseReader<TEntity, ReaderState, ProtobufValue>
+	class Reader<TEntity> : RecurseReader<TEntity, ReaderState, ProtobufValue>
 	{
 		#region Attributes
 
-		private static readonly Reader<TEntity> unknown = new Reader<TEntity>();
+		private static readonly Reader<TEntity> emptyReader = new Reader<TEntity>();
 
 		#endregion
 
 		#region Methods / Public
 
-		public override IRecurseReader<TOther, ReaderState, ProtobufValue> Create<TOther>()
+		public override RecurseReader<TOther, ReaderState, ProtobufValue> Create<TOther>()
 		{
 			return new Reader<TOther>();
 		}
@@ -44,9 +43,7 @@ namespace Verse.Schemas.Protobuf
 				case ReaderState.ReadingActionType.UseHeader:
 					entity = constructor();
 
-					this.FollowNode(state.Reader.FieldNumber, ref entity, state);
-
-					return true;
+					return this.FollowNode(state.Reader.FieldNumber, ref entity, state);
 
 				case ReaderState.ReadingActionType.ReadHeader:
 					entity = constructor();
@@ -55,7 +52,8 @@ namespace Verse.Schemas.Protobuf
 					{
 						state.AddObject(fieldIndex);
 
-						this.FollowNode(fieldIndex, ref entity, state);
+						if (!this.FollowNode(fieldIndex, ref entity, state))
+							return false;
 					}
 
 					return true;
@@ -72,7 +70,7 @@ namespace Verse.Schemas.Protobuf
 
 						// if it's not object, ignore
 						if ((state.Reader.WireType != WireType.StartGroup && state.Reader.WireType != WireType.String) ||
-							!this.RootNode.HasSubNode)
+							!this.Root.HasSubNode)
 						{
 							state.Reader.SkipField();
 
@@ -118,15 +116,20 @@ namespace Verse.Schemas.Protobuf
 
 		#region Methods / Private
 
-		private void FollowNode(int fieldIndex, ref TEntity target, ReaderState state)
+		private static bool Ignore(ReaderState state)
 		{
-			INode<TEntity, ProtobufValue, ReaderState> node;
+			TEntity dummy;
 
-			node = Reader<TEntity>.GetNode(this.RootNode, fieldIndex);
+			return Reader<TEntity>.emptyReader.ReadEntity(() => default(TEntity), state, out dummy);
+		}
+
+		private bool FollowNode(int fieldIndex, ref TEntity target, ReaderState state)
+		{
+			EntityTree<TEntity, ReaderState> node = Reader<TEntity>.GetNode(this.Root, fieldIndex);
 
 			state.ReadingAction = ReaderState.ReadingActionType.ReadValue;
 
-			node.Enter(ref target, Reader<TEntity>.unknown, state);
+			return node.Read != null ? node.Read(ref target, state) : Reader<TEntity>.Ignore(state);
 		}
 
 		private bool ReadObjectValue(ref TEntity target, ReaderState state)
@@ -142,25 +145,25 @@ namespace Verse.Schemas.Protobuf
 			while (ProtoReader.HasSubValue(WireType.None, state.Reader))
 			{
 				int fieldIndex;
-				INode<TEntity, ProtobufValue, ReaderState> node;
+				EntityTree<TEntity, ReaderState> node;
 
 				state.ReadHeader(out fieldIndex);
 				state.AddObject(fieldIndex);
 
-				node = Reader<TEntity>.GetNode(this.RootNode, fieldIndex);
+				node = Reader<TEntity>.GetNode(this.Root, fieldIndex);
 
-				if (visitCount == 1 && node.IsConnected)
+				if (visitCount == 1 && node.Read != null)
 				{
 					state.ReadingAction = ReaderState.ReadingActionType.ReadValue;
 
-					if (!node.Enter(ref target, Reader<TEntity>.unknown, state))
+					if (!node.Read(ref target, state))
 						return false;
 				}
 				else
 				{
 					int index;
 
-					node = this.RootNode;
+					node = this.Root;
 					index = visitCount - 1;
 
 					foreach (char digit in index.ToString(CultureInfo.InvariantCulture))
@@ -168,7 +171,7 @@ namespace Verse.Schemas.Protobuf
 
 					state.ReadingAction = ReaderState.ReadingActionType.UseHeader;
 
-					if (!node.Enter(ref target, Reader<TEntity>.unknown, state))
+					if (!(node.Read != null ? node.Read(ref target, state) : Reader<TEntity>.Ignore(state)))
 						return false;
 				}
 			}
@@ -247,9 +250,9 @@ namespace Verse.Schemas.Protobuf
 			};
 		}
 
-		private static INode<TEntity, ProtobufValue, ReaderState> GetNode(INode<TEntity, ProtobufValue, ReaderState> rootNode, int fieldIndex)
+		private static EntityTree<TEntity, ReaderState> GetNode(EntityTree<TEntity, ReaderState> rootNode, int fieldIndex)
 		{
-			INode<TEntity, ProtobufValue, ReaderState> node = rootNode.Follow('_');
+			EntityTree<TEntity, ReaderState> node = rootNode.Follow('_');
 
 			foreach (char digit in fieldIndex.ToString(CultureInfo.InvariantCulture))
 				node = node.Follow(digit);
