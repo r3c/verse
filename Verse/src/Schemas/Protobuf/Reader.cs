@@ -16,12 +16,7 @@ namespace Verse.Schemas.Protobuf
 
 		#region Methods / Public
 
-		public override RecurseReader<TOther, ReaderState, ProtobufValue> Create<TOther>()
-		{
-			return new Reader<TOther>();
-		}
-
-		public override BrowserMove<TEntity> ReadElements(Func<TEntity> constructor, ReaderState state)
+		public override BrowserMove<TEntity> Browse(Func<TEntity> constructor, ReaderState state)
 		{
 			switch (state.Reader.WireType)
 			{
@@ -34,7 +29,12 @@ namespace Verse.Schemas.Protobuf
 			}
 		}
 
-		public override bool ReadEntity(Func<TEntity> constructor, ReaderState state, out TEntity entity)
+		public override RecurseReader<TOther, ReaderState, ProtobufValue> Create<TOther>()
+		{
+			return new Reader<TOther>();
+		}
+
+		public override bool Read(Func<TEntity> constructor, ReaderState state, out TEntity entity)
 		{
 			int fieldIndex;
 
@@ -120,7 +120,7 @@ namespace Verse.Schemas.Protobuf
 		{
 			TEntity dummy;
 
-			return Reader<TEntity>.emptyReader.ReadEntity(() => default(TEntity), state, out dummy);
+			return Reader<TEntity>.emptyReader.Read(() => default(TEntity), state, out dummy);
 		}
 
 		private bool FollowNode(int fieldIndex, ref TEntity target, ReaderState state)
@@ -219,7 +219,7 @@ namespace Verse.Schemas.Protobuf
 					return BrowserState.Success;
 				}
 
-				if (this.ReadEntity(constructor, state, out current))
+				if (this.Read(constructor, state, out current))
 					return BrowserState.Continue;
 
 				current = default(TEntity);
@@ -243,7 +243,7 @@ namespace Verse.Schemas.Protobuf
 					return BrowserState.Success;
 				}
 
-				if (!this.ReadEntity(constructor, state, out current))
+				if (!this.Read(constructor, state, out current))
 					return BrowserState.Failure;
 
 				return BrowserState.Continue;

@@ -13,16 +13,7 @@ namespace Verse.Test.Schemas
 		[TestCase("?a&")]
 		public void DecodeSuccess(string query)
 		{
-			IDecoder<string> decoder;
-			QueryStringSchema<string> schema;
-			string value;
-
-			schema = new QueryStringSchema<string>();
-			value = string.Empty;
-
-			decoder = schema.CreateDecoder();
-
-			Assert.IsTrue(decoder.Decode(new MemoryStream(Encoding.UTF8.GetBytes(query)), out value));
+			QueryStringSchemaTester.Decode(new QueryStringSchema<string>(), query);
 		}
 
 		[Test]
@@ -40,19 +31,16 @@ namespace Verse.Test.Schemas
 		[TestCase("f0", "?f0=v0'v1", "v0'v1")]
 		[TestCase("f0", "?f0=a,b&f1=c", "a,b")]
 		[TestCase("f1", "?f0=a,b&f1=c", "c")]
+		[TestCase("f0", "?f0&f1", "")]
+		[TestCase("f1", "?f0&f1", "")]
 		public void DecodeFieldValue<T>(string name, string query, T expected)
 		{
-			IDecoder<T> decoder;
-			QueryStringSchema<T> schema;
-			T value;
+			var schema = new QueryStringSchema<T>();
 
-			schema = new QueryStringSchema<T>();
 			schema.DecoderDescriptor.HasField(name, Identity<T>.Assign).IsValue();
 
-			decoder = schema.CreateDecoder();
-			value = default(T);
+			T value = QueryStringSchemaTester.Decode(schema, query);
 
-			Assert.IsTrue(decoder.Decode(new MemoryStream(Encoding.UTF8.GetBytes(query)), out value));
 			Assert.AreEqual(expected, value);
 		}
 
@@ -63,17 +51,12 @@ namespace Verse.Test.Schemas
 		[TestCase("f0", "?f0=http%3a%2f%2fwww.pokewiki.de%2fSchillern+de_Pok%c3%a9mon", "http://www.pokewiki.de/Schillern de_Pokémon")]
 		public void DecodeSpecialCharacter<T>(string name, string query, T expected)
 		{
-			IDecoder<T> decoder;
-			QueryStringSchema<T> schema;
-			T value;
+			var schema = new QueryStringSchema<T>();
 
-			schema = new QueryStringSchema<T>();
 			schema.DecoderDescriptor.HasField(name, Identity<T>.Assign).IsValue();
 
-			decoder = schema.CreateDecoder();
-			value = default(T);
+			T value = QueryStringSchemaTester.Decode(schema, query);
 
-			Assert.IsTrue(decoder.Decode(new MemoryStream(Encoding.UTF8.GetBytes(query)), out value));
 			Assert.AreEqual(expected, value);
 		}
 
@@ -83,15 +66,21 @@ namespace Verse.Test.Schemas
 		[TestCase("?f0==v0")]
 		public void DecodeFail(string query)
 		{
-			IDecoder<string> decoder;
-			QueryStringSchema<string> schema;
+			var schema = new QueryStringSchema<string>();
 			string value;
 
-			schema = new QueryStringSchema<string>();
-			decoder = schema.CreateDecoder();
-			value = string.Empty;
+			using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(query)))
+				Assert.IsFalse(schema.CreateDecoder().Decode(stream, out value));
+		}
 
-			Assert.IsFalse(decoder.Decode(new MemoryStream(Encoding.UTF8.GetBytes(query)), out value));
+		private static T Decode<T>(ISchema<T> schema, string query)
+		{
+			T value;
+
+			using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(query)))
+				Assert.IsTrue(schema.CreateDecoder().Decode(stream, out value));
+
+			return value;
 		}
 	}
 }

@@ -79,7 +79,7 @@ namespace Verse.DecoderDescriptors
 			{
 				TField field;
 
-				if (!recurse.ReadEntity(constructor, state, out field))
+				if (!recurse.Read(constructor, state, out field))
 					return false;
 
 				assign(ref target, field);
@@ -97,7 +97,7 @@ namespace Verse.DecoderDescriptors
 
 			this.reader.DeclareArray((Func<TEntity> entityConstructor, TState state, out TEntity entity) =>
 			{
-				using (var browser = new Browser<TElement>(elementReader.ReadElements(elementConstructor, state)))
+				using (var browser = new Browser<TElement>(elementReader.Browse(elementConstructor, state)))
 				{
 					// FIXME:
 					// This forces a unnecessary copy, and introduces some

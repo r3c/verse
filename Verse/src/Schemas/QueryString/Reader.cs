@@ -70,30 +70,24 @@ namespace Verse.Schemas.QueryString
 			return new Reader<TOther>();
 		}
 
-		public override bool ReadEntity(Func<TEntity> constructor, ReaderState state, out TEntity entity)
+		public override bool Read(Func<TEntity> constructor, ReaderState state, out TEntity entity)
 		{
 			entity = constructor();
 
 			while (state.Current != -1)
 			{
+				string dummy;
 				bool isKeyEmpty;
 				EntityTree<TEntity, ReaderState> node;
 
 				node = this.fields;
 				isKeyEmpty = true;
 
-				if (Reader.IsUnreserved(state.Current))
+				while (Reader.IsUnreserved(state.Current))
 				{
 					node = node.Follow((char)state.Current);
 
 					isKeyEmpty = false;
-
-					state.Pull();
-				}
-
-				while (Reader.IsUnreserved(state.Current))
-				{
-					node = node.Follow((char)state.Current);
 
 					state.Pull();
 				}
@@ -108,16 +102,10 @@ namespace Verse.Schemas.QueryString
 				}
 
 				if (state.Current == '=')
-				{
-					string dummy;
-
 					state.Pull();
 
-					if (node.Read == null)
-						this.ReadFieldValue(state, out dummy);
-					else if (!node.Read(ref entity, state))
-						return false;
-				}
+				if (!(node.Read != null ? node.Read(ref entity, state) : this.ScanValue(state, out dummy)))
+					return false;
 
 				if (state.Current == -1)
 					break;
@@ -139,7 +127,7 @@ namespace Verse.Schemas.QueryString
 		{
 			string value;
 
-			if (!this.ReadFieldValue(state, out value))
+			if (!this.ScanValue(state, out value))
 			{
 				target = default(TEntity);
 
@@ -158,7 +146,7 @@ namespace Verse.Schemas.QueryString
 
 		#region Methods / Private
 
-		private bool ReadFieldValue(ReaderState state, out string value)
+		private bool ScanValue(ReaderState state, out string value)
 		{
 			var builder = new StringBuilder(32);
 

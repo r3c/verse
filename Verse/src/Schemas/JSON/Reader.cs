@@ -22,12 +22,7 @@ namespace Verse.Schemas.JSON
 
 		#region Methods / Public
 
-		public override RecurseReader<TOther, ReaderState, JSONValue> Create<TOther>()
-		{
-			return new Reader<TOther>();
-		}
-
-		public override BrowserMove<TEntity> ReadElements(Func<TEntity> constructor, ReaderState state)
+		public override BrowserMove<TEntity> Browse(Func<TEntity> constructor, ReaderState state)
 		{
 			switch (state.Current)
 			{
@@ -40,7 +35,7 @@ namespace Verse.Schemas.JSON
 				default:
 					return (int index, out TEntity current) =>
 					{
-						if (!this.ReadEntity(constructor, state, out current))
+						if (!this.Read(constructor, state, out current))
 							return BrowserState.Failure;
 
 						return BrowserState.Success;
@@ -48,7 +43,12 @@ namespace Verse.Schemas.JSON
 			}
 		}
 
-		public override bool ReadEntity(Func<TEntity> constructor, ReaderState state, out TEntity entity)
+		public override RecurseReader<TOther, ReaderState, JSONValue> Create<TOther>()
+		{
+			return new Reader<TOther>();
+		}
+
+		public override bool Read(Func<TEntity> constructor, ReaderState state, out TEntity entity)
 		{
 			if (this.IsArray)
 				return this.ProcessArray(constructor, state, out entity);
@@ -146,7 +146,7 @@ namespace Verse.Schemas.JSON
 		{
 			TEntity dummy;
 
-			return Reader<TEntity>.emptyReader.ReadEntity(() => default(TEntity), state, out dummy);
+			return Reader<TEntity>.emptyReader.Read(() => default(TEntity), state, out dummy);
 		}
 
 		private BrowserMove<TEntity> ScanArrayAsArray(Func<TEntity> constructor, ReaderState state)
@@ -180,7 +180,7 @@ namespace Verse.Schemas.JSON
 				}
 
 				// Read array value
-				if (!this.ReadEntity(constructor, state, out current))
+				if (!this.Read(constructor, state, out current))
 					return BrowserState.Failure;
 
 				return BrowserState.Continue;
@@ -411,7 +411,7 @@ namespace Verse.Schemas.JSON
 				state.PullIgnored();
 
 				// Read array value
-				if (!this.ReadEntity(constructor, state, out current))
+				if (!this.Read(constructor, state, out current))
 					return BrowserState.Failure;
 
 				return BrowserState.Continue;

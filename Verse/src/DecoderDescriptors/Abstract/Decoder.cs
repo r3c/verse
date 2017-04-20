@@ -33,7 +33,7 @@ namespace Verse.DecoderDescriptors.Abstract
 
 			try
 			{
-				return this.reader.ReadEntity(this.constructor, state, out output);
+				return this.reader.Read(this.constructor, state, out output);
 			}
 			finally
 			{

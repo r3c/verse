@@ -45,11 +45,11 @@ namespace Verse.DecoderDescriptors.Recurse
 
 		#region Methods / Abstract
 
+		public abstract BrowserMove<TEntity> Browse(Func<TEntity> constructor, TState state);
+
 		public abstract RecurseReader<TOther, TState, TValue> Create<TOther>();
 
-		public abstract BrowserMove<TEntity> ReadElements(Func<TEntity> constructor, TState state);
-
-		public abstract bool ReadEntity(Func<TEntity> constructor, TState state, out TEntity entity);
+		public abstract bool Read(Func<TEntity> constructor, TState state, out TEntity entity);
 
 		#endregion
 
