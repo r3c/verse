@@ -332,7 +332,7 @@ namespace Verse.Test.Schemas
 			TestFieldClass<T> testFieldClass;
 
 			schema = new ProtobufSchema<ProtobufValue>();
-			schema.EncoderDescriptor.HasField("_1", Identity<ProtobufValue>.Access).IsValue();
+			schema.EncoderDescriptor.HasField("_1").IsValue();
 
 			stream = new MemoryStream();
 
@@ -383,7 +383,7 @@ namespace Verse.Test.Schemas
 		{
 			ProtobufSchema<List<T>> schema;
 			schema = new ProtobufSchema<List<T>>();
-			IEncoderDescriptor<List<T>> encoderDescriptor = schema.EncoderDescriptor.HasField("_2", Identity<List<T>>.Access);
+			IEncoderDescriptor<List<T>> encoderDescriptor = schema.EncoderDescriptor.HasField("_2");
 			encoderDescriptor.IsArray(source => source).IsValue();
 			T[] expectedItems = {a, b, c};
 
@@ -466,7 +466,7 @@ namespace Verse.Test.Schemas
 
 			schema = new ProtobufSchema<TestFieldClass<TestFieldClass<T>>>();
 			schema.EncoderDescriptor
-				.HasField("_2", Identity<TestFieldClass<TestFieldClass<T>>>.Access)
+				.HasField("_2")
 				.IsArray(source => source.items)
 				.HasField("_3", target => target.subValue)
 				.HasField("_4", target => target.value)

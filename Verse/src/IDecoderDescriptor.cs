@@ -23,8 +23,8 @@ namespace Verse
 		void CanCreate<TMember>(Func<TMember> constructor);
 
 		/// <summary>
-		/// Declare new named field in current schema and reuse previously
-		/// existing descriptor to define how it should be decoded. This method
+		/// Declare new named schema field and reuse previously existing
+		/// descriptor to define how it should be decoded. This method
 		/// can be used to describe recursive schemas.
 		/// </summary>
 		/// <typeparam name="TField">Field type</typeparam>
@@ -35,7 +35,7 @@ namespace Verse
 		IDecoderDescriptor<TField> HasField<TField>(string name, DecodeAssign<TEntity, TField> assign, IDecoderDescriptor<TField> parent);
 
 		/// <summary>
-		/// Declare new named field in current schema and decode it as a new
+		/// Declare new named schema field which should be decoded into a new
 		/// child entity. Resulting descriptor defines how this field should
 		/// be decoded into child entity.
 		/// </summary>
@@ -47,8 +47,8 @@ namespace Verse
 		IDecoderDescriptor<TField> HasField<TField>(string name, DecodeAssign<TEntity, TField> assign);
 
 		/// <summary>
-		/// Declare new name field in current schema which should be decoded
-		/// into current entity. Resulting descriptor defines how this field
+		/// Declare new named schema field which should be decoded into current
+		/// entity. Resulting descriptor defines how contents under this field
 		/// should be decoded into entity.
 		/// </summary>
 		/// <param name="name">Field name</param>

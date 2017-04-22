@@ -46,15 +46,15 @@ namespace Verse.DecoderDescriptors
 			return this.HasField(name, assign, new RecurseDecoderDescriptor<TField, TState, TValue>(this.converter, this.session, this.reader.Create<TField>()));
 		}
 
-        public override IDecoderDescriptor<TEntity> HasField(string name)
-        {
-            var descriptor = new RecurseDecoderDescriptor<TEntity, TState, TValue>(this.converter, this.session, this.reader.Create<TEntity>());
-            var recurse = descriptor.reader;
+		public override IDecoderDescriptor<TEntity> HasField(string name)
+		{
+			var descriptor = new RecurseDecoderDescriptor<TEntity, TState, TValue>(this.converter, this.session, this.reader.Create<TEntity>());
+			var recurse = descriptor.reader;
 
-            this.reader.DeclareField(name, (ref TEntity target, TState state) => recurse.Read(ref target, state));
+			this.reader.DeclareField(name, (ref TEntity target, TState state) => recurse.Read(ref target, state));
 
-            return descriptor;
-        }
+			return descriptor;
+		}
 
 		public override IDecoderDescriptor<TElement> IsArray<TElement>(DecodeAssign<TEntity, IEnumerable<TElement>> assign, IDecoderDescriptor<TElement> parent)
 		{

@@ -218,7 +218,7 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new JSONSchema<T>();
 
-			schema.EncoderDescriptor.HasField(name, Identity<T>.Access).IsValue();
+			schema.EncoderDescriptor.HasField(name).IsValue();
 
 			this.AssertEncodeAndEqual(schema, value, expected);
 		}
@@ -281,9 +281,9 @@ namespace Verse.Test.Schemas
 
 			schema = new JSONSchema<string>(new JSONSettings(new UTF8Encoding(false), ignoreNull));
 			schema.EncoderDescriptor.HasField("firstnull", s => JSONValue.Void).IsValue();
-			schema.EncoderDescriptor.HasField("value", Identity<string>.Access).IsValue();
+			schema.EncoderDescriptor.HasField("value").IsValue();
 			schema.EncoderDescriptor.HasField("secondnull", s => JSONValue.Void).IsValue();
-			schema.EncoderDescriptor.HasField("item", Identity<string>.Access).HasField("values", Identity<string>.Access).IsArray(v => new[] { null, "val1", null, "val2", null }).IsValue();
+			schema.EncoderDescriptor.HasField("item").HasField("values").IsArray(v => new[] { null, "val1", null, "val2", null }).IsValue();
 			schema.EncoderDescriptor.HasField("lastnull", s => JSONValue.Void).IsValue();
 
 			this.AssertEncodeAndEqual(schema, "test", expected);
@@ -302,9 +302,9 @@ namespace Verse.Test.Schemas
 
 			schema = new JSONSchema<JSONValue>(new JSONSettings(new UTF8Encoding(false), ignoreNull));
 			schema.EncoderDescriptor
-				.HasField("values", Identity<JSONValue>.Access)
+				.HasField("values")
 				.IsArray(v => new[] { JSONValue.Void, v, })
-				.HasField("value", Identity<JSONValue>.Access)
+				.HasField("value")
 				.IsValue();
 
 			this.AssertEncodeAndEqual(schema, JSONValue.FromString("test"), expected);

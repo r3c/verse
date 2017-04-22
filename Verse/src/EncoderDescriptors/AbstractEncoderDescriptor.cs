@@ -35,6 +35,15 @@ namespace Verse.EncoderDescriptors
 
 		#endregion
 
+		#region Methods / Public
+
+		public IEncoderDescriptor<TEntity> HasField(string name)
+		{
+			return this.HasField(name, source => source);
+		}
+
+		#endregion
+
 		#region Methods / Protected
 
 		protected Converter<TEntity, TValue> GetConverter()
