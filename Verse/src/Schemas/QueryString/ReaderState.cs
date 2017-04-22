@@ -7,6 +7,8 @@ namespace Verse.Schemas.QueryString
 	{
 		public int Current;
 
+		public readonly Encoding Encoding;
+
 		private readonly DecodeError error;
 
 		private int position;
@@ -16,6 +18,8 @@ namespace Verse.Schemas.QueryString
 		public ReaderState(Stream stream, Encoding encoding, DecodeError error)
 		{
 			this.Current = 0;
+			this.Encoding = encoding;
+
 			this.error = error;
 			this.position = 0;
 			this.reader = new StreamReader(stream, encoding);

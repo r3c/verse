@@ -7,10 +7,24 @@ namespace Verse.Schemas.QueryString
 {
 	static class Reader
 	{
+		private static readonly int[] hexadecimals = new int[128];
+
 		private static readonly bool[] unreserved = new bool[128];
 
 		static Reader()
 		{
+			for (int i = 0; i < hexadecimals.Length; ++i)
+				Reader.hexadecimals[i] = -1;
+
+			for (int c = '0'; c <= '9'; ++c)
+				Reader.hexadecimals[c] = c - '0';
+
+			for (int c = 'A'; c <= 'F'; ++c)
+				Reader.hexadecimals[c] = c - 'A' + 10;
+
+			for (int c = 'a'; c <= 'f'; ++c)
+				Reader.hexadecimals[c] = c - 'a' + 10;
+
 			for (int c = '0'; c <= '9'; ++c)
 				Reader.unreserved[c] = true;
 
@@ -36,6 +50,17 @@ namespace Verse.Schemas.QueryString
 			Reader.unreserved['@'] = true;
 			Reader.unreserved['/'] = true;
 			Reader.unreserved['?'] = true;
+		}
+
+		/// <summary>
+		/// Return decimal value of given hexadecimal character.
+		/// </summary>
+		/// <param name="c">Hexadecimal character</param>
+		/// <returns>Decial value, or -1 if character was not a valid
+		/// hexadecimal digit</returns>
+		public static int DecimalFromHexa(char c)
+		{
+			return c > Reader.hexadecimals.Length ? -1 : Reader.hexadecimals[c];
 		}
 
 		/// <summary>
@@ -76,23 +101,10 @@ namespace Verse.Schemas.QueryString
 
 			while (state.Current != -1)
 			{
-				string dummy;
-				bool isKeyEmpty;
 				EntityTree<TEntity, ReaderState> node;
+				string unused;
 
-				node = this.fields;
-				isKeyEmpty = true;
-
-				while (Reader.IsUnreserved(state.Current))
-				{
-					node = node.Follow((char)state.Current);
-
-					isKeyEmpty = false;
-
-					state.Pull();
-				}
-
-				if (isKeyEmpty)
+				if (!Reader.IsUnreserved(state.Current))
 				{
 					state.Error("empty field");
 
@@ -101,10 +113,20 @@ namespace Verse.Schemas.QueryString
 					return false;
 				}
 
+				node = this.fields;
+
+				do
+				{
+					node = node.Follow((char)state.Current);
+
+					state.Pull();
+				}
+				while (Reader.IsUnreserved(state.Current));
+
 				if (state.Current == '=')
 					state.Pull();
 
-				if (!(node.Read != null ? node.Read(ref entity, state) : this.ScanValue(state, out dummy)))
+				if (!(node.Read != null ? node.Read(ref entity, state) : this.ScanValue(state, out unused)))
 					return false;
 
 				if (state.Current == -1)
@@ -148,23 +170,80 @@ namespace Verse.Schemas.QueryString
 
 		private bool ScanValue(ReaderState state, out string value)
 		{
+			var buffer = new byte[state.Encoding.GetMaxByteCount(1)];
 			var builder = new StringBuilder(32);
 
 			while (state.Current != -1)
 			{
+				int count;
 				int current = state.Current;
+				int hex1;
+				int hex2;
 
-				if (Reader.IsUnreserved(current) || current == '%')
+				if (Reader.IsUnreserved(current))
+				{
 					builder.Append((char)current);
+
+					state.Pull();
+				}
 				else if (current == '+')
+				{
 					builder.Append(' ');
+
+					state.Pull();
+				}
+				else if (current == '%')
+				{
+					for (count = 0; state.Current == '%'; ++count)
+					{
+						if (count >= buffer.Length)
+						{
+							value = string.Empty;
+
+							return false;
+						}
+
+						state.Pull();
+
+						if (state.Current == -1)
+						{
+							value = string.Empty;
+
+							return false;
+						}
+
+						hex1 = Reader.DecimalFromHexa((char)state.Current);
+
+						state.Pull();
+
+						if (state.Current == -1)
+						{
+							value = string.Empty;
+
+							return false;
+						}
+
+						hex2 = Reader.DecimalFromHexa((char)state.Current);
+
+						state.Pull();
+
+						if (hex1 < 0 || hex2 < 0)
+						{
+							value = string.Empty;
+
+							return false;
+						}
+
+						buffer[count] = (byte)((hex1 << 4) + hex2);
+					}
+
+					builder.Append(state.Encoding.GetChars(buffer, 0, count));
+				}
 				else
 					break;
-
-				state.Pull();
 			}
 
-			value = Uri.UnescapeDataString(builder.ToString());
+			value = builder.ToString();
 
 			return true;
 		}
