@@ -44,9 +44,9 @@ namespace Verse.Schemas.JSON
 			if (source == null)
 				state.Value(JSON.JSONValue.Void);
 			else if (this.IsArray)
-				this.ProcessArray(source, state);
+				this.WriteArray(source, state);
 			else if (this.IsValue)
-				state.Value(this.ProcessValue(source));
+				state.Value(this.ConvertValue(source));
 			else
 			{
 				state.ObjectBegin();

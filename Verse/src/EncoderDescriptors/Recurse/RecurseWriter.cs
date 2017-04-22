@@ -68,20 +68,14 @@ namespace Verse.EncoderDescriptors.Recurse
 
 		#region Methods / Protected
 
-		protected void ProcessArray(TEntity entity, TState state)
+		protected TValue ConvertValue(TEntity entity)
 		{
-			if (this.array == null)
-				throw new InvalidOperationException("internal error, cannot process undeclared array");
-
-			this.array(entity, state);
+			return this.value(entity);
 		}
 
-		protected TValue ProcessValue(TEntity entity)
+		protected void WriteArray(TEntity entity, TState state)
 		{
-			if (this.value == null)
-				throw new InvalidOperationException("internal error, cannot process undeclared value");
-
-			return this.value(entity);
+			this.array(entity, state);
 		}
 
 		#endregion

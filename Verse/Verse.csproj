@@ -93,7 +93,6 @@
     <Compile Include="src\DecoderDescriptors\Abstract\EntityTree.cs" />
     <Compile Include="src\DecoderDescriptors\Abstract\EntityReader.cs" />
     <Compile Include="src\DecoderDescriptors\Flat\FlatReader.cs" />
-    <Compile Include="src\DecoderDescriptors\Recurse\ArrayReader.cs" />
     <Compile Include="src\DecoderDescriptors\Recurse\RecurseReader.cs" />
     <Compile Include="src\EncoderDescriptors\Abstract\Encoder.cs" />
     <Compile Include="src\EncoderDescriptors\Abstract\IWriter.cs" />

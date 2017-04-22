@@ -53,7 +53,7 @@ namespace Verse.Schemas.JSON
 		public override bool Read(ref TEntity entity, ReaderState state)
 		{
 			if (this.IsArray)
-				return this.ProcessArray(ref entity, state);
+				return this.ReadArray(ref entity, state);
 
 			switch (state.Current)
 			{
@@ -85,7 +85,7 @@ namespace Verse.Schemas.JSON
 					}
 
 					if (this.IsValue)
-						entity = this.ProcessValue(JSONValue.FromBoolean(false));
+						entity = this.ConvertValue(JSONValue.FromBoolean(false));
 					else
 						entity = default(TEntity);
 
@@ -102,7 +102,7 @@ namespace Verse.Schemas.JSON
 					}
 
 					if (this.IsValue)
-						entity = this.ProcessValue(JSONValue.Void);
+						entity = this.ConvertValue(JSONValue.Void);
 					else
 						entity = default(TEntity);
 
@@ -119,7 +119,7 @@ namespace Verse.Schemas.JSON
 					}
 
 					if (this.IsValue)
-						entity = this.ProcessValue(JSONValue.FromBoolean(true));
+						entity = this.ConvertValue(JSONValue.FromBoolean(true));
 					else
 						entity = default(TEntity);
 
@@ -336,7 +336,7 @@ namespace Verse.Schemas.JSON
 						(long)((numberMantissa ^ numberMantissaMask) + numberMantissaPlus) *
 						(decimal)Math.Pow(10, numberPower);
 
-					entity = this.ProcessValue(JSONValue.FromNumber(number));
+					entity = this.ConvertValue(JSONValue.FromNumber(number));
 				}
 				else
 					entity = default(TEntity);
@@ -449,9 +449,7 @@ namespace Verse.Schemas.JSON
 					return false;
 
 				// Read and move to object key
-				node = this.Root;
-
-				while (state.Current != (int)'"')
+				for (node = this.Root; state.Current != (int)'"'; node = node.Follow(character))
 				{
 					if (!state.PullCharacter(out character))
 					{
@@ -459,8 +457,6 @@ namespace Verse.Schemas.JSON
 
 						return false;
 					}
-
-					node = node.Follow(character);
 				}
 
 				state.Read();
@@ -509,7 +505,7 @@ namespace Verse.Schemas.JSON
 					buffer.Append(character);
 				}
 
-				entity = this.ProcessValue(JSONValue.FromString(buffer.ToString()));
+				entity = this.ConvertValue(JSONValue.FromString(buffer.ToString()));
 			}
 
 			// Read and discard string otherwise

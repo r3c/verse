@@ -35,7 +35,7 @@ namespace Verse.DecoderDescriptors.Recurse
 
 		#region Attributes
 
-		private ArrayReader<TEntity, TState> array = null;
+		private EntityReader<TEntity, TState> array = null;
 
 		private readonly EntityTree<TEntity, TState> fields = new EntityTree<TEntity, TState>();
 
@@ -55,7 +55,7 @@ namespace Verse.DecoderDescriptors.Recurse
 
 		#region Methods / Public
 
-		public void DeclareArray(ArrayReader<TEntity, TState> enter)
+		public void DeclareArray(EntityReader<TEntity, TState> enter)
 		{
 			if (this.array != null)
 				throw new InvalidOperationException("can't declare array twice on same descriptor");
@@ -81,20 +81,14 @@ namespace Verse.DecoderDescriptors.Recurse
 
 		#region Methods / Protected
 
-		protected bool ProcessArray(ref TEntity entity, TState state)
+		protected TEntity ConvertValue(TValue value)
 		{
-			if (this.array == null)
-				throw new InvalidOperationException("internal error, cannot process undeclared array");
-
-			return this.array(ref entity, state);
+			return this.value(value);
 		}
 
-		protected TEntity ProcessValue(TValue value)
+		protected bool ReadArray(ref TEntity entity, TState state)
 		{
-			if (this.value == null)
-				throw new InvalidOperationException("internal error, cannot process undeclared value");
-
-			return this.value(value);
+			return this.array(ref entity, state);
 		}
 
 		#endregion

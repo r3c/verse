@@ -5,11 +5,31 @@ namespace Verse.DecoderDescriptors.Flat
 {
 	abstract class FlatReader<TEntity, TState, TValue> : IReader<TEntity, TState>
 	{
-		public Converter<TValue, TEntity> converter = null;
+		protected bool IsValue
+		{
+			get
+			{
+				return this.value != null;
+			}
+		}
 
-		public EntityTree<TEntity, TState> fields = new EntityTree<TEntity, TState>();
+		protected EntityTree<TEntity, TState> Root
+		{
+			get
+			{
+				return this.fields;
+			}
+		}
+
+		private readonly EntityTree<TEntity, TState> fields = new EntityTree<TEntity, TState>();
+
+		private Converter<TValue, TEntity> value = null;
 
 		public abstract FlatReader<TOther, TState, TValue> Create<TOther>();
+
+		public abstract bool Read(ref TEntity entity, TState state);
+
+		public abstract bool ReadValue(TState state, out TEntity value);
 
 		public void DeclareField(string name, EntityReader<TEntity, TState> enter)
 		{
@@ -19,14 +39,15 @@ namespace Verse.DecoderDescriptors.Flat
 	
 		public void DeclareValue(Converter<TValue, TEntity> convert)
 		{
-			if (this.converter != null)
+			if (this.value != null)
 				throw new InvalidOperationException("can't declare value twice on same descriptor");
 
-			this.converter = convert;
+			this.value = convert;
 		}
 
-		public abstract bool Read(ref TEntity entity, TState state);
-
-		public abstract bool ReadValue(TState state, out TEntity value);
+		protected TEntity ConvertValue(TValue value)
+		{
+			return this.value(value);
+		}
 	}
 }

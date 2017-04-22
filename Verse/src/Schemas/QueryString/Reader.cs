@@ -111,7 +111,7 @@ namespace Verse.Schemas.QueryString
 					return false;
 				}
 
-				node = this.fields;
+				node = this.Root;
 
 				do
 				{
@@ -154,7 +154,7 @@ namespace Verse.Schemas.QueryString
 				return false;
 			}
 
-			value = this.converter != null ? this.converter(raw) : default(TEntity);
+			value = this.IsValue ? this.ConvertValue(raw) : default(TEntity);
 
 			return true;
 		}

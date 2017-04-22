@@ -58,7 +58,7 @@ namespace Verse.Schemas.Protobuf
 					state.ReadingAction = ReaderState.ReadingActionType.ReadHeader;
 
 					if (this.IsArray)
-						return this.ProcessArray(ref entity, state);
+						return this.ReadArray(ref entity, state);
 
 					if (!this.IsValue)
 					{
@@ -77,22 +77,22 @@ namespace Verse.Schemas.Protobuf
 					switch (state.Reader.WireType)
 					{
 						case WireType.Fixed32:
-							entity = this.ProcessValue(new ProtobufValue(state.Reader.ReadSingle()));
+							entity = this.ConvertValue(new ProtobufValue(state.Reader.ReadSingle()));
 
 							return true;
 
 						case WireType.Fixed64:
-							entity = this.ProcessValue(new ProtobufValue(state.Reader.ReadDouble()));
+							entity = this.ConvertValue(new ProtobufValue(state.Reader.ReadDouble()));
 
 							return true;
 
 						case WireType.String:
-							entity = this.ProcessValue(new ProtobufValue(state.Reader.ReadString()));
+							entity = this.ConvertValue(new ProtobufValue(state.Reader.ReadString()));
 
 							return true;
 
 						case WireType.Variant:
-							entity = this.ProcessValue(new ProtobufValue(state.Reader.ReadInt64()));
+							entity = this.ConvertValue(new ProtobufValue(state.Reader.ReadInt64()));
 
 							return true;
 					}

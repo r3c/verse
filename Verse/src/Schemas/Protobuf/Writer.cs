@@ -36,10 +36,10 @@ namespace Verse.Schemas.Protobuf
 				return;
 
 			if (this.IsArray)
-				this.ProcessArray(source, state);
+				this.WriteArray(source, state);
 			else if (this.IsValue)
 			{
-				if (!state.Value(this.ProcessValue(source)))
+				if (!state.Value(this.ConvertValue(source)))
 					state.Error("failed to write value");
 			}
 			else
