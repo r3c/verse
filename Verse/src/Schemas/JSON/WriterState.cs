@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Text;
 
 namespace Verse.Schemas.JSON
 {
@@ -12,7 +13,7 @@ namespace Verse.Schemas.JSON
 
 		private readonly EncodeError error;
 
-		private readonly bool ignoreNull;
+		private readonly bool omitNull;
 
 		private int position;
 
@@ -32,14 +33,14 @@ namespace Verse.Schemas.JSON
 
 		#region Constructors
 
-		public WriterState(Stream stream, EncodeError error, JSONSettings settings)
+		public WriterState(Stream stream, EncodeError error, Encoding encoding, bool omitNull)
 		{
 			this.currentKey = null;
 			this.error = error;
-			this.ignoreNull = settings.IgnoreNull;
 			this.needComma = false;
+			this.omitNull = omitNull;
 			this.position = 0;
-			this.writer = new StreamWriter(stream, settings.Encoding);
+			this.writer = new StreamWriter(stream, encoding);
 		}
 
 		static WriterState()
@@ -148,7 +149,7 @@ namespace Verse.Schemas.JSON
 					break;
 
 				default:
-					if (this.ignoreNull)
+					if (this.omitNull)
 					{
 						this.currentKey = null;
 

@@ -1,21 +1,25 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 using Verse.EncoderDescriptors.Abstract;
 
 namespace Verse.Schemas.JSON
 {
 	class WriterSession : IWriterSession<WriterState>
 	{
-		private readonly JSONSettings settings;
+		private readonly Encoding encoding;
 
-		public WriterSession(JSONSettings settings)
+		private readonly bool omitNull;
+
+		public WriterSession(Encoding encoding, bool omitNull)
 		{
-			this.settings = settings;
+			this.encoding = encoding;
+			this.omitNull = omitNull;
 		}
 
 		public bool Start(Stream stream, EncodeError error, out WriterState state)
 		{
-			state = new WriterState(stream, error, this.settings);
+			state = new WriterState(stream, error, this.encoding, this.omitNull);
 
 			return true;
 		}

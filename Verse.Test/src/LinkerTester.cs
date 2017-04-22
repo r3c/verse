@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using NUnit.Framework;
 using Verse.Schemas;
+using Verse.Schemas.JSON;
 
 namespace Verse.Test
 {
@@ -86,7 +87,7 @@ namespace Verse.Test
 				? "{\"r\":{\"r\":{\"v\":42},\"v\":17},\"v\":3}"
 				: "{\"r\":{\"r\":{\"r\":null,\"v\":42},\"v\":17},\"v\":3}";
 
-			encoder = Linker.CreateEncoder(new JSONSchema<Recursive>(new JSONSettings(new UTF8Encoding(false), ignoreNull)));
+			encoder = Linker.CreateEncoder(new JSONSchema<Recursive>(new JSONConfiguration { OmitNull = ignoreNull }));
 
 			using (var stream = new MemoryStream())
 			{

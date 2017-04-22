@@ -52,31 +52,21 @@ namespace Verse.Schemas
 		/// Create new JSON schema using given settings
 		/// </summary>
 		/// <param name="settings">Text encoding, ignore null...</param>
-		public JSONSchema(JSONSettings settings)
+		public JSONSchema(JSONConfiguration settings)
 		{
-			var decoderConverter = new DecoderConverter();
-			var encoderConverter = new EncoderConverter();
+			var encoding = settings.Encoding ?? new UTF8Encoding(false);
 
-			this.decoderConverter = decoderConverter;
-			this.encoderConverter = encoderConverter;
-			this.decoderDescriptor = new RecurseDecoderDescriptor<TEntity, ReaderState, JSONValue>(decoderConverter, new ReaderSession(settings.Encoding), new Reader<TEntity>());
-			this.encoderDescriptor = new RecurseEncoderDescriptor<TEntity, WriterState, JSONValue>(encoderConverter, new WriterSession(settings), new Writer<TEntity>());
-		}
-
-		/// <summary>
-		/// Create new JSON schema using given text encoding.
-		/// </summary>
-		/// <param name="encoding">Text encoding</param>
-		public JSONSchema(Encoding encoding)
-			: this(new JSONSettings(encoding, false))
-		{
+			this.decoderConverter = new DecoderConverter();
+			this.encoderConverter = new EncoderConverter();
+			this.decoderDescriptor = new RecurseDecoderDescriptor<TEntity, ReaderState, JSONValue>(this.decoderConverter, new ReaderSession(encoding), new Reader<TEntity>());
+			this.encoderDescriptor = new RecurseEncoderDescriptor<TEntity, WriterState, JSONValue>(this.encoderConverter, new WriterSession(encoding, settings.OmitNull), new Writer<TEntity>());
 		}
 
 		/// <summary>
 		/// Create JSON schema using default UTF8 encoding.
 		/// </summary>
 		public JSONSchema()
-			: this(new UTF8Encoding(false))
+			: this(default(JSONConfiguration))
 		{
 		}
 

@@ -112,8 +112,8 @@
     <Compile Include="src\EncoderDescriptors\RecurseEncoderDescriptor.cs" />
     <Compile Include="src\EncodeError.cs" />
     <Compile Include="src\Schemas\AbstractSchema.cs" />
+    <Compile Include="src\Schemas\JSON\JSONConfiguration.cs" />
     <Compile Include="src\Schemas\JSON\JSONType.cs" />
-    <Compile Include="src\Schemas\JSONSettings.cs" />
     <Compile Include="src\Schemas\JSON\ReaderSession.cs" />
     <Compile Include="src\Schemas\JSON\WriterSession.cs" />
     <Compile Include="src\Schemas\ProtobufSchema.cs" />

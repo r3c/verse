@@ -262,7 +262,7 @@ namespace Verse.Test.Schemas
 			JSONSchema<string> schema;
 
 			expected = ignoreNull ? string.Empty : "null";
-			schema = new JSONSchema<string>(new JSONSettings(new UTF8Encoding(false), ignoreNull));
+			schema = new JSONSchema<string>(new JSONConfiguration { OmitNull = ignoreNull });
 			schema.EncoderDescriptor.IsValue();
 
 			this.AssertEncodeAndEqual(schema, null, expected);
@@ -279,7 +279,7 @@ namespace Verse.Test.Schemas
 				? "{\"value\":\"test\",\"item\":{\"values\":[\"val1\",\"val2\"]}}"
 				: "{\"firstnull\":null,\"value\":\"test\",\"secondnull\":null,\"item\":{\"values\":[null,\"val1\",null,\"val2\",null]},\"lastnull\":null}";
 
-			schema = new JSONSchema<string>(new JSONSettings(new UTF8Encoding(false), ignoreNull));
+			schema = new JSONSchema<string>(new JSONConfiguration { OmitNull = ignoreNull });
 			schema.EncoderDescriptor.HasField("firstnull", s => JSONValue.Void).IsValue();
 			schema.EncoderDescriptor.HasField("value").IsValue();
 			schema.EncoderDescriptor.HasField("secondnull", s => JSONValue.Void).IsValue();
@@ -300,7 +300,7 @@ namespace Verse.Test.Schemas
 				? "{\"values\":[{},{\"value\":\"test\"}]}"
 				: "{\"values\":[{\"value\":null},{\"value\":\"test\"}]}";
 
-			schema = new JSONSchema<JSONValue>(new JSONSettings(new UTF8Encoding(false), ignoreNull));
+			schema = new JSONSchema<JSONValue>(new JSONConfiguration { OmitNull = ignoreNull });
 			schema.EncoderDescriptor
 				.HasField("values")
 				.IsArray(v => new[] { JSONValue.Void, v, })
