@@ -36,7 +36,7 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new JSONSchema<T>();
 
-			schema.DecoderDescriptor.HasField(name, Identity<T>.Assign).IsValue();
+			schema.DecoderDescriptor.HasField(name).IsValue();
 
 			this.AssertDecodeAndEqual(schema, json, expected);
 		}
@@ -46,7 +46,7 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new JSONSchema<int>();
 
-			schema.DecoderDescriptor.HasField("match", Identity<int>.Assign).IsValue();
+			schema.DecoderDescriptor.HasField("match").IsValue();
 
 			this.AssertDecodeAndEqual(schema, "{\"match1\": 17}", 0);
 			this.AssertDecodeAndEqual(schema, "{\"matc\": 17}", 0);
@@ -57,7 +57,7 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new JSONSchema<int>();
 
-			schema.DecoderDescriptor.HasField("match", Identity<int>.Assign).IsValue();
+			schema.DecoderDescriptor.HasField("match").IsValue();
 
 			this.AssertDecodeAndEqual(schema, "{\"unknown\": {\"match\": 17}}", 0);
 		}
@@ -69,7 +69,7 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new JSONSchema<T>();
 
-			schema.DecoderDescriptor.HasField(name, Identity<T>.Assign).IsValue();
+			schema.DecoderDescriptor.HasField(name).IsValue();
 
 			this.AssertDecodeAndEqual(schema, json, expected);
 		}

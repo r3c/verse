@@ -46,6 +46,16 @@ namespace Verse.DecoderDescriptors
 			return this.HasField(name, assign, new RecurseDecoderDescriptor<TField, TState, TValue>(this.converter, this.session, this.reader.Create<TField>()));
 		}
 
+        public override IDecoderDescriptor<TEntity> HasField(string name)
+        {
+            var descriptor = new RecurseDecoderDescriptor<TEntity, TState, TValue>(this.converter, this.session, this.reader.Create<TEntity>());
+            var recurse = descriptor.reader;
+
+            this.reader.DeclareField(name, (ref TEntity target, TState state) => recurse.Read(ref target, state));
+
+            return descriptor;
+        }
+
 		public override IDecoderDescriptor<TElement> IsArray<TElement>(DecodeAssign<TEntity, IEnumerable<TElement>> assign, IDecoderDescriptor<TElement> parent)
 		{
 			var descriptor = parent as RecurseDecoderDescriptor<TElement, TState, TValue>;
@@ -77,9 +87,9 @@ namespace Verse.DecoderDescriptors
 
 			this.reader.DeclareField(name, (ref TEntity target, TState state) =>
 			{
-				TField field;
+				TField field = constructor();
 
-				if (!recurse.Read(constructor, state, out field))
+				if (!recurse.Read(ref field, state))
 					return false;
 
 				assign(ref target, field);
@@ -92,12 +102,12 @@ namespace Verse.DecoderDescriptors
 
 		private IDecoderDescriptor<TElement> IsArray<TElement>(DecodeAssign<TEntity, IEnumerable<TElement>> assign, RecurseDecoderDescriptor<TElement, TState, TValue> descriptor)
 		{
-			var elementConstructor = this.GetConstructor<TElement>();
-			var elementReader = descriptor.reader;
+			var constructor = this.GetConstructor<TElement>();
+			var child = descriptor.reader;
 
-			this.reader.DeclareArray((Func<TEntity> entityConstructor, TState state, out TEntity entity) =>
+			this.reader.DeclareArray((ref TEntity entity, TState state) =>
 			{
-				using (var browser = new Browser<TElement>(elementReader.Browse(elementConstructor, state)))
+				using (var browser = new Browser<TElement>(child.Browse(constructor, state)))
 				{
 					// FIXME:
 					// This forces a unnecessary copy, and introduces some
@@ -105,8 +115,6 @@ namespace Verse.DecoderDescriptors
 					// resulting in an empty array). Method IsArray could just
 					// pass enumerable elements and let parent field assignment
 					// handle the copy if needed.
-					entity = entityConstructor();
-
 					assign(ref entity, browser);
 
 					return browser.Finish();

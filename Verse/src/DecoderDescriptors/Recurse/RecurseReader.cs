@@ -49,7 +49,7 @@ namespace Verse.DecoderDescriptors.Recurse
 
 		public abstract RecurseReader<TOther, TState, TValue> Create<TOther>();
 
-		public abstract bool Read(Func<TEntity> constructor, TState state, out TEntity entity);
+		public abstract bool Read(ref TEntity entity, TState state);
 
 		#endregion
 
@@ -81,12 +81,12 @@ namespace Verse.DecoderDescriptors.Recurse
 
 		#region Methods / Protected
 
-		protected bool ProcessArray(Func<TEntity> constructor, TState state, out TEntity entity)
+		protected bool ProcessArray(ref TEntity entity, TState state)
 		{
 			if (this.array == null)
 				throw new InvalidOperationException("internal error, cannot process undeclared array");
 
-			return this.array(constructor, state, out entity);
+			return this.array(ref entity, state);
 		}
 
 		protected TEntity ProcessValue(TValue value)

@@ -34,20 +34,16 @@ namespace Verse.Schemas.Protobuf
 			return new Reader<TOther>();
 		}
 
-		public override bool Read(Func<TEntity> constructor, ReaderState state, out TEntity entity)
+		public override bool Read(ref TEntity entity, ReaderState state)
 		{
 			int fieldIndex;
 
 			switch (state.ReadingAction)
 			{
 				case ReaderState.ReadingActionType.UseHeader:
-					entity = constructor();
-
 					return this.FollowNode(state.Reader.FieldNumber, ref entity, state);
 
 				case ReaderState.ReadingActionType.ReadHeader:
-					entity = constructor();
-
 					while (state.ReadHeader(out fieldIndex))
 					{
 						state.AddObject(fieldIndex);
@@ -62,12 +58,10 @@ namespace Verse.Schemas.Protobuf
 					state.ReadingAction = ReaderState.ReadingActionType.ReadHeader;
 
 					if (this.IsArray)
-						return this.ProcessArray(constructor, state, out entity);
+						return this.ProcessArray(ref entity, state);
 
 					if (!this.IsValue)
 					{
-						entity = constructor();
-
 						// if it's not object, ignore
 						if ((state.Reader.WireType != WireType.StartGroup && state.Reader.WireType != WireType.String) ||
 							!this.Root.HasSubNode)
@@ -106,8 +100,6 @@ namespace Verse.Schemas.Protobuf
 					state.Error("wire type not supported, skipped");
 					state.Reader.SkipField();
 
-					entity = default(TEntity);
-
 					return true;
 			}
 		}
@@ -118,9 +110,9 @@ namespace Verse.Schemas.Protobuf
 
 		private static bool Ignore(ReaderState state)
 		{
-			TEntity dummy;
+			var dummy = default(TEntity);
 
-			return Reader<TEntity>.emptyReader.Read(() => default(TEntity), state, out dummy);
+			return Reader<TEntity>.emptyReader.Read(ref dummy, state);
 		}
 
 		private bool FollowNode(int fieldIndex, ref TEntity target, ReaderState state)
@@ -219,7 +211,9 @@ namespace Verse.Schemas.Protobuf
 					return BrowserState.Success;
 				}
 
-				if (this.Read(constructor, state, out current))
+				current = constructor();
+
+				if (this.Read(ref current, state))
 					return BrowserState.Continue;
 
 				current = default(TEntity);
@@ -243,7 +237,9 @@ namespace Verse.Schemas.Protobuf
 					return BrowserState.Success;
 				}
 
-				if (!this.Read(constructor, state, out current))
+				current = constructor();
+
+				if (!this.Read(ref current, state))
 					return BrowserState.Failure;
 
 				return BrowserState.Continue;

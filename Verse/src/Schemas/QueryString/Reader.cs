@@ -95,10 +95,8 @@ namespace Verse.Schemas.QueryString
 			return new Reader<TOther>();
 		}
 
-		public override bool Read(Func<TEntity> constructor, ReaderState state, out TEntity entity)
+		public override bool Read(ref TEntity entity, ReaderState state)
 		{
-			entity = constructor();
-
 			while (state.Current != -1)
 			{
 				EntityTree<TEntity, ReaderState> node;

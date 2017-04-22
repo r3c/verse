@@ -33,7 +33,9 @@ namespace Verse.DecoderDescriptors.Abstract
 
 			try
 			{
-				return this.reader.Read(this.constructor, state, out output);
+				output = this.constructor();
+
+				return this.reader.Read(ref output, state);
 			}
 			finally
 			{

@@ -23,26 +23,37 @@ namespace Verse
 		void CanCreate<TMember>(Func<TMember> constructor);
 
 		/// <summary>
-		/// Declare new named field in current entity, and reuse existing decoder
-		/// descriptor to describe it.
+		/// Declare new named field in current schema and reuse previously
+		/// existing descriptor to define how it should be decoded. This method
+		/// can be used to describe recursive schemas.
 		/// </summary>
 		/// <typeparam name="TField">Field type</typeparam>
 		/// <param name="name">Field name</param>
-		/// <param name="assign">Field to parent entity assignment delegate</param>
-		/// <param name="parent">Existing decoder descriptor for this field,
-		/// needed if you want to declare recursive entities</param>
+		/// <param name="assign">Assign child entity to current one</param>
+		/// <param name="parent">Existing decoder descriptor</param>
 		/// <returns>Field decoder descriptor</returns>
 		IDecoderDescriptor<TField> HasField<TField>(string name, DecodeAssign<TEntity, TField> assign, IDecoderDescriptor<TField> parent);
 
 		/// <summary>
-		/// Declare new named field in current entity.
+		/// Declare new named field in current schema and decode it as a new
+		/// child entity. Resulting descriptor defines how this field should
+		/// be decoded into child entity.
 		/// </summary>
 		/// <typeparam name="TField">Field type</typeparam>
 		/// <typeparam name="TKey">Key type</typeparam>
 		/// <param name="name">Field name</param>
-		/// <param name="assign">Field to parent entity assignment delegate</param>
+		/// <param name="assign">Assign child entity to current one</param>
 		/// <returns>Field decoder descriptor</returns>
 		IDecoderDescriptor<TField> HasField<TField>(string name, DecodeAssign<TEntity, TField> assign);
+
+		/// <summary>
+		/// Declare new name field in current schema which should be decoded
+		/// into current entity. Resulting descriptor defines how this field
+		/// should be decoded into entity.
+		/// </summary>
+		/// <param name="name">Field name</param>
+		/// <returns>Entity decoder descriptor</returns>
+		IDecoderDescriptor<TEntity> HasField(string name);
 
 		/// <summary>
 		/// Declare new elements collection within current entity, and reuse

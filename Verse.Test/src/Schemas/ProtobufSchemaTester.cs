@@ -50,7 +50,7 @@ namespace Verse.Test.Schemas
 			decodedValue = new ProtobufValue();
 
 			schema = new ProtobufSchema<ProtobufValue>();
-			schema.DecoderDescriptor.HasField("_1", Identity<ProtobufValue>.Assign).IsValue();
+			schema.DecoderDescriptor.HasField("_1").IsValue();
 			decoder = schema.CreateDecoder();
 
 			Assert.IsTrue(decoder.Decode(stream, out decodedValue));
@@ -138,8 +138,8 @@ namespace Verse.Test.Schemas
 			Serializer.Serialize(stream, testFieldClass);
 			stream.Seek(0, SeekOrigin.Begin);
 
-			ProtobufSchema<T> schema = new ProtobufSchema<T>();
-			schema.DecoderDescriptor.HasField("_3", Identity<T>.Assign).HasField("_4", Identity<T>.Assign).IsValue();
+			var schema = new ProtobufSchema<T>();
+			schema.DecoderDescriptor.HasField("_3").HasField("_4").IsValue();
 
 			IDecoder<T> decoder = schema.CreateDecoder();
 

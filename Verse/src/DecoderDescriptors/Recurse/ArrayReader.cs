@@ -2,5 +2,5 @@
 
 namespace Verse.DecoderDescriptors.Recurse
 {
-	delegate bool ArrayReader<TEntity, TState>(Func<TEntity> constructor, TState state, out TEntity entity);
+	delegate bool ArrayReader<TEntity, TState>(ref TEntity entity, TState state);
 }

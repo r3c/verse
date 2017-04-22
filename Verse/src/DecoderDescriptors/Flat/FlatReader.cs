@@ -25,7 +25,7 @@ namespace Verse.DecoderDescriptors.Flat
 			this.converter = convert;
 		}
 
-		public abstract bool Read(Func<TEntity> constructor, TState state, out TEntity entity);
+		public abstract bool Read(ref TEntity entity, TState state);
 
 		public abstract bool ReadValue(TState state, out TEntity target);
 	}
