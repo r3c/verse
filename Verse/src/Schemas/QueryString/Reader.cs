@@ -143,21 +143,18 @@ namespace Verse.Schemas.QueryString
 			return true;
 		}
 
-		public override bool ReadValue(ReaderState state, out TEntity target)
+		public override bool ReadValue(ReaderState state, out TEntity value)
 		{
-			string value;
+			string raw;
 
-			if (!this.ScanValue(state, out value))
+			if (!this.ScanValue(state, out raw))
 			{
-				target = default(TEntity);
+				value = default(TEntity);
 
 				return false;
 			}
 
-			if (this.converter != null)
-				target = this.converter(value);
-			else
-				target = default(TEntity);
+			value = this.converter != null ? this.converter(raw) : default(TEntity);
 
 			return true;
 		}
@@ -166,7 +163,7 @@ namespace Verse.Schemas.QueryString
 
 		#region Methods / Private
 
-		private bool ScanValue(ReaderState state, out string value)
+		private bool ScanValue(ReaderState state, out string raw)
 		{
 			var buffer = new byte[state.Encoding.GetMaxByteCount(1)];
 			var builder = new StringBuilder(32);
@@ -196,7 +193,7 @@ namespace Verse.Schemas.QueryString
 					{
 						if (count >= buffer.Length)
 						{
-							value = string.Empty;
+							raw = string.Empty;
 
 							return false;
 						}
@@ -205,7 +202,7 @@ namespace Verse.Schemas.QueryString
 
 						if (state.Current == -1)
 						{
-							value = string.Empty;
+							raw = string.Empty;
 
 							return false;
 						}
@@ -216,7 +213,7 @@ namespace Verse.Schemas.QueryString
 
 						if (state.Current == -1)
 						{
-							value = string.Empty;
+							raw = string.Empty;
 
 							return false;
 						}
@@ -227,7 +224,7 @@ namespace Verse.Schemas.QueryString
 
 						if (hex1 < 0 || hex2 < 0)
 						{
-							value = string.Empty;
+							raw = string.Empty;
 
 							return false;
 						}
@@ -241,7 +238,7 @@ namespace Verse.Schemas.QueryString
 					break;
 			}
 
-			value = builder.ToString();
+			raw = builder.ToString();
 
 			return true;
 		}

@@ -27,6 +27,6 @@ namespace Verse.DecoderDescriptors.Flat
 
 		public abstract bool Read(ref TEntity entity, TState state);
 
-		public abstract bool ReadValue(TState state, out TEntity target);
+		public abstract bool ReadValue(TState state, out TEntity value);
 	}
 }

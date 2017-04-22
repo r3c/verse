@@ -35,25 +35,15 @@ namespace Verse.Test.Schemas
 		public void TestDecodeValue<T>(T value, ProtobufType type)
 		{
 			ProtobufValue decodedValue;
-			IDecoder<ProtobufValue> decoder;
-			ISchema<ProtobufValue> schema;
-			MemoryStream stream;
-			TestFieldClass<T> testFieldClass;
+			var schema = new ProtobufSchema<ProtobufValue>();
+			var testFieldClass = new TestFieldClass<T>();
 
-			testFieldClass = new TestFieldClass<T>();
 			testFieldClass.value = value;
 
-			stream = new MemoryStream();
-			Serializer.Serialize(stream, testFieldClass);
-			stream.Seek(0, SeekOrigin.Begin);
-
-			decodedValue = new ProtobufValue();
-
-			schema = new ProtobufSchema<ProtobufValue>();
 			schema.DecoderDescriptor.HasField("_1").IsValue();
-			decoder = schema.CreateDecoder();
 
-			Assert.IsTrue(decoder.Decode(stream, out decodedValue));
+			decodedValue = ProtobufSchemaTester.DecodeTranscode<TestFieldClass<T>, ProtobufValue>(schema.CreateDecoder(), testFieldClass);
+
 			Assert.AreEqual(type, decodedValue.Type);
 
 			switch (type)
@@ -91,28 +81,19 @@ namespace Verse.Test.Schemas
 		[TestCase(LONG_STRING, LONG_STRING, LONG_STRING)]
 		public void TestDecodeValues<T>(T a, T b, T c)
 		{
-			IDecoder<List<T>> decoder;
-			ProtobufSchema<List<T>> schema;
+			var schema = new ProtobufSchema<List<T>>();
+			var testFieldClass = new TestFieldClass<T>();
 			List<T> value;
 
-			TestFieldClass<T> testFieldClass;
-			testFieldClass = new TestFieldClass<T>();
 			testFieldClass.items = new List<T> {a, b, c};
 
-			MemoryStream stream;
-			stream = new MemoryStream();
-			Serializer.Serialize(stream, testFieldClass);
-			stream.Seek(0, SeekOrigin.Begin);
-
-			schema = new ProtobufSchema<List<T>>();
 			schema.DecoderDescriptor
 				.HasField("_2", (ref List<T> target, List<T> values) => target.AddRange(values))
 				.IsArray((ref List<T> target, IEnumerable<T> enumerable) => target.AddRange(enumerable))
 				.IsValue();
 
-			value = new List<T>();
-			decoder = schema.CreateDecoder();
-			Assert.IsTrue(decoder.Decode(stream, out value));
+			value = ProtobufSchemaTester.DecodeTranscode<TestFieldClass<T>, List<T>>(schema.CreateDecoder(), testFieldClass);
+
 			CollectionAssert.AreEqual(testFieldClass.items, value);
 		}
 
@@ -127,24 +108,20 @@ namespace Verse.Test.Schemas
 		[TestCase(LONG_STRING)]
 		public void TestDecodeSubValue<T>(T expectedValue)
 		{
-			TestFieldClass<T> testFieldClass;
-			testFieldClass = new TestFieldClass<T>();
+			var schema = new ProtobufSchema<T>();
+			var testFieldClass = new TestFieldClass<T>();
+			T value;
 
 			testFieldClass.subValue = new SubTestFieldClass<T>();
 			testFieldClass.subValue.value = expectedValue;
 
-			MemoryStream stream;
-			stream = new MemoryStream();
-			Serializer.Serialize(stream, testFieldClass);
-			stream.Seek(0, SeekOrigin.Begin);
+			schema.DecoderDescriptor
+				.HasField("_3")
+				.HasField("_4")
+				.IsValue();
 
-			var schema = new ProtobufSchema<T>();
-			schema.DecoderDescriptor.HasField("_3").HasField("_4").IsValue();
+			value = ProtobufSchemaTester.DecodeTranscode<TestFieldClass<T>, T>(schema.CreateDecoder(), testFieldClass);
 
-			IDecoder<T> decoder = schema.CreateDecoder();
-
-			T value = default(T);
-			Assert.IsTrue(decoder.Decode(stream, out value));
 			Assert.AreEqual(expectedValue, value);
 		}
 
@@ -160,30 +137,21 @@ namespace Verse.Test.Schemas
 		public void TestDecodeSubValues<T>(T a, T b, T c)
 		{
 			TestFieldClass<TestFieldClass<T>> decodedValue;
-			IDecoder<TestFieldClass<TestFieldClass<T>>> decoder;
-			ProtobufSchema<TestFieldClass<TestFieldClass<T>>> schema;
-			MemoryStream stream;
-			TestFieldClass<TestFieldClass<T>> testFieldClass;
 			T[] expectedValues = {a, b, c};
+			var schema = new ProtobufSchema<TestFieldClass<TestFieldClass<T>>>();
+			var testFieldClass = new TestFieldClass<TestFieldClass<T>>();
 
-			testFieldClass = new TestFieldClass<TestFieldClass<T>>();
 			foreach (var value in expectedValues)
 			{
-				testFieldClass.items.Add(
-					new TestFieldClass<T>
+				testFieldClass.items.Add(new TestFieldClass<T>
+				{
+					subValue = new SubTestFieldClass<T>
 					{
-						subValue = new SubTestFieldClass<T>
-						{
-							value = value
-						}
-					});
+						value = value
+					}
+				});
 			}
 
-			stream = new MemoryStream();
-			Serializer.Serialize(stream, testFieldClass);
-			stream.Seek(0, SeekOrigin.Begin);
-
-			schema = new ProtobufSchema<TestFieldClass<TestFieldClass<T>>>();
 			schema.DecoderDescriptor
 				.HasField("_2", (ref TestFieldClass<TestFieldClass<T>> target, List<TestFieldClass<T>> value) => target.items.AddRange(value))
 				.IsArray((ref List<TestFieldClass<T>> target, IEnumerable<TestFieldClass<T>> value) => target.AddRange(value))
@@ -191,10 +159,7 @@ namespace Verse.Test.Schemas
 				.HasField("_4", (ref SubTestFieldClass<T> target, T value) => target.value = value)
 				.IsValue();
 
-			decoder = schema.CreateDecoder();
-
-			decodedValue = new TestFieldClass<TestFieldClass<T>>();
-			Assert.IsTrue(decoder.Decode(stream, out decodedValue));
+			decodedValue = ProtobufSchemaTester.DecodeRoundTrip(schema.CreateDecoder(), testFieldClass);
 
 			Assert.AreEqual(expectedValues.Length, decodedValue.items.Count);
 
@@ -223,12 +188,11 @@ namespace Verse.Test.Schemas
 		[TestCase(null, null, 10)]
 		public void TestDecodeSubObjectIndex(int? index0, int? index1, int expected)
 		{
-			IDecoder<int> decoder;
-			ProtobufSchema<int> schema;
+			IDecoderDescriptor<int> descriptor;
+			var schema = new ProtobufSchema<int>();
+			var testFieldClass = new TestFieldClass<TestFieldClass<SubTestFieldClass<int>>>();
 			int value;
 
-			TestFieldClass<TestFieldClass<SubTestFieldClass<int>>> testFieldClass;
-			testFieldClass = new TestFieldClass<TestFieldClass<SubTestFieldClass<int>>>();
 			testFieldClass.items = new List<TestFieldClass<SubTestFieldClass<int>>>
 			{
 				new TestFieldClass<SubTestFieldClass<int>>
@@ -285,33 +249,26 @@ namespace Verse.Test.Schemas
 						}
 					}
 				},
-			}.ToList();
+			};
 
-			MemoryStream stream;
-			stream = new MemoryStream();
-			Serializer.Serialize(stream, testFieldClass);
-			stream.Seek(0, SeekOrigin.Begin);
-
-			schema = new ProtobufSchema<int>();
-
-			IDecoderDescriptor<int?> result = schema.DecoderDescriptor
-				.HasField("_2", (ref int target, int? v) => target = v.GetValueOrDefault(target));
+			descriptor = schema.DecoderDescriptor
+				.HasField("_2");
 
 			if (index0.HasValue)
-				result = result.HasField(index0.Value.ToString(CultureInfo.InvariantCulture), (ref int? target, int? v) => target = target ?? v);
+				descriptor = descriptor.HasField(index0.Value.ToString(CultureInfo.InvariantCulture));
 
-			result = result
-				.HasField("_2", (ref int? target, int? v) => target = target ?? v);
+			descriptor = descriptor
+				.HasField("_2");
 
 			if (index1.HasValue)
-				result = result.HasField(index1.Value.ToString(CultureInfo.InvariantCulture), (ref int? target, int? v) => target = target ?? v);
+				descriptor = descriptor.HasField(index1.Value.ToString(CultureInfo.InvariantCulture));
 
-			result
-				.HasField("_4", (ref int? target, int v) => target = v)
+			descriptor
+				.HasField("_4")
 				.IsValue();
 
-			decoder = schema.CreateDecoder();
-			Assert.IsTrue(decoder.Decode(stream, out value));
+			value = ProtobufSchemaTester.DecodeTranscode<TestFieldClass<TestFieldClass<SubTestFieldClass<int>>>, int>(schema.CreateDecoder(), testFieldClass);
+
 			Assert.AreEqual(expected, value);
 		}
 
@@ -326,17 +283,15 @@ namespace Verse.Test.Schemas
 		[TestCase(LONG_STRING, ProtobufType.String)]
 		public void TestEncodeValue<T>(T value, ProtobufType type)
 		{
-			IEncoder<ProtobufValue> encoder;
+			ProtobufValue protoValue;
 			ISchema<ProtobufValue> schema;
-			MemoryStream stream;
 			TestFieldClass<T> testFieldClass;
 
 			schema = new ProtobufSchema<ProtobufValue>();
-			schema.EncoderDescriptor.HasField("_1").IsValue();
+			schema.EncoderDescriptor
+				.HasField("_1")
+				.IsValue();
 
-			stream = new MemoryStream();
-
-			ProtobufValue protoValue;
 			switch (type)
 			{
 				case ProtobufType.Float:
@@ -360,12 +315,7 @@ namespace Verse.Test.Schemas
 					return;
 			}
 
-			encoder = schema.CreateEncoder();
-			Assert.IsTrue(encoder.Encode(protoValue, stream));
-
-			stream.Seek(0, SeekOrigin.Begin);
-
-			testFieldClass = Serializer.Deserialize<TestFieldClass<T>>(stream);
+			testFieldClass = ProtobufSchemaTester.EncodeTranscode<ProtobufValue, TestFieldClass<T>>(schema.CreateEncoder(), protoValue);
 
 			Assert.AreEqual(value, testFieldClass.value);
 		}
@@ -381,18 +331,17 @@ namespace Verse.Test.Schemas
 		[TestCase(LONG_STRING, LONG_STRING, LONG_STRING)]
 		public void TestEncodeValues<T>(T a, T b, T c)
 		{
-			ProtobufSchema<List<T>> schema;
-			schema = new ProtobufSchema<List<T>>();
-			IEncoderDescriptor<List<T>> encoderDescriptor = schema.EncoderDescriptor.HasField("_2");
-			encoderDescriptor.IsArray(source => source).IsValue();
-			T[] expectedItems = {a, b, c};
+			var expectedItems = new [] {a, b, c};
+			var schema = new ProtobufSchema<List<T>>();
+			TestFieldClass<T> testFieldClass;
 
-			MemoryStream stream;
-			stream = new MemoryStream();
-			Assert.IsTrue(schema.CreateEncoder().Encode(new List<T>(expectedItems), stream));
-			stream.Seek(0, SeekOrigin.Begin);
+			schema.EncoderDescriptor
+				.HasField("_2")
+				.IsArray(source => source)
+				.IsValue();
 
-			TestFieldClass<T> testFieldClass = Serializer.Deserialize<TestFieldClass<T>>(stream);
+			testFieldClass = ProtobufSchemaTester.EncodeTranscode<List<T>, TestFieldClass<T>>(schema.CreateEncoder(), new List<T>(expectedItems));
+
 			CollectionAssert.AreEqual(expectedItems, testFieldClass.items);
 		}
 
@@ -408,28 +357,18 @@ namespace Verse.Test.Schemas
 		public void TestEncodeSubValue<T>(T expectedValue)
 		{
 			TestFieldClass<T> decodedTestFieldClass;
-			IEncoder<TestFieldClass<T>> encoder;
-			ProtobufSchema<TestFieldClass<T>> schema;
-			MemoryStream stream;
-			TestFieldClass<T> testFieldClass;
+			var schema = new ProtobufSchema<TestFieldClass<T>>();
+			var testFieldClass = new TestFieldClass<T>();
 
-			testFieldClass = new TestFieldClass<T>();
 			testFieldClass.subValue = new SubTestFieldClass<T>();
 			testFieldClass.subValue.value = expectedValue;
 
-			schema = new ProtobufSchema<TestFieldClass<T>>();
 			schema.EncoderDescriptor
 				.HasField("_3", target => target.subValue)
 				.HasField("_4", target => target.value)
 				.IsValue();
 
-			stream = new MemoryStream();
-
-			encoder = schema.CreateEncoder();
-			Assert.IsTrue(encoder.Encode(testFieldClass, stream));
-			stream.Seek(0, SeekOrigin.Begin);
-
-			decodedTestFieldClass = Serializer.Deserialize<TestFieldClass<T>>(stream);
+			decodedTestFieldClass = ProtobufSchemaTester.EncodeRoundTrip(schema.CreateEncoder(), testFieldClass);
 
 			Assert.AreEqual(expectedValue, decodedTestFieldClass.subValue.value);
 		}
@@ -445,26 +384,22 @@ namespace Verse.Test.Schemas
 		[TestCase(LONG_STRING, LONG_STRING, LONG_STRING)]
 		public void TestEncodeSubValues<T>(T a, T b, T c)
 		{
-			IEncoder<TestFieldClass<TestFieldClass<T>>> encoder;
-			TestFieldClass<TestFieldClass<T>> fieldClass;
-			ProtobufSchema<TestFieldClass<TestFieldClass<T>>> schema;
-			MemoryStream stream;
-			T[] expectedValues = {a, b, c};
+			TestFieldClass<TestFieldClass<T>> decodedFieldClass;
+			var fieldClass = new TestFieldClass<TestFieldClass<T>>();
+			var schema = new ProtobufSchema<TestFieldClass<TestFieldClass<T>>>();
+			var expectedValues = new [] {a, b, c};
 
-			fieldClass = new TestFieldClass<TestFieldClass<T>>();
 			foreach (var value in expectedValues)
 			{
-				fieldClass.items.Add(
-					new TestFieldClass<T>
+				fieldClass.items.Add(new TestFieldClass<T>
+				{
+					subValue = new SubTestFieldClass<T>
 					{
-						subValue = new SubTestFieldClass<T>
-						{
-							value = value
-						}
-					});
+						value = value
+					}
+				});
 			}
 
-			schema = new ProtobufSchema<TestFieldClass<TestFieldClass<T>>>();
 			schema.EncoderDescriptor
 				.HasField("_2")
 				.IsArray(source => source.items)
@@ -472,20 +407,49 @@ namespace Verse.Test.Schemas
 				.HasField("_4", target => target.value)
 				.IsValue();
 
-			stream = new MemoryStream();
-
-			encoder = schema.CreateEncoder();
-			Assert.IsTrue(encoder.Encode(fieldClass, stream));
-
-			stream.Seek(0, SeekOrigin.Begin);
-
-			TestFieldClass<TestFieldClass<T>> decodedFieldClass = Serializer.Deserialize<TestFieldClass<TestFieldClass<T>>>(stream);
+			decodedFieldClass = ProtobufSchemaTester.EncodeRoundTrip(schema.CreateEncoder(), fieldClass);
 
 			Assert.AreEqual(expectedValues.Length, decodedFieldClass.items.Count);
 
 			for (int i = 0; i < expectedValues.Length; ++i)
-			{
 				Assert.AreEqual(expectedValues[i], decodedFieldClass.items[i].subValue.value);
+		}
+
+		private static T DecodeRoundTrip<T>(IDecoder<T> decoder, T input)
+		{
+			return ProtobufSchemaTester.DecodeTranscode<T, T>(decoder, input);
+		}
+
+		private static U DecodeTranscode<T, U>(IDecoder<U> decoder, T input)
+		{
+			U output;
+
+			using (var stream = new MemoryStream())
+			{
+				Serializer.Serialize(stream, input);
+
+				stream.Seek(0, SeekOrigin.Begin);
+	
+				Assert.IsTrue(decoder.Decode(stream, out output));
+			}
+
+			return output;
+		}
+
+		private static T EncodeRoundTrip<T>(IEncoder<T> encoder, T input)
+		{
+			return ProtobufSchemaTester.EncodeTranscode<T, T>(encoder, input);
+		}
+
+		private static U EncodeTranscode<T, U>(IEncoder<T> encoder, T input)
+		{
+			using (var stream = new MemoryStream())
+			{
+				Assert.IsTrue(encoder.Encode(input, stream));
+
+				stream.Seek(0, SeekOrigin.Begin);
+
+				return Serializer.Deserialize<U>(stream);
 			}
 		}
 
