@@ -89,7 +89,7 @@ namespace Verse.Test.Schemas
 
 			schema.DecoderDescriptor
 				.HasField("_2", (ref List<T> target, List<T> values) => target.AddRange(values))
-				.IsArray((ref List<T> target, IEnumerable<T> enumerable) => target.AddRange(enumerable))
+				.HasItems((ref List<T> target, IEnumerable<T> enumerable) => target.AddRange(enumerable))
 				.IsValue();
 
 			value = ProtobufSchemaTester.DecodeTranscode<TestFieldClass<T>, List<T>>(schema.CreateDecoder(), testFieldClass);
@@ -154,7 +154,7 @@ namespace Verse.Test.Schemas
 
 			schema.DecoderDescriptor
 				.HasField("_2", (ref TestFieldClass<TestFieldClass<T>> target, List<TestFieldClass<T>> value) => target.items.AddRange(value))
-				.IsArray((ref List<TestFieldClass<T>> target, IEnumerable<TestFieldClass<T>> value) => target.AddRange(value))
+				.HasItems((ref List<TestFieldClass<T>> target, IEnumerable<TestFieldClass<T>> value) => target.AddRange(value))
 				.HasField("_3", (ref TestFieldClass<T> target, SubTestFieldClass<T> value) => target.subValue  = value)
 				.HasField("_4", (ref SubTestFieldClass<T> target, T value) => target.value = value)
 				.IsValue();
@@ -337,7 +337,7 @@ namespace Verse.Test.Schemas
 
 			schema.EncoderDescriptor
 				.HasField("_2")
-				.IsArray(source => source)
+				.HasItems(source => source)
 				.IsValue();
 
 			testFieldClass = ProtobufSchemaTester.EncodeTranscode<List<T>, TestFieldClass<T>>(schema.CreateEncoder(), new List<T>(expectedItems));
@@ -402,7 +402,7 @@ namespace Verse.Test.Schemas
 
 			schema.EncoderDescriptor
 				.HasField("_2")
-				.IsArray(source => source.items)
+				.HasItems(source => source.items)
 				.HasField("_3", target => target.subValue)
 				.HasField("_4", target => target.value)
 				.IsValue();

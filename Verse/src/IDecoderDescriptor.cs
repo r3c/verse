@@ -59,20 +59,20 @@ namespace Verse
 		/// Declare new elements collection within current entity, and reuse
 		/// existing decoder to describe them.
 		/// </summary>
-		/// <typeparam name="TElement">Array element type</typeparam>
+		/// <typeparam name="TItem">Array element type</typeparam>
 		/// <param name="assign">Elements to parent entity assignment delegate</param>
 		/// <param name="parent">Existing decoder descriptor for this elements
 		/// collection, needed if you want to declare recursive entities</param>
 		/// <returns>Element decoder descriptor</returns>
-		IDecoderDescriptor<TElement> IsArray<TElement>(DecodeAssign<TEntity, IEnumerable<TElement>> assign, IDecoderDescriptor<TElement> parent);
+		IDecoderDescriptor<TItem> HasItems<TItem>(DecodeAssign<TEntity, IEnumerable<TItem>> assign, IDecoderDescriptor<TItem> parent);
 
 		/// <summary>
 		/// Declare new elements collection within current entity.
 		/// </summary>
-		/// <typeparam name="TElement">Array element type</typeparam>
+		/// <typeparam name="TItem">Array element type</typeparam>
 		/// <param name="assign">Elements to parent entity assignment delegate</param>
 		/// <returns>Element decoder descriptor</returns>
-		IDecoderDescriptor<TElement> IsArray<TElement>(DecodeAssign<TEntity, IEnumerable<TElement>> assign);
+		IDecoderDescriptor<TItem> HasItems<TItem>(DecodeAssign<TEntity, IEnumerable<TItem>> assign);
 
 		/// <summary>
 		/// Declare entity as a value. Entity type must have a known decoder

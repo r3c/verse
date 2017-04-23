@@ -221,13 +221,13 @@ namespace Verse
 			if (parents.TryGetValue(type, out recurse))
 			{
 				Resolver
-					.Method<Func<IDecoderDescriptor<TEntity>, DecodeAssign<TEntity, IEnumerable<object>>, IDecoderDescriptor<object>, IDecoderDescriptor<object>>>((d, a, p) => d.IsArray(a, p), null, new[] { type })
+					.Method<Func<IDecoderDescriptor<TEntity>, DecodeAssign<TEntity, IEnumerable<object>>, IDecoderDescriptor<object>, IDecoderDescriptor<object>>>((d, a, p) => d.HasItems(a, p), null, new[] { type })
 					.Invoke(descriptor, new[] { assign, recurse });
 			}
 			else
 			{
 				recurse = Resolver
-					.Method<Func<IDecoderDescriptor<TEntity>, DecodeAssign<TEntity, IEnumerable<object>>, IDecoderDescriptor<object>>>((d, a) => d.IsArray(a), null, new[] { type })
+					.Method<Func<IDecoderDescriptor<TEntity>, DecodeAssign<TEntity, IEnumerable<object>>, IDecoderDescriptor<object>>>((d, a) => d.HasItems(a), null, new[] { type })
 					.Invoke(descriptor, new[] { assign });
 
 				result = Resolver
@@ -359,13 +359,13 @@ namespace Verse
 			if (parents.TryGetValue(type, out recurse))
 			{
 				Resolver
-					.Method<Func<IEncoderDescriptor<T>, Func<T, IEnumerable<object>>, IEncoderDescriptor<object>, IEncoderDescriptor<object>>>((d, a, p) => d.IsArray(a, p), null, new[] { type })
+					.Method<Func<IEncoderDescriptor<T>, Func<T, IEnumerable<object>>, IEncoderDescriptor<object>, IEncoderDescriptor<object>>>((d, a, p) => d.HasItems(a, p), null, new[] { type })
 					.Invoke(descriptor, new[] { access, recurse });
 			}
 			else
 			{
 				recurse = Resolver
-					.Method<Func<IEncoderDescriptor<T>, Func<T, IEnumerable<object>>, IEncoderDescriptor<object>>>((d, a) => d.IsArray(a), null, new[] { type })
+					.Method<Func<IEncoderDescriptor<T>, Func<T, IEnumerable<object>>, IEncoderDescriptor<object>>>((d, a) => d.HasItems(a), null, new[] { type })
 					.Invoke(descriptor, new[] { access });
 
 				result = Resolver

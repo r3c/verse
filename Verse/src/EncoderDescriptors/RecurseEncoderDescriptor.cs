@@ -48,9 +48,9 @@ namespace Verse.EncoderDescriptors
 			return this.HasField(name, access, new RecurseEncoderDescriptor<TField, TState, TValue>(this.converter, this.session, this.writer.Create<TField>()));
 		}
 
-		public override IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> access, IEncoderDescriptor<TElement> parent)
+		public override IEncoderDescriptor<TItem> HasItems<TItem>(Func<TEntity, IEnumerable<TItem>> access, IEncoderDescriptor<TItem> parent)
 		{
-			var descriptor = parent as RecurseEncoderDescriptor<TElement, TState, TValue>;
+			var descriptor = parent as RecurseEncoderDescriptor<TItem, TState, TValue>;
 
 			if (descriptor == null)
 				throw new ArgumentOutOfRangeException("parent", "incompatible descriptor type");
@@ -58,9 +58,9 @@ namespace Verse.EncoderDescriptors
 			return this.IsArray(access, descriptor);
 		}
 
-		public override IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> access)
+		public override IEncoderDescriptor<TItem> HasItems<TItem>(Func<TEntity, IEnumerable<TItem>> access)
 		{
-			return this.IsArray(access, new RecurseEncoderDescriptor<TElement, TState, TValue>(this.converter, this.session, this.writer.Create<TElement>()));
+			return this.IsArray(access, new RecurseEncoderDescriptor<TItem, TState, TValue>(this.converter, this.session, this.writer.Create<TItem>()));
 		}
 
 		public override void IsValue()
@@ -74,18 +74,18 @@ namespace Verse.EncoderDescriptors
 
 		private RecurseEncoderDescriptor<TField, TState, TValue> HasField<TField>(string name, Func<TEntity, TField> access, RecurseEncoderDescriptor<TField, TState, TValue> descriptor)
 		{
-			var recurse = descriptor.writer;
+			var child = descriptor.writer;
 
-			this.writer.DeclareField(name, (source, state) => recurse.WriteEntity(access(source), state));
+			this.writer.DeclareField(name, (source, state) => child.WriteEntity(access(source), state));
 
 			return descriptor;
 		}
 
-		private RecurseEncoderDescriptor<TElement, TState, TValue> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> access, RecurseEncoderDescriptor<TElement, TState, TValue> descriptor)
+		private RecurseEncoderDescriptor<TItem, TState, TValue> IsArray<TItem>(Func<TEntity, IEnumerable<TItem>> access, RecurseEncoderDescriptor<TItem, TState, TValue> descriptor)
 		{
-			var recurse = descriptor.writer;
+			var child = descriptor.writer;
 
-			this.writer.DeclareArray((source, state) => recurse.WriteElements(access(source), state));
+			this.writer.DeclareArray((source, state) => child.WriteElements(access(source), state));
 
 			return descriptor;
 		}

@@ -49,19 +49,19 @@ namespace Verse.DecoderDescriptors
 		public override IDecoderDescriptor<TEntity> HasField(string name)
 		{
 			var descriptor = new FlatDecoderDescriptor<TEntity, TState, TValue>(this.converter, this.session, this.reader.Create<TEntity>());
-			var field = descriptor.reader;
+			var child = descriptor.reader;
 			
-			this.reader.DeclareField(name, (ref TEntity target, TState state) => field.ReadValue (state, out target));
+			this.reader.DeclareField(name, (ref TEntity target, TState state) => child.ReadValue (state, out target));
 			
 			return descriptor;
 		}
 
-		public override IDecoderDescriptor<TElement> IsArray<TElement>(DecodeAssign<TEntity, IEnumerable<TElement>> assign, IDecoderDescriptor<TElement> parent)
+		public override IDecoderDescriptor<TItem> HasItems<TItem>(DecodeAssign<TEntity, IEnumerable<TItem>> assign, IDecoderDescriptor<TItem> parent)
 		{
 			throw new NotImplementedException("array is not supported");
 		}
 
-		public override IDecoderDescriptor<TElement> IsArray<TElement>(DecodeAssign<TEntity, IEnumerable<TElement>> assign)
+		public override IDecoderDescriptor<TItem> HasItems<TItem>(DecodeAssign<TEntity, IEnumerable<TItem>> assign)
 		{
 			throw new NotImplementedException("array is not supported");
 		}
@@ -77,13 +77,13 @@ namespace Verse.DecoderDescriptors
 
 		private IDecoderDescriptor<TField> HasField<TField>(string name, DecodeAssign<TEntity, TField> assign, FlatDecoderDescriptor<TField, TState, TValue> descriptor)
 		{
-			var field = descriptor.reader;
+			var child = descriptor.reader;
 
 			this.reader.DeclareField(name, (ref TEntity target, TState state) =>
 			{
 				TField inner;
 
-				if (!field.ReadValue(state, out inner))
+				if (!child.ReadValue(state, out inner))
 					return false;
 
 				assign(ref target, inner);

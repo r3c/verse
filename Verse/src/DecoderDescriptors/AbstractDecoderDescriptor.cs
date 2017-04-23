@@ -39,9 +39,9 @@ namespace Verse.DecoderDescriptors
 
 		public abstract IDecoderDescriptor<TEntity> HasField(string name);
 
-		public abstract IDecoderDescriptor<TElement> IsArray<TElement>(DecodeAssign<TEntity, IEnumerable<TElement>> assign, IDecoderDescriptor<TElement> parent);
+		public abstract IDecoderDescriptor<TItem> HasItems<TItem>(DecodeAssign<TEntity, IEnumerable<TItem>> assign, IDecoderDescriptor<TItem> parent);
 
-		public abstract IDecoderDescriptor<TElement> IsArray<TElement>(DecodeAssign<TEntity, IEnumerable<TElement>> assign);
+		public abstract IDecoderDescriptor<TItem> HasItems<TItem>(DecodeAssign<TEntity, IEnumerable<TItem>> assign);
 
 		public abstract void IsValue();
 

@@ -5,17 +5,7 @@ namespace Verse.DecoderDescriptors.Recurse
 {
 	abstract class RecurseReader<TEntity, TState, TValue> : IReader<TEntity, TState>
 	{
-		#region Properties
-
-		protected bool IsArray
-		{
-			get
-			{
-				return this.array != null;
-			}
-		}
-
-		protected bool IsValue
+		protected bool HoldValue
 		{
 			get
 			{
@@ -23,39 +13,17 @@ namespace Verse.DecoderDescriptors.Recurse
 			}
 		}
 
-		#endregion
-
-		#region Attributes
-
-		private EntityReader<TEntity, TState> array = null;
-
 		private Converter<TValue, TEntity> convert = null;
-
-		#endregion
-
-		#region Methods / Abstract
 
 		public abstract BrowserMove<TEntity> Browse(Func<TEntity> constructor, TState state);
 
-		public abstract RecurseReader<TOther, TState, TValue> Create<TOther>();
+		public abstract RecurseReader<TField, TState, TValue> HasField<TField>(string name, EntityReader<TEntity, TState> enter);
 
-		public abstract void DeclareField(string name, EntityReader<TEntity, TState> enter);
+		public abstract RecurseReader<TItem, TState, TValue> HasItems<TItem>(EntityReader<TEntity, TState> enter);
 
 		public abstract bool Read(ref TEntity entity, TState state);
 
-		#endregion
-
-		#region Methods / Public
-
-		public void DeclareArray(EntityReader<TEntity, TState> enter)
-		{
-			if (this.array != null)
-				throw new InvalidOperationException("can't declare array twice on same descriptor");
-
-			this.array = enter;
-		}
-
-		public void DeclareValue(Converter<TValue, TEntity> convert)
+		public void IsValue(Converter<TValue, TEntity> convert)
 		{
 			if (this.convert != null)
 				throw new InvalidOperationException("can't declare value twice on same descriptor");
@@ -63,20 +31,9 @@ namespace Verse.DecoderDescriptors.Recurse
 			this.convert = convert;
 		}
 
-		#endregion
-
-		#region Methods / Protected
-
 		protected TEntity ConvertValue(TValue value)
 		{
 			return this.convert(value);
 		}
-
-		protected bool ReadArray(ref TEntity entity, TState state)
-		{
-			return this.array(ref entity, state);
-		}
-
-		#endregion
 	}
 }

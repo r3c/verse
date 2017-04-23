@@ -27,9 +27,9 @@ namespace Verse.EncoderDescriptors
 
 		public abstract IEncoderDescriptor<TField> HasField<TField>(string name, Func<TEntity, TField> access);
 
-		public abstract IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> access, IEncoderDescriptor<TElement> parent);
+		public abstract IEncoderDescriptor<TItem> HasItems<TItem>(Func<TEntity, IEnumerable<TItem>> access, IEncoderDescriptor<TItem> parent);
 
-		public abstract IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> access);
+		public abstract IEncoderDescriptor<TItem> HasItems<TItem>(Func<TEntity, IEnumerable<TItem>> access);
 
 		public abstract void IsValue();
 

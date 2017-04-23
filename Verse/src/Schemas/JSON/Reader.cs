@@ -16,6 +16,8 @@ namespace Verse.Schemas.JSON
 
 		#region Attributes
 
+		private EntityReader<TEntity, ReaderState> array = null;
+
 		private static readonly Reader<TEntity> emptyReader = new Reader<TEntity>();
 
 		private readonly EntityTree<TEntity, ReaderState> fields = new EntityTree<TEntity, ReaderState>();
@@ -47,21 +49,28 @@ namespace Verse.Schemas.JSON
 			}
 		}
 
-		public override RecurseReader<TOther, ReaderState, JSONValue> Create<TOther>()
-		{
-			return new Reader<TOther>();
-		}
-
-		public override void DeclareField(string name, EntityReader<TEntity, ReaderState> enter)
+		public override RecurseReader<TField, ReaderState, JSONValue> HasField<TField>(string name, EntityReader<TEntity, ReaderState> enter)
 		{
 			if (!this.fields.Connect(name, enter))
 				throw new InvalidOperationException("can't declare same field '" + name + "' twice on same descriptor");
+
+			return new Reader<TField>();
+		}
+
+		public override RecurseReader<TItem, ReaderState, JSONValue> HasItems<TItem>(EntityReader<TEntity, ReaderState> enter)
+		{
+			if (this.array != null)
+				throw new InvalidOperationException("can't declare array twice on same descriptor");
+
+			this.array = enter;
+
+			return new Reader<TItem>();
 		}
 
 		public override bool Read(ref TEntity entity, ReaderState state)
 		{
-			if (this.IsArray)
-				return this.ReadArray(ref entity, state);
+			if (this.array != null)
+				return this.array(ref entity, state);
 
 			switch (state.Current)
 			{
@@ -92,7 +101,7 @@ namespace Verse.Schemas.JSON
 						return false;
 					}
 
-					if (this.IsValue)
+					if (this.HoldValue)
 						entity = this.ConvertValue(JSONValue.FromBoolean(false));
 					else
 						entity = default(TEntity);
@@ -109,7 +118,7 @@ namespace Verse.Schemas.JSON
 						return false;
 					}
 
-					if (this.IsValue)
+					if (this.HoldValue)
 						entity = this.ConvertValue(JSONValue.Void);
 					else
 						entity = default(TEntity);
@@ -126,7 +135,7 @@ namespace Verse.Schemas.JSON
 						return false;
 					}
 
-					if (this.IsValue)
+					if (this.HoldValue)
 						entity = this.ConvertValue(JSONValue.FromBoolean(true));
 					else
 						entity = default(TEntity);
@@ -338,7 +347,7 @@ namespace Verse.Schemas.JSON
 				}
 
 				// Compute result number and assign if needed
-				if (this.IsValue)
+				if (this.HoldValue)
 				{
 					number =
 						(long)((numberMantissa ^ numberMantissaMask) + numberMantissaPlus) *
@@ -495,7 +504,7 @@ namespace Verse.Schemas.JSON
 			state.Read();
 
 			// Read and store string in a buffer if its value is needed
-			if (this.IsValue)
+			if (this.HoldValue)
 			{
 				buffer = new StringBuilder(32);
 

@@ -22,7 +22,7 @@ namespace Verse.Test.Schemas
 			var schema = new JSONSchema<double[]>();
 			double[] value;
 
-			schema.DecoderDescriptor.IsArray((ref double[] target, IEnumerable<double> items) => target = items.ToArray()).IsValue();
+			schema.DecoderDescriptor.HasItems((ref double[] target, IEnumerable<double> items) => target = items.ToArray()).IsValue();
 
 			Assert.IsTrue(schema.CreateDecoder().Decode(new MemoryStream(Encoding.UTF8.GetBytes(json)), out value));
 			CollectionAssert.AreEqual(expected, value);
@@ -154,7 +154,7 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new JSONSchema<int>();
 
-			schema.DecoderDescriptor.IsArray<string>((ref int target, IEnumerable<string> elements) => target = elements.Count());
+			schema.DecoderDescriptor.HasItems<string>((ref int target, IEnumerable<string> elements) => target = elements.Count());
 			schema.DecoderDescriptor.IsValue();
 
 			this.AssertDecodeAndEqual(schema, "\"test\"", 0);
@@ -206,7 +206,7 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new JSONSchema<int[]>();
 
-			schema.EncoderDescriptor.IsArray((source) => source).IsValue();
+			schema.EncoderDescriptor.HasItems((source) => source).IsValue();
 
 			this.AssertEncodeAndEqual(schema, value, expected);
 		}
@@ -283,7 +283,7 @@ namespace Verse.Test.Schemas
 			schema.EncoderDescriptor.HasField("firstnull", s => JSONValue.Void).IsValue();
 			schema.EncoderDescriptor.HasField("value").IsValue();
 			schema.EncoderDescriptor.HasField("secondnull", s => JSONValue.Void).IsValue();
-			schema.EncoderDescriptor.HasField("item").HasField("values").IsArray(v => new[] { null, "val1", null, "val2", null }).IsValue();
+			schema.EncoderDescriptor.HasField("item").HasField("values").HasItems(v => new[] { null, "val1", null, "val2", null }).IsValue();
 			schema.EncoderDescriptor.HasField("lastnull", s => JSONValue.Void).IsValue();
 
 			this.AssertEncodeAndEqual(schema, "test", expected);
@@ -303,7 +303,7 @@ namespace Verse.Test.Schemas
 			schema = new JSONSchema<JSONValue>(new JSONConfiguration { OmitNull = ignoreNull });
 			schema.EncoderDescriptor
 				.HasField("values")
-				.IsArray(v => new[] { JSONValue.Void, v, })
+				.HasItems(v => new[] { JSONValue.Void, v, })
 				.HasField("value")
 				.IsValue();
 

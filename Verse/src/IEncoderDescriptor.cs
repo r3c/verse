@@ -49,20 +49,20 @@ namespace Verse
 		/// Declare new elements collection within current entity, and reuse
 		/// existing encoder to describe them.
 		/// </summary>
-		/// <typeparam name="TElement">Element type</typeparam>
+		/// <typeparam name="TItem">Element type</typeparam>
 		/// <param name="access">Parent entity to elements accessor delegate</param>
 		/// <param name="parent">Existing encoder descriptor for this elements
 		/// collection, needed if you want to declare recursive entities</param>
 		/// <returns>Element encoder descriptor</returns>
-		IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> access, IEncoderDescriptor<TElement> parent);
+		IEncoderDescriptor<TItem> HasItems<TItem>(Func<TEntity, IEnumerable<TItem>> access, IEncoderDescriptor<TItem> parent);
 
 		/// <summary>
 		/// Declare new elements collection within current entity.
 		/// </summary>
-		/// <typeparam name="TElement">Element type</typeparam>
+		/// <typeparam name="TItem">Element type</typeparam>
 		/// <param name="access">Parent entity to elements accessor delegate</param>
 		/// <returns>Element encoder descriptor</returns>
-		IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> access);
+		IEncoderDescriptor<TItem> HasItems<TItem>(Func<TEntity, IEnumerable<TItem>> access);
 
 		/// <summary>
 		/// Declare entity as a value. Entity type must have a known encoder

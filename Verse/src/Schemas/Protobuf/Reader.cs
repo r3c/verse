@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using ProtoBuf;
 using Verse.DecoderDescriptors.Abstract;
 using Verse.DecoderDescriptors.Recurse;
@@ -10,6 +9,8 @@ namespace Verse.Schemas.Protobuf
 	class Reader<TEntity> : RecurseReader<TEntity, ReaderState, ProtobufValue>
 	{
 		#region Attributes
+
+		private EntityReader<TEntity, ReaderState> array = null;
 
 		private static readonly Reader<TEntity> emptyReader = new Reader<TEntity>();
 
@@ -34,12 +35,7 @@ namespace Verse.Schemas.Protobuf
 			}
 		}
 
-		public override RecurseReader<TOther, ReaderState, ProtobufValue> Create<TOther>()
-		{
-			return new Reader<TOther>();
-		}
-
-		public override void DeclareField(string name, EntityReader<TEntity, ReaderState> enter)
+		public override RecurseReader<TField, ReaderState, ProtobufValue> HasField<TField>(string name, EntityReader<TEntity, ReaderState> enter)
 		{
 			List<EntityReader<TEntity, ReaderState>> fields;
 			int index;
@@ -55,6 +51,18 @@ namespace Verse.Schemas.Protobuf
 				fields.Add(null);
 
 			fields[index] = enter;
+
+			return new Reader<TField>();
+		}
+
+		public override RecurseReader<TItem, ReaderState, ProtobufValue> HasItems<TItem>(EntityReader<TEntity, ReaderState> enter)
+		{
+			if (this.array != null)
+				throw new InvalidOperationException("can't declare array twice on same descriptor");
+
+			this.array = enter;
+
+			return new Reader<TItem>();
 		}
 
 		public override bool Read(ref TEntity entity, ReaderState state)
@@ -80,10 +88,10 @@ namespace Verse.Schemas.Protobuf
 				default:
 					state.ReadingAction = ReaderState.ReadingActionType.ReadHeader;
 
-					if (this.IsArray)
-						return this.ReadArray(ref entity, state);
+					if (this.array != null)
+						return this.array(ref entity, state);
 
-					if (!this.IsValue)
+					if (!this.HoldValue)
 					{
 						// if it's not object, ignore
 						if ((state.Reader.WireType != WireType.StartGroup && state.Reader.WireType != WireType.String) ||
@@ -196,7 +204,7 @@ namespace Verse.Schemas.Protobuf
 			int dummy;
 			SubItemToken lastSubItem;
 
-			if (this.IsValue)
+			if (this.HoldValue)
 				return this.ReadValueArray(constructor, state);
 
 			state.ReadingAction = ReaderState.ReadingActionType.ReadHeader;
