@@ -9,7 +9,7 @@ namespace Verse.DecoderDescriptors.Flat
 		{
 			get
 			{
-				return this.value != null;
+				return this.convert != null;
 			}
 		}
 
@@ -23,7 +23,7 @@ namespace Verse.DecoderDescriptors.Flat
 
 		private readonly EntityTree<TEntity, TState> fields = new EntityTree<TEntity, TState>();
 
-		private Converter<TValue, TEntity> value = null;
+		private Converter<TValue, TEntity> convert = null;
 
 		public abstract FlatReader<TOther, TState, TValue> Create<TOther>();
 
@@ -39,15 +39,15 @@ namespace Verse.DecoderDescriptors.Flat
 	
 		public void DeclareValue(Converter<TValue, TEntity> convert)
 		{
-			if (this.value != null)
+			if (this.convert != null)
 				throw new InvalidOperationException("can't declare value twice on same descriptor");
 
-			this.value = convert;
+			this.convert = convert;
 		}
 
 		protected TEntity ConvertValue(TValue value)
 		{
-			return this.value(value);
+			return this.convert(value);
 		}
 	}
 }

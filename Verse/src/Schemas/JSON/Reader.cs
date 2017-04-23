@@ -18,6 +18,8 @@ namespace Verse.Schemas.JSON
 
 		private static readonly Reader<TEntity> emptyReader = new Reader<TEntity>();
 
+		private readonly EntityTree<TEntity, ReaderState> fields = new EntityTree<TEntity, ReaderState>();
+
 		#endregion
 
 		#region Methods / Public
@@ -48,6 +50,12 @@ namespace Verse.Schemas.JSON
 		public override RecurseReader<TOther, ReaderState, JSONValue> Create<TOther>()
 		{
 			return new Reader<TOther>();
+		}
+
+		public override void DeclareField(string name, EntityReader<TEntity, ReaderState> enter)
+		{
+			if (!this.fields.Connect(name, enter))
+				throw new InvalidOperationException("can't declare same field '" + name + "' twice on same descriptor");
 		}
 
 		public override bool Read(ref TEntity entity, ReaderState state)
@@ -214,7 +222,7 @@ namespace Verse.Schemas.JSON
 				}
 
 				// Build and move to array index
-				node = this.Root;
+				node = this.fields;
 
 				if (index > 9)
 				{
@@ -449,7 +457,7 @@ namespace Verse.Schemas.JSON
 					return false;
 
 				// Read and move to object key
-				for (node = this.Root; state.Current != (int)'"'; node = node.Follow(character))
+				for (node = this.fields; state.Current != (int)'"'; node = node.Follow(character))
 				{
 					if (!state.PullCharacter(out character))
 					{

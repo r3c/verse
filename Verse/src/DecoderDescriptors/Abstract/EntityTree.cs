@@ -11,14 +11,6 @@ namespace Verse.DecoderDescriptors.Abstract
 
 		#endregion
 
-		public bool HasSubNode
-		{
-			get
-			{
-				return this.hasSubNode;
-			}
-		}
-
 		public EntityReader<TEntity, TState> Read
 		{
 			get
@@ -35,8 +27,6 @@ namespace Verse.DecoderDescriptors.Abstract
 
 		private Dictionary<char, EntityTree<TEntity, TState>> branchHash = null;
 
-		private bool hasSubNode = false;
-
 		private EntityReader<TEntity, TState> read;
 
 		#endregion
@@ -50,8 +40,6 @@ namespace Verse.DecoderDescriptors.Abstract
 
 			foreach (char c in name)
 			{
-				current.hasSubNode = true;
-	
 				if (c < INDEX_SIZE)
 				{
 					if (current.branchIndex == null)

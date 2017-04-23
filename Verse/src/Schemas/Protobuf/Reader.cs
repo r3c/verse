@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using ProtoBuf;
 using Verse.DecoderDescriptors.Abstract;
@@ -11,6 +12,10 @@ namespace Verse.Schemas.Protobuf
 		#region Attributes
 
 		private static readonly Reader<TEntity> emptyReader = new Reader<TEntity>();
+
+		private readonly List<EntityReader<TEntity, ReaderState>> arrayFields = new List<EntityReader<TEntity, ReaderState>>();
+
+		private readonly List<EntityReader<TEntity, ReaderState>> objectFields = new List<EntityReader<TEntity, ReaderState>>();
 
 		#endregion
 
@@ -32,6 +37,24 @@ namespace Verse.Schemas.Protobuf
 		public override RecurseReader<TOther, ReaderState, ProtobufValue> Create<TOther>()
 		{
 			return new Reader<TOther>();
+		}
+
+		public override void DeclareField(string name, EntityReader<TEntity, ReaderState> enter)
+		{
+			List<EntityReader<TEntity, ReaderState>> fields;
+			int index;
+
+			if (int.TryParse(name, out index))
+				fields = this.arrayFields;
+			else if (name.Length > 0 && name[0] == '_' && int.TryParse(name.Substring(1), out index))
+				fields = this.objectFields;
+			else
+				throw new ArgumentOutOfRangeException("name", name, "Protobuf schema only supports _X and X as field names, where X is an integer");
+
+			while (fields.Count <= index)
+				fields.Add(null);
+
+			fields[index] = enter;
 		}
 
 		public override bool Read(ref TEntity entity, ReaderState state)
@@ -64,7 +87,7 @@ namespace Verse.Schemas.Protobuf
 					{
 						// if it's not object, ignore
 						if ((state.Reader.WireType != WireType.StartGroup && state.Reader.WireType != WireType.String) ||
-							!this.Root.HasSubNode)
+						    (this.arrayFields.Count == 0 && this.objectFields.Count == 0))
 						{
 							state.Reader.SkipField();
 
@@ -117,11 +140,11 @@ namespace Verse.Schemas.Protobuf
 
 		private bool FollowNode(int fieldIndex, ref TEntity target, ReaderState state)
 		{
-			EntityTree<TEntity, ReaderState> node = Reader<TEntity>.GetNode(this.Root, fieldIndex);
-
 			state.ReadingAction = ReaderState.ReadingActionType.ReadValue;
 
-			return node.Read != null ? node.Read(ref target, state) : Reader<TEntity>.Ignore(state);
+			return fieldIndex < this.objectFields.Count && this.objectFields[fieldIndex] != null
+				? this.objectFields[fieldIndex](ref target, state)
+				: Reader<TEntity>.Ignore(state);
 		}
 
 		private bool ReadObjectValue(ref TEntity target, ReaderState state)
@@ -137,33 +160,26 @@ namespace Verse.Schemas.Protobuf
 			while (ProtoReader.HasSubValue(WireType.None, state.Reader))
 			{
 				int fieldIndex;
-				EntityTree<TEntity, ReaderState> node;
 
 				state.ReadHeader(out fieldIndex);
 				state.AddObject(fieldIndex);
 
-				node = Reader<TEntity>.GetNode(this.Root, fieldIndex);
-
-				if (visitCount == 1 && node.Read != null)
+				if (visitCount == 1 && fieldIndex < this.objectFields.Count && this.objectFields[fieldIndex] != null)
 				{
 					state.ReadingAction = ReaderState.ReadingActionType.ReadValue;
 
-					if (!node.Read(ref target, state))
+					if (!this.objectFields[fieldIndex](ref target, state))
 						return false;
 				}
 				else
 				{
-					int index;
-
-					node = this.Root;
-					index = visitCount - 1;
-
-					foreach (char digit in index.ToString(CultureInfo.InvariantCulture))
-						node = node.Follow(digit);
+					int index = visitCount - 1;
 
 					state.ReadingAction = ReaderState.ReadingActionType.UseHeader;
 
-					if (!(node.Read != null ? node.Read(ref target, state) : Reader<TEntity>.Ignore(state)))
+					if (!(index < this.arrayFields.Count && this.arrayFields[index] != null
+						? this.arrayFields[index](ref target, state)
+						: Reader<TEntity>.Ignore(state)))
 						return false;
 				}
 			}
@@ -244,16 +260,6 @@ namespace Verse.Schemas.Protobuf
 
 				return BrowserState.Continue;
 			};
-		}
-
-		private static EntityTree<TEntity, ReaderState> GetNode(EntityTree<TEntity, ReaderState> rootNode, int fieldIndex)
-		{
-			EntityTree<TEntity, ReaderState> node = rootNode.Follow('_');
-
-			foreach (char digit in fieldIndex.ToString(CultureInfo.InvariantCulture))
-				node = node.Follow(digit);
-
-			return node;
 		}
 
 		#endregion

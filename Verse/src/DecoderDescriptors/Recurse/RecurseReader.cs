@@ -19,15 +19,7 @@ namespace Verse.DecoderDescriptors.Recurse
 		{
 			get
 			{
-				return this.value != null;
-			}
-		}
-
-		protected EntityTree<TEntity, TState> Root
-		{
-			get
-			{
-				return this.fields;
+				return this.convert != null;
 			}
 		}
 
@@ -37,9 +29,7 @@ namespace Verse.DecoderDescriptors.Recurse
 
 		private EntityReader<TEntity, TState> array = null;
 
-		private readonly EntityTree<TEntity, TState> fields = new EntityTree<TEntity, TState>();
-
-		private Converter<TValue, TEntity> value = null;
+		private Converter<TValue, TEntity> convert = null;
 
 		#endregion
 
@@ -48,6 +38,8 @@ namespace Verse.DecoderDescriptors.Recurse
 		public abstract BrowserMove<TEntity> Browse(Func<TEntity> constructor, TState state);
 
 		public abstract RecurseReader<TOther, TState, TValue> Create<TOther>();
+
+		public abstract void DeclareField(string name, EntityReader<TEntity, TState> enter);
 
 		public abstract bool Read(ref TEntity entity, TState state);
 
@@ -63,18 +55,12 @@ namespace Verse.DecoderDescriptors.Recurse
 			this.array = enter;
 		}
 
-		public void DeclareField(string name, EntityReader<TEntity, TState> enter)
-		{
-			if (!this.fields.Connect(name, enter))
-				throw new InvalidOperationException("can't declare same field '" + name + "' twice on same descriptor");
-		}
-
 		public void DeclareValue(Converter<TValue, TEntity> convert)
 		{
-			if (this.value != null)
+			if (this.convert != null)
 				throw new InvalidOperationException("can't declare value twice on same descriptor");
 
-			this.value = convert;
+			this.convert = convert;
 		}
 
 		#endregion
@@ -83,7 +69,7 @@ namespace Verse.DecoderDescriptors.Recurse
 
 		protected TEntity ConvertValue(TValue value)
 		{
-			return this.value(value);
+			return this.convert(value);
 		}
 
 		protected bool ReadArray(ref TEntity entity, TState state)
