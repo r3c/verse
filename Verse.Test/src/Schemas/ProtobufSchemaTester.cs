@@ -21,15 +21,55 @@ namespace Verse.Test.Schemas
 		private const double MAX_DOUBLE = 1.7976931348623157E+308;
 		private const string LONG_STRING = "Verum ad istam omnem orationem brevis est defensio. Nam quoad aetas M. Caeli dare potuit isti suspicioni locum, fuit primum ipsius pudore, deinde etiam patris diligentia disciplinaque munita. Qui ut huic virilem togam deditšnihil dicam hoc loco de me; tantum sit, quantum vos existimatis; hoc dicam, hunc a patre continuo ad me esse deductum; nemo hunc M. Caelium in illo aetatis flore vidit nisi aut cum patre aut mecum aut in M. Crassi castissima domo, cum artibus honestissimis erudiretur.";
 
+        [Test]
+        //[TestCase("res/Protobuf/Example2.proto", "outer")]
+        [TestCase("res/Protobuf/Example3.proto", "outer")]
+        [TestCase("res/Protobuf/Person.proto", "Person")]
+        public void Decode(string path, string messageName)
+        {
+            var proto = File.ReadAllText(Path.Combine(TestContext.CurrentContext.TestDirectory, path));
+            var schema = new ProtobufSchema<int>(new StringReader(proto), messageName);
+
+            Assert.NotNull(schema);
+        }
+
+        class Person
+        {
+            public string Email;
+            public int Id;
+            public string Name;
+        }
+
+        [Test]
+        public void DecodeAssign()
+        {
+            var proto = File.ReadAllText(Path.Combine(TestContext.CurrentContext.TestDirectory, "res/Protobuf/Person.proto"));
+            var schema = new ProtobufSchema<Person>(new StringReader(proto), "Person");
+
+            schema.DecoderDescriptor.HasField("email", (ref Person p, string v) => p.Email = v).IsValue();
+            schema.DecoderDescriptor.HasField("id", (ref Person p, int v) => p.Id = v).IsValue();
+            schema.DecoderDescriptor.HasField("name", (ref Person p, string v) => p.Name = v).IsValue();
+
+            var decoder = schema.CreateDecoder();
+            Person person;
+
+            using (var stream = new MemoryStream(new byte[] { 16, 17, 0, 0, 0 }))
+            {
+                Assert.True(decoder.Decode(stream, out person));
+            }
+
+            Assert.AreEqual(17, person.Id);
+        }
+
 		[Test]
-		[TestCase(MIN_LONG, ProtobufType.Long)]
-		[TestCase(MAX_LONG, ProtobufType.Long)]
-		[TestCase(MIN_FLOAT, ProtobufType.Float)]
-		[TestCase(MAX_FLOAT, ProtobufType.Float)]
-		[TestCase(0f, ProtobufType.Float)]
-		[TestCase(MIN_DOUBLE, ProtobufType.Double)]
-		[TestCase(MAX_DOUBLE, ProtobufType.Double)]
-		[TestCase(0.0, ProtobufType.Double)]
+		[TestCase(MIN_LONG, ProtobufType.Signed)]
+		[TestCase(MAX_LONG, ProtobufType.Signed)]
+		[TestCase(MIN_FLOAT, ProtobufType.Float32)]
+		[TestCase(MAX_FLOAT, ProtobufType.Float32)]
+		[TestCase(0f, ProtobufType.Float32)]
+		[TestCase(MIN_DOUBLE, ProtobufType.Float64)]
+		[TestCase(MAX_DOUBLE, ProtobufType.Float64)]
+		[TestCase(0.0, ProtobufType.Float64)]
 		[TestCase("", ProtobufType.String)]
 		[TestCase(LONG_STRING, ProtobufType.String)]
 		public void TestDecodeValue<T>(T value, ProtobufType type)
@@ -48,20 +88,20 @@ namespace Verse.Test.Schemas
 
 			switch (type)
 			{
-				case ProtobufType.Double:
-					Assert.AreEqual(value, decodedValue.DoubleContent);
+				case ProtobufType.Float32:
+					Assert.AreEqual(value, decodedValue.Float32);
 					break;
 
-				case ProtobufType.Float:
-					Assert.AreEqual(value, decodedValue.FloatContent);
+				case ProtobufType.Float64:
+					Assert.AreEqual(value, decodedValue.Float64);
 					break;
 
-				case ProtobufType.Long:
-					Assert.AreEqual(value, decodedValue.LongContent);
+				case ProtobufType.Signed:
+					Assert.AreEqual(value, decodedValue.Signed);
 					break;
 
 				case ProtobufType.String:
-					Assert.AreEqual(value, decodedValue.StringContent);
+					Assert.AreEqual(value, decodedValue.String);
 					break;
 
 				default:
@@ -273,12 +313,12 @@ namespace Verse.Test.Schemas
 		}
 
 		[Test]
-		[TestCase(MIN_LONG, ProtobufType.Long)]
-		[TestCase(MAX_LONG, ProtobufType.Long)]
-		[TestCase(MIN_FLOAT, ProtobufType.Float)]
-		[TestCase(MAX_FLOAT, ProtobufType.Float)]
-		[TestCase(MIN_DOUBLE, ProtobufType.Double)]
-		[TestCase(MAX_DOUBLE, ProtobufType.Double)]
+		[TestCase(MIN_LONG, ProtobufType.Signed)]
+		[TestCase(MAX_LONG, ProtobufType.Signed)]
+		[TestCase(MIN_FLOAT, ProtobufType.Float32)]
+		[TestCase(MAX_FLOAT, ProtobufType.Float32)]
+		[TestCase(MIN_DOUBLE, ProtobufType.Float64)]
+		[TestCase(MAX_DOUBLE, ProtobufType.Float64)]
 		[TestCase("", ProtobufType.String)]
 		[TestCase(LONG_STRING, ProtobufType.String)]
 		public void TestEncodeValue<T>(T value, ProtobufType type)
@@ -294,15 +334,15 @@ namespace Verse.Test.Schemas
 
 			switch (type)
 			{
-				case ProtobufType.Float:
+				case ProtobufType.Float32:
 					protoValue = new ProtobufValue((float)(object)value);
 					break;
 
-				case ProtobufType.Double:
+				case ProtobufType.Float64:
 					protoValue = new ProtobufValue((double)(object)value);
 					break;
 
-				case ProtobufType.Long:
+				case ProtobufType.Signed:
 					protoValue = new ProtobufValue((long)(object)value);
 					break;
 

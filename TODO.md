@@ -9,6 +9,7 @@ TODO
 - Support "ignore case" option in schemas using PatternReader
 - Change .IsArray method, see comment in RecurseDecoderDescriptor
 - Factorize "Ignore" methods in all leaf IReader implementations
+- Support configuration options for Protobuf schema [proto-settings]
 
 DONE
 ----

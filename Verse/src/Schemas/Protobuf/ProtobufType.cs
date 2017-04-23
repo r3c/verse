@@ -2,15 +2,12 @@
 {
 	public enum ProtobufType
 	{
-		// ensure that default ContentType value is Void
-		Void = 0,
-
-		Float,
-
-		Double,
-
-		Long,
-
-		String
+        Void,
+        Boolean,
+        Float32,
+        Float64,
+        Signed,
+        String,
+        Unsigned
 	}
 }

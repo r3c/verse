@@ -1,58 +1,95 @@
 ﻿using System;
-using System.Collections.Generic;
-using ProtoBuf;
+using System.Text;
 using Verse.DecoderDescriptors.Abstract;
 using Verse.DecoderDescriptors.Recurse;
+using Verse.Schemas.Protobuf.Definition;
 
 namespace Verse.Schemas.Protobuf
 {
-	class Reader<TEntity> : RecurseReader<TEntity, ReaderState, ProtobufValue>
-	{
-		#region Attributes
+    static class Reader
+    {
+        public static uint ReadInt32(ReaderState state)
+        {
+            uint u32;
 
-		private EntityReader<TEntity, ReaderState> array = null;
+            u32 = (uint)state.Stream.ReadByte();
+            u32 += (uint)state.Stream.ReadByte() << 8;
+            u32 += (uint)state.Stream.ReadByte() << 16;
+            u32 += (uint)state.Stream.ReadByte() << 24;
 
-		private static readonly Reader<TEntity> emptyReader = new Reader<TEntity>();
+            return u32;
+        }
 
-		private readonly List<EntityReader<TEntity, ReaderState>> arrayFields = new List<EntityReader<TEntity, ReaderState>>();
+        public static ulong ReadInt64(ReaderState state)
+        {
+            ulong u64;
 
-		private readonly List<EntityReader<TEntity, ReaderState>> objectFields = new List<EntityReader<TEntity, ReaderState>>();
+            u64 = (ulong)state.Stream.ReadByte();
+            u64 += (ulong)state.Stream.ReadByte() << 8;
+            u64 += (ulong)state.Stream.ReadByte() << 16;
+            u64 += (ulong)state.Stream.ReadByte() << 24;
+            u64 += (ulong)state.Stream.ReadByte() << 32;
+            u64 += (ulong)state.Stream.ReadByte() << 40;
+            u64 += (ulong)state.Stream.ReadByte() << 48;
+            u64 += (ulong)state.Stream.ReadByte() << 56;
 
-		#endregion
+            return u64;
+        }
 
-		#region Methods / Public
+        public static ulong ReadVarInt(ReaderState state)
+        {
+            byte current;
+            var shift = 0;
+            var u64 = 0UL;
+    
+            do
+            {
+                current = (byte)state.Stream.ReadByte();
+                u64 += (current & 127u) << shift;
+                shift += 7;
+            }
+            while ((current & 128u) != 0);
 
-		public override BrowserMove<TEntity> Browse(Func<TEntity> constructor, ReaderState state)
-		{
-			switch (state.Reader.WireType)
-			{
-				case WireType.StartGroup:
-				case WireType.String:
-					return this.ReadSubItemArray(constructor, state);
+            return u64;
+        }
+    }
 
-				default:
-					return this.ReadValueArray(constructor, state);
-			}
-		}
+    class Reader<TEntity> : RecurseReader<TEntity, ReaderState, ProtobufValue>
+    {
+        private static readonly Reader<TEntity> emptyReader = new Reader<TEntity>(new ProtoBinding[0], false);
+
+    	private EntityReader<TEntity, ReaderState> array = null;
+
+        private readonly ProtoBinding[] bindings;
+
+        private readonly EntityReader<TEntity, ReaderState>[] fields;
+
+    	private readonly ulong maximumLength = 128 * 1024 * 1024;
+
+        private readonly bool rejectUnknown;
+
+        public Reader(ProtoBinding[] bindings, bool rejectUnknown)
+        {
+            this.bindings = bindings;
+            this.fields = new EntityReader<TEntity, ReaderState>[bindings.Length];
+            this.rejectUnknown = rejectUnknown;
+        }
+
+        public override BrowserMove<TEntity> Browse(Func<TEntity> constructor, ReaderState state)
+        {
+            throw new NotImplementedException();
+        }
 
 		public override RecurseReader<TField, ReaderState, ProtobufValue> HasField<TField>(string name, EntityReader<TEntity, ReaderState> enter)
 		{
-			List<EntityReader<TEntity, ReaderState>> fields;
-			int index;
+			int index = Array.FindIndex(this.bindings, binding => binding.Name == name);
 
-			if (int.TryParse(name, out index))
-				fields = this.arrayFields;
-			else if (name.Length > 0 && name[0] == '_' && int.TryParse(name.Substring(1), out index))
-				fields = this.objectFields;
-			else
-				throw new ArgumentOutOfRangeException("name", name, "Protobuf schema only supports _X and X as field names, where X is an integer");
+            if (index < 0)
+            	throw new ArgumentOutOfRangeException("name", name, "field doesn't exist in proto definition");
 
-			while (fields.Count <= index)
-				fields.Add(null);
+            this.fields[index] = enter;
 
-			fields[index] = enter;
-
-			return new Reader<TField>();
+            return new Reader<TField>(this.bindings[index].Fields, this.rejectUnknown);
 		}
 
 		public override RecurseReader<TItem, ReaderState, ProtobufValue> HasItems<TItem>(EntityReader<TEntity, ReaderState> enter)
@@ -62,82 +99,233 @@ namespace Verse.Schemas.Protobuf
 
 			this.array = enter;
 
-			return new Reader<TItem>();
+			return new Reader<TItem>(this.bindings, this.rejectUnknown);
 		}
 
-		public override bool Read(ref TEntity entity, ReaderState state)
-		{
-			int fieldIndex;
+        public override bool Read(ref TEntity entity, ReaderState state)
+        {
+            byte[] buffer;
+            int current;
+            ProtoBinding field;
+            uint u32;
+            ulong u64;
 
-			switch (state.ReadingAction)
-			{
-				case ReaderState.ReadingActionType.UseHeader:
-					return this.FollowNode(state.Reader.FieldNumber, ref entity, state);
+            if (this.array != null)
+                return this.array(ref entity, state);
 
-				case ReaderState.ReadingActionType.ReadHeader:
-					while (state.ReadHeader(out fieldIndex))
-					{
-						state.AddObject(fieldIndex);
+            if (this.HoldValue)
+            {
+            	entity = this.ConvertValue(state.Value);
 
-						if (!this.FollowNode(fieldIndex, ref entity, state))
-							return false;
-					}
+                return true;
+            }
 
-					return true;
+            current = state.Stream.ReadByte();
 
-				default:
-					state.ReadingAction = ReaderState.ReadingActionType.ReadHeader;
+            if (current < 0)
+                return true;
 
-					if (this.array != null)
-						return this.array(ref entity, state);
+            // Read field number and wire type
+            var index = (current >> 3) & 15;
+            var wire = (WireType)(current & 7);
 
-					if (!this.HoldValue)
-					{
-						// if it's not object, ignore
-						if ((state.Reader.WireType != WireType.StartGroup && state.Reader.WireType != WireType.String) ||
-						    (this.arrayFields.Count == 0 && this.objectFields.Count == 0))
-						{
-							state.Reader.SkipField();
+            while ((current & 128) != 0)
+            {
+                current = state.Stream.ReadByte();
+                index = (index << 8) + current;
+            }
 
-							return true;
-						}
+            // Decode value
+            if (index >= 0 && index < this.bindings.Length && this.bindings[index].Type != ProtoType.Undefined)
+                field = this.bindings[index];
+            else if (!this.rejectUnknown)
+                field = ProtoBinding.Empty;
+            else
+            {
+                state.RaiseError("field {0} with wire type {1} is unknown", index, wire);
 
-						return this.ReadObjectValue(ref entity, state);
-					}
+                return false;
+            }
 
-					switch (state.Reader.WireType)
-					{
-						case WireType.Fixed32:
-							entity = this.ConvertValue(new ProtobufValue(state.Reader.ReadSingle()));
+            switch (wire)
+            {
+                case WireType.Fixed32:
+                    u32 = Reader.ReadInt32(state);
 
-							return true;
+                    switch (field.Type)
+                    {
+                        case ProtoType.Fixed32:
+                            state.Value = new ProtobufValue(u32);
 
-						case WireType.Fixed64:
-							entity = this.ConvertValue(new ProtobufValue(state.Reader.ReadDouble()));
+                            break;
 
-							return true;
+                        case ProtoType.Float:
+                            unsafe
+                            {
+                                state.Value = new ProtobufValue(*((float*)&u32));
+                            }
 
-						case WireType.String:
-							entity = this.ConvertValue(new ProtobufValue(state.Reader.ReadString()));
+                            break;
 
-							return true;
+                        case ProtoType.SFixed32:
+                            state.Value = new ProtobufValue((int)u32);
 
-						case WireType.Variant:
-							entity = this.ConvertValue(new ProtobufValue(state.Reader.ReadInt64()));
+                            break;
 
-							return true;
-					}
+                        case ProtoType.Undefined:
+                            break;
 
-					state.Error("wire type not supported, skipped");
-					state.Reader.SkipField();
+                        default:
+                            state.RaiseError("field {0} is incompatible with wire type {1}", field.Name, wire);
 
-					return true;
-			}
-		}
+                            return false;
+                    }
 
-		#endregion
+                    break;
 
-		#region Methods / Private
+                case WireType.Fixed64:
+                    u64 = Reader.ReadInt64(state);
+
+                    switch (field.Type)
+                    {
+                        case ProtoType.Double:
+                            unsafe
+                            {
+                                state.Value = new ProtobufValue(*((double*)&u64));
+                            }
+
+                            break;
+
+                        case ProtoType.Fixed64:
+                            state.Value = new ProtobufValue(u64);
+
+                            break;
+
+                        case ProtoType.SFixed64:
+                            state.Value = new ProtobufValue((long)u64);
+
+                            break;
+
+                        case ProtoType.Undefined:
+                            break;
+
+                        default:
+                            state.RaiseError("field {0} is incompatible with wire type {1}", field.Name, wire);
+
+                            return false;
+                    }
+
+                    break;
+
+                case WireType.GroupBegin:
+                    if (field.Type != ProtoType.Undefined)
+                    {
+                        state.RaiseError("groups are not supported");
+
+                        return false;
+                    }
+
+                    break;
+
+                case WireType.GroupEnd:
+                    if (field.Type != ProtoType.Undefined)
+                    {
+                        state.RaiseError("groups are not supported");
+
+                        return false;
+                    }
+
+                    break;
+
+                case WireType.LengthDelimited:
+                    switch (field.Type)
+                    {
+                        case ProtoType.Custom:
+                            throw new NotImplementedException();
+
+                        case ProtoType.String:
+                            u64 = Reader.ReadVarInt(state);
+
+                            if (u64 > this.maximumLength)
+                            {
+                                state.RaiseError("number of bytes in field {0} ({1}) exceeds allowed maximum ({2})", field.Name, u64, this.maximumLength);
+
+                                return false;
+                            }
+
+                            buffer = new byte[u64];
+
+                            if (state.Stream.Read(buffer, 0, (int)u64) != (int)u64)
+                                return false;
+
+                            state.Value = new ProtobufValue(Encoding.UTF8.GetString(buffer));
+
+                            break;
+
+                        case ProtoType.Undefined:
+                            break;
+
+                        default:
+                            state.RaiseError("field {0} is incompatible with wire type {1}", field.Name, wire);
+
+                            return false;
+                    }
+
+                    return false;
+
+                case WireType.VarInt:
+                    u64 = Reader.ReadVarInt(state);
+
+                    switch (field.Type)
+                    {
+                        case ProtoType.Boolean:
+                            state.Value = new ProtobufValue(u64 != 0);
+
+                            break;
+
+                        case ProtoType.Int32:
+                            state.Value = new ProtobufValue((int)u64);
+
+                            break;
+
+                        case ProtoType.Int64:
+                            state.Value = new ProtobufValue((long)u64);
+
+                            break;
+
+                        case ProtoType.SInt32:
+                        case ProtoType.SInt64:
+                            state.Value = new ProtobufValue((-(long)(u64 & 1)) ^ (long)(u64 >> 1));
+
+                            break;
+
+                        case ProtoType.UInt32:
+                        case ProtoType.UInt64:                        
+                            state.Value = new ProtobufValue(u64);
+
+                            break;
+
+                        case ProtoType.Undefined:
+                            break;
+
+                        default:
+                            state.RaiseError("field {0} is incompatible with wire type {1}", field.Name, wire);
+
+                            return false;
+                    }
+
+                    break;
+
+                default:
+                    state.RaiseError("field {0} has unsupported wire type {1}", field.Name, wire);
+
+                    return false;
+            }
+
+            return this.fields[index] != null
+                ? this.fields[index](ref entity, state)
+                : Reader<TEntity>.Ignore(state);
+        }
 
 		private static bool Ignore(ReaderState state)
 		{
@@ -145,131 +333,5 @@ namespace Verse.Schemas.Protobuf
 
 			return Reader<TEntity>.emptyReader.Read(ref dummy, state);
 		}
-
-		private bool FollowNode(int fieldIndex, ref TEntity target, ReaderState state)
-		{
-			state.ReadingAction = ReaderState.ReadingActionType.ReadValue;
-
-			return fieldIndex < this.objectFields.Count && this.objectFields[fieldIndex] != null
-				? this.objectFields[fieldIndex](ref target, state)
-				: Reader<TEntity>.Ignore(state);
-		}
-
-		private bool ReadObjectValue(ref TEntity target, ReaderState state)
-		{
-			int visitCount;
-			SubItemToken lastSubItem;
-
-			lastSubItem = ProtoReader.StartSubItem(state.Reader);
-
-			if (!state.EnterObject(out visitCount))
-				return false;
-
-			while (ProtoReader.HasSubValue(WireType.None, state.Reader))
-			{
-				int fieldIndex;
-
-				state.ReadHeader(out fieldIndex);
-				state.AddObject(fieldIndex);
-
-				if (visitCount == 1 && fieldIndex < this.objectFields.Count && this.objectFields[fieldIndex] != null)
-				{
-					state.ReadingAction = ReaderState.ReadingActionType.ReadValue;
-
-					if (!this.objectFields[fieldIndex](ref target, state))
-						return false;
-				}
-				else
-				{
-					int index = visitCount - 1;
-
-					state.ReadingAction = ReaderState.ReadingActionType.UseHeader;
-
-					if (!(index < this.arrayFields.Count && this.arrayFields[index] != null
-						? this.arrayFields[index](ref target, state)
-						: Reader<TEntity>.Ignore(state)))
-						return false;
-				}
-			}
-
-			state.LeaveObject();
-
-			ProtoReader.EndSubItem(lastSubItem, state.Reader);
-
-			return true;
-		}
-
-		private BrowserMove<TEntity> ReadSubItemArray(Func<TEntity> constructor, ReaderState state)
-		{
-			int dummy;
-			SubItemToken lastSubItem;
-
-			if (this.HoldValue)
-				return this.ReadValueArray(constructor, state);
-
-			state.ReadingAction = ReaderState.ReadingActionType.ReadHeader;
-
-			lastSubItem = ProtoReader.StartSubItem(state.Reader);
-
-			if (!state.EnterObject(out dummy))
-			{
-				return (int index, out TEntity current) =>
-				{
-					current = default(TEntity);
-					return BrowserState.Failure;
-				};
-			}
-
-			return (int index, out TEntity current) =>
-			{
-				state.AddObject(index);
-
-				if (!ProtoReader.HasSubValue(WireType.None, state.Reader))
-				{
-					current = default(TEntity);
-
-					state.LeaveObject();
-
-					ProtoReader.EndSubItem(lastSubItem, state.Reader);
-
-					return BrowserState.Success;
-				}
-
-				current = constructor();
-
-				if (this.Read(ref current, state))
-					return BrowserState.Continue;
-
-				current = default(TEntity);
-
-				return BrowserState.Failure;
-			};
-		}
-
-		private BrowserMove<TEntity> ReadValueArray(Func<TEntity> constructor, ReaderState state)
-		{
-			state.ReadingAction = ReaderState.ReadingActionType.ReadValue;
-
-			return (int index, out TEntity current) =>
-			{
-				state.AddObject(index);
-
-				if (index > 0)
-				{
-					current = default(TEntity);
-
-					return BrowserState.Success;
-				}
-
-				current = constructor();
-
-				if (!this.Read(ref current, state))
-					return BrowserState.Failure;
-
-				return BrowserState.Continue;
-			};
-		}
-
-		#endregion
-	}
+    }
 }

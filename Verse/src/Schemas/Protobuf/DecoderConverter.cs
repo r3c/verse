@@ -64,17 +64,23 @@ namespace Verse.Schemas.Protobuf
 		{
 			switch (value.Type)
 			{
-				case ProtobufType.Float:
-					return Math.Abs(value.FloatContent) >= float.Epsilon;
+				case ProtobufType.Boolean:
+					return value.Boolean;
 
-				case ProtobufType.Double:
-					return Math.Abs(value.DoubleContent) >= double.Epsilon;
+				case ProtobufType.Float32:
+					return Math.Abs(value.Float32) >= float.Epsilon;
 
-				case ProtobufType.Long:
-					return value.LongContent != 0;
+				case ProtobufType.Float64:
+					return Math.Abs(value.Float64) >= double.Epsilon;
+
+				case ProtobufType.Signed:
+					return value.Signed != 0;
 
 				case ProtobufType.String:
-					return !string.IsNullOrEmpty(value.StringContent);
+					return !string.IsNullOrEmpty(value.String);
+
+				case ProtobufType.Unsigned:
+					return value.Unsigned != 0;
 
 				default:
 					return false;
@@ -85,17 +91,23 @@ namespace Verse.Schemas.Protobuf
 		{
 			switch (value.Type)
 			{
-				case ProtobufType.Float:
-					return Math.Abs(value.FloatContent) >= float.Epsilon ? '1' : '\0';
+				case ProtobufType.Boolean:
+					return value.Boolean ? '1' : '\0';
 
-				case ProtobufType.Double:
-					return Math.Abs(value.DoubleContent) >= double.Epsilon ? '1' : '\0';
+				case ProtobufType.Float32:
+					return (char)value.Float32;
 
-				case ProtobufType.Long:
-					return value.LongContent != 0 ? '1' : '\0';
+				case ProtobufType.Float64:
+					return (char)value.Float64;
+
+				case ProtobufType.Signed:
+					return (char)value.Signed;
 
 				case ProtobufType.String:
-					return value.StringContent.Length > 0 ? value.StringContent[0] : '\0';
+					return value.String.Length > 0 ? value.String[0] : '\0';
+
+				case ProtobufType.Unsigned:
+					return (char)value.Unsigned;
 
 				default:
 					return '\0';
@@ -106,22 +118,28 @@ namespace Verse.Schemas.Protobuf
 		{
 			switch (value.Type)
 			{
-				case ProtobufType.Float:
-					return (decimal)value.FloatContent;
+				case ProtobufType.Boolean:
+					return value.Boolean ? 1 : 0;
 
-				case ProtobufType.Double:
-					return (decimal)value.DoubleContent;
+				case ProtobufType.Float32:
+					return (decimal)value.Float32;
 
-				case ProtobufType.Long:
-					return value.LongContent;
+				case ProtobufType.Float64:
+					return (decimal)value.Float64;
+
+				case ProtobufType.Signed:
+					return value.Signed;
 
 				case ProtobufType.String:
 					decimal number;
 
-					if (decimal.TryParse(value.StringContent, NumberStyles.Float, CultureInfo.InvariantCulture, out number))
+					if (decimal.TryParse(value.String, NumberStyles.Float, CultureInfo.InvariantCulture, out number))
 						return number;
 
 					return 0;
+
+				case ProtobufType.Unsigned:
+					return value.Unsigned;
 
 				default:
 					return 0;
@@ -132,22 +150,28 @@ namespace Verse.Schemas.Protobuf
 		{
 			switch (value.Type)
 			{
-				case ProtobufType.Float:
-					return value.FloatContent;
+				case ProtobufType.Boolean:
+					return value.Boolean ? 1 : 0;
 
-				case ProtobufType.Double:
-					return (float)value.DoubleContent;
+				case ProtobufType.Float32:
+					return value.Float32;
 
-				case ProtobufType.Long:
-					return value.LongContent;
+				case ProtobufType.Float64:
+					return (float)value.Float64;
+
+				case ProtobufType.Signed:
+					return value.Signed;
 
 				case ProtobufType.String:
 					float number;
 
-					if (float.TryParse(value.StringContent, NumberStyles.Float, CultureInfo.InvariantCulture, out number))
+					if (float.TryParse(value.String, NumberStyles.Float, CultureInfo.InvariantCulture, out number))
 						return number;
 
 					return 0;
+
+				case ProtobufType.Unsigned:
+					return value.Unsigned;
 
 				default:
 					return 0;
@@ -158,22 +182,28 @@ namespace Verse.Schemas.Protobuf
 		{
 			switch (value.Type)
 			{
-				case ProtobufType.Float:
-					return value.FloatContent;
+				case ProtobufType.Boolean:
+					return value.Boolean ? 1 : 0;
 
-				case ProtobufType.Double:
-					return value.DoubleContent;
+				case ProtobufType.Float32:
+					return value.Float32;
 
-				case ProtobufType.Long:
-					return value.LongContent;
+				case ProtobufType.Float64:
+					return value.Float64;
+
+				case ProtobufType.Signed:
+					return value.Signed;
 
 				case ProtobufType.String:
 					double number;
 
-					if (double.TryParse(value.StringContent, NumberStyles.Float, CultureInfo.InvariantCulture, out number))
+					if (double.TryParse(value.String, NumberStyles.Float, CultureInfo.InvariantCulture, out number))
 						return number;
 
 					return 0;
+
+				case ProtobufType.Unsigned:
+					return value.Unsigned;
 
 				default:
 					return 0;
@@ -184,22 +214,28 @@ namespace Verse.Schemas.Protobuf
 		{
 			switch (value.Type)
 			{
-				case ProtobufType.Float:
-					return (sbyte)value.FloatContent;
+				case ProtobufType.Boolean:
+					return value.Boolean ? (sbyte)1 : (sbyte)0;
 
-				case ProtobufType.Double:
-					return (sbyte)value.DoubleContent;
+				case ProtobufType.Float32:
+					return (sbyte)value.Float32;
 
-				case ProtobufType.Long:
-					return (sbyte)value.LongContent;
+				case ProtobufType.Float64:
+					return (sbyte)value.Float64;
+
+				case ProtobufType.Signed:
+					return (sbyte)value.Signed;
 
 				case ProtobufType.String:
 					sbyte number;
 
-					if (sbyte.TryParse(value.StringContent, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+					if (sbyte.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
 						return number;
 
 					return 0;
+
+				case ProtobufType.Unsigned:
+					return (sbyte)value.Unsigned;
 
 				default:
 					return 0;
@@ -210,22 +246,28 @@ namespace Verse.Schemas.Protobuf
 		{
 			switch (value.Type)
 			{
-				case ProtobufType.Float:
-					return (byte)value.FloatContent;
+				case ProtobufType.Boolean:
+					return value.Boolean ? (byte)1 : (byte)0;
 
-				case ProtobufType.Double:
-					return (byte)value.DoubleContent;
+				case ProtobufType.Float32:
+					return (byte)value.Float32;
 
-				case ProtobufType.Long:
-					return (byte)value.LongContent;
+				case ProtobufType.Float64:
+					return (byte)value.Float64;
+
+				case ProtobufType.Signed:
+					return (byte)value.Signed;
 
 				case ProtobufType.String:
 					byte number;
 
-					if (byte.TryParse(value.StringContent, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+					if (byte.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
 						return number;
 
 					return 0;
+
+				case ProtobufType.Unsigned:
+					return (byte)value.Unsigned;
 
 				default:
 					return 0;
@@ -236,22 +278,28 @@ namespace Verse.Schemas.Protobuf
 		{
 			switch (value.Type)
 			{
-				case ProtobufType.Float:
-					return (short)value.FloatContent;
+				case ProtobufType.Boolean:
+					return value.Boolean ? (short)1 : (short)0;
 
-				case ProtobufType.Double:
-					return (short)value.DoubleContent;
+				case ProtobufType.Float32:
+					return (short)value.Float32;
 
-				case ProtobufType.Long:
-					return (short)value.LongContent;
+				case ProtobufType.Float64:
+					return (short)value.Float64;
+
+				case ProtobufType.Signed:
+					return (short)value.Signed;
 
 				case ProtobufType.String:
 					short number;
 
-					if (short.TryParse(value.StringContent, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+					if (short.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
 						return number;
 
 					return 0;
+
+				case ProtobufType.Unsigned:
+					return (short)value.Unsigned;
 
 				default:
 					return 0;
@@ -262,22 +310,28 @@ namespace Verse.Schemas.Protobuf
 		{
 			switch (value.Type)
 			{
-				case ProtobufType.Float:
-					return (ushort)value.FloatContent;
+				case ProtobufType.Boolean:
+					return value.Boolean ? (ushort)1 : (ushort)0;
 
-				case ProtobufType.Double:
-					return (ushort)value.DoubleContent;
+				case ProtobufType.Float32:
+					return (ushort)value.Float32;
 
-				case ProtobufType.Long:
-					return (ushort)value.LongContent;
+				case ProtobufType.Float64:
+					return (ushort)value.Float64;
+
+				case ProtobufType.Signed:
+					return (ushort)value.Signed;
 
 				case ProtobufType.String:
 					ushort number;
 
-					if (ushort.TryParse(value.StringContent, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+					if (ushort.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
 						return number;
 
 					return 0;
+
+				case ProtobufType.Unsigned:
+					return (ushort)value.Unsigned;
 
 				default:
 					return 0;
@@ -288,22 +342,28 @@ namespace Verse.Schemas.Protobuf
 		{
 			switch (value.Type)
 			{
-				case ProtobufType.Float:
-					return (int)value.FloatContent;
+				case ProtobufType.Boolean:
+					return value.Boolean ? 1 : 0;
 
-				case ProtobufType.Double:
-					return (int)value.DoubleContent;
+				case ProtobufType.Float32:
+					return (int)value.Float32;
 
-				case ProtobufType.Long:
-					return (int)value.LongContent;
+				case ProtobufType.Float64:
+					return (int)value.Float64;
+
+				case ProtobufType.Signed:
+					return (int)value.Signed;
 
 				case ProtobufType.String:
 					int number;
 
-					if (int.TryParse(value.StringContent, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+					if (int.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
 						return number;
 
 					return 0;
+
+				case ProtobufType.Unsigned:
+					return (int)value.Unsigned;
 
 				default:
 					return 0;
@@ -314,22 +374,28 @@ namespace Verse.Schemas.Protobuf
 		{
 			switch (value.Type)
 			{
-				case ProtobufType.Float:
-					return (uint)value.FloatContent;
+				case ProtobufType.Boolean:
+					return value.Boolean ? 1u : 0u;
 
-				case ProtobufType.Double:
-					return (uint)value.DoubleContent;
+				case ProtobufType.Float32:
+					return (uint)value.Float32;
 
-				case ProtobufType.Long:
-					return (uint)value.LongContent;
+				case ProtobufType.Float64:
+					return (uint)value.Float64;
+
+				case ProtobufType.Signed:
+					return (uint)value.Signed;
 
 				case ProtobufType.String:
 					uint number;
 
-					if (uint.TryParse(value.StringContent, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+					if (uint.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
 						return number;
 
 					return 0;
+
+				case ProtobufType.Unsigned:
+					return (uint)value.Unsigned;
 
 				default:
 					return 0;
@@ -340,22 +406,28 @@ namespace Verse.Schemas.Protobuf
 		{
 			switch (value.Type)
 			{
-				case ProtobufType.Float:
-					return (long)value.FloatContent;
+				case ProtobufType.Boolean:
+					return value.Boolean ? 1 : 0;
 
-				case ProtobufType.Double:
-					return (long)value.DoubleContent;
+				case ProtobufType.Float32:
+					return (long)value.Float32;
 
-				case ProtobufType.Long:
-					return value.LongContent;
+				case ProtobufType.Float64:
+					return (long)value.Float64;
+
+				case ProtobufType.Signed:
+					return value.Signed;
 
 				case ProtobufType.String:
 					long number;
 
-					if (long.TryParse(value.StringContent, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+					if (long.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
 						return number;
 
 					return 0;
+
+				case ProtobufType.Unsigned:
+					return (long)value.Unsigned;
 
 				default:
 					return 0;
@@ -366,22 +438,28 @@ namespace Verse.Schemas.Protobuf
 		{
 			switch (value.Type)
 			{
-				case ProtobufType.Float:
-					return (ulong)value.FloatContent;
+				case ProtobufType.Boolean:
+					return value.Boolean ? 1u : 0u;
 
-				case ProtobufType.Double:
-					return (ulong)value.DoubleContent;
+				case ProtobufType.Float32:
+					return (ulong)value.Float32;
 
-				case ProtobufType.Long:
-					return (ulong)value.LongContent;
+				case ProtobufType.Float64:
+					return (ulong)value.Float64;
+
+				case ProtobufType.Signed:
+					return (ulong)value.Signed;
 
 				case ProtobufType.String:
 					ulong number;
 
-					if (ulong.TryParse(value.StringContent, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+					if (ulong.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
 						return number;
 
 					return 0;
+
+				case ProtobufType.Unsigned:
+					return value.Unsigned;
 
 				default:
 					return 0;
@@ -392,17 +470,23 @@ namespace Verse.Schemas.Protobuf
 		{
 			switch (value.Type)
 			{
-				case ProtobufType.Float:
-					return value.FloatContent.ToString(CultureInfo.InvariantCulture);
+				case ProtobufType.Boolean:
+					return value.Boolean ? "1" : string.Empty;
 
-				case ProtobufType.Double:
-					return value.DoubleContent.ToString(CultureInfo.InvariantCulture);
+				case ProtobufType.Float32:
+					return value.Float32.ToString(CultureInfo.InvariantCulture);
 
-				case ProtobufType.Long:
-					return value.LongContent.ToString(CultureInfo.InvariantCulture);
+				case ProtobufType.Float64:
+					return value.Float64.ToString(CultureInfo.InvariantCulture);
+
+				case ProtobufType.Signed:
+					return value.Signed.ToString(CultureInfo.InvariantCulture);
 
 				case ProtobufType.String:
-					return value.StringContent;
+					return value.String;
+
+				case ProtobufType.Unsigned:
+					return value.Unsigned.ToString(CultureInfo.InvariantCulture);
 
 				default:
 					return string.Empty;
