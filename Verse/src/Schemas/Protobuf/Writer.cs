@@ -2,64 +2,53 @@
 using System.Collections.Generic;
 using Verse.EncoderDescriptors.Abstract;
 using Verse.EncoderDescriptors.Recurse;
+using Verse.Schemas.Protobuf.Definition;
 
 namespace Verse.Schemas.Protobuf
 {
-	class Writer<TEntity> : RecurseWriter<TEntity, WriterState, ProtobufValue>
-	{
-		private readonly Dictionary<string, EntityWriter<TEntity, WriterState>> fields = new Dictionary<string, EntityWriter<TEntity, WriterState>>();
+    class Writer<TEntity> : RecurseWriter<TEntity, WriterState, ProtobufValue>
+    {
+        private readonly ProtoBinding[] fields;
 
-		#region Methods
+        public Writer(ProtoBinding[] fields)
+        {
+            this.fields = fields;
+        }
 
 		public override RecurseWriter<TOther, WriterState, ProtobufValue> Create<TOther>()
-		{
-			return new Writer<TOther>();
-		}
+        {
+            return new Writer<TOther>(this.fields);
+        }
 
 		public override void DeclareField(string name, EntityWriter<TEntity, WriterState> enter)
 		{
-			if (this.fields.ContainsKey(name))
-				throw new InvalidOperationException("can't declare same field '" + name + "' twice on same descriptor");
-
-			this.fields[name] = enter;
+			throw new NotImplementedException();
 		}
 
 		public override void WriteElements(IEnumerable<TEntity> elements, WriterState state)
 		{
-			foreach (var item in elements)
-				this.WriteEntity(item, state);
+			throw new NotImplementedException();
 		}
 
 		public override void WriteEntity(TEntity source, WriterState state)
 		{
-			if (source == null)
-				return;
-
-			if (this.IsArray)
-				this.WriteArray(source, state);
-			else if (this.IsValue)
-			{
-				if (!state.Value(this.ConvertValue(source)))
-					state.Error("failed to write value");
-			}
-			else
-			{
-				state.ObjectBegin();
-
-				foreach (var field in this.fields)
-				{
-					if (field.Key.Length > 1 && field.Key[0] == '_')
-						state.Key(field.Key.Substring(1));
-					else
-						state.Key(field.Key);
-
-					field.Value(source, state);
-				}
-
-				state.ObjectEnd();
-			}
+			throw new NotImplementedException();
 		}
 
-		#endregion
-	}
+        protected bool TryLookup<TOther>(string name, out int index, out IWriter<TOther, WriterState> writer)
+        {
+            index = Array.FindIndex(this.fields, binding => binding.Name == name);
+
+            if (index < 0)
+            {
+                writer = null;
+
+                return false;
+            }
+
+            writer = new Writer<TOther>(this.fields[index].Fields);
+
+            return true;
+        }
+    }
 }

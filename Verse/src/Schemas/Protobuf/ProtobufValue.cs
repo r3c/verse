@@ -1,62 +1,79 @@
+using System.Runtime.InteropServices;
 namespace Verse.Schemas.Protobuf
 {
+	[StructLayout(LayoutKind.Explicit)]
 	public struct ProtobufValue
 	{
+		public static readonly ProtobufValue Void = new ProtobufValue();
+
 		#region Attributes
 
-		public readonly double DoubleContent;
+        [FieldOffset(4)]
+        public readonly bool Boolean;
 
-		public readonly float FloatContent;
+        [FieldOffset(4)]
+        public readonly double Float64;
 
-		public readonly long LongContent;
+        [FieldOffset(4)]
+        public readonly float Float32;
 
-		public readonly string StringContent;
+        [FieldOffset(4)]
+        public readonly long Signed;
 
-		public readonly ProtobufType Type;
+        [FieldOffset(12)]
+        public readonly string String;
+
+        [FieldOffset(0)]
+        public readonly ProtobufType Type;
+
+        [FieldOffset(4)]
+        public readonly ulong Unsigned;
 
 		#endregion
 
 		#region Constructor
 
-		public ProtobufValue(double value)
-		{
-			this.DoubleContent = value;
-			this.FloatContent = 0f;
-			this.LongContent = 0;
-			this.StringContent = string.Empty;
+        public ProtobufValue(bool value)
+			: this()
+        {
+            this.Boolean = value;
+            this.Type = ProtobufType.Boolean;
+        }
 
-			this.Type = ProtobufType.Double;
-		}
+        public ProtobufValue(double value)
+			: this()
+        {
+            this.Float64 = value;
+            this.Type = ProtobufType.Float64;
+        }
 
-		public ProtobufValue(float value)
-		{
-			this.DoubleContent = 0.0;
-			this.FloatContent = value;
-			this.LongContent = 0;
-			this.StringContent = string.Empty;
+        public ProtobufValue(float value)
+			: this()
+        {
+            this.Float32 = value;
+            this.Type = ProtobufType.Float32;
+        }
 
-			this.Type = ProtobufType.Float;
-		}
+        public ProtobufValue(long value)
+        	: this()
+        {
+            this.Signed = value;
+            this.Type = ProtobufType.Signed;
+        }
 
-		public ProtobufValue(long value)
-		{
-			this.DoubleContent = 0.0;
-			this.FloatContent = 0f;
-			this.LongContent = value;
-			this.StringContent = string.Empty;
+        public ProtobufValue(string value)
+			: this()
+        {
+            this.String = value;
+            this.Type = ProtobufType.String;
+        }
 
-			this.Type = ProtobufType.Long;
-		}
-
-		public ProtobufValue(string value)
-		{
-			this.DoubleContent = 0.0;
-			this.FloatContent = 0f;
-			this.LongContent = 0;
-			this.StringContent = value;
-
-			this.Type = ProtobufType.String;
-		}
+        public ProtobufValue(ulong value)
+        	: this()
+        {
+            this.Type = ProtobufType.Unsigned;
+            this.Unsigned = value;
+        }
 
 		#endregion
 	}

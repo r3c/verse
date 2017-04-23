@@ -116,15 +116,37 @@
     <Compile Include="src\Schemas\JSON\ReaderSession.cs" />
     <Compile Include="src\Schemas\JSON\WriterSession.cs" />
     <Compile Include="src\Schemas\ProtobufSchema.cs" />
+    <Compile Include="src\Schemas\Protobuf\Definition\Lexem.cs" />
+    <Compile Include="src\Schemas\Protobuf\Definition\LexemType.cs" />
+    <Compile Include="src\Schemas\Protobuf\Definition\Lexer.cs" />
+    <Compile Include="src\Schemas\Protobuf\Definition\Parser.cs" />
+    <Compile Include="src\Schemas\Protobuf\Definition\ParserException.cs" />
+    <Compile Include="src\Schemas\Protobuf\Definition\ProtoBinding.cs" />
+    <Compile Include="src\Schemas\Protobuf\Definition\ProtoContainer.cs" />
+    <Compile Include="src\Schemas\Protobuf\Definition\ProtoEntity.cs" />
+    <Compile Include="src\Schemas\Protobuf\Definition\ProtoField.cs" />
+    <Compile Include="src\Schemas\Protobuf\Definition\ProtoLabel.cs" />
+    <Compile Include="src\Schemas\Protobuf\Definition\ProtoOccurrence.cs" />
+    <Compile Include="src\Schemas\Protobuf\Definition\ProtoReference.cs" />
+    <Compile Include="src\Schemas\Protobuf\Definition\ProtoType.cs" />
+    <Compile Include="src\Schemas\Protobuf\Definition\ResolverException.cs" />
+    <Compile Include="src\Schemas\Protobuf\Legacy\LegacyReader.cs" />
+    <Compile Include="src\Schemas\Protobuf\Legacy\LegacyReaderSession.cs" />
+    <Compile Include="src\Schemas\Protobuf\Legacy\LegacyReaderState.cs" />
+    <Compile Include="src\Schemas\Protobuf\Legacy\SubObjectInstance.cs" />
+    <Compile Include="src\Schemas\Protobuf\Legacy\VisitingNode.cs" />
+    <Compile Include="src\Schemas\Protobuf\Legacy\LegacyWriter.cs" />
+    <Compile Include="src\Schemas\Protobuf\Legacy\LegacyWriterSession.cs" />
+    <Compile Include="src\Schemas\Protobuf\Legacy\LegacyWriterState.cs" />
+    <Compile Include="src\Schemas\Protobuf\ProtobufConfiguration.cs" />
     <Compile Include="src\Schemas\Protobuf\ProtobufType.cs" />
-    <Compile Include="src\Schemas\Protobuf\ReaderSession.cs" />
-    <Compile Include="src\Schemas\Protobuf\VisitingNode.cs" />
-    <Compile Include="src\Schemas\Protobuf\Reader.cs" />
-    <Compile Include="src\Schemas\Protobuf\ReaderState.cs" />
-    <Compile Include="src\Schemas\Protobuf\SubObjectInstance.cs" />
     <Compile Include="src\Schemas\Protobuf\ProtobufValue.cs" />
     <Compile Include="src\Schemas\Protobuf\DecoderConverter.cs" />
     <Compile Include="src\Schemas\Protobuf\EncoderConverter.cs" />
+    <Compile Include="src\Schemas\Protobuf\Reader.cs" />
+    <Compile Include="src\Schemas\Protobuf\ReaderSession.cs" />
+    <Compile Include="src\Schemas\Protobuf\ReaderState.cs" />
+    <Compile Include="src\Schemas\Protobuf\WireType.cs" />
     <Compile Include="src\Schemas\Protobuf\Writer.cs" />
     <Compile Include="src\Schemas\Protobuf\WriterSession.cs" />
     <Compile Include="src\Schemas\Protobuf\WriterState.cs" />
@@ -156,6 +178,8 @@
   <ItemGroup>
     <Folder Include="src\DecoderDescriptors\Abstract" />
     <Folder Include="src\EncoderDescriptors\Abstract" />
+    <Folder Include="src\Schemas\Protobuf\Definition" />
+    <Folder Include="src\Schemas\Protobuf\Legacy" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

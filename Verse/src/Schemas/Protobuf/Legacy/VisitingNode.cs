@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Verse.Schemas.Protobuf
+namespace Verse.Schemas.Protobuf.Legacy
 {
 	public class VisitingNode
 	{

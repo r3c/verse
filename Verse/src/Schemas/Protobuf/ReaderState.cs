@@ -1,93 +1,43 @@
-﻿using System.IO;
-
-using ProtoBuf;
-using ProtoBuf.Meta;
+﻿using System;
+using System.Globalization;
+using System.IO;
 
 namespace Verse.Schemas.Protobuf
 {
-	class ReaderState
-	{
-		public enum ReadingActionType
-		{
-			ReadHeader,
+    class ReaderState
+    {
+        #region Attributes / Public
 
-			UseHeader,
+        public readonly Stream Stream;
 
-			ReadValue
-		};      
+        public ProtobufValue Value;
 
-		public VisitingNode ParentVisitingNode;
+        #endregion
 
-		public ProtoReader Reader;
+        #region Attributes / Private
 
-		public ReadingActionType ReadingAction;
+        private readonly DecodeError error;
 
-		public VisitingNode Root;
+        #endregion
 
-		private readonly DecodeError error;
+        #region Constructors
 
-		private static readonly VisitingNode NoParent = null;
+        public ReaderState(Stream stream, DecodeError error)
+        {
+            this.error = error;
+            this.Stream = stream;
+            this.Value = ProtobufValue.Void;
+        }
 
-		public ReaderState(Stream stream, DecodeError error)
-		{
-			this.Reader = new ProtoReader(stream, TypeModel.Create(), null);
-			this.ReadingAction = ReadingActionType.ReadHeader;
-			this.Root = new VisitingNode(NoParent);
-			this.ParentVisitingNode = this.Root;
+        #endregion
 
-			this.error = error;
-		}
+        #region Methods
 
-		public bool ReadHeader(out int index)
-		{
-			index = this.Reader.ReadFieldHeader();
+        public void RaiseError(string format, params object[] args)
+        {
+            this.error((int)this.Stream.Position, string.Format(CultureInfo.InvariantCulture, format, args));
+        }
 
-			return index > 0;
-		}
-
-		public void AddObject(int index)
-		{
-			VisitingNode obj;
-
-			if (!this.ParentVisitingNode.Children.TryGetValue(index, out obj))
-			{
-				obj = new VisitingNode(this.ParentVisitingNode);
-
-				this.ParentVisitingNode.Children.Add(index, obj);
-			}
-			else
-			{
-				++obj.VisitCount;
-			}
-		}
-
-		public bool EnterObject(out int visitCount)
-		{
-			VisitingNode node;
-
-			if (!this.ParentVisitingNode.Children.TryGetValue(this.Reader.FieldNumber, out node))
-			{
-				visitCount = 0;
-
-				return false;
-			}
-
-			this.ParentVisitingNode = node;
-
-			visitCount = node.VisitCount;
-
-			return true;
-		}
-
-		public void Error(string message)
-		{
-			this.error(this.Reader.Position, message);
-		}
-
-		public void LeaveObject()
-		{
-			this.ParentVisitingNode.Children.Clear();
-			this.ParentVisitingNode = this.ParentVisitingNode.Parent;
-		}
-	}
+        #endregion
+    }
 }
