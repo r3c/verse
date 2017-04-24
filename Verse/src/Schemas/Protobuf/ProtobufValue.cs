@@ -1,37 +1,48 @@
 using System.Runtime.InteropServices;
+
 namespace Verse.Schemas.Protobuf
 {
+#if !__MonoCS__
 	[StructLayout(LayoutKind.Explicit)]
+#endif
 	public struct ProtobufValue
 	{
 		public static readonly ProtobufValue Void = new ProtobufValue();
 
-		#region Attributes
-
-        [FieldOffset(4)]
+#if !__MonoCS__
+		[FieldOffset(sizeof(ProtobufType))]
+#endif
         public readonly bool Boolean;
 
-        [FieldOffset(4)]
+#if !__MonoCS__
+        [FieldOffset(sizeof(ProtobufType))]
+#endif
         public readonly double Float64;
 
-        [FieldOffset(4)]
+#if !__MonoCS__
+        [FieldOffset(sizeof(ProtobufType))]
+#endif
         public readonly float Float32;
 
-        [FieldOffset(4)]
+#if !__MonoCS__
+        [FieldOffset(sizeof(ProtobufType))]
+#endif
         public readonly long Signed;
 
-        [FieldOffset(12)]
+#if !__MonoCS__
+        [FieldOffset(sizeof(ProtobufType) + sizeof(double))]
+#endif
         public readonly string String;
 
+#if !__MonoCS__
         [FieldOffset(0)]
+#endif
         public readonly ProtobufType Type;
 
-        [FieldOffset(4)]
+#if !__MonoCS__
+        [FieldOffset(sizeof(ProtobufType))]
+#endif
         public readonly ulong Unsigned;
-
-		#endregion
-
-		#region Constructor
 
         public ProtobufValue(bool value)
 			: this()
@@ -74,7 +85,5 @@ namespace Verse.Schemas.Protobuf
             this.Type = ProtobufType.Unsigned;
             this.Unsigned = value;
         }
-
-		#endregion
 	}
 }
