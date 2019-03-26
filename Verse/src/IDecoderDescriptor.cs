@@ -40,7 +40,6 @@ namespace Verse
 		/// be decoded into child entity.
 		/// </summary>
 		/// <typeparam name="TField">Field type</typeparam>
-		/// <typeparam name="TKey">Key type</typeparam>
 		/// <param name="name">Field name</param>
 		/// <param name="assign">Assign child entity to current one</param>
 		/// <returns>Field decoder descriptor</returns>

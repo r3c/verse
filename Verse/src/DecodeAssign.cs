@@ -7,5 +7,5 @@ namespace Verse
 	/// <typeparam name="TValue">Value type</typeparam>
 	/// <param name="target">Target entity</param>
 	/// <param name="value">Source value</param>
-	public delegate void DecodeAssign<TEntity, TValue>(ref TEntity target, TValue value);
+	public delegate void DecodeAssign<TEntity, in TValue>(ref TEntity target, TValue value);
 }

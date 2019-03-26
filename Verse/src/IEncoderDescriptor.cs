@@ -9,7 +9,7 @@ namespace Verse
 	/// an actual encoder is used to write entity to a stream.
 	/// </summary>
 	/// <typeparam name="TEntity">Entity type</typeparam>
-	public interface IEncoderDescriptor<TEntity>
+	public interface IEncoderDescriptor<out TEntity>
 	{
 		#region Methods
 
