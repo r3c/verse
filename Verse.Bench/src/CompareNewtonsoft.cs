@@ -101,7 +101,8 @@ namespace Verse.Bench
 			{
 				using (MemoryStream stream = new MemoryStream(buffer))
 				{
-					Assert.IsTrue(decoder.Decode(stream, out instance));
+                    Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
+					Assert.IsTrue(decoderStream.Decode(out instance));
 				}
 			}
 
@@ -109,7 +110,8 @@ namespace Verse.Bench
 
 			using (MemoryStream stream = new MemoryStream(buffer))
 			{
-				Assert.IsTrue(decoder.Decode(stream, out instance));
+                Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
+				Assert.IsTrue(decoderStream.Decode(out instance));
 			}
 
 			Assert.AreEqual(instance, reference);
@@ -219,16 +221,20 @@ namespace Verse.Bench
 
 			for (int i = count; i-- > 0;)
 			{
-				using (MemoryStream stream = new MemoryStream())
-					Assert.IsTrue(encoder.Encode(instance, stream));
+			    using (MemoryStream stream = new MemoryStream())
+			    {
+                    Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
+			        Assert.IsTrue(encoderStream.Encode(instance));
+			    }
 			}
 
 			timeVerse = watch.Elapsed;
 
 			using (MemoryStream stream = new MemoryStream())
 			{
-				Assert.IsTrue(encoder.Encode(instance, stream));
-				Assert.AreEqual(expected, Encoding.UTF8.GetString(stream.ToArray()));
+			    Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
+			    Assert.IsTrue(encoderStream.Encode(instance));
+                Assert.AreEqual(expected, Encoding.UTF8.GetString(stream.ToArray()));
 			}
 
 			try

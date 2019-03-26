@@ -1,33 +1,25 @@
-using System.IO;
+﻿using System.IO;
 
 namespace Verse
 {
-	/// <summary>
-	/// Entity encoder, writes entity to output stream using a serialization
-	/// format depending on implementation.
-	/// </summary>
-	/// <typeparam name="TEntity">Entity type</typeparam>
-	public interface IEncoder<TEntity>
-	{
-		#region Events
+    /// <summary>
+    /// Entity encoder, open stream for writing entities to it using a
+    /// serialization format depending on implementation.
+    /// </summary>
+    /// <typeparam name="TEntity">Entity type</typeparam>
+    public interface IEncoder<TEntity>
+    {
+        /// <summary>
+        /// Encoding error event.
+        /// </summary>
+        event EncodeError Error;
 
-		/// <summary>
-		/// Encoding error event.
-		/// </summary>
-		event EncodeError Error;
-
-		#endregion
-
-		#region Methods
-
-		/// <summary>
-		/// Write entity to output stream.
-		/// </summary>
-		/// <param name="input">Input entity</param>
-		/// <param name="output">Output stream</param>
-		/// <returns>True if encoding succeeded, false otherwise</returns>
-		bool Encode(TEntity input, Stream output);
-
-		#endregion
-	}
+        /// <summary>
+        /// Open write-enabled stream for encoding entities to it.
+        /// </summary>
+        /// <param name="output">Output stream</param>
+        /// <param name="encoderStream">Encoder stream instance</param>
+        /// <returns>True if stream was successfully open for writing, false otherwise</returns>
+        bool TryOpen(Stream output, out IEncoderStream<TEntity> encoderStream);
+    }
 }

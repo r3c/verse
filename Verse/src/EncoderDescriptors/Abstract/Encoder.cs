@@ -1,70 +1,38 @@
-using System;
-using System.IO;
-using Verse.EncoderDescriptors.Abstract;
+﻿using System.IO;
 
 namespace Verse.EncoderDescriptors.Abstract
 {
-	class Encoder<TEntity, TValue, TState> : IEncoder<TEntity>
-	{
-		#region Events
+    class Encoder<TEntity, TState> : IEncoder<TEntity>
+    {
+        public event EncodeError Error;
 
-		public event EncodeError Error;
+        private readonly IWriterSession<TState> session;
 
-		#endregion
+        private readonly IWriter<TEntity, TState> writer;
 
-		#region Attributes
+        public Encoder(IWriterSession<TState> session, IWriter<TEntity, TState> writer)
+        {
+            this.session = session;
+            this.writer = writer;
+        }
 
-		private readonly IWriterSession<TState> session;
+        public bool TryOpen(Stream output, out IEncoderStream<TEntity> encoderStream)
+        {
+            if (!this.session.Start(output, this.OnError, out var state))
+            {
+                encoderStream = default(IEncoderStream<TEntity>);
 
-		private readonly IWriter<TEntity, TState> writer;
+                return false;
+            }
 
-		#endregion
+            encoderStream = new EncoderStream<TEntity, TState>(session, writer, state);
 
-		#region Constructors
+            return true;
+        }
 
-		public Encoder(IWriterSession<TState> session, IWriter<TEntity, TState> writer)
-		{
-			this.session = session;
-			this.writer = writer;
-		}
-
-		#endregion
-
-		#region Methods / Public
-
-		public bool Encode(TEntity input, Stream output)
-		{
-			TState state;
-
-			if (!this.session.Start(output, this.OnError, out state))
-				return false;
-
-			try
-			{
-				this.writer.WriteEntity(input, state);
-			}
-			finally
-			{
-				this.session.Stop(state);
-			}
-
-			return true;
-		}
-
-		#endregion
-
-		#region Methods / Private
-
-		private void OnError(int position, string message)
-		{
-			EncodeError error;
-
-			error = this.Error;
-
-			if (error != null)
-				error(position, message);
-		}
-
-		#endregion
-	}
+        private void OnError(int position, string message)
+        {
+            this.Error?.Invoke(position, message);
+        }
+    }
 }

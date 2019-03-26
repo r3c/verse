@@ -30,7 +30,7 @@ namespace Verse.EncoderDescriptors
 
 		public IEncoder<TEntity> CreateEncoder()
 		{
-			return new Encoder<TEntity, TValue, TState>(this.session, this.writer);
+			return new Encoder<TEntity, TState>(this.session, this.writer);
 		}
 
 		public override IEncoderDescriptor<TField> HasField<TField>(string name, Func<TEntity, TField> access, IEncoderDescriptor<TField> parent)

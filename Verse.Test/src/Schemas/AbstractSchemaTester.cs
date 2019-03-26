@@ -119,7 +119,8 @@ namespace Verse.Test.Schemas
 
 			using (var stream = new MemoryStream())
 			{
-				Assert.IsTrue(encoder.Encode(instance, stream));
+			    Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
+                Assert.IsTrue(encoderStream.Encode(instance));
 
 				first = stream.ToArray();
 			}
@@ -128,14 +129,16 @@ namespace Verse.Test.Schemas
 			{
 				decoded = type.IsValueType || type == typeof(string) ? default(T) : (T)Activator.CreateInstance(type);
 
-				Assert.IsTrue(decoder.Decode(stream, out decoded));
+                Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
+				Assert.IsTrue(decoderStream.Decode(out decoded));
 			}
 
 			CollectionAssert.IsEmpty(new CompareLogic().Compare(instance, decoded).Differences);
 
 			using (var stream = new MemoryStream())
 			{
-				Assert.IsTrue(encoder.Encode(decoded, stream));
+			    Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
+                Assert.IsTrue(encoderStream.Encode(decoded));
 
 				second = stream.ToArray();
 			}

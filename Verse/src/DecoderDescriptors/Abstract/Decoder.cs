@@ -3,54 +3,40 @@ using System.IO;
 
 namespace Verse.DecoderDescriptors.Abstract
 {
-	class Decoder<TEntity, TState> : IDecoder<TEntity>
-	{
-		public event DecodeError Error;
+    class Decoder<TEntity, TState> : IDecoder<TEntity>
+    {
+        public event DecodeError Error;
 
-		private readonly Func<TEntity> constructor;
+        private readonly Func<TEntity> constructor;
 
-		private readonly IReader<TEntity, TState> reader;
+        private readonly IReader<TEntity, TState> reader;
 
-		private readonly IReaderSession<TState> session;
+        private readonly IReaderSession<TState> session;
 
-		public Decoder(Func<TEntity> constructor, IReaderSession<TState> session, IReader<TEntity, TState> reader)
-		{
-			this.constructor = constructor;
-			this.reader = reader;
-			this.session = session;
-		}
+        public Decoder(Func<TEntity> constructor, IReaderSession<TState> session, IReader<TEntity, TState> reader)
+        {
+            this.constructor = constructor;
+            this.reader = reader;
+            this.session = session;
+        }
 
-		public bool Decode(Stream input, out TEntity output)
-		{
-			TState state;
+        public bool TryOpen(Stream input, out IDecoderStream<TEntity> decoderStream)
+        {
+            if (!this.session.Start(input, this.OnError, out var state))
+            {
+                decoderStream = default(IDecoderStream<TEntity>);
 
-			if (!this.session.Start(input, this.OnError, out state))
-			{
-				output = default(TEntity);
+                return false;
+            }
 
-				return false;
-			}
+            decoderStream = new DecoderStream<TEntity,TState>(this.constructor, this.session, this.reader, state);
 
-			try
-			{
-				output = this.constructor();
+            return true;
+        }
 
-				return this.reader.Read(ref output, state);
-			}
-			finally
-			{
-				this.session.Stop(state);
-			}
-		}
-
-		private void OnError(int position, string message)
-		{
-			DecodeError error;
-
-			error = this.Error;
-
-			if (error != null)
-				error(position, message);
-		}
-	}
+        private void OnError(int position, string message)
+        {
+            this.Error?.Invoke(position, message);
+        }
+    }
 }

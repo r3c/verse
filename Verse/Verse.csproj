@@ -88,6 +88,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="src\DecoderDescriptors\Abstract\Decoder.cs" />
+    <Compile Include="src\DecoderDescriptors\Abstract\DecoderStream.cs" />
     <Compile Include="src\DecoderDescriptors\Abstract\IReader.cs" />
     <Compile Include="src\DecoderDescriptors\Abstract\IReaderSession.cs" />
     <Compile Include="src\DecoderDescriptors\Abstract\EntityTree.cs" />
@@ -95,10 +96,13 @@
     <Compile Include="src\DecoderDescriptors\Flat\FlatReader.cs" />
     <Compile Include="src\DecoderDescriptors\Recurse\RecurseReader.cs" />
     <Compile Include="src\EncoderDescriptors\Abstract\Encoder.cs" />
+    <Compile Include="src\EncoderDescriptors\Abstract\EncoderStream.cs" />
     <Compile Include="src\EncoderDescriptors\Abstract\IWriter.cs" />
     <Compile Include="src\EncoderDescriptors\Abstract\IWriterSession.cs" />
     <Compile Include="src\EncoderDescriptors\Abstract\EntityWriter.cs" />
     <Compile Include="src\EncoderDescriptors\Recurse\RecurseWriter.cs" />
+    <Compile Include="src\IDecoder.cs" />
+    <Compile Include="src\IEncoder.cs" />
     <Compile Include="src\Linker.cs" />
     <Compile Include="src\DecodeAssign.cs" />
     <Compile Include="src\DecoderDescriptors\Abstract\IDecoderConverter.cs" />
@@ -161,13 +165,13 @@
     <Compile Include="src\Schemas\QueryString\DecoderConverter.cs" />
     <Compile Include="src\Tools\Generator.cs" />
     <Compile Include="src\Tools\Resolver.cs" />
-    <Compile Include="src\IEncoder.cs" />
+    <Compile Include="src\IEncoderStream.cs" />
     <Compile Include="src\IEncoderDescriptor.cs" />
     <Compile Include="src\DecoderDescriptors\AbstractDecoderDescriptor.cs" />
     <Compile Include="src\DecoderDescriptors\RecurseDecoderDescriptor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="src\IDecoderDescriptor.cs" />
-    <Compile Include="src\IDecoder.cs" />
+    <Compile Include="src\IDecoderStream.cs" />
     <Compile Include="src\ISchema.cs" />
     <Compile Include="src\DecodeError.cs" />
     <Compile Include="src\Schemas\JSONSchema.cs" />
@@ -175,11 +179,6 @@
     <Compile Include="src\Schemas\JSON\Reader.cs" />
     <Compile Include="src\Schemas\JSON\JSONValue.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="src\DecoderDescriptors\Abstract" />
-    <Folder Include="src\EncoderDescriptors\Abstract" />
-    <Folder Include="src\Schemas\Protobuf\Definition" />
-    <Folder Include="src\Schemas\Protobuf\Legacy" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

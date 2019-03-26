@@ -20,12 +20,18 @@ namespace Verse.Test.Schemas
 		public void DecodeArray(string json, double[] expected)
 		{
 			var schema = new JSONSchema<double[]>();
-			double[] value;
 
 			schema.DecoderDescriptor.HasItems((ref double[] target, IEnumerable<double> items) => target = items.ToArray()).IsValue();
 
-			Assert.IsTrue(schema.CreateDecoder().Decode(new MemoryStream(Encoding.UTF8.GetBytes(json)), out value));
-			CollectionAssert.AreEqual(expected, value);
+		    var decoder = schema.CreateDecoder();
+
+		    using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
+		    {
+		        Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
+		        Assert.IsTrue(decoderStream.Decode(out var value));
+
+		        CollectionAssert.AreEqual(expected, value);
+		    }
 		}
 
 		[Test]
@@ -84,52 +90,55 @@ namespace Verse.Test.Schemas
 		[TestCase("fail", 3)]
 		public void DecodeInvalidStream(string json, int expected)
 		{
-			IDecoder<string> decoder;
-			int position;
-			string value;
-
 			var schema = new JSONSchema<string>();
 
 			schema.DecoderDescriptor.IsValue();
 
-			position = -1;
+			var position = -1;
 
-			decoder = schema.CreateDecoder();
+			var decoder = schema.CreateDecoder();
+
 			decoder.Error += (p, m) => position = p;
 
-			Assert.IsFalse(decoder.Decode(new MemoryStream(Encoding.UTF8.GetBytes(json)), out value));
-			Assert.AreEqual(expected, position);
+		    using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
+		    {
+                Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
+		        Assert.IsFalse(decoderStream.Decode(out var value));
+		        Assert.AreEqual(expected, position);
+		    }
 		}
 
 		[Test]
 		public void DecodeRecursiveSchema()
 		{
-			IDecoderDescriptor<RecursiveEntity> descriptor;
-			RecursiveEntity value;
+		    var schema = new JSONSchema<RecursiveEntity>();
+			var descriptor = schema.DecoderDescriptor;
 
-			var schema = new JSONSchema<RecursiveEntity>();
-
-			descriptor = schema.DecoderDescriptor;
 			descriptor.HasField("f", (ref RecursiveEntity r, RecursiveEntity v) => r.field = v, descriptor);
 			descriptor.HasField("v", (ref RecursiveEntity r, int v) => r.value = v).IsValue();
 
-			Assert.IsTrue(schema.CreateDecoder().Decode(new MemoryStream(Encoding.UTF8.GetBytes("{\"f\": {\"f\": {\"v\": 42}, \"v\": 17}, \"v\": 3}")), out value));
+		    var decoder = schema.CreateDecoder();
 
-			Assert.AreEqual(42, value.field.field.value);
-			Assert.AreEqual(17, value.field.value);
-			Assert.AreEqual(3, value.value);
+            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes("{\"f\": {\"f\": {\"v\": 42}, \"v\": 17}, \"v\": 3}")))
+            {
+                Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
+                Assert.IsTrue(decoderStream.Decode(out var value));
+
+                Assert.AreEqual(42, value.field.field.value);
+                Assert.AreEqual(17, value.field.value);
+                Assert.AreEqual(3, value.value);
+            }
 		}
 
 		[Test]
 		public void DecodeValueWithCustomConstructor()
 		{
-			IDecoderDescriptor<Tuple<int, int>> descriptor;
-
-			var schema = new JSONSchema<Tuple<Tuple<int, int>>>();
+		    var schema = new JSONSchema<Tuple<Tuple<int, int>>>();
 
 			schema.DecoderDescriptor.CanCreate(() => Tuple.Create(0, 0));
 
-			descriptor = schema.DecoderDescriptor.HasField("tuple", (ref Tuple<Tuple<int, int>> target, Tuple<int, int> value) => target = Tuple.Create(value));
+			var descriptor = schema.DecoderDescriptor.HasField("tuple", (ref Tuple<Tuple<int, int>> target, Tuple<int, int> value) => target = Tuple.Create(value));
+
 			descriptor.HasField("a", (ref Tuple<int, int> target, int value) => target = Tuple.Create(value, target.Item2)).IsValue();
 			descriptor.HasField("b", (ref Tuple<int, int> target, int value) => target = Tuple.Create(target.Item1, value)).IsValue();
 
@@ -331,20 +340,26 @@ namespace Verse.Test.Schemas
 
 		private void AssertDecodeAndEqual<T>(ISchema<T> schema, string json, T expected)
 		{
-			IDecoder<T> decoder = schema.CreateDecoder();
-			T value;
+			var decoder = schema.CreateDecoder();
 
-			Assert.IsTrue(decoder.Decode(new MemoryStream(Encoding.UTF8.GetBytes(json)), out value));
-			Assert.AreEqual(expected, value);
+		    using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
+		    {
+		        Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
+		        Assert.IsTrue(decoderStream.Decode(out var value));
+
+		        Assert.AreEqual(expected, value);
+		    }
 		}
 
 		private void AssertEncodeAndEqual<T>(ISchema<T> schema, T value, string expected)
 		{
-			IEncoder<T> encoder = schema.CreateEncoder();
+			var encoder = schema.CreateEncoder();
 
 			using (var stream = new MemoryStream())
 			{
-				Assert.IsTrue(encoder.Encode(value, stream));
+			    Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
+                Assert.IsTrue(encoderStream.Encode(value));
+
 				Assert.AreEqual(expected, Encoding.UTF8.GetString(stream.ToArray()));
 			}
 		}

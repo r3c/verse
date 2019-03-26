@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using NUnit.Framework;
 using ProtoBuf;
 using Verse.Schemas.Protobuf;
@@ -51,14 +49,14 @@ namespace Verse.Test.Schemas
             schema.DecoderDescriptor.HasField("name", (ref Person p, string v) => p.Name = v).IsValue();
 
             var decoder = schema.CreateDecoder();
-            Person person;
 
             using (var stream = new MemoryStream(new byte[] { 16, 17, 0, 0, 0 }))
             {
-                Assert.True(decoder.Decode(stream, out person));
-            }
+                Assert.True(decoder.TryOpen(stream, out var decoderStream));
+                Assert.True(decoderStream.Decode(out var person));
 
-            Assert.AreEqual(17, person.Id);
+                Assert.AreEqual(17, person.Id);
+            }
         }
 
 		[Test]
@@ -462,18 +460,17 @@ namespace Verse.Test.Schemas
 
 		private static U DecodeTranscode<T, U>(IDecoder<U> decoder, T input)
 		{
-			U output;
-
 			using (var stream = new MemoryStream())
 			{
 				Serializer.Serialize(stream, input);
 
 				stream.Seek(0, SeekOrigin.Begin);
-	
-				Assert.IsTrue(decoder.Decode(stream, out output));
-			}
 
-			return output;
+			    Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
+                Assert.IsTrue(decoderStream.Decode(out var output));
+
+			    return output;
+			}
 		}
 
 		private static T EncodeRoundTrip<T>(IEncoder<T> encoder, T input)
@@ -485,7 +482,8 @@ namespace Verse.Test.Schemas
 		{
 			using (var stream = new MemoryStream())
 			{
-				Assert.IsTrue(encoder.Encode(input, stream));
+			    Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
+                Assert.IsTrue(encoderStream.Encode(input));
 
 				stream.Seek(0, SeekOrigin.Begin);
 
