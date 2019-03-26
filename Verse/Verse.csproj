@@ -1,184 +1,40 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <ProjectGuid>{5848CC59-8957-4B18-906C-0BAA7875DF62}</ProjectGuid>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <OutputType>Library</OutputType>
-    <RootNamespace>Verse</RootNamespace>
     <AssemblyName>Verse</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <NoWin32Manifest>False</NoWin32Manifest>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <NoStdLib>False</NoStdLib>
-    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
-    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
-    <WarningLevel>4</WarningLevel>
-    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+    <AssemblyTitle>Fast Generic Runtime (de)serializer</AssemblyTitle>
+    <Version>0.0.3.1</Version>
+    <Authors>Remi Caput</Authors>
+    <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PackageIconUrl>https://raw.github.com/r3c/verse/master/icon.png</PackageIconUrl>
+    <PackageId>Verse</PackageId>
+    <PackageLicenseUrl>https://raw.github.com/r3c/verse/master/LICENSE.md</PackageLicenseUrl>
+    <PackageProjectUrl>http://r3c.github.io/verse/</PackageProjectUrl>
+    <PackageTags>Verse;Generic;Serialization;JSON;Protobuf</PackageTags>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>git://github.com/r3c/verse</RepositoryUrl>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <OutputPath>bin\Debug\</OutputPath>
-    <DebugSymbols>True</DebugSymbols>
-    <DebugType>Full</DebugType>
-    <Optimize>False</Optimize>
-    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <OutputPath>bin\Release\</OutputPath>
-    <DebugSymbols>False</DebugSymbols>
-    <DebugType>None</DebugType>
-    <Optimize>True</Optimize>
-    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
-    <DefineConstants>TRACE</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|32bits' ">
-    <PlatformTarget>x86</PlatformTarget>
-    <BaseAddress>4194304</BaseAddress>
-    <RegisterForComInterop>False</RegisterForComInterop>
-    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
-    <FileAlignment>4096</FileAlignment>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DebugSymbols>True</DebugSymbols>
-    <DebugType>Full</DebugType>
-    <Optimize>False</Optimize>
-    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|32bits' ">
-    <PlatformTarget>x86</PlatformTarget>
-    <BaseAddress>4194304</BaseAddress>
-    <RegisterForComInterop>False</RegisterForComInterop>
-    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
-    <FileAlignment>4096</FileAlignment>
-    <OutputPath>bin\Release\</OutputPath>
-    <DebugSymbols>False</DebugSymbols>
-    <DebugType>None</DebugType>
-    <Optimize>True</Optimize>
-    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
-    <DefineConstants>TRACE</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|32bits'">
-    <DocumentationFile>bin\Release\Verse.xml</DocumentationFile>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="protobuf-net">
-      <HintPath>$(SolutionDir)\packages\protobuf-net.2.0.0.668\lib\net40\protobuf-net.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="System.Data" />
-    <Reference Include="System.Data.DataSetExtensions">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-    </Reference>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' ">
+    <PackageReference Include="System.Collections" Version="4.3.0" />
+    <PackageReference Include="System.Reflection.Emit" Version="4.3.0" />
+    <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
+    <PackageReference Include="System.Reflection.TypeExtensions" Version="4.3.0" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="src\DecoderDescriptors\Abstract\Decoder.cs" />
-    <Compile Include="src\DecoderDescriptors\Abstract\DecoderStream.cs" />
-    <Compile Include="src\DecoderDescriptors\Abstract\IReader.cs" />
-    <Compile Include="src\DecoderDescriptors\Abstract\IReaderSession.cs" />
-    <Compile Include="src\DecoderDescriptors\Abstract\EntityTree.cs" />
-    <Compile Include="src\DecoderDescriptors\Abstract\EntityReader.cs" />
-    <Compile Include="src\DecoderDescriptors\Flat\FlatReader.cs" />
-    <Compile Include="src\DecoderDescriptors\Recurse\RecurseReader.cs" />
-    <Compile Include="src\EncoderDescriptors\Abstract\Encoder.cs" />
-    <Compile Include="src\EncoderDescriptors\Abstract\EncoderStream.cs" />
-    <Compile Include="src\EncoderDescriptors\Abstract\IWriter.cs" />
-    <Compile Include="src\EncoderDescriptors\Abstract\IWriterSession.cs" />
-    <Compile Include="src\EncoderDescriptors\Abstract\EntityWriter.cs" />
-    <Compile Include="src\EncoderDescriptors\Recurse\RecurseWriter.cs" />
-    <Compile Include="src\IDecoder.cs" />
-    <Compile Include="src\IEncoder.cs" />
-    <Compile Include="src\Linker.cs" />
-    <Compile Include="src\DecodeAssign.cs" />
-    <Compile Include="src\DecoderDescriptors\Abstract\IDecoderConverter.cs" />
-    <Compile Include="src\DecoderDescriptors\FlatDecoderDescriptor.cs" />
-    <Compile Include="src\DecoderDescriptors\Recurse\Browser.cs" />
-    <Compile Include="src\DecoderDescriptors\Recurse\BrowserMove.cs" />
-    <Compile Include="src\DecoderDescriptors\Recurse\BrowserState.cs" />
-    <Compile Include="src\EncoderDescriptors\AbstractEncoderDescriptor.cs" />
-    <Compile Include="src\EncoderDescriptors\Abstract\IEncoderConverter.cs" />
-    <Compile Include="src\EncoderDescriptors\RecurseEncoderDescriptor.cs" />
-    <Compile Include="src\EncodeError.cs" />
-    <Compile Include="src\Schemas\AbstractSchema.cs" />
-    <Compile Include="src\Schemas\JSON\JSONConfiguration.cs" />
-    <Compile Include="src\Schemas\JSON\JSONType.cs" />
-    <Compile Include="src\Schemas\JSON\ReaderSession.cs" />
-    <Compile Include="src\Schemas\JSON\WriterSession.cs" />
-    <Compile Include="src\Schemas\ProtobufSchema.cs" />
-    <Compile Include="src\Schemas\Protobuf\Definition\Lexem.cs" />
-    <Compile Include="src\Schemas\Protobuf\Definition\LexemType.cs" />
-    <Compile Include="src\Schemas\Protobuf\Definition\Lexer.cs" />
-    <Compile Include="src\Schemas\Protobuf\Definition\Parser.cs" />
-    <Compile Include="src\Schemas\Protobuf\Definition\ParserException.cs" />
-    <Compile Include="src\Schemas\Protobuf\Definition\ProtoBinding.cs" />
-    <Compile Include="src\Schemas\Protobuf\Definition\ProtoContainer.cs" />
-    <Compile Include="src\Schemas\Protobuf\Definition\ProtoEntity.cs" />
-    <Compile Include="src\Schemas\Protobuf\Definition\ProtoField.cs" />
-    <Compile Include="src\Schemas\Protobuf\Definition\ProtoLabel.cs" />
-    <Compile Include="src\Schemas\Protobuf\Definition\ProtoOccurrence.cs" />
-    <Compile Include="src\Schemas\Protobuf\Definition\ProtoReference.cs" />
-    <Compile Include="src\Schemas\Protobuf\Definition\ProtoType.cs" />
-    <Compile Include="src\Schemas\Protobuf\Definition\ResolverException.cs" />
-    <Compile Include="src\Schemas\Protobuf\Legacy\LegacyReader.cs" />
-    <Compile Include="src\Schemas\Protobuf\Legacy\LegacyReaderSession.cs" />
-    <Compile Include="src\Schemas\Protobuf\Legacy\LegacyReaderState.cs" />
-    <Compile Include="src\Schemas\Protobuf\Legacy\SubObjectInstance.cs" />
-    <Compile Include="src\Schemas\Protobuf\Legacy\VisitingNode.cs" />
-    <Compile Include="src\Schemas\Protobuf\Legacy\LegacyWriter.cs" />
-    <Compile Include="src\Schemas\Protobuf\Legacy\LegacyWriterSession.cs" />
-    <Compile Include="src\Schemas\Protobuf\Legacy\LegacyWriterState.cs" />
-    <Compile Include="src\Schemas\Protobuf\ProtobufConfiguration.cs" />
-    <Compile Include="src\Schemas\Protobuf\ProtobufType.cs" />
-    <Compile Include="src\Schemas\Protobuf\ProtobufValue.cs" />
-    <Compile Include="src\Schemas\Protobuf\DecoderConverter.cs" />
-    <Compile Include="src\Schemas\Protobuf\EncoderConverter.cs" />
-    <Compile Include="src\Schemas\Protobuf\Reader.cs" />
-    <Compile Include="src\Schemas\Protobuf\ReaderSession.cs" />
-    <Compile Include="src\Schemas\Protobuf\ReaderState.cs" />
-    <Compile Include="src\Schemas\Protobuf\WireType.cs" />
-    <Compile Include="src\Schemas\Protobuf\Writer.cs" />
-    <Compile Include="src\Schemas\Protobuf\WriterSession.cs" />
-    <Compile Include="src\Schemas\Protobuf\WriterState.cs" />
-    <Compile Include="src\Schemas\QueryStringSchema.cs" />
-    <Compile Include="src\Schemas\JSON\DecoderConverter.cs" />
-    <Compile Include="src\Schemas\JSON\EncoderConverter.cs" />
-    <Compile Include="src\Schemas\JSON\Writer.cs" />
-    <Compile Include="src\Schemas\JSON\WriterState.cs" />
-    <Compile Include="src\Schemas\QueryString\ReaderSession.cs" />
-    <Compile Include="src\Schemas\QueryString\Reader.cs" />
-    <Compile Include="src\Schemas\QueryString\ReaderState.cs" />
-    <Compile Include="src\Schemas\QueryString\DecoderConverter.cs" />
-    <Compile Include="src\Tools\Generator.cs" />
-    <Compile Include="src\Tools\Resolver.cs" />
-    <Compile Include="src\IEncoderStream.cs" />
-    <Compile Include="src\IEncoderDescriptor.cs" />
-    <Compile Include="src\DecoderDescriptors\AbstractDecoderDescriptor.cs" />
-    <Compile Include="src\DecoderDescriptors\RecurseDecoderDescriptor.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="src\IDecoderDescriptor.cs" />
-    <Compile Include="src\IDecoderStream.cs" />
-    <Compile Include="src\ISchema.cs" />
-    <Compile Include="src\DecodeError.cs" />
-    <Compile Include="src\Schemas\JSONSchema.cs" />
-    <Compile Include="src\Schemas\JSON\ReaderState.cs" />
-    <Compile Include="src\Schemas\JSON\Reader.cs" />
-    <Compile Include="src\Schemas\JSON\JSONValue.cs" />
+    <PackageReference Include="protobuf-net" Version="2.0.0.668" />
   </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
+  <ItemGroup>
+    <!-- From: https://stackoverflow.com/questions/42810705/visual-studio-2017-new-csproj-internalsvisibleto -->
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>$(MSBuildProjectName).Test</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
 </Project>

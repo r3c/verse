@@ -3,19 +3,12 @@ solution: Verse.sln
 
 matrix:
   include:
-    - dotnet: 1.0.1
-      mono: latest
+    - os: linux
       dist: trusty
-
-install:
-  - nuget restore Verse.sln
-  - nuget install NUnit.Runners -Version 2.6.2 -OutputDirectory tests
+      dotnet: 2.1.502
 
 script:
-  - xbuild /p:Configuration=Release Verse.sln
-  - mono ./tests/NUnit.Runners.2.6.2/tools/nunit-console.exe ./Verse.Test/bin/Release/Verse.Test.dll
-# - nuget pack -Prop Configuration=Release -Prop Platform=AnyCPU ./Verse/Verse.csproj
-  - rm -fr ./artifacts
-# - dotnet restore
-# - dotnet test ./Verse.Test/Verse.Test.csproj -c Release -f netcoreapp1.0
-# - dotnet pack ./Verse/Verse.csproj -c Release -o ./artifacts
+  - dotnet restore Verse.sln
+  - dotnet build ./Verse/Verse.csproj -c Release -f netstandard2.0
+  - dotnet build ./Verse.Test/Verse.Test.csproj -c Release -f netcoreapp2.0
+  - dotnet test ./Verse.Test/Verse.Test.csproj -c Release -f netcoreapp2.0

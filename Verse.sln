@@ -1,8 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
-# SharpDevelop 5.1
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.539
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Verse", "Verse\Verse.csproj", "{5848CC59-8957-4B18-906C-0BAA7875DF62}"
 EndProject
@@ -18,32 +17,35 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{5848CC59-8957-4B18-906C-0BAA7875DF62}.Debug|32bits.ActiveCfg = Debug|32bits
-		{5848CC59-8957-4B18-906C-0BAA7875DF62}.Debug|32bits.Build.0 = Debug|32bits
+		{5848CC59-8957-4B18-906C-0BAA7875DF62}.Debug|32bits.ActiveCfg = Debug|Any CPU
+		{5848CC59-8957-4B18-906C-0BAA7875DF62}.Debug|32bits.Build.0 = Debug|Any CPU
 		{5848CC59-8957-4B18-906C-0BAA7875DF62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5848CC59-8957-4B18-906C-0BAA7875DF62}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5848CC59-8957-4B18-906C-0BAA7875DF62}.Release|32bits.ActiveCfg = Release|32bits
-		{5848CC59-8957-4B18-906C-0BAA7875DF62}.Release|32bits.Build.0 = Release|32bits
+		{5848CC59-8957-4B18-906C-0BAA7875DF62}.Release|32bits.ActiveCfg = Release|Any CPU
+		{5848CC59-8957-4B18-906C-0BAA7875DF62}.Release|32bits.Build.0 = Release|Any CPU
 		{5848CC59-8957-4B18-906C-0BAA7875DF62}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5848CC59-8957-4B18-906C-0BAA7875DF62}.Release|Any CPU.Build.0 = Release|Any CPU
-		{375D9DA3-097B-4695-9FC6-7F4D3B3B18D5}.Debug|32bits.ActiveCfg = Debug|32bits
-		{375D9DA3-097B-4695-9FC6-7F4D3B3B18D5}.Debug|32bits.Build.0 = Debug|32bits
+		{375D9DA3-097B-4695-9FC6-7F4D3B3B18D5}.Debug|32bits.ActiveCfg = Debug|Any CPU
+		{375D9DA3-097B-4695-9FC6-7F4D3B3B18D5}.Debug|32bits.Build.0 = Debug|Any CPU
 		{375D9DA3-097B-4695-9FC6-7F4D3B3B18D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{375D9DA3-097B-4695-9FC6-7F4D3B3B18D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{375D9DA3-097B-4695-9FC6-7F4D3B3B18D5}.Release|32bits.ActiveCfg = Release|32bits
-		{375D9DA3-097B-4695-9FC6-7F4D3B3B18D5}.Release|32bits.Build.0 = Release|32bits
+		{375D9DA3-097B-4695-9FC6-7F4D3B3B18D5}.Release|32bits.ActiveCfg = Release|Any CPU
+		{375D9DA3-097B-4695-9FC6-7F4D3B3B18D5}.Release|32bits.Build.0 = Release|Any CPU
 		{375D9DA3-097B-4695-9FC6-7F4D3B3B18D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{375D9DA3-097B-4695-9FC6-7F4D3B3B18D5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1FA0776B-24EA-482B-9BB1-2EAF6EBB01BC}.Debug|32bits.ActiveCfg = Debug|32bits
-		{1FA0776B-24EA-482B-9BB1-2EAF6EBB01BC}.Debug|32bits.Build.0 = Debug|32bits
+		{1FA0776B-24EA-482B-9BB1-2EAF6EBB01BC}.Debug|32bits.ActiveCfg = Debug|Any CPU
+		{1FA0776B-24EA-482B-9BB1-2EAF6EBB01BC}.Debug|32bits.Build.0 = Debug|Any CPU
 		{1FA0776B-24EA-482B-9BB1-2EAF6EBB01BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1FA0776B-24EA-482B-9BB1-2EAF6EBB01BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1FA0776B-24EA-482B-9BB1-2EAF6EBB01BC}.Release|32bits.ActiveCfg = Release|32bits
-		{1FA0776B-24EA-482B-9BB1-2EAF6EBB01BC}.Release|32bits.Build.0 = Release|32bits
+		{1FA0776B-24EA-482B-9BB1-2EAF6EBB01BC}.Release|32bits.ActiveCfg = Release|Any CPU
+		{1FA0776B-24EA-482B-9BB1-2EAF6EBB01BC}.Release|32bits.Build.0 = Release|Any CPU
 		{1FA0776B-24EA-482B-9BB1-2EAF6EBB01BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1FA0776B-24EA-482B-9BB1-2EAF6EBB01BC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2717FD69-20A9-459F-87AC-6572D99550C1}
 	EndGlobalSection
 EndGlobal
