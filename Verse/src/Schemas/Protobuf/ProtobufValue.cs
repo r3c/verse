@@ -3,14 +3,19 @@ using System.Runtime.InteropServices;
 namespace Verse.Schemas.Protobuf
 {
 #if !__MonoCS__
-	[StructLayout(LayoutKind.Explicit)]
+	[StructLayout(LayoutKind.Explicit, Size = sizeof(ProtobufType) + sizeof(double))]
 #endif
 	public struct ProtobufValue
 	{
-		public static readonly ProtobufValue Void = new ProtobufValue();
+		public static readonly ProtobufValue Void;
 
 #if !__MonoCS__
-		[FieldOffset(sizeof(ProtobufType))]
+	    [FieldOffset(0)]
+#endif
+	    public readonly ProtobufType Type;
+
+#if !__MonoCS__
+        [FieldOffset(sizeof(ProtobufType))]
 #endif
         public readonly bool Boolean;
 
@@ -30,19 +35,14 @@ namespace Verse.Schemas.Protobuf
         public readonly long Signed;
 
 #if !__MonoCS__
-        [FieldOffset(sizeof(ProtobufType) + sizeof(double))]
+	    [FieldOffset(sizeof(ProtobufType))]
+#endif
+	    public readonly ulong Unsigned;
+
+#if !__MonoCS__
+        [FieldOffset(sizeof(ProtobufType) + 12)]
 #endif
         public readonly string String;
-
-#if !__MonoCS__
-        [FieldOffset(0)]
-#endif
-        public readonly ProtobufType Type;
-
-#if !__MonoCS__
-        [FieldOffset(sizeof(ProtobufType))]
-#endif
-        public readonly ulong Unsigned;
 
         public ProtobufValue(bool value)
 			: this()

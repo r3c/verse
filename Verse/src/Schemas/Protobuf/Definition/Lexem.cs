@@ -4,8 +4,6 @@ namespace Verse.Schemas.Protobuf.Definition
 {
     struct Lexem : IEquatable<Lexem>
     {
-        #region Attributes / Static
-
         public static readonly Lexem Enum = new Lexem(LexemType.Symbol, "enum");
 
         public static readonly Lexem Extend = new Lexem(LexemType.Symbol, "extend");
@@ -30,27 +28,15 @@ namespace Verse.Schemas.Protobuf.Definition
 
         public static readonly Lexem Reserved = new Lexem(LexemType.Symbol, "reserved");
 
-        #endregion
-
-        #region Attributes / Instance
-
         public readonly LexemType Type;
 
         public readonly string Value;
-
-        #endregion
-
-        #region Constructors
 
         public Lexem(LexemType type, string value)
         {
             this.Type = type;
             this.Value = value;
         }
-
-        #endregion
-
-        #region Operators
 
         public static bool operator ==(Lexem lhs, Lexem rhs)
         {
@@ -62,10 +48,6 @@ namespace Verse.Schemas.Protobuf.Definition
             return !lhs.Equals(rhs);
         }
 
-        #endregion
-
-        #region Methods
-
         public bool Equals(Lexem other)
         {
             return this.Type == other.Type && this.Value == other.Value;
@@ -73,14 +55,12 @@ namespace Verse.Schemas.Protobuf.Definition
 
         public override bool Equals(object obj)
         {
-            return (obj is Lexem) && this.Equals((Lexem)obj);
+            return (obj is Lexem lexem) && this.Equals(lexem);
         }
 
         public override int GetHashCode()
         {
             return this.Type.GetHashCode() ^ this.Value.GetHashCode();
         }
-
-        #endregion
     }
 }

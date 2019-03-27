@@ -113,10 +113,7 @@ namespace Verse.Schemas.Protobuf.Definition
 
             while (lexer.Current.Type != LexemType.BraceEnd)
             {
-                string label;
-                int value;
-
-                label = Parser.ParseValue(lexer, LexemType.Symbol, "enum label");
+                var label = Parser.ParseValue(lexer, LexemType.Symbol, "enum label");
 
                 if (label == "option")
                     Parser.ParseOption(lexer);
@@ -124,6 +121,7 @@ namespace Verse.Schemas.Protobuf.Definition
                 {
                     Parser.ParseValue(lexer, LexemType.Equal, "equal sign");
 
+                    int value;
                     if (!int.TryParse(Parser.ParseValue(lexer, LexemType.Number, "enum value"), NumberStyles.Integer, CultureInfo.InvariantCulture, out value))
                         throw new ParserException(lexer.Position, "invalid enum value");
 
@@ -152,11 +150,10 @@ namespace Verse.Schemas.Protobuf.Definition
         private static ProtoField ParseField(Lexer lexer, ProtoReference reference, ProtoOccurrence occurrence)
         {
             string name = Parser.ParseValue(lexer, LexemType.Symbol, "field name");
-            int number;
 
             Parser.ParseValue(lexer, LexemType.Equal, "equal sign");
 
-            if (!int.TryParse(Parser.ParseValue(lexer, LexemType.Number, "field number"), NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+            if (!int.TryParse(Parser.ParseValue(lexer, LexemType.Number, "field number"), NumberStyles.Integer, CultureInfo.InvariantCulture, out var number))
                 throw new ParserException(lexer.Position, "invalid field number");
 
             if (lexer.Current.Type == LexemType.BracketBegin)
@@ -301,16 +298,14 @@ namespace Verse.Schemas.Protobuf.Definition
 
         private static ProtobufValue ParseNumber(Lexer lexer, int sign)
         {
-            double asDecimal;
-            int asInteger;
             string number = lexer.Current.Value;
 
             lexer.Next();
 
             // FIXME: oct and hex literals not handled
-            if (int.TryParse(number, NumberStyles.Integer, CultureInfo.InvariantCulture, out asInteger))
+            if (int.TryParse(number, NumberStyles.Integer, CultureInfo.InvariantCulture, out var asInteger))
                 return new ProtobufValue(sign * asInteger);
-            else if (double.TryParse(number, NumberStyles.Float, CultureInfo.InvariantCulture, out asDecimal))
+            else if (double.TryParse(number, NumberStyles.Float, CultureInfo.InvariantCulture, out var asDecimal))
                 return new ProtobufValue(sign * asDecimal);
             else
                 throw new ParserException(lexer.Position, "invalid literal number");
@@ -382,9 +377,8 @@ namespace Verse.Schemas.Protobuf.Definition
                 local = true;
 
             var ident = Parser.ParseFullIdent(lexer);
-            ProtoType type;
 
-            if (Enum.TryParse(ident.ToLowerInvariant(), true, out type))
+            if (Enum.TryParse(ident.ToLowerInvariant(), true, out ProtoType type))
                 return new ProtoReference(type);
 
             if (local)

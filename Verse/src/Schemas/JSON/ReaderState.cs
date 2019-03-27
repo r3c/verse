@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using System.Text;
 
@@ -6,13 +5,7 @@ namespace Verse.Schemas.JSON
 {
 	class ReaderState
 	{
-		#region Attributes / Public
-
 		public int Current;
-
-		#endregion
-
-		#region Attributes / Private
 
 		private readonly DecodeError error;
 
@@ -20,11 +13,7 @@ namespace Verse.Schemas.JSON
 
 		private readonly StreamReader reader;
 
-		#endregion
-
-		#region Constructors
-
-		public ReaderState(Stream stream, Encoding encoding, DecodeError error)
+	    public ReaderState(Stream stream, Encoding encoding, DecodeError error)
 		{
 			this.error = error;
 			this.position = 0;
@@ -33,10 +22,6 @@ namespace Verse.Schemas.JSON
 			this.Read();
 		}
 
-		#endregion
-
-		#region Methods
-
 		public void Error(string message)
 		{
 			this.error(this.position, message);
@@ -44,11 +29,7 @@ namespace Verse.Schemas.JSON
 
 		public bool PullCharacter(out char character)
 		{
-			int nibble;
-			int previous;
-			int value;
-
-			previous = this.Current;
+		    var previous = this.Current;
 
 			this.Read();
 
@@ -113,7 +94,7 @@ namespace Verse.Schemas.JSON
 					return true;
 
 				case (int)'u':
-					value = 0;
+					var value = 0;
 
 					for (int i = 0; i < 4; ++i)
 					{
@@ -121,7 +102,9 @@ namespace Verse.Schemas.JSON
 
 						this.Read();
 
-						if (previous >= (int)'0' && previous <= (int)'9')
+					    int nibble;
+
+					    if (previous >= (int)'0' && previous <= (int)'9')
 							nibble = previous - (int)'0';
 						else if (previous >= (int)'A' && previous <= (int)'F')
 							nibble = previous - (int)'A' + 10;
@@ -166,11 +149,9 @@ namespace Verse.Schemas.JSON
 
 		public void PullIgnored()
 		{
-			int current;
-
-			while (true)
+		    while (true)
 			{
-				current = this.Current;
+				var current = this.Current;
 
 				if (current < 0 || current > (int)' ')
 					return;
@@ -185,7 +166,5 @@ namespace Verse.Schemas.JSON
 
 			++this.position;
 		}
-
-		#endregion
 	}
 }

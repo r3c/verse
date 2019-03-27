@@ -2,12 +2,8 @@ using System;
 
 namespace Verse.EncoderDescriptors.Abstract
 {
-	interface IEncoderConverter<TTo>
+	interface IEncoderConverter<out TTo>
 	{
-		#region Methods
-
 		Converter<TFrom, TTo> Get<TFrom>();
-
-		#endregion
 	}
 }

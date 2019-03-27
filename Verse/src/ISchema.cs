@@ -10,8 +10,6 @@ namespace Verse
 	/// <typeparam name="TEntity">Associated entity type</typeparam>
 	public interface ISchema<TEntity>
 	{
-		#region Properties
-
 		/// <summary>
 		/// Get decoder descriptor for this schema and entity type.
 		/// </summary>
@@ -28,10 +26,6 @@ namespace Verse
 			get;
 		}
 
-		#endregion
-
-		#region Methods
-
 		/// <summary>
 		/// Create an entity decoder based on instructions passed to the
 		/// decoder descriptor associated to this schema.
@@ -45,7 +39,5 @@ namespace Verse
 		/// </summary>
 		/// <returns>Encoder descriptor</returns>
 		IEncoder<TEntity> CreateEncoder();
-
-		#endregion
 	}
 }

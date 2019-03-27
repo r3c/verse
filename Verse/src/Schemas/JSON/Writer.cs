@@ -9,8 +9,6 @@ namespace Verse.Schemas.JSON
 	{
 		private readonly Dictionary<string, EntityWriter<TEntity, WriterState>> fields = new Dictionary<string, EntityWriter<TEntity, WriterState>>();
 
-		#region Methods
-
 		public override RecurseWriter<TOther, WriterState, JSONValue> Create<TOther>()
 		{
 			return new Writer<TOther>();
@@ -26,43 +24,35 @@ namespace Verse.Schemas.JSON
 
 		public override void WriteElements(IEnumerable<TEntity> elements, WriterState state)
 		{
-			IEnumerator<TEntity> item;
-
 			state.ArrayBegin();
-			item = elements.GetEnumerator();
 
-			while (item.MoveNext())
-				this.WriteEntity(item.Current, state);
+            foreach (var item in elements)
+                this.WriteEntity(item, state);
 
-			state.ArrayEnd();
+            state.ArrayEnd();
 		}
 
 		public override void WriteEntity(TEntity source, WriterState state)
 		{
-			IEnumerator<KeyValuePair<string, EntityWriter<TEntity, WriterState>>> field;
-
-			if (source == null)
+		    if (source == null)
 				state.Value(JSON.JSONValue.Void);
 			else if (this.IsArray)
 				this.WriteArray(source, state);
 			else if (this.IsValue)
 				state.Value(this.ConvertValue(source));
-			else
-			{
-				state.ObjectBegin();
-				field = this.fields.GetEnumerator();
+		    else
+		    {
+		        state.ObjectBegin();
 
-				while (field.MoveNext())
-				{
-					state.Key(field.Current.Key);
+		        foreach (var field in this.fields)
+		        {
+		            state.Key(field.Key);
 
-					field.Current.Value(source, state);
-				}
+		            field.Value(source, state);
+                }
 
-				state.ObjectEnd();
-			}
+		        state.ObjectEnd();
+		    }
 		}
-
-		#endregion
 	}
 }

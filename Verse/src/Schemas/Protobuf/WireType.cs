@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 namespace Verse.Schemas.Protobuf
 {
 	enum WireType : byte

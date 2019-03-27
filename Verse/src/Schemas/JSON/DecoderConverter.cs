@@ -7,8 +7,6 @@ namespace Verse.Schemas.JSON
 {
 	class DecoderConverter : IDecoderConverter<JSONValue>
 	{
-		#region Attributes
-
 		private readonly Dictionary<Type, object> converters = new Dictionary<Type, object>
 		{
 			{ typeof (bool), new Converter<JSONValue, bool>(DecoderConverter.ToBoolean) },
@@ -28,15 +26,9 @@ namespace Verse.Schemas.JSON
 			{ typeof (JSONValue), new Converter<JSONValue, JSONValue>((v) => v) }
 		};
 
-		#endregion
-
-		#region Methods / Public
-
 		public Converter<JSONValue, TTo> Get<TTo>()
 		{
-			object box;
-
-			if (!this.converters.TryGetValue(typeof (TTo), out box))
+		    if (!this.converters.TryGetValue(typeof (TTo), out var box))
 				throw new InvalidCastException(string.Format(CultureInfo.InvariantCulture, "cannot convert JSON value into '{0}', please register a converter using schema's SetDecoderConverter method", typeof (TTo)));
 
 			return (Converter<JSONValue, TTo>)box;
@@ -44,15 +36,8 @@ namespace Verse.Schemas.JSON
 
 		public void Set<TTo>(Converter<JSONValue, TTo> converter)
 		{
-			if (converter == null)
-				throw new ArgumentNullException("converter");
-
-			this.converters[typeof (TTo)] = converter;
+            this.converters[typeof (TTo)] = converter ?? throw new ArgumentNullException(nameof(converter));
 		}
-
-		#endregion
-
-		#region Methods / Private
 
 		private static bool ToBoolean(JSONValue value)
 		{
@@ -93,9 +78,7 @@ namespace Verse.Schemas.JSON
 
 		private static decimal ToDecimal(JSONValue value)
 		{
-			decimal number;
-
-			switch (value.Type)
+		    switch (value.Type)
 			{
 				case JSONType.Boolean:
 					return value.Boolean ? 1 : 0;
@@ -104,7 +87,7 @@ namespace Verse.Schemas.JSON
 					return value.Number;
 
 				case JSONType.String:
-					if (decimal.TryParse(value.String, NumberStyles.Float, CultureInfo.InvariantCulture, out number))
+				    if (decimal.TryParse(value.String, NumberStyles.Float, CultureInfo.InvariantCulture, out var number))
 						return number;
 
 					return 0;
@@ -116,9 +99,7 @@ namespace Verse.Schemas.JSON
 
 		private static float ToFloat32(JSONValue value)
 		{
-			float number;
-
-			switch (value.Type)
+		    switch (value.Type)
 			{
 				case JSONType.Boolean:
 					return value.Boolean ? 1 : 0;
@@ -127,7 +108,7 @@ namespace Verse.Schemas.JSON
 					return (float)value.Number;
 
 				case JSONType.String:
-					if (float.TryParse(value.String, NumberStyles.Float, CultureInfo.InvariantCulture, out number))
+				    if (float.TryParse(value.String, NumberStyles.Float, CultureInfo.InvariantCulture, out var number))
 						return number;
 
 					return 0;
@@ -139,9 +120,7 @@ namespace Verse.Schemas.JSON
 
 		private static double ToFloat64(JSONValue value)
 		{
-			double number;
-
-			switch (value.Type)
+		    switch (value.Type)
 			{
 				case JSONType.Boolean:
 					return value.Boolean ? 1 : 0;
@@ -150,7 +129,7 @@ namespace Verse.Schemas.JSON
 					return (double) value.Number;
 
 				case JSONType.String:
-					if (double.TryParse(value.String, NumberStyles.Float, CultureInfo.InvariantCulture, out number))
+					if (double.TryParse(value.String, NumberStyles.Float, CultureInfo.InvariantCulture, out var number))
 						return number;
 
 					return 0;
@@ -162,9 +141,7 @@ namespace Verse.Schemas.JSON
 
 		private static sbyte ToInteger8s(JSONValue value)
 		{
-			sbyte number;
-
-			switch (value.Type)
+		    switch (value.Type)
 			{
 				case JSONType.Boolean:
 					return value.Boolean ? (sbyte)1 : (sbyte)0;
@@ -173,7 +150,7 @@ namespace Verse.Schemas.JSON
 					return (sbyte)value.Number;
 
 				case JSONType.String:
-					if (sbyte.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+					if (sbyte.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number))
 						return number;
 
 					return 0;
@@ -185,9 +162,7 @@ namespace Verse.Schemas.JSON
 
 		private static byte ToInteger8u(JSONValue value)
 		{
-			byte number;
-
-			switch (value.Type)
+		    switch (value.Type)
 			{
 				case JSONType.Boolean:
 					return value.Boolean ? (byte)1 : (byte)0;
@@ -196,7 +171,7 @@ namespace Verse.Schemas.JSON
 					return (byte)value.Number;
 
 				case JSONType.String:
-					if (byte.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+					if (byte.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number))
 						return number;
 
 					return 0;
@@ -208,9 +183,7 @@ namespace Verse.Schemas.JSON
 
 		private static short ToInteger16s(JSONValue value)
 		{
-			short number;
-
-			switch (value.Type)
+		    switch (value.Type)
 			{
 				case JSONType.Boolean:
 					return value.Boolean ? (short)1 : (short)0;
@@ -219,7 +192,7 @@ namespace Verse.Schemas.JSON
 					return (short)value.Number;
 
 				case JSONType.String:
-					if (short.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+					if (short.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number))
 						return number;
 
 					return 0;
@@ -231,9 +204,7 @@ namespace Verse.Schemas.JSON
 
 		private static ushort ToInteger16u(JSONValue value)
 		{
-			ushort number;
-
-			switch (value.Type)
+		    switch (value.Type)
 			{
 				case JSONType.Boolean:
 					return value.Boolean ? (ushort)1 : (ushort)0;
@@ -242,7 +213,7 @@ namespace Verse.Schemas.JSON
 					return (ushort)value.Number;
 
 				case JSONType.String:
-					if (ushort.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+					if (ushort.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number))
 						return number;
 
 					return 0;
@@ -254,9 +225,7 @@ namespace Verse.Schemas.JSON
 
 		private static int ToInteger32s(JSONValue value)
 		{
-			int number;
-
-			switch (value.Type)
+		    switch (value.Type)
 			{
 				case JSONType.Boolean:
 					return value.Boolean ? 1 : 0;
@@ -265,7 +234,7 @@ namespace Verse.Schemas.JSON
 					return (int)value.Number;
 
 				case JSONType.String:
-					if (int.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+					if (int.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number))
 						return number;
 
 					return 0;
@@ -277,9 +246,7 @@ namespace Verse.Schemas.JSON
 
 		private static uint ToInteger32u(JSONValue value)
 		{
-			uint number;
-
-			switch (value.Type)
+		    switch (value.Type)
 			{
 				case JSONType.Boolean:
 					return value.Boolean ? 1u : 0;
@@ -288,7 +255,7 @@ namespace Verse.Schemas.JSON
 					return (uint)value.Number;
 
 				case JSONType.String:
-					if (uint.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+					if (uint.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number))
 						return number;
 
 					return 0;
@@ -300,9 +267,7 @@ namespace Verse.Schemas.JSON
 
 		private static long ToInteger64s(JSONValue value)
 		{
-			long number;
-
-			switch (value.Type)
+		    switch (value.Type)
 			{
 				case JSONType.Boolean:
 					return value.Boolean ? 1 : 0;
@@ -311,7 +276,7 @@ namespace Verse.Schemas.JSON
 					return (long)value.Number;
 
 				case JSONType.String:
-					if (long.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+					if (long.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number))
 						return number;
 
 					return 0;
@@ -323,9 +288,7 @@ namespace Verse.Schemas.JSON
 
 		private static ulong ToInteger64u(JSONValue value)
 		{
-			ulong number;
-
-			switch (value.Type)
+		    switch (value.Type)
 			{
 				case JSONType.Boolean:
 					return value.Boolean ? 1u : 0;
@@ -334,7 +297,7 @@ namespace Verse.Schemas.JSON
 					return (ulong)value.Number;
 
 				case JSONType.String:
-					if (ulong.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+					if (ulong.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number))
 						return number;
 
 					return 0;
@@ -361,7 +324,5 @@ namespace Verse.Schemas.JSON
 					return string.Empty;
 			}
 		}
-
-		#endregion
 	}
 }

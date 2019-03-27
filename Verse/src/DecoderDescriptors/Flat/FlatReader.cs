@@ -5,23 +5,11 @@ namespace Verse.DecoderDescriptors.Flat
 {
 	abstract class FlatReader<TEntity, TState, TValue> : IReader<TEntity, TState>
 	{
-		protected bool IsValue
-		{
-			get
-			{
-				return this.convert != null;
-			}
-		}
+		protected bool IsValue => this.convert != null;
 
-		protected EntityTree<TEntity, TState> Root
-		{
-			get
-			{
-				return this.fields;
-			}
-		}
+	    protected EntityTree<TEntity, TState> Root => this.fields;
 
-		private readonly EntityTree<TEntity, TState> fields = new EntityTree<TEntity, TState>();
+	    private readonly EntityTree<TEntity, TState> fields = new EntityTree<TEntity, TState>();
 
 		private Converter<TValue, TEntity> convert = null;
 

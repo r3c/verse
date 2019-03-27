@@ -11,8 +11,6 @@ namespace Verse
 	/// <typeparam name="TEntity">Entity type</typeparam>
 	public interface IDecoderDescriptor<TEntity>
 	{
-		#region Methods
-
 		/// <summary>
 		/// Register constructor which will be used as replacement for default
 		/// one when a field, element or value of associated type must be
@@ -79,7 +77,5 @@ namespace Verse
 		/// when calling this method.
 		/// </summary>
 		void IsValue();
-
-		#endregion
 	}
 }

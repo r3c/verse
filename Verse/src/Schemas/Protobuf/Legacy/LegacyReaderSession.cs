@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using Verse.DecoderDescriptors.Abstract;
 
 namespace Verse.Schemas.Protobuf.Legacy

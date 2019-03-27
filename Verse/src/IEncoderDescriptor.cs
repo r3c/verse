@@ -11,8 +11,6 @@ namespace Verse
 	/// <typeparam name="TEntity">Entity type</typeparam>
 	public interface IEncoderDescriptor<out TEntity>
 	{
-		#region Methods
-
 		/// <summary>
 		/// Declare new named schema field and reuse previously existing
 		/// descriptor to define how it should be encoded. This method
@@ -70,7 +68,5 @@ namespace Verse
 		/// when calling this method.
 		/// </summary>
 		void IsValue();
-
-		#endregion
 	}
 }

@@ -6,35 +6,13 @@ namespace Verse.EncoderDescriptors.Recurse
 {
 	abstract class RecurseWriter<TEntity, TState, TValue> : IWriter<TEntity, TState>
 	{
-		#region Properties
+		public bool IsArray => this.array != null;
 
-		public bool IsArray
-		{
-			get
-			{
-				return this.array != null;
-			}
-		}
+	    public bool IsValue => this.value != null;
 
-		public bool IsValue
-		{
-			get
-			{
-				return this.value != null;
-			}
-		}
-
-		#endregion
-
-		#region Attributes
-
-		private EntityWriter<TEntity, TState> array = null;
+	    private EntityWriter<TEntity, TState> array = null;
 
 		private Converter<TEntity, TValue> value = null;
-
-		#endregion
-
-		#region Methods / Abstract
 
 		public abstract RecurseWriter<TOther, TState, TValue> Create<TOther>();
 
@@ -43,10 +21,6 @@ namespace Verse.EncoderDescriptors.Recurse
 		public abstract void WriteElements(IEnumerable<TEntity> elements, TState state);
 
 		public abstract void WriteEntity(TEntity source, TState state);
-
-		#endregion
-
-		#region Methods / Public
 
 		public void DeclareArray(EntityWriter<TEntity, TState> enter)
 		{
@@ -64,10 +38,6 @@ namespace Verse.EncoderDescriptors.Recurse
 			this.value = converter;
 		}
 
-		#endregion
-
-		#region Methods / Protected
-
 		protected TValue ConvertValue(TEntity entity)
 		{
 			return this.value(entity);
@@ -77,7 +47,5 @@ namespace Verse.EncoderDescriptors.Recurse
 		{
 			this.array(entity, state);
 		}
-
-		#endregion
 	}
 }

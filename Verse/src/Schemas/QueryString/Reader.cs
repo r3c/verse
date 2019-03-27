@@ -1,6 +1,4 @@
-﻿using System;
-using System.Text;
-using Verse.DecoderDescriptors.Abstract;
+﻿using System.Text;
 using Verse.DecoderDescriptors.Flat;
 
 namespace Verse.Schemas.QueryString
@@ -88,8 +86,6 @@ namespace Verse.Schemas.QueryString
 
 	class Reader<TEntity> : FlatReader<TEntity, ReaderState, string>
 	{
-		#region Methods / Public
-
 		public override FlatReader<TOther, ReaderState, string> Create<TOther>()
 		{
 			return new Reader<TOther>();
@@ -99,19 +95,18 @@ namespace Verse.Schemas.QueryString
 		{
 			while (state.Current != -1)
 			{
-				EntityTree<TEntity, ReaderState> node;
-				string unused;
+			    string unused;
 
 				if (!Reader.IsUnreserved(state.Current))
 				{
 					state.Error("empty field");
 
-					entity = default(TEntity);
+					entity = default;
 
 					return false;
 				}
 
-				node = this.Root;
+				var node = this.Root;
 
 				do
 				{
@@ -145,23 +140,17 @@ namespace Verse.Schemas.QueryString
 
 		public override bool ReadValue(ReaderState state, out TEntity value)
 		{
-			string raw;
-
-			if (!this.ScanValue(state, out raw))
+		    if (!this.ScanValue(state, out var raw))
 			{
-				value = default(TEntity);
+				value = default;
 
 				return false;
 			}
 
-			value = this.IsValue ? this.ConvertValue(raw) : default(TEntity);
+			value = this.IsValue ? this.ConvertValue(raw) : default;
 
 			return true;
 		}
-
-		#endregion
-
-		#region Methods / Private
 
 		private bool ScanValue(ReaderState state, out string raw)
 		{
@@ -170,12 +159,9 @@ namespace Verse.Schemas.QueryString
 
 			while (state.Current != -1)
 			{
-				int count;
-				int current = state.Current;
-				int hex1;
-				int hex2;
+			    int current = state.Current;
 
-				if (Reader.IsUnreserved(current))
+			    if (Reader.IsUnreserved(current))
 				{
 					builder.Append((char)current);
 
@@ -189,7 +175,9 @@ namespace Verse.Schemas.QueryString
 				}
 				else if (current == '%')
 				{
-					for (count = 0; state.Current == '%'; ++count)
+				    int count;
+
+				    for (count = 0; state.Current == '%'; ++count)
 					{
 						if (count >= buffer.Length)
 						{
@@ -207,7 +195,7 @@ namespace Verse.Schemas.QueryString
 							return false;
 						}
 
-						hex1 = Reader.DecimalFromHexa((char)state.Current);
+						var hex1 = Reader.DecimalFromHexa((char)state.Current);
 
 						state.Pull();
 
@@ -218,7 +206,7 @@ namespace Verse.Schemas.QueryString
 							return false;
 						}
 
-						hex2 = Reader.DecimalFromHexa((char)state.Current);
+						var hex2 = Reader.DecimalFromHexa((char)state.Current);
 
 						state.Pull();
 
@@ -242,7 +230,5 @@ namespace Verse.Schemas.QueryString
 
 			return true;
 		}
-
-		#endregion
 	}
 }

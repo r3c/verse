@@ -7,21 +7,9 @@ namespace Verse.Schemas.Protobuf.Definition
 {
     class Lexer
     {
-        public Lexem Current
-        {
-            get
-            {
-                return this.current;
-            }
-        }
+        public Lexem Current => this.current;
 
-        public int Position
-        {
-            get
-            {
-                return this.position;
-            }
-        }
+        public int Position => this.position;
 
         private Lexem current;
 
@@ -43,7 +31,6 @@ namespace Verse.Schemas.Protobuf.Definition
         public void Next()
         {
             StringBuilder builder;
-            int delimiter;
             LexemType type;
 
             // Skip whitespaces
@@ -131,8 +118,9 @@ namespace Verse.Schemas.Protobuf.Definition
             }
             else if (this.pending == '\'' || this.pending == '"')
             {
+                var delimiter = this.pending;
+
                 builder = new StringBuilder();
-                delimiter = this.pending;
 
                 while (true)
                 {

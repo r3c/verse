@@ -1,37 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Verse.DecoderDescriptors.Abstract
 {
 	class EntityTree<TEntity, TState>
 	{
-		#region Constants
-
 		private const int INDEX_SIZE = 128;
 
-		#endregion
+		public EntityReader<TEntity, TState> Read => this.read;
 
-		public EntityReader<TEntity, TState> Read
-		{
-			get
-			{
-				return this.read;
-			}
-		}
-
-		public static readonly EntityTree<TEntity, TState> Empty = new EntityTree<TEntity, TState>();
-
-		#region Attributes
+	    public static readonly EntityTree<TEntity, TState> Empty = new EntityTree<TEntity, TState>();
 
 		private EntityTree<TEntity, TState>[] branchIndex = null;
 
 		private Dictionary<char, EntityTree<TEntity, TState>> branchHash = null;
 
 		private EntityReader<TEntity, TState> read;
-
-		#endregion
-
-		#region Methods
 
 		public bool Connect(string name, EntityReader<TEntity, TState> read)
 		{
@@ -95,7 +78,5 @@ namespace Verse.DecoderDescriptors.Abstract
 
 			return EntityTree<TEntity, TState>.Empty;
 		}
-
-		#endregion
 	}
 }

@@ -127,7 +127,7 @@ namespace Verse.Test.Schemas
 
 			using (var stream = new MemoryStream(first))
 			{
-				decoded = type.IsValueType || type == typeof(string) ? default(T) : (T)Activator.CreateInstance(type);
+				decoded = type.IsValueType || type == typeof(string) ? default : (T)Activator.CreateInstance(type);
 
                 Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
 				Assert.IsTrue(decoderStream.Decode(out decoded));

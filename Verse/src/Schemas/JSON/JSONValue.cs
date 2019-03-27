@@ -1,4 +1,3 @@
-using System;
 
 namespace Verse.Schemas.JSON
 {
@@ -7,8 +6,6 @@ namespace Verse.Schemas.JSON
 	/// </summary>
 	public struct JSONValue
 	{
-		#region Attributes / Instance
-
 		/// <summary>
 		/// Boolean value (only set if type is boolean).
 		/// </summary>
@@ -29,18 +26,10 @@ namespace Verse.Schemas.JSON
 		/// </summary>
 		public JSONType Type;
 
-		#endregion
-
-		#region Attributes / Static
-
 		/// <summary>
 		/// Static instance of undefined value.
 		/// </summary>
 		public static readonly JSONValue Void = new JSONValue();
-
-		#endregion
-
-		#region Methods
 
 		/// <summary>
 		/// Create a new boolean JSON value.
@@ -71,7 +60,5 @@ namespace Verse.Schemas.JSON
 		{
 			return new JSONValue { String = value, Type = JSONType.String };
 		}
-
-		#endregion
 	}
 }

@@ -12,41 +12,19 @@ namespace Verse.Schemas
 	/// <typeparam name="TEntity">Entity type</typeparam>
 	public class JSONSchema<TEntity> : AbstractSchema<TEntity>
 	{
-		#region Properties
-
 		/// <inheritdoc/>
-		public override IDecoderDescriptor<TEntity> DecoderDescriptor
-		{
-			get
-			{
-				return this.decoderDescriptor;
-			}
-		}
+		public override IDecoderDescriptor<TEntity> DecoderDescriptor => this.decoderDescriptor;
 
-		/// <inheritdoc/>
-		public override IEncoderDescriptor<TEntity> EncoderDescriptor
-		{
-			get
-			{
-				return this.encoderDescriptor;
-			}
-		}
+	    /// <inheritdoc/>
+		public override IEncoderDescriptor<TEntity> EncoderDescriptor => this.encoderDescriptor;
 
-		#endregion
-
-		#region Attributes
-
-		private readonly DecoderConverter decoderConverter;
+	    private readonly DecoderConverter decoderConverter;
 
 		private readonly RecurseDecoderDescriptor<TEntity, ReaderState, JSONValue> decoderDescriptor;
 
 		private readonly EncoderConverter encoderConverter;
 
 		private readonly RecurseEncoderDescriptor<TEntity, WriterState, JSONValue> encoderDescriptor;
-
-		#endregion
-
-		#region Constructors
 
 		/// <summary>
 		/// Create new JSON schema using given settings
@@ -62,19 +40,15 @@ namespace Verse.Schemas
 			this.encoderDescriptor = new RecurseEncoderDescriptor<TEntity, WriterState, JSONValue>(this.encoderConverter, new WriterSession(encoding, settings.OmitNull), new Writer<TEntity>());
 		}
 
-		/// <summary>
-		/// Create JSON schema using default UTF8 encoding.
-		/// </summary>
-		public JSONSchema()
-			: this(default(JSONConfiguration))
-		{
-		}
+	    /// <summary>
+	    /// Create JSON schema using default UTF8 encoding.
+	    /// </summary>
+	    public JSONSchema()
+	        : this(default)
+	    {
+	    }
 
-		#endregion
-
-		#region Methods
-
-		/// <inheritdoc/>
+	    /// <inheritdoc/>
 		public override IDecoder<TEntity> CreateDecoder()
 		{
 			return this.decoderDescriptor.CreateDecoder();
@@ -105,7 +79,5 @@ namespace Verse.Schemas
 		{
 			this.encoderConverter.Set(converter);
 		}
-
-		#endregion
 	}
 }

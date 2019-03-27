@@ -29,13 +29,11 @@ namespace Verse.Schemas.Protobuf.Legacy
 
 		public void Error(string message)
 		{
-			long localPosition;
+		    var localPosition = this.subObjectInstances.Count > 0
+		        ? this.subObjectInstances.Peek().Stream.Position
+		        : 0;
 
-			localPosition = this.subObjectInstances.Count > 0
-				? this.subObjectInstances.Peek().Stream.Position
-				: 0;
-
-			this.error((int)(this.parentOffset + localPosition), message);
+		    this.error((int)(this.parentOffset + localPosition), message);
 		}
 
 		public void Key(string key)
@@ -45,24 +43,20 @@ namespace Verse.Schemas.Protobuf.Legacy
 
 		public void ObjectBegin()
 		{
-			SubObjectInstance subObjectInstance;
-
-			if (this.subObjectInstances.Count > 0)
+		    if (this.subObjectInstances.Count > 0)
 				this.parentOffset += this.subObjectInstances.Peek().Stream.Position;
 
-			subObjectInstance = new SubObjectInstance(this.fieldIndex);
+			var subObjectInstance = new SubObjectInstance(this.fieldIndex);
 
 			this.subObjectInstances.Push(subObjectInstance);
 		}
 
 		public bool ObjectEnd()
 		{
-			SubObjectInstance subObjectInstance;
-
-			if (this.subObjectInstances.Count == 0)
+		    if (this.subObjectInstances.Count == 0)
 				return false;
 
-			subObjectInstance = this.subObjectInstances.Pop();
+			var subObjectInstance = this.subObjectInstances.Pop();
 
 			this.parentOffset -= subObjectInstance.Stream.Position;
 			this.fieldIndex = subObjectInstance.Index;
@@ -74,12 +68,10 @@ namespace Verse.Schemas.Protobuf.Legacy
 
 		public bool Value(ProtobufValue value)
 		{
-			ProtoWriter destWriter;
-
-			if (this.subObjectInstances.Count == 0)
+		    if (this.subObjectInstances.Count == 0)
 				return false;
 
-			destWriter = this.subObjectInstances.Peek().Writer;
+			var destWriter = this.subObjectInstances.Peek().Writer;
 
 			switch (value.Type)
 			{
@@ -132,9 +124,7 @@ namespace Verse.Schemas.Protobuf.Legacy
 			}
 			else
 			{
-				ProtoWriter destWriter;
-
-				destWriter = this.subObjectInstances.Peek().Writer;
+			    var destWriter = this.subObjectInstances.Peek().Writer;
 
 				ProtoWriter.WriteFieldHeader(subObjectInstance.Index, ProtoBuf.WireType.String, destWriter);
 				ProtoWriter.WriteBytes(subObjectInstance.Stream.ToArray(), destWriter);

@@ -7,15 +7,9 @@ namespace Verse.EncoderDescriptors
 {
 	class RecurseEncoderDescriptor<TEntity, TState, TValue> : AbstractEncoderDescriptor<TEntity, TValue>
 	{
-		#region Attributes
-
 		private readonly IWriterSession<TState> session;
 
 		private readonly RecurseWriter<TEntity, TState, TValue> writer;
-
-		#endregion
-
-		#region Constructors
 
 		public RecurseEncoderDescriptor(IEncoderConverter<TValue> converter, IWriterSession<TState> session, RecurseWriter<TEntity, TState, TValue> writer) :
 			base(converter)
@@ -23,10 +17,6 @@ namespace Verse.EncoderDescriptors
 			this.session = session;
 			this.writer = writer;
 		}
-
-		#endregion
-
-		#region Methods / Public
 
 		public IEncoder<TEntity> CreateEncoder()
 		{
@@ -38,7 +28,7 @@ namespace Verse.EncoderDescriptors
 			var descriptor = parent as RecurseEncoderDescriptor<TField, TState, TValue>;
 
 			if (descriptor == null)
-				throw new ArgumentOutOfRangeException("parent", "incompatible descriptor type");
+				throw new ArgumentOutOfRangeException(nameof(parent), "incompatible descriptor type");
 
 			return this.HasField(name, access, descriptor);
 		}
@@ -53,7 +43,7 @@ namespace Verse.EncoderDescriptors
 			var descriptor = parent as RecurseEncoderDescriptor<TItem, TState, TValue>;
 
 			if (descriptor == null)
-				throw new ArgumentOutOfRangeException("parent", "incompatible descriptor type");
+				throw new ArgumentOutOfRangeException(nameof(parent), "incompatible descriptor type");
 
 			return this.IsArray(access, descriptor);
 		}
@@ -67,10 +57,6 @@ namespace Verse.EncoderDescriptors
 		{
 			this.writer.DeclareValue(this.GetConverter());
 		}
-
-		#endregion
-
-		#region Methods / Private
 
 		private RecurseEncoderDescriptor<TField, TState, TValue> HasField<TField>(string name, Func<TEntity, TField> access, RecurseEncoderDescriptor<TField, TState, TValue> descriptor)
 		{
@@ -89,7 +75,5 @@ namespace Verse.EncoderDescriptors
 
 			return descriptor;
 		}
-
-		#endregion
 	}
 }

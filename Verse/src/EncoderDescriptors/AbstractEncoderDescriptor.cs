@@ -6,22 +6,12 @@ namespace Verse.EncoderDescriptors
 {
 	abstract class AbstractEncoderDescriptor<TEntity, TValue> : IEncoderDescriptor<TEntity>
 	{
-		#region Attributes
-
 		protected readonly IEncoderConverter<TValue> converter;
-
-		#endregion
-
-		#region Constructors
 
 		protected AbstractEncoderDescriptor(IEncoderConverter<TValue> converter)
 		{
 			this.converter = converter;
 		}
-
-		#endregion
-
-		#region Methods / Abstract
 
 		public abstract IEncoderDescriptor<TField> HasField<TField>(string name, Func<TEntity, TField> access, IEncoderDescriptor<TField> parent);
 
@@ -33,24 +23,14 @@ namespace Verse.EncoderDescriptors
 
 		public abstract void IsValue();
 
-		#endregion
-
-		#region Methods / Public
-
 		public IEncoderDescriptor<TEntity> HasField(string name)
 		{
 			return this.HasField(name, source => source);
 		}
 
-		#endregion
-
-		#region Methods / Protected
-
 		protected Converter<TEntity, TValue> GetConverter()
 		{
 			return this.converter.Get<TEntity>();
 		}
-
-		#endregion
 	}
 }

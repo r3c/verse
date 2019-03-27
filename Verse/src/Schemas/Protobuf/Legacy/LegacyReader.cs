@@ -8,8 +8,6 @@ namespace Verse.Schemas.Protobuf.Legacy
 {
 	class LegacyReader<TEntity> : RecurseReader<TEntity, LegacyReaderState, ProtobufValue>
 	{
-		#region Attributes
-
 		private EntityReader<TEntity, LegacyReaderState> array = null;
 
 		private static readonly LegacyReader<TEntity> emptyReader = new LegacyReader<TEntity>();
@@ -17,10 +15,6 @@ namespace Verse.Schemas.Protobuf.Legacy
 		private readonly List<EntityReader<TEntity, LegacyReaderState>> arrayFields = new List<EntityReader<TEntity, LegacyReaderState>>();
 
 		private readonly List<EntityReader<TEntity, LegacyReaderState>> objectFields = new List<EntityReader<TEntity, LegacyReaderState>>();
-
-		#endregion
-
-		#region Methods / Public
 
 		public override BrowserMove<TEntity> Browse(Func<TEntity> constructor, LegacyReaderState state)
 		{
@@ -38,9 +32,8 @@ namespace Verse.Schemas.Protobuf.Legacy
 		public override RecurseReader<TField, LegacyReaderState, ProtobufValue> HasField<TField>(string name, EntityReader<TEntity, LegacyReaderState> enter)
 		{
 			List<EntityReader<TEntity, LegacyReaderState>> fields;
-			int index;
 
-			if (int.TryParse(name, out index))
+		    if (int.TryParse(name, out var index))
 				fields = this.arrayFields;
 			else if (name.Length > 0 && name[0] == '_' && int.TryParse(name.Substring(1), out index))
 				fields = this.objectFields;
@@ -67,15 +60,13 @@ namespace Verse.Schemas.Protobuf.Legacy
 
 		public override bool Read(ref TEntity entity, LegacyReaderState state)
 		{
-			int fieldIndex;
-
-			switch (state.ReadingAction)
+		    switch (state.ReadingAction)
 			{
 				case LegacyReaderState.ReadingActionType.UseHeader:
 					return this.FollowNode(state.Reader.FieldNumber, ref entity, state);
 
 				case LegacyReaderState.ReadingActionType.ReadHeader:
-					while (state.ReadHeader(out fieldIndex))
+					while (state.ReadHeader(out var fieldIndex))
 					{
 						state.AddObject(fieldIndex);
 
@@ -135,10 +126,6 @@ namespace Verse.Schemas.Protobuf.Legacy
 			}
 		}
 
-		#endregion
-
-		#region Methods / Private
-
 		private static bool Ignore(LegacyReaderState state)
 		{
 			var dummy = default(TEntity);
@@ -157,19 +144,14 @@ namespace Verse.Schemas.Protobuf.Legacy
 
 		private bool ReadObjectValue(ref TEntity target, LegacyReaderState state)
 		{
-			int visitCount;
-			SubItemToken lastSubItem;
+		    var lastSubItem = ProtoReader.StartSubItem(state.Reader);
 
-			lastSubItem = ProtoReader.StartSubItem(state.Reader);
-
-			if (!state.EnterObject(out visitCount))
+			if (!state.EnterObject(out var visitCount))
 				return false;
 
 			while (ProtoReader.HasSubValue(ProtoBuf.WireType.None, state.Reader))
 			{
-				int fieldIndex;
-
-				state.ReadHeader(out fieldIndex);
+			    state.ReadHeader(out var fieldIndex);
 				state.AddObject(fieldIndex);
 
 				if (visitCount == 1 && fieldIndex < this.objectFields.Count && this.objectFields[fieldIndex] != null)
@@ -202,20 +184,20 @@ namespace Verse.Schemas.Protobuf.Legacy
 		private BrowserMove<TEntity> ReadSubItemArray(Func<TEntity> constructor, LegacyReaderState state)
 		{
 			int dummy;
-			SubItemToken lastSubItem;
 
-			if (this.HoldValue)
+		    if (this.HoldValue)
 				return this.ReadValueArray(constructor, state);
 
 			state.ReadingAction = LegacyReaderState.ReadingActionType.ReadHeader;
 
-			lastSubItem = ProtoReader.StartSubItem(state.Reader);
+			var lastSubItem = ProtoReader.StartSubItem(state.Reader);
 
 			if (!state.EnterObject(out dummy))
 			{
 				return (int index, out TEntity current) =>
 				{
-					current = default(TEntity);
+				    current = default;
+
 					return BrowserState.Failure;
 				};
 			}
@@ -226,7 +208,7 @@ namespace Verse.Schemas.Protobuf.Legacy
 
 				if (!ProtoReader.HasSubValue(ProtoBuf.WireType.None, state.Reader))
 				{
-					current = default(TEntity);
+				    current = default;
 
 					state.LeaveObject();
 
@@ -240,7 +222,7 @@ namespace Verse.Schemas.Protobuf.Legacy
 				if (this.Read(ref current, state))
 					return BrowserState.Continue;
 
-				current = default(TEntity);
+			    current = default;
 
 				return BrowserState.Failure;
 			};
@@ -256,7 +238,7 @@ namespace Verse.Schemas.Protobuf.Legacy
 
 				if (index > 0)
 				{
-					current = default(TEntity);
+					current = default;
 
 					return BrowserState.Success;
 				}
@@ -269,7 +251,5 @@ namespace Verse.Schemas.Protobuf.Legacy
 				return BrowserState.Continue;
 			};
 		}
-
-		#endregion
 	}
 }

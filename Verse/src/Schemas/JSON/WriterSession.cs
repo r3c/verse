@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Text;
 using Verse.EncoderDescriptors.Abstract;
 
@@ -17,14 +16,14 @@ namespace Verse.Schemas.JSON
 			this.omitNull = omitNull;
 		}
 
-		public bool Start(Stream stream, EncodeError error, out WriterState state)
-		{
-			state = new WriterState(stream, error, this.encoding, this.omitNull);
+	    public bool Start(Stream stream, EncodeError error, out WriterState state)
+	    {
+	        state = new WriterState(stream, this.encoding, this.omitNull);
 
-			return true;
-		}
+	        return true;
+	    }
 
-		public void Stop(WriterState state)
+	    public void Stop(WriterState state)
 		{
 			state.Flush();
 		}

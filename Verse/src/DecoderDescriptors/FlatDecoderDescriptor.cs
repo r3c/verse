@@ -7,17 +7,11 @@ namespace Verse.DecoderDescriptors
 {
 	class FlatDecoderDescriptor<TEntity, TState, TValue> : AbstractDecoderDescriptor<TEntity, TState, TValue>
 	{
-		#region Attributes
-
 		private readonly IDecoderConverter<TValue> converter;
 
 		private readonly FlatReader<TEntity, TState, TValue> reader;
 
 		private readonly IReaderSession<TState> session;
-
-		#endregion
-
-		#region Constructors
 
 		public FlatDecoderDescriptor(IDecoderConverter<TValue> converter, IReaderSession<TState> session, FlatReader<TEntity, TState, TValue> reader) :
 			base(converter, session, reader)
@@ -27,16 +21,12 @@ namespace Verse.DecoderDescriptors
 			this.session = session;
 		}
 
-		#endregion
-
-		#region Methods / Public
-
 		public override IDecoderDescriptor<TField> HasField<TField>(string name, DecodeAssign<TEntity, TField> assign, IDecoderDescriptor<TField> parent)
 		{
 			var descriptor = parent as FlatDecoderDescriptor<TField, TState, TValue>;
 
 			if (descriptor == null)
-				throw new ArgumentOutOfRangeException("parent", "invalid target descriptor type");
+				throw new ArgumentOutOfRangeException(nameof(parent), "invalid target descriptor type");
 
 			return this.HasField(name, assign, descriptor);
 		}
@@ -71,19 +61,13 @@ namespace Verse.DecoderDescriptors
 			this.reader.DeclareValue(this.GetConverter());
 		}
 
-		#endregion
-
-		#region Methods / Private
-
 		private IDecoderDescriptor<TField> HasField<TField>(string name, DecodeAssign<TEntity, TField> assign, FlatDecoderDescriptor<TField, TState, TValue> descriptor)
 		{
 			var child = descriptor.reader;
 
 			this.reader.DeclareField(name, (ref TEntity target, TState state) =>
 			{
-				TField inner;
-
-				if (!child.ReadValue(state, out inner))
+			    if (!child.ReadValue(state, out var inner))
 					return false;
 
 				assign(ref target, inner);
@@ -93,7 +77,5 @@ namespace Verse.DecoderDescriptors
 
 			return descriptor;
 		}
-
-		#endregion
 	}
 }

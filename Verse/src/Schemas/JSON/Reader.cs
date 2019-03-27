@@ -8,23 +8,13 @@ namespace Verse.Schemas.JSON
 {
 	class Reader<TEntity> : RecurseReader<TEntity, ReaderState, JSONValue>
 	{
-		#region Constants
-
 		private const ulong MANTISSA_MAX = long.MaxValue / 10;
-
-		#endregion
-
-		#region Attributes
 
 		private EntityReader<TEntity, ReaderState> array = null;
 
 		private static readonly Reader<TEntity> emptyReader = new Reader<TEntity>();
 
 		private readonly EntityTree<TEntity, ReaderState> fields = new EntityTree<TEntity, ReaderState>();
-
-		#endregion
-
-		#region Methods / Public
 
 		public override BrowserMove<TEntity> Browse(Func<TEntity> constructor, ReaderState state)
 		{
@@ -96,15 +86,12 @@ namespace Verse.Schemas.JSON
 
 					if (!state.PullExpected('a') || !state.PullExpected('l') || !state.PullExpected('s') || !state.PullExpected('e'))
 					{
-						entity = default(TEntity);
+						entity = default;
 
 						return false;
 					}
 
-					if (this.HoldValue)
-						entity = this.ConvertValue(JSONValue.FromBoolean(false));
-					else
-						entity = default(TEntity);
+					entity = this.HoldValue ? this.ConvertValue(JSONValue.FromBoolean(false)) : default;
 
 					return true;
 
@@ -113,15 +100,12 @@ namespace Verse.Schemas.JSON
 
 					if (!state.PullExpected('u') || !state.PullExpected('l') || !state.PullExpected('l'))
 					{
-						entity = default(TEntity);
+						entity = default;
 
 						return false;
 					}
 
-					if (this.HoldValue)
-						entity = this.ConvertValue(JSONValue.Void);
-					else
-						entity = default(TEntity);
+					entity = this.HoldValue ? this.ConvertValue(JSONValue.Void) : default;
 
 					return true;
 
@@ -130,15 +114,12 @@ namespace Verse.Schemas.JSON
 
 					if (!state.PullExpected('r') || !state.PullExpected('u') || !state.PullExpected('e'))
 					{
-						entity = default(TEntity);
+						entity = default;
 
 						return false;
 					}
 
-					if (this.HoldValue)
-						entity = this.ConvertValue(JSONValue.FromBoolean(true));
-					else
-						entity = default(TEntity);
+					entity = this.HoldValue ? this.ConvertValue(JSONValue.FromBoolean(true)) : default;
 
 					return true;
 
@@ -151,15 +132,11 @@ namespace Verse.Schemas.JSON
 				default:
 					state.Error("expected array, object or value");
 
-					entity = default(TEntity);
+					entity = default;
 
 					return false;
 			}
 		}
-
-		#endregion
-
-		#region Methods / Private
 
 		private static bool Ignore(ReaderState state)
 		{
@@ -180,7 +157,7 @@ namespace Verse.Schemas.JSON
 				{
 					state.Read();
 
-					current = default(TEntity);
+					current = default;
 
 					return BrowserState.Success;
 				}
@@ -190,7 +167,7 @@ namespace Verse.Schemas.JSON
 				{
 					if (!state.PullExpected(','))
 					{
-						current = default(TEntity);
+						current = default;
 
 						return BrowserState.Failure;
 					}
@@ -253,22 +230,16 @@ namespace Verse.Schemas.JSON
 
 		private bool ScanNumberAsEntity(ref TEntity entity, ReaderState state)
 		{
-			decimal number;
-			uint numberExponent;
-			uint numberExponentMask;
-			uint numberExponentPlus;
-			ulong numberMantissa;
-			ulong numberMantissaMask;
-			ulong numberMantissaPlus;
-			int numberPower;
-
-			unchecked
+		    unchecked
 			{
-				numberMantissa = 0;
-				numberPower = 0;
+				ulong numberMantissa = 0;
+				var numberPower = 0;
 
 				// Read number sign
-				if (state.Current == (int)'-')
+			    ulong numberMantissaMask;
+			    ulong numberMantissaPlus;
+
+			    if (state.Current == (int)'-')
 				{
 					state.Read();
 
@@ -313,9 +284,12 @@ namespace Verse.Schemas.JSON
 				// Read exponent if any
 				if (state.Current == (int)'E' || state.Current == (int)'e')
 				{
-					state.Read();
+				    uint numberExponentMask;
+				    uint numberExponentPlus;
 
-					switch (state.Current)
+                    state.Read();
+
+				    switch (state.Current)
 					{
 						case (int)'+':
 							state.Read();
@@ -340,7 +314,9 @@ namespace Verse.Schemas.JSON
 							break;
 					}
 
-					for (numberExponent = 0; state.Current >= (int)'0' && state.Current <= (int)'9'; state.Read())
+				    uint numberExponent;
+
+				    for (numberExponent = 0; state.Current >= (int)'0' && state.Current <= (int)'9'; state.Read())
 						numberExponent = numberExponent*10 + (uint)(state.Current - (int)'0');
 
 					numberPower += (int)((numberExponent ^ numberExponentMask) + numberExponentPlus);
@@ -349,14 +325,13 @@ namespace Verse.Schemas.JSON
 				// Compute result number and assign if needed
 				if (this.HoldValue)
 				{
-					number =
-						(long)((numberMantissa ^ numberMantissaMask) + numberMantissaPlus) *
-						(decimal)Math.Pow(10, numberPower);
+				    var number = (long)((numberMantissa ^ numberMantissaMask) + numberMantissaPlus) *
+				                     (decimal)Math.Pow(10, numberPower);
 
-					entity = this.ConvertValue(JSONValue.FromNumber(number));
+				    entity = this.ConvertValue(JSONValue.FromNumber(number));
 				}
 				else
-					entity = default(TEntity);
+					entity = default;
 			}
 
 			return true;
@@ -368,15 +343,13 @@ namespace Verse.Schemas.JSON
 
 			return (int index, out TEntity current) =>
 			{
-				char ignore;
-
-				state.PullIgnored();
+			    state.PullIgnored();
 
 				if (state.Current == (int)'}')
 				{
 					state.Read();
 
-					current = default(TEntity);
+					current = default;
 
 					return BrowserState.Success;
 				}
@@ -386,7 +359,7 @@ namespace Verse.Schemas.JSON
 				{
 					if (!state.PullExpected(','))
 					{
-						current = default(TEntity);
+						current = default;
 
 						return BrowserState.Failure;
 					}
@@ -396,7 +369,7 @@ namespace Verse.Schemas.JSON
 
 				if (!state.PullExpected('"'))
 				{
-					current = default(TEntity);
+					current = default;
 
 					return BrowserState.Failure;
 				}
@@ -404,11 +377,11 @@ namespace Verse.Schemas.JSON
 				// Read and move to object key
 				while (state.Current != (int)'"')
 				{
-					if (!state.PullCharacter(out ignore))
+					if (!state.PullCharacter(out _))
 					{
 						state.Error("invalid character in object key");
 
-						current = default(TEntity);
+						current = default;
 
 						return BrowserState.Failure;
 					}
@@ -421,7 +394,7 @@ namespace Verse.Schemas.JSON
 
 				if (!state.PullExpected(':'))
 				{
-					current = default(TEntity);
+					current = default;
 
 					return BrowserState.Failure;
 				}
@@ -441,10 +414,7 @@ namespace Verse.Schemas.JSON
 
 		private bool ScanObjectAsEntity(ref TEntity entity, ReaderState state)
 		{
-			char character;
-			EntityTree<TEntity, ReaderState> node;
-
-			state.Read();
+		    state.Read();
 
 			for (int index = 0; true; ++index)
 			{
@@ -466,7 +436,10 @@ namespace Verse.Schemas.JSON
 					return false;
 
 				// Read and move to object key
-				for (node = this.fields; state.Current != (int)'"'; node = node.Follow(character))
+			    char character;
+			    EntityTree<TEntity, ReaderState> node;
+
+			    for (node = this.fields; state.Current != (int)'"'; node = node.Follow(character))
 				{
 					if (!state.PullCharacter(out character))
 					{
@@ -498,15 +471,14 @@ namespace Verse.Schemas.JSON
 
 		private bool ScanStringAsEntity(ref TEntity entity, ReaderState state)
 		{
-			StringBuilder buffer;
-			char character;
+		    char character;
 
 			state.Read();
 
 			// Read and store string in a buffer if its value is needed
 			if (this.HoldValue)
 			{
-				buffer = new StringBuilder(32);
+				var buffer = new StringBuilder(32);
 
 				while (state.Current != (int)'"')
 				{
@@ -514,7 +486,7 @@ namespace Verse.Schemas.JSON
 					{
 						state.Error("invalid character in string value");
 
-						entity = default(TEntity);
+					    entity = default;
 
 						return false;
 					}
@@ -534,20 +506,18 @@ namespace Verse.Schemas.JSON
 					{
 						state.Error("invalid character in string value");
 
-						entity = default(TEntity);
+					    entity = default;
 
 						return false;
 					}
 				}
 
-				entity = default(TEntity);
+			    entity = default;
 			}
 
 			state.Read();
 
 			return true;
 		}
-
-		#endregion
 	}
 }

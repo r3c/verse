@@ -20,7 +20,7 @@ namespace Verse.EncoderDescriptors.Abstract
         {
             if (!this.session.Start(output, this.OnError, out var state))
             {
-                encoderStream = default(IEncoderStream<TEntity>);
+                encoderStream = default;
 
                 return false;
             }

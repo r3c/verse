@@ -9,8 +9,6 @@ namespace Verse.Schemas.Protobuf.Legacy
 	{
 		private readonly Dictionary<string, EntityWriter<TEntity, LegacyWriterState>> fields = new Dictionary<string, EntityWriter<TEntity, LegacyWriterState>>();
 
-		#region Methods
-
 		public override RecurseWriter<TOther, LegacyWriterState, ProtobufValue> Create<TOther>()
 		{
 			return new LegacyWriter<TOther>();
@@ -59,7 +57,5 @@ namespace Verse.Schemas.Protobuf.Legacy
 				state.ObjectEnd();
 			}
 		}
-
-		#endregion
 	}
 }

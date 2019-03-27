@@ -7,8 +7,6 @@ namespace Verse.Schemas.Protobuf
 {
 	class EncoderConverter : IEncoderConverter<ProtobufValue>
 	{
-		#region Attributes
-
 		private readonly Dictionary<Type, object> converters = new Dictionary<Type, object>
 		{
 			{ typeof (bool), new Converter<bool, ProtobufValue>(v => new ProtobufValue(v)) },
@@ -28,10 +26,6 @@ namespace Verse.Schemas.Protobuf
 			{ typeof (ProtobufValue), new Converter<ProtobufValue, ProtobufValue>(v => v) }
 		};
 
-		#endregion
-
-		#region Methods
-
 		public Converter<TFrom, ProtobufValue> Get<TFrom>()
 		{
 			object box;
@@ -50,12 +44,7 @@ namespace Verse.Schemas.Protobuf
 
 		public void Set<TFrom>(Converter<TFrom, ProtobufValue> converter)
 		{
-			if (converter == null)
-				throw new ArgumentNullException("converter");
-
-			this.converters[typeof (TFrom)] = converter;
+		    this.converters[typeof (TFrom)] = converter ?? throw new ArgumentNullException(nameof(converter));
 		}
-
-		#endregion
 	}
 }

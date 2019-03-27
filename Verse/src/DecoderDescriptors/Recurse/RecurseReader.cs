@@ -5,15 +5,9 @@ namespace Verse.DecoderDescriptors.Recurse
 {
 	abstract class RecurseReader<TEntity, TState, TValue> : IReader<TEntity, TState>
 	{
-		protected bool HoldValue
-		{
-			get
-			{
-				return this.convert != null;
-			}
-		}
+		protected bool HoldValue => this.convert != null;
 
-		private Converter<TValue, TEntity> convert = null;
+	    private Converter<TValue, TEntity> convert = null;
 
 		public abstract BrowserMove<TEntity> Browse(Func<TEntity> constructor, TState state);
 

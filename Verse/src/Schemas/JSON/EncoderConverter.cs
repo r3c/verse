@@ -7,8 +7,6 @@ namespace Verse.Schemas.JSON
 {
 	class EncoderConverter : IEncoderConverter<JSONValue>
 	{
-		#region Attributes
-
 		private readonly Dictionary<Type, object> converters = new Dictionary<Type, object>
 		{
 			{ typeof (bool), new Converter<bool, JSONValue>(JSONValue.FromBoolean) },
@@ -28,15 +26,9 @@ namespace Verse.Schemas.JSON
 			{ typeof (JSONValue), new Converter<JSONValue, JSONValue>((v) => v) }
 		};
 
-		#endregion
-
-		#region Methods
-
 		public Converter<TFrom, JSONValue> Get<TFrom>()
 		{
-			object box;
-
-			if (!this.converters.TryGetValue(typeof (TFrom), out box))
+		    if (!this.converters.TryGetValue(typeof (TFrom), out var box))
 				throw new InvalidCastException(string.Format(CultureInfo.InvariantCulture, "cannot convert '{0}' into JSON value, please register a converter using schema's SetEncoderConverter method", typeof (TFrom)));
 
 			return (Converter<TFrom, JSONValue>)box;
@@ -44,12 +36,7 @@ namespace Verse.Schemas.JSON
 
 		public void Set<TFrom>(Converter<TFrom, JSONValue> converter)
 		{
-			if (converter == null)
-				throw new ArgumentNullException("converter");
-
-			this.converters[typeof (TFrom)] = converter;
+            this.converters[typeof (TFrom)] = converter ?? throw new ArgumentNullException(nameof(converter));
 		}
-
-		#endregion
 	}
 }

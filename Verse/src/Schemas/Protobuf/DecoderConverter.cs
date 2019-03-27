@@ -7,8 +7,6 @@ namespace Verse.Schemas.Protobuf
 {
 	class DecoderConverter : IDecoderConverter<ProtobufValue>
 	{
-		#region Attributes
-
 		private readonly Dictionary<Type, object> converters = new Dictionary<Type, object>
 		{
 			{ typeof (bool), new Converter<ProtobufValue, bool>(DecoderConverter.ToBoolean) },
@@ -28,10 +26,6 @@ namespace Verse.Schemas.Protobuf
 			{ typeof (ProtobufValue), new Converter<ProtobufValue, ProtobufValue>((v) => v) }
 		};
 
-		#endregion
-
-		#region Methods / Public
-
 		public Converter<ProtobufValue, TTo> Get<TTo>()
 		{
 			object box;
@@ -50,15 +44,8 @@ namespace Verse.Schemas.Protobuf
 
 		public void Set<TTo>(Converter<ProtobufValue, TTo> converter)
 		{
-			if (converter == null)
-				throw new ArgumentNullException("converter");
-
-			this.converters[typeof (TTo)] = converter;
+		    this.converters[typeof (TTo)] = converter ?? throw new ArgumentNullException(nameof(converter));
 		}
-
-		#endregion
-
-		#region Methods / Private
 
 		private static bool ToBoolean(ProtobufValue value)
 		{
@@ -131,9 +118,7 @@ namespace Verse.Schemas.Protobuf
 					return value.Signed;
 
 				case ProtobufType.String:
-					decimal number;
-
-					if (decimal.TryParse(value.String, NumberStyles.Float, CultureInfo.InvariantCulture, out number))
+				    if (decimal.TryParse(value.String, NumberStyles.Float, CultureInfo.InvariantCulture, out var number))
 						return number;
 
 					return 0;
@@ -163,9 +148,7 @@ namespace Verse.Schemas.Protobuf
 					return value.Signed;
 
 				case ProtobufType.String:
-					float number;
-
-					if (float.TryParse(value.String, NumberStyles.Float, CultureInfo.InvariantCulture, out number))
+				    if (float.TryParse(value.String, NumberStyles.Float, CultureInfo.InvariantCulture, out var number))
 						return number;
 
 					return 0;
@@ -195,9 +178,7 @@ namespace Verse.Schemas.Protobuf
 					return value.Signed;
 
 				case ProtobufType.String:
-					double number;
-
-					if (double.TryParse(value.String, NumberStyles.Float, CultureInfo.InvariantCulture, out number))
+				    if (double.TryParse(value.String, NumberStyles.Float, CultureInfo.InvariantCulture, out var number))
 						return number;
 
 					return 0;
@@ -227,9 +208,7 @@ namespace Verse.Schemas.Protobuf
 					return (sbyte)value.Signed;
 
 				case ProtobufType.String:
-					sbyte number;
-
-					if (sbyte.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+				    if (sbyte.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number))
 						return number;
 
 					return 0;
@@ -259,9 +238,7 @@ namespace Verse.Schemas.Protobuf
 					return (byte)value.Signed;
 
 				case ProtobufType.String:
-					byte number;
-
-					if (byte.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+				    if (byte.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number))
 						return number;
 
 					return 0;
@@ -291,9 +268,7 @@ namespace Verse.Schemas.Protobuf
 					return (short)value.Signed;
 
 				case ProtobufType.String:
-					short number;
-
-					if (short.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+				    if (short.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number))
 						return number;
 
 					return 0;
@@ -323,9 +298,7 @@ namespace Verse.Schemas.Protobuf
 					return (ushort)value.Signed;
 
 				case ProtobufType.String:
-					ushort number;
-
-					if (ushort.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+				    if (ushort.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number))
 						return number;
 
 					return 0;
@@ -355,9 +328,7 @@ namespace Verse.Schemas.Protobuf
 					return (int)value.Signed;
 
 				case ProtobufType.String:
-					int number;
-
-					if (int.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+				    if (int.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number))
 						return number;
 
 					return 0;
@@ -387,9 +358,7 @@ namespace Verse.Schemas.Protobuf
 					return (uint)value.Signed;
 
 				case ProtobufType.String:
-					uint number;
-
-					if (uint.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+				    if (uint.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number))
 						return number;
 
 					return 0;
@@ -419,9 +388,7 @@ namespace Verse.Schemas.Protobuf
 					return value.Signed;
 
 				case ProtobufType.String:
-					long number;
-
-					if (long.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+				    if (long.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number))
 						return number;
 
 					return 0;
@@ -451,9 +418,7 @@ namespace Verse.Schemas.Protobuf
 					return (ulong)value.Signed;
 
 				case ProtobufType.String:
-					ulong number;
-
-					if (ulong.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+				    if (ulong.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number))
 						return number;
 
 					return 0;
@@ -492,7 +457,5 @@ namespace Verse.Schemas.Protobuf
 					return string.Empty;
 			}
 		}
-
-		#endregion
 	}
 }

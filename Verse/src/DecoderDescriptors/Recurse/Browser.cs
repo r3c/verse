@@ -6,25 +6,15 @@ namespace Verse.DecoderDescriptors.Recurse
 {
 	class Browser<TEntity> : IDisposable, IEnumerable<TEntity>
 	{
-		#region Attributes
-
 		private Enumerator enumerator;
 
 		private bool started;
-
-		#endregion
-
-		#region Constructors
 
 		public Browser(BrowserMove<TEntity> move)
 		{
 			this.enumerator = new Enumerator(move);
 			this.started = false;
 		}
-
-		#endregion
-
-		#region Methods
 
 		public void Dispose()
 		{
@@ -52,29 +42,13 @@ namespace Verse.DecoderDescriptors.Recurse
 			return this.GetEnumerator();
 		}
 
-		#endregion
-
-		#region Types
-
-		private class Enumerator : IDisposable, IEnumerator<TEntity>
+		private class Enumerator : IEnumerator<TEntity>
 		{
-			public TEntity Current
-			{
-				get
-				{
-					return this.current;
-				}
-			}
-	
-			object IEnumerator.Current
-			{
-				get
-				{
-					return this.Current;
-				}
-			}
+			public TEntity Current => this.current;
 
-			private int index;
+		    object IEnumerator.Current => this.Current;
+
+		    private int index;
 
 			private BrowserMove<TEntity> move;
 	
@@ -117,7 +91,5 @@ namespace Verse.DecoderDescriptors.Recurse
 				throw new NotSupportedException("array cannot be enumerated more than once");
 			}
 		}
-
-		#endregion
 	}
 }

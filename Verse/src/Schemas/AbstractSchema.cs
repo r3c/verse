@@ -7,8 +7,6 @@ namespace Verse.Schemas
 	/// <typeparam name="TEntity">Entity type</typeparam>
 	public abstract class AbstractSchema<TEntity> : ISchema<TEntity>
 	{
-		#region Properties
-
 		/// <inheritdoc/>
 		public abstract IDecoderDescriptor<TEntity> DecoderDescriptor
 		{
@@ -21,16 +19,10 @@ namespace Verse.Schemas
 			get;
 		}
 
-		#endregion
-
-		#region Methods
-
 		/// <inheritdoc/>
 		public abstract IDecoder<TEntity> CreateDecoder();
 
 		/// <inheritdoc/>
 		public abstract IEncoder<TEntity> CreateEncoder();
-
-		#endregion
 	}
 }

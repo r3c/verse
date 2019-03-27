@@ -7,35 +7,13 @@ namespace Verse.Schemas
 {
 	public sealed class QueryStringSchema<TEntity> : AbstractSchema<TEntity>
 	{
-		#region Properties
+		public override IDecoderDescriptor<TEntity> DecoderDescriptor => this.decoderDescriptor;
 
-		public override IDecoderDescriptor<TEntity> DecoderDescriptor
-		{
-			get
-			{
-				return this.decoderDescriptor;
-			}
-		}
+	    public override IEncoderDescriptor<TEntity> EncoderDescriptor => throw new NotImplementedException("encoding not implemented");
 
-		public override IEncoderDescriptor<TEntity> EncoderDescriptor
-		{
-			get
-			{
-				throw new NotImplementedException("encoding not implemented");
-			}
-		}
-
-		#endregion
-
-		#region Attributes
-
-		private readonly DecoderConverter decoderConverter;
+	    private readonly DecoderConverter decoderConverter;
 
 		private readonly FlatDecoderDescriptor<TEntity, ReaderState, string> decoderDescriptor;
-
-		#endregion
-
-		#region Constructor
 
 		public QueryStringSchema(Encoding encoding)
 		{
@@ -49,10 +27,6 @@ namespace Verse.Schemas
 			this(new UTF8Encoding(false))
 		{
 		}
-
-		#endregion
-
-		#region Methods
 
 		/// <inheritdoc/>
 		public override IDecoder<TEntity> CreateDecoder()
@@ -70,7 +44,5 @@ namespace Verse.Schemas
 		{
 			this.decoderConverter.Set(converter);
 		}
-
-		#endregion
 	}
 }

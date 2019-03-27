@@ -1,4 +1,3 @@
-using System;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -7,11 +6,7 @@ namespace Verse.Schemas.JSON
 {
 	class WriterState
 	{
-		#region Attributes / Instance
-
 		private string currentKey;
-
-		private readonly EncodeError error;
 
 		private readonly bool omitNull;
 
@@ -21,22 +16,13 @@ namespace Verse.Schemas.JSON
 
 		private readonly StreamWriter writer;
 
-		#endregion
-
-		#region Attributes / Static
-
 		private static readonly char[][] ascii = new char[128][];
 
 		private static readonly char[] hexa = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
 
-		#endregion
-
-		#region Constructors
-
-		public WriterState(Stream stream, EncodeError error, Encoding encoding, bool omitNull)
+		public WriterState(Stream stream, Encoding encoding, bool omitNull)
 		{
 			this.currentKey = null;
-			this.error = error;
 			this.needComma = false;
 			this.omitNull = omitNull;
 			this.position = 0;
@@ -59,10 +45,6 @@ namespace Verse.Schemas.JSON
 			WriterState.ascii['\\'] = new[] { '\\', '\\' };
 			WriterState.ascii['"'] = new[] { '\\', '\"' };
 		}
-
-		#endregion
-
-		#region Methods / Public
 
 		public void ArrayBegin()
 		{
@@ -165,10 +147,6 @@ namespace Verse.Schemas.JSON
 			this.needComma = true;
 		}
 
-		#endregion
-
-		#region Methods / Private
-
 		private void BeforeNonNull()
 		{
 			if (this.needComma)
@@ -182,7 +160,5 @@ namespace Verse.Schemas.JSON
 				this.currentKey = null;
 			}
 		}
-
-		#endregion
 	}
 }

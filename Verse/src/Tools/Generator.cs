@@ -6,103 +6,89 @@ namespace Verse.Tools
 {
 	static class Generator
 	{
-		#region Attributes
+		private static readonly ParameterModifier[] EmptyModifiers = new ParameterModifier[0];
 
-		private static readonly ParameterModifier[] emptyModifiers = new ParameterModifier[0];
+	    private static readonly OpCode[] OpCodeLdArgs =
+	        {OpCodes.Ldarg_0, OpCodes.Ldarg_1, OpCodes.Ldarg_2, OpCodes.Ldarg_3};
 
-		private static readonly OpCode[] opCodeLdargs = new[] { OpCodes.Ldarg_0, OpCodes.Ldarg_1, OpCodes.Ldarg_2, OpCodes.Ldarg_3 };
+	    public static Func<T> Constructor<T>()
+	    {
+	        var constructor = typeof(T).GetConstructor(
+	            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, Type.DefaultBinder,
+	            Type.EmptyTypes, Generator.EmptyModifiers);
 
-		#endregion
+	        if (constructor == null)
+	            return () => default;
 
-		#region Methods / Public
+	        return (Func<T>) Generator.Create(constructor);
+	    }
 
-		public static Func<T> Constructor<T>()
-		{
-			ConstructorInfo constructor;
+	    private static object Create(ConstructorInfo constructor)
+	    {
+	        Type type;
 
-			constructor = typeof (T).GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, Type.DefaultBinder, Type.EmptyTypes, Generator.emptyModifiers);
+	        var parameters = constructor.GetParameters();
 
-			if (constructor == null)
-				return () => default (T);
+	        switch (parameters.Length)
+	        {
+	            case 0:
+	                type = typeof(Func<>);
 
-			return (Func<T>)Generator.Create(constructor);
-		}
+	                break;
 
-		#endregion
+	            case 1:
+	                type = typeof(Func<,>);
 
-		#region Methods / Private
+	                break;
 
-		private static object Create(ConstructorInfo constructor)
-		{
-			ILGenerator generator;
-			Type[] generics;
-			int index;
-			DynamicMethod method;
-			ParameterInfo[] parameters;
-			Type type;
+	            case 2:
+	                type = typeof(Func<,,>);
 
-			parameters = constructor.GetParameters();
+	                break;
 
-			switch (parameters.Length)
-			{
-				case 0:
-					type = typeof (Func<>);
+	            case 3:
+	                type = typeof(Func<,,,>);
 
-					break;
+	                break;
 
-				case 1:
-					type = typeof (Func<,>);
+	            case 4:
+	                type = typeof(Func<,,,,>);
 
-					break;
+	                break;
 
-				case 2:
-					type = typeof (Func<,,>);
+	            default:
+	                throw new ArgumentOutOfRangeException(nameof(constructor),
+	                    "can't generate constructor with more than 4 arguments");
+	        }
 
-					break;
+	        var method = new DynamicMethod(string.Empty, constructor.DeclaringType,
+	            Array.ConvertAll(parameters, (p) => p.ParameterType), constructor.Module, true);
+	        var generator = method.GetILGenerator();
+	        var index = 0;
 
-				case 3:
-					type = typeof (Func<,,,>);
+	        foreach (ParameterInfo parameter in parameters)
+	        {
+	            if (parameter.ParameterType.IsByRef)
+	                generator.Emit(index < 256 ? OpCodes.Ldarga_S : OpCodes.Ldarga, index);
+	            else if (index < Generator.OpCodeLdArgs.Length)
+	                generator.Emit(Generator.OpCodeLdArgs[index]);
+	            else
+	                generator.Emit(index < 256 ? OpCodes.Ldarg_S : OpCodes.Ldarg, index);
 
-					break;
+	            ++index;
+	        }
 
-				case 4:
-					type = typeof (Func<,,,,>);
+	        generator.Emit(OpCodes.Newobj, constructor);
+	        generator.Emit(OpCodes.Ret);
 
-					break;
+	        var generics = new Type[parameters.Length + 1];
 
-				default:
-					throw new ArgumentOutOfRangeException("constructor", "can't generate constructor with more than 4 arguments");
-			}
+	        generics[0] = constructor.DeclaringType;
 
-			method = new DynamicMethod(string.Empty, constructor.DeclaringType, Array.ConvertAll(parameters, (p) => p.ParameterType), constructor.Module, true);
+	        for (index = 0; index < parameters.Length; ++index)
+	            generics[index + 1] = parameters[index].ParameterType;
 
-			generator = method.GetILGenerator();
-			index = 0;
-
-			foreach (ParameterInfo parameter in parameters)
-			{
-				if (parameter.ParameterType.IsByRef)
-					generator.Emit(index < 256 ? OpCodes.Ldarga_S : OpCodes.Ldarga, index);
-				else if (index < Generator.opCodeLdargs.Length)
-					generator.Emit(Generator.opCodeLdargs[index]);
-				else
-					generator.Emit(index < 256 ? OpCodes.Ldarg_S : OpCodes.Ldarg, index);
-
-				++index;
-			}
-
-			generator.Emit(OpCodes.Newobj, constructor);
-			generator.Emit(OpCodes.Ret);
-
-			generics = new Type[parameters.Length + 1];
-			generics[0] = constructor.DeclaringType;
-
-			for (index = 0; index < parameters.Length; ++index)
-				generics[index + 1] = parameters[index].ParameterType;
-
-			return method.CreateDelegate(type.MakeGenericType(generics));
-		}
-
-		#endregion
+	        return method.CreateDelegate(type.MakeGenericType(generics));
+	    }
 	}
 }

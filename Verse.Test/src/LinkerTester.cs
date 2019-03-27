@@ -178,7 +178,7 @@ namespace Verse.Test
 
 		private class FieldContainer<T>
 		{
-			public T Field = default(T);
+			public T Field;
 		}
 
 		private class PropertyContainer<T>

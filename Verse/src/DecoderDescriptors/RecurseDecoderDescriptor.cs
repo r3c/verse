@@ -26,7 +26,7 @@ namespace Verse.DecoderDescriptors
 			var descriptor = parent as RecurseDecoderDescriptor<TField, TState, TValue>;
 
 			if (descriptor == null)
-				throw new ArgumentOutOfRangeException("parent", "invalid target descriptor type");
+				throw new ArgumentOutOfRangeException(nameof(parent), "invalid target descriptor type");
 
 			var constructor = this.GetConstructor<TField>();
 			var child = descriptor.reader;
@@ -81,7 +81,7 @@ namespace Verse.DecoderDescriptors
 			var descriptor = parent as RecurseDecoderDescriptor<TItem, TState, TValue>;
 
 			if (descriptor == null)
-				throw new ArgumentOutOfRangeException("parent", "incompatible descriptor type");
+				throw new ArgumentOutOfRangeException(nameof(parent), "incompatible descriptor type");
 
 			var constructor = this.GetConstructor<TItem>();
 			var child = descriptor.reader;

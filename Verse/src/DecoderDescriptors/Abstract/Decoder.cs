@@ -24,7 +24,7 @@ namespace Verse.DecoderDescriptors.Abstract
         {
             if (!this.session.Start(input, this.OnError, out var state))
             {
-                decoderStream = default(IDecoderStream<TEntity>);
+                decoderStream = default;
 
                 return false;
             }

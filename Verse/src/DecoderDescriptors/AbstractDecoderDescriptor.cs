@@ -7,8 +7,6 @@ namespace Verse.DecoderDescriptors
 {
 	abstract class AbstractDecoderDescriptor<TEntity, TState, TValue> : IDecoderDescriptor<TEntity>
 	{
-		#region Attributes
-
 		private readonly Dictionary<Type, object> constructors;
 
 		private readonly IDecoderConverter<TValue> converter;
@@ -17,10 +15,6 @@ namespace Verse.DecoderDescriptors
 
 		private readonly IReaderSession<TState> session;
 
-		#endregion
-
-		#region Constructors
-
 		protected AbstractDecoderDescriptor(IDecoderConverter<TValue> converter, IReaderSession<TState> session, IReader<TEntity, TState> reader)
 		{
 			this.constructors = new Dictionary<Type, object>();
@@ -28,10 +22,6 @@ namespace Verse.DecoderDescriptors
 			this.reader = reader;
 			this.session = session;
 		}
-
-		#endregion
-
-		#region Methods / Abstract
 
 		public abstract IDecoderDescriptor<TField> HasField<TField>(string name, DecodeAssign<TEntity, TField> assign, IDecoderDescriptor<TField> parent);
 
@@ -45,16 +35,9 @@ namespace Verse.DecoderDescriptors
 
 		public abstract void IsValue();
 
-		#endregion
-
-		#region Methods / Public
-
 		public void CanCreate<TField>(Func<TField> constructor)
 		{
-			if (constructor == null)
-				throw new ArgumentNullException("constructor");
-
-			this.constructors[typeof (TField)] = constructor;
+		    this.constructors[typeof (TField)] = constructor ?? throw new ArgumentNullException(nameof(constructor));
 		}
 
 		public IDecoder<TEntity> CreateDecoder()
@@ -62,15 +45,9 @@ namespace Verse.DecoderDescriptors
 			return new Decoder<TEntity, TState>(this.GetConstructor<TEntity>(), this.session, this.reader);
 		}
 
-		#endregion
-
-		#region Methods / Protected
-
 		protected Func<TField> GetConstructor<TField>()
 		{
-			object constructor;
-
-			if (this.constructors.TryGetValue(typeof (TField), out constructor))
+		    if (this.constructors.TryGetValue(typeof (TField), out var constructor))
 				return (Func<TField>)constructor;
 
 			return Generator.Constructor<TField>();
@@ -80,7 +57,5 @@ namespace Verse.DecoderDescriptors
 		{
 			return this.converter.Get<TEntity>();
 		}
-
-		#endregion
 	}
 }
