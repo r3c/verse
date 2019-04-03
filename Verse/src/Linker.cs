@@ -199,7 +199,7 @@ namespace Verse
             if (parents.TryGetValue(type, out var recurse))
             {
                 Resolver
-                    .Method<Func<IDecoderDescriptor<TEntity>, DecodeAssign<TEntity, IEnumerable<object>>,
+                    .FindMethod<Func<IDecoderDescriptor<TEntity>, DecodeAssign<TEntity, IEnumerable<object>>,
                         IDecoderDescriptor<object>, IDecoderDescriptor<object>>>((d, a, p) => d.HasItems(a, p), null,
                         new[] {type})
                     .Invoke(descriptor, new[] {assign, recurse});
@@ -207,12 +207,12 @@ namespace Verse
             else
             {
                 recurse = Resolver
-                    .Method<Func<IDecoderDescriptor<TEntity>, DecodeAssign<TEntity, IEnumerable<object>>,
+                    .FindMethod<Func<IDecoderDescriptor<TEntity>, DecodeAssign<TEntity, IEnumerable<object>>,
                         IDecoderDescriptor<object>>>((d, a) => d.HasItems(a), null, new[] {type})
                     .Invoke(descriptor, new[] {assign});
 
                 var result = Resolver
-                    .Method<Func<Linker, IDecoderDescriptor<object>, Dictionary<Type, object>, bool>>(
+                    .FindMethod<Func<Linker, IDecoderDescriptor<object>, Dictionary<Type, object>, bool>>(
                         (l, d, p) => l.LinkDecoder(d, p), null, new[] {type})
                     .Invoke(this, new object[] {recurse, parents});
 
@@ -232,7 +232,7 @@ namespace Verse
             if (parents.TryGetValue(type, out var recurse))
             {
                 Resolver
-                    .Method<Func<IDecoderDescriptor<TEntity>, string, DecodeAssign<TEntity, object>,
+                    .FindMethod<Func<IDecoderDescriptor<TEntity>, string, DecodeAssign<TEntity, object>,
                         IDecoderDescriptor<object>, IDecoderDescriptor<object>>>((d, n, a, p) => d.HasField(n, a, p),
                         null, new[] {type})
                     .Invoke(descriptor, new object[] {name, assign, recurse});
@@ -240,12 +240,12 @@ namespace Verse
             else
             {
                 recurse = Resolver
-                    .Method<Func<IDecoderDescriptor<TEntity>, string, DecodeAssign<TEntity, object>,
+                    .FindMethod<Func<IDecoderDescriptor<TEntity>, string, DecodeAssign<TEntity, object>,
                         IDecoderDescriptor<object>>>((d, n, a) => d.HasField(n, a), null, new[] {type})
                     .Invoke(descriptor, new object[] {name, assign});
 
                 var result = Resolver
-                    .Method<Func<Linker, IDecoderDescriptor<object>, Dictionary<Type, object>, bool>>(
+                    .FindMethod<Func<Linker, IDecoderDescriptor<object>, Dictionary<Type, object>, bool>>(
                         (l, d, p) => l.LinkDecoder(d, p), null, new[] {type})
                     .Invoke(this, new object[] {recurse, parents});
 
@@ -338,19 +338,19 @@ namespace Verse
             if (parents.TryGetValue(type, out var recurse))
             {
                 Resolver
-                    .Method<Func<IEncoderDescriptor<T>, Func<T, IEnumerable<object>>, IEncoderDescriptor<object>,
+                    .FindMethod<Func<IEncoderDescriptor<T>, Func<T, IEnumerable<object>>, IEncoderDescriptor<object>,
                         IEncoderDescriptor<object>>>((d, a, p) => d.HasItems(a, p), null, new[] {type})
                     .Invoke(descriptor, new[] {access, recurse});
             }
             else
             {
                 recurse = Resolver
-                    .Method<Func<IEncoderDescriptor<T>, Func<T, IEnumerable<object>>, IEncoderDescriptor<object>>>(
+                    .FindMethod<Func<IEncoderDescriptor<T>, Func<T, IEnumerable<object>>, IEncoderDescriptor<object>>>(
                         (d, a) => d.HasItems(a), null, new[] {type})
                     .Invoke(descriptor, new[] {access});
 
                 var result = Resolver
-                    .Method<Func<Linker, IEncoderDescriptor<object>, Dictionary<Type, object>, bool>>(
+                    .FindMethod<Func<Linker, IEncoderDescriptor<object>, Dictionary<Type, object>, bool>>(
                         (l, d, p) => l.LinkEncoder(d, p), null, new[] {type})
                     .Invoke(this, new object[] {recurse, parents});
 
@@ -370,19 +370,19 @@ namespace Verse
             if (parents.TryGetValue(type, out var recurse))
             {
                 Resolver
-                    .Method<Func<IEncoderDescriptor<T>, string, Func<T, object>, IEncoderDescriptor<object>,
+                    .FindMethod<Func<IEncoderDescriptor<T>, string, Func<T, object>, IEncoderDescriptor<object>,
                         IEncoderDescriptor<object>>>((d, n, a, p) => d.HasField(n, a, p), null, new[] {type})
                     .Invoke(descriptor, new object[] {name, access, recurse});
             }
             else
             {
                 recurse = Resolver
-                    .Method<Func<IEncoderDescriptor<T>, string, Func<T, object>, IEncoderDescriptor<object>>>(
+                    .FindMethod<Func<IEncoderDescriptor<T>, string, Func<T, object>, IEncoderDescriptor<object>>>(
                         (d, n, a) => d.HasField(n, a), null, new[] {type})
                     .Invoke(descriptor, new object[] {name, access});
 
                 var result = Resolver
-                    .Method<Func<Linker, IEncoderDescriptor<object>, Dictionary<Type, object>, bool>>(
+                    .FindMethod<Func<Linker, IEncoderDescriptor<object>, Dictionary<Type, object>, bool>>(
                         (l, d, p) => l.LinkEncoder(d, p), null, new[] {type})
                     .Invoke(this, new object[] {recurse, parents});
 
@@ -471,7 +471,7 @@ namespace Verse
         /// <returns>DecoderAssign delegate</returns>
         private static object MakeAssignArray(Type inner)
         {
-            var converter = Resolver.Method<Func<IEnumerable<object>, object[]>>((e) => e.ToArray(), null, new[] {inner});
+            var converter = Resolver.FindMethod<Func<IEnumerable<object>, object[]>>((e) => e.ToArray(), null, new[] {inner});
             var enumerable = typeof(IEnumerable<>).MakeGenericType(inner);
             var method = new DynamicMethod(string.Empty, null, new[] {inner.MakeArrayType().MakeByRefType(), enumerable},
                 converter.Module, true);

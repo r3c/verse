@@ -50,7 +50,7 @@ namespace Verse.DecoderDescriptors
 		    if (this.constructors.TryGetValue(typeof (TField), out var constructor))
 				return (Func<TField>)constructor;
 
-			return Generator.Constructor<TField>();
+			return Generator.CreateConstructor<TField>();
 		}
 
 		protected Converter<TValue, TEntity> GetConverter()
