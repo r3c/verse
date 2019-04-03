@@ -8,8 +8,6 @@ namespace Verse.Schemas.JSON
 {
 	class Reader<TEntity> : RecurseReader<TEntity, ReaderState, JSONValue>
 	{
-		private const ulong MANTISSA_MAX = long.MaxValue / 10;
-
 		private EntityReader<TEntity, ReaderState> array = null;
 
 		private static readonly Reader<TEntity> emptyReader = new Reader<TEntity>();
@@ -232,7 +230,9 @@ namespace Verse.Schemas.JSON
 		{
 		    unchecked
 			{
-				ulong numberMantissa = 0;
+				const ulong MANTISSA_MAX = long.MaxValue / 10;
+
+				var numberMantissa = 0UL;
 				var numberPower = 0;
 
 				// Read number sign
@@ -262,7 +262,7 @@ namespace Verse.Schemas.JSON
 						continue;
 					}
 
-					numberMantissa = numberMantissa*10 + (ulong)(state.Current - (int)'0');
+					numberMantissa = numberMantissa * 10 + (ulong)(state.Current - (int)'0');
 				}
 
 				// Read decimal part if any
@@ -275,7 +275,7 @@ namespace Verse.Schemas.JSON
 						if (numberMantissa > MANTISSA_MAX)
 							continue;
 
-						numberMantissa = numberMantissa*10 + (ulong)(state.Current - (int)'0');
+						numberMantissa = numberMantissa * 10 + (ulong)(state.Current - (int)'0');
 
 						--numberPower;
 					}
@@ -317,7 +317,7 @@ namespace Verse.Schemas.JSON
 				    uint numberExponent;
 
 				    for (numberExponent = 0; state.Current >= (int)'0' && state.Current <= (int)'9'; state.Read())
-						numberExponent = numberExponent*10 + (uint)(state.Current - (int)'0');
+						numberExponent = numberExponent * 10 + (uint)(state.Current - (int)'0');
 
 					numberPower += (int)((numberExponent ^ numberExponentMask) + numberExponentPlus);
 				}
@@ -325,8 +325,7 @@ namespace Verse.Schemas.JSON
 				// Compute result number and assign if needed
 				if (this.HoldValue)
 				{
-				    var number = (long)((numberMantissa ^ numberMantissaMask) + numberMantissaPlus) *
-				                     (decimal)Math.Pow(10, numberPower);
+				    var number = (long)((numberMantissa ^ numberMantissaMask) + numberMantissaPlus) * Math.Pow(10, numberPower);
 
 				    entity = this.ConvertValue(JSONValue.FromNumber(number));
 				}

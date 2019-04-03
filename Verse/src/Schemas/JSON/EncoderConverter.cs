@@ -10,20 +10,20 @@ namespace Verse.Schemas.JSON
 		private readonly Dictionary<Type, object> converters = new Dictionary<Type, object>
 		{
 			{ typeof (bool), new Converter<bool, JSONValue>(JSONValue.FromBoolean) },
-			{ typeof (char), new Converter<char, JSONValue>((v) => JSONValue.FromString(new string(v, 1))) },
-			{ typeof (decimal), new Converter<decimal, JSONValue>(JSONValue.FromNumber) },
-			{ typeof (float), new Converter<float, JSONValue>(v => JSONValue.FromNumber((decimal)v)) },
-			{ typeof (double), new Converter<double, JSONValue>(v => JSONValue.FromNumber((decimal)v)) },
-			{ typeof (sbyte), new Converter<sbyte, JSONValue>((v) => JSONValue.FromNumber(v)) },
-			{ typeof (byte), new Converter<byte, JSONValue>((v) => JSONValue.FromNumber(v)) },
-			{ typeof (short), new Converter<short, JSONValue>((v) => JSONValue.FromNumber(v)) },
-			{ typeof (ushort), new Converter<ushort, JSONValue>((v) => JSONValue.FromNumber(v)) },
-			{ typeof (int), new Converter<int, JSONValue>((v) => JSONValue.FromNumber(v)) },
-			{ typeof (uint), new Converter<uint, JSONValue>((v) => JSONValue.FromNumber(v)) },
-			{ typeof (long), new Converter<long, JSONValue>((v) => JSONValue.FromNumber(v)) },
-			{ typeof (ulong), new Converter<ulong, JSONValue>((v) => JSONValue.FromNumber(v)) },
+			{ typeof (char), new Converter<char, JSONValue>(v => JSONValue.FromString(new string(v, 1))) },
+			{ typeof (decimal), new Converter<decimal, JSONValue>(v => JSONValue.FromNumber((double)v)) },
+			{ typeof (float), new Converter<float, JSONValue>(v => JSONValue.FromNumber(v)) },
+			{ typeof (double), new Converter<double, JSONValue>(JSONValue.FromNumber) },
+			{ typeof (sbyte), new Converter<sbyte, JSONValue>(v => JSONValue.FromNumber(v)) },
+			{ typeof (byte), new Converter<byte, JSONValue>(v => JSONValue.FromNumber(v)) },
+			{ typeof (short), new Converter<short, JSONValue>(v => JSONValue.FromNumber(v)) },
+			{ typeof (ushort), new Converter<ushort, JSONValue>(v => JSONValue.FromNumber(v)) },
+			{ typeof (int), new Converter<int, JSONValue>(v => JSONValue.FromNumber(v)) },
+			{ typeof (uint), new Converter<uint, JSONValue>(v => JSONValue.FromNumber(v)) },
+			{ typeof (long), new Converter<long, JSONValue>(v => JSONValue.FromNumber(v)) },
+			{ typeof (ulong), new Converter<ulong, JSONValue>(v => JSONValue.FromNumber(v)) },
 			{ typeof (string), new Converter<string, JSONValue>(JSONValue.FromString) },
-			{ typeof (JSONValue), new Converter<JSONValue, JSONValue>((v) => v) }
+			{ typeof (JSONValue), new Converter<JSONValue, JSONValue>(v => v) }
 		};
 
 		public Converter<TFrom, JSONValue> Get<TFrom>()

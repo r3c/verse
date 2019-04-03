@@ -12,9 +12,9 @@ namespace Verse.Schemas.JSON
 		public bool Boolean;
 
 		/// <summary>
-		/// DecimalNumber value (only set if type is number).
+		/// Numeric value (only set if type is number).
 		/// </summary>
-		public decimal Number;
+		public double Number;
 
 		/// <summary>
 		/// String value (only set if type is string).
@@ -46,7 +46,7 @@ namespace Verse.Schemas.JSON
 		/// </summary>
 		/// <param name="value">Number value</param>
 		/// <returns>JSON number value</returns>
-		public static JSONValue FromNumber(decimal value)
+		public static JSONValue FromNumber(double value)
 		{
 			return new JSONValue { Number = value, Type = JSONType.Number };
 		}

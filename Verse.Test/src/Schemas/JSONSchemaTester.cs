@@ -181,13 +181,14 @@ namespace Verse.Test.Schemas
 		[TestCase("2.945", 2.945)]
 		[TestCase("1.1111111111111111111111", 1.1111111111111111111111)]
 		[TestCase("8976435454354345437845468735", 8976435454354345437845468735d)]
-		[TestCase("9223372036854775807", long.MaxValue)]
+		[TestCase("9007199254740992", 9007199254740992)] // 2^53
+		[TestCase("-9007199254740992", -9007199254740992)] // -2^53
 		[TestCase("\"\"", "")]
 		[TestCase("\"Hello, World!\"", "Hello, World!")]
 		[TestCase("\"\\u00FF \\u0066 \\uB3A8\"", "\xFF f \uB3A8")]
 		[TestCase("\"\\\"\"", "\"")]
 		[TestCase("\"\\\\\"", "\\")]
-		[TestCase("9223372036854775807", 9223372036854775807)]
+		[TestCase("9223372036854775807", 9223372036854775807.0)]
 		public void DecodeValueNative<T>(string json, T expected)
 		{
 			var schema = new JSONSchema<T>();
