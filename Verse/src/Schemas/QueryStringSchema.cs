@@ -5,11 +5,11 @@ using Verse.Schemas.QueryString;
 
 namespace Verse.Schemas
 {
-	public sealed class QueryStringSchema<TEntity> : AbstractSchema<TEntity>
+	public sealed class QueryStringSchema<TEntity> : ISchema<TEntity>
 	{
-		public override IDecoderDescriptor<TEntity> DecoderDescriptor => this.decoderDescriptor;
+		public IDecoderDescriptor<TEntity> DecoderDescriptor => this.decoderDescriptor;
 
-	    public override IEncoderDescriptor<TEntity> EncoderDescriptor => throw new NotImplementedException("encoding not implemented");
+	    public IEncoderDescriptor<TEntity> EncoderDescriptor => throw new NotImplementedException("encoding not implemented");
 
 	    private readonly DecoderConverter decoderConverter;
 
@@ -29,13 +29,13 @@ namespace Verse.Schemas
 		}
 
 		/// <inheritdoc/>
-		public override IDecoder<TEntity> CreateDecoder()
+		public IDecoder<TEntity> CreateDecoder()
 		{
 			return this.decoderDescriptor.CreateDecoder();
 		}
 
 		/// <inheritdoc/>
-		public override IEncoder<TEntity> CreateEncoder()
+		public IEncoder<TEntity> CreateEncoder()
 		{
 			throw new NotImplementedException("encoding not implemented");
 		}

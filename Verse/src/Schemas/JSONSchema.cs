@@ -10,13 +10,13 @@ namespace Verse.Schemas
 	/// Schema implementation using JSON format.
 	/// </summary>
 	/// <typeparam name="TEntity">Entity type</typeparam>
-	public class JSONSchema<TEntity> : AbstractSchema<TEntity>
+	public class JSONSchema<TEntity> : ISchema<TEntity>
 	{
 		/// <inheritdoc/>
-		public override IDecoderDescriptor<TEntity> DecoderDescriptor => this.decoderDescriptor;
+		public IDecoderDescriptor<TEntity> DecoderDescriptor => this.decoderDescriptor;
 
 	    /// <inheritdoc/>
-		public override IEncoderDescriptor<TEntity> EncoderDescriptor => this.encoderDescriptor;
+		public IEncoderDescriptor<TEntity> EncoderDescriptor => this.encoderDescriptor;
 
 	    private readonly DecoderConverter decoderConverter;
 
@@ -49,13 +49,13 @@ namespace Verse.Schemas
 	    }
 
 	    /// <inheritdoc/>
-		public override IDecoder<TEntity> CreateDecoder()
+		public IDecoder<TEntity> CreateDecoder()
 		{
 			return this.decoderDescriptor.CreateDecoder();
 		}
 
 		/// <inheritdoc/>
-		public override IEncoder<TEntity> CreateEncoder()
+		public IEncoder<TEntity> CreateEncoder()
 		{
 			return this.encoderDescriptor.CreateEncoder();
 		}

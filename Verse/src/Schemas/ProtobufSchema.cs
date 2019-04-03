@@ -8,11 +8,11 @@ using Verse.Schemas.Protobuf.Legacy;
 
 namespace Verse.Schemas
 {
-	public class ProtobufSchema<TEntity> : AbstractSchema<TEntity>
+	public class ProtobufSchema<TEntity> : ISchema<TEntity>
 	{
-		public override IDecoderDescriptor<TEntity> DecoderDescriptor => this.decoderDescriptor as IDecoderDescriptor<TEntity> ?? this.legacyDecoderDescriptor;
+		public IDecoderDescriptor<TEntity> DecoderDescriptor => this.decoderDescriptor as IDecoderDescriptor<TEntity> ?? this.legacyDecoderDescriptor;
 
-	    public override IEncoderDescriptor<TEntity> EncoderDescriptor => this.encoderDescriptor as IEncoderDescriptor<TEntity> ?? this.legacyEncoderDescriptor;
+	    public IEncoderDescriptor<TEntity> EncoderDescriptor => this.encoderDescriptor as IEncoderDescriptor<TEntity> ?? this.legacyEncoderDescriptor;
 
 	    private readonly DecoderConverter decoderConverter;
 
@@ -64,7 +64,7 @@ namespace Verse.Schemas
             this.legacyEncoderDescriptor = new RecurseEncoderDescriptor<TEntity, LegacyWriterState, ProtobufValue>(encoders, new LegacyWriterSession(), new LegacyWriter<TEntity>());
         }
 
-		public override IDecoder<TEntity> CreateDecoder()
+		public IDecoder<TEntity> CreateDecoder()
 		{
             if (this.legacyDecoderDescriptor != null)
                 return this.legacyDecoderDescriptor.CreateDecoder();
@@ -72,7 +72,7 @@ namespace Verse.Schemas
 			return this.decoderDescriptor.CreateDecoder();
 		}
 
-		public override IEncoder<TEntity> CreateEncoder()
+		public IEncoder<TEntity> CreateEncoder()
 		{
             if (this.legacyEncoderDescriptor != null)
                 return this.legacyEncoderDescriptor.CreateEncoder();
