@@ -18,7 +18,7 @@ namespace Verse.EncoderDescriptors.Abstract
 
         public bool TryOpen(Stream output, out IEncoderStream<TEntity> encoderStream)
         {
-            if (!this.session.Start(output, this.OnError, out var state))
+            if (!this.session.Start(output, (p, m) => this.Error?.Invoke(p, m), out var state))
             {
                 encoderStream = default;
 
@@ -28,11 +28,6 @@ namespace Verse.EncoderDescriptors.Abstract
             encoderStream = new EncoderStream<TEntity, TState>(session, writer, state);
 
             return true;
-        }
-
-        private void OnError(int position, string message)
-        {
-            this.Error?.Invoke(position, message);
         }
     }
 }

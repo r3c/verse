@@ -22,21 +22,16 @@ namespace Verse.DecoderDescriptors.Abstract
 
         public bool TryOpen(Stream input, out IDecoderStream<TEntity> decoderStream)
         {
-            if (!this.session.Start(input, this.OnError, out var state))
+            if (!this.session.Start(input, (p, m) => this.Error?.Invoke(p, m), out var state))
             {
                 decoderStream = default;
 
                 return false;
             }
 
-            decoderStream = new DecoderStream<TEntity,TState>(this.constructor, this.session, this.reader, state);
+            decoderStream = new DecoderStream<TEntity, TState>(this.constructor, this.session, this.reader, state);
 
             return true;
-        }
-
-        private void OnError(int position, string message)
-        {
-            this.Error?.Invoke(position, message);
         }
     }
 }
