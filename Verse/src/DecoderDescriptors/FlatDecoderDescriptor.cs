@@ -41,7 +41,7 @@ namespace Verse.DecoderDescriptors
 			var descriptor = new FlatDecoderDescriptor<TEntity, TState, TValue>(this.converter, this.session, this.reader.Create<TEntity>());
 			var child = descriptor.reader;
 			
-			this.reader.DeclareField(name, (ref TEntity target, TState state) => child.ReadValue (state, out target));
+			this.reader.DeclareField(name, (TState state, ref TEntity target) => child.ReadValue (state, out target));
 			
 			return descriptor;
 		}
@@ -65,7 +65,7 @@ namespace Verse.DecoderDescriptors
 		{
 			var child = descriptor.reader;
 
-			this.reader.DeclareField(name, (ref TEntity target, TState state) =>
+			this.reader.DeclareField(name, (TState state, ref TEntity target) =>
 			{
 			    if (!child.ReadValue(state, out var inner))
 					return false;

@@ -1,7 +1,7 @@
 ﻿
 namespace Verse.DecoderDescriptors.Base
 {
-	interface IReader<TEntity, in TState>
+	interface IReader<in TState, TEntity>
 	{
 		bool Read(ref TEntity entity, TState state);
 	}

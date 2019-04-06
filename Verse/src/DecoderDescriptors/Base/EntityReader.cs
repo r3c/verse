@@ -1,4 +1,4 @@
 namespace Verse.DecoderDescriptors.Base
 {
-	delegate bool EntityReader<TEntity, TState>(ref TEntity target, TState state);
+	delegate bool EntityReader<in TState, TEntity>(TState state, ref TEntity target);
 }

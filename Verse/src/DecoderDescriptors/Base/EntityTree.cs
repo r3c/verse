@@ -6,7 +6,7 @@ namespace Verse.DecoderDescriptors.Base
 	{
 		private const int INDEX_SIZE = 128;
 
-		public EntityReader<TEntity, TState> Read => this.read;
+		public EntityReader<TState, TEntity> Read => this.read;
 
 	    public static readonly EntityTree<TEntity, TState> Empty = new EntityTree<TEntity, TState>();
 
@@ -14,9 +14,9 @@ namespace Verse.DecoderDescriptors.Base
 
 		private Dictionary<char, EntityTree<TEntity, TState>> branchHash = null;
 
-		private EntityReader<TEntity, TState> read;
+		private EntityReader<TState, TEntity> read;
 
-		public bool Connect(string name, EntityReader<TEntity, TState> read)
+		public bool Connect(string name, EntityReader<TState, TEntity> read)
 		{
 			EntityTree<TEntity, TState> current = this;
 			EntityTree<TEntity, TState> next = this;

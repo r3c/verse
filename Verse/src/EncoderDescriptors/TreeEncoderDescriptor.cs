@@ -25,9 +25,7 @@ namespace Verse.EncoderDescriptors
 
 		public override IEncoderDescriptor<TField> HasField<TField>(string name, Func<TEntity, TField> access, IEncoderDescriptor<TField> parent)
 		{
-			var descriptor = parent as TreeEncoderDescriptor<TField, TState, TValue>;
-
-			if (descriptor == null)
+			if (!(parent is TreeEncoderDescriptor<TField, TState, TValue> descriptor))
 				throw new ArgumentOutOfRangeException(nameof(parent), "incompatible descriptor type");
 
 			return this.HasField(name, access, descriptor);
@@ -40,9 +38,7 @@ namespace Verse.EncoderDescriptors
 
 		public override IEncoderDescriptor<TItem> HasItems<TItem>(Func<TEntity, IEnumerable<TItem>> access, IEncoderDescriptor<TItem> parent)
 		{
-			var descriptor = parent as TreeEncoderDescriptor<TItem, TState, TValue>;
-
-			if (descriptor == null)
+			if (!(parent is TreeEncoderDescriptor<TItem, TState, TValue> descriptor))
 				throw new ArgumentOutOfRangeException(nameof(parent), "incompatible descriptor type");
 
 			return this.IsArray(access, descriptor);

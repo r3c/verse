@@ -6,34 +6,24 @@ using Verse.DecoderDescriptors.Tree;
 
 namespace Verse.Schemas.Protobuf.Legacy
 {
-	class LegacyReader<TEntity> : TreeReader<TEntity, LegacyReaderState, ProtobufValue>
+	class LegacyReader<TEntity> : TreeReader<LegacyReaderState, TEntity, ProtobufValue>
 	{
-		private EntityReader<TEntity, LegacyReaderState> array = null;
-
 		private static readonly LegacyReader<TEntity> emptyReader = new LegacyReader<TEntity>();
 
-		private readonly List<EntityReader<TEntity, LegacyReaderState>> arrayFields = new List<EntityReader<TEntity, LegacyReaderState>>();
+		private readonly List<EntityReader<LegacyReaderState, TEntity>> arrayFields = new List<EntityReader<LegacyReaderState, TEntity>>();
 
-		private readonly List<EntityReader<TEntity, LegacyReaderState>> objectFields = new List<EntityReader<TEntity, LegacyReaderState>>();
+		private readonly List<EntityReader<LegacyReaderState, TEntity>> objectFields = new List<EntityReader<LegacyReaderState, TEntity>>();
 
-		public override BrowserMove<TEntity> Browse(Func<TEntity> constructor, LegacyReaderState state)
+		public override TreeReader<LegacyReaderState, TOther, ProtobufValue> Create<TOther>()
 		{
-			switch (state.Reader.WireType)
-			{
-				case ProtoBuf.WireType.StartGroup:
-				case ProtoBuf.WireType.String:
-					return this.ReadSubItemArray(constructor, state);
-
-				default:
-					return this.ReadValueArray(constructor, state);
-			}
+			return new LegacyReader<TOther>();
 		}
 
-		public override TreeReader<TField, LegacyReaderState, ProtobufValue> HasField<TField>(string name, EntityReader<TEntity, LegacyReaderState> enter)
+		public override TreeReader<LegacyReaderState, TField, ProtobufValue> HasField<TField>(string name, EntityReader<LegacyReaderState, TEntity> enter)
 		{
-			List<EntityReader<TEntity, LegacyReaderState>> fields;
+			List<EntityReader<LegacyReaderState, TEntity>> fields;
 
-		    if (int.TryParse(name, out var index))
+			if (int.TryParse(name, out var index))
 				fields = this.arrayFields;
 			else if (name.Length > 0 && name[0] == '_' && int.TryParse(name.Substring(1), out index))
 				fields = this.objectFields;
@@ -48,19 +38,9 @@ namespace Verse.Schemas.Protobuf.Legacy
 			return new LegacyReader<TField>();
 		}
 
-		public override TreeReader<TItem, LegacyReaderState, ProtobufValue> HasItems<TItem>(EntityReader<TEntity, LegacyReaderState> enter)
-		{
-			if (this.array != null)
-				throw new InvalidOperationException("can't declare array twice on same descriptor");
-
-			this.array = enter;
-
-			return new LegacyReader<TItem>();
-		}
-
 		public override bool Read(ref TEntity entity, LegacyReaderState state)
 		{
-		    switch (state.ReadingAction)
+			switch (state.ReadingAction)
 			{
 				case LegacyReaderState.ReadingActionType.UseHeader:
 					return this.FollowNode(state.Reader.FieldNumber, ref entity, state);
@@ -79,14 +59,14 @@ namespace Verse.Schemas.Protobuf.Legacy
 				default:
 					state.ReadingAction = LegacyReaderState.ReadingActionType.ReadHeader;
 
-					if (this.array != null)
-						return this.array(ref entity, state);
+					if (this.IsArray)
+						return this.ReadArray(ref entity, state);
 
-					if (!this.HoldValue)
+					if (!this.IsValue)
 					{
 						// if it's not object, ignore
 						if ((state.Reader.WireType != ProtoBuf.WireType.StartGroup && state.Reader.WireType != ProtoBuf.WireType.String) ||
-						    (this.arrayFields.Count == 0 && this.objectFields.Count == 0))
+							(this.arrayFields.Count == 0 && this.objectFields.Count == 0))
 						{
 							state.Reader.SkipField();
 
@@ -99,30 +79,35 @@ namespace Verse.Schemas.Protobuf.Legacy
 					switch (state.Reader.WireType)
 					{
 						case ProtoBuf.WireType.Fixed32:
-							entity = this.ConvertValue(new ProtobufValue(state.Reader.ReadSingle()));
-
-							return true;
+							return this.ReadValue(ref entity, new ProtobufValue(state.Reader.ReadSingle()));
 
 						case ProtoBuf.WireType.Fixed64:
-							entity = this.ConvertValue(new ProtobufValue(state.Reader.ReadDouble()));
-
-							return true;
+							return this.ReadValue(ref entity, new ProtobufValue(state.Reader.ReadDouble()));
 
 						case ProtoBuf.WireType.String:
-							entity = this.ConvertValue(new ProtobufValue(state.Reader.ReadString()));
-
-							return true;
+							return this.ReadValue(ref entity, new ProtobufValue(state.Reader.ReadString()));
 
 						case ProtoBuf.WireType.Variant:
-							entity = this.ConvertValue(new ProtobufValue(state.Reader.ReadInt64()));
-
-							return true;
+							return this.ReadValue(ref entity, new ProtobufValue(state.Reader.ReadInt64()));
 					}
 
 					state.Error("wire type not supported, skipped");
 					state.Reader.SkipField();
 
 					return true;
+			}
+		}
+
+		public override BrowserMove<TEntity> ReadItems(Func<TEntity> constructor, LegacyReaderState state)
+		{
+			switch (state.Reader.WireType)
+			{
+				case ProtoBuf.WireType.StartGroup:
+				case ProtoBuf.WireType.String:
+					return this.ReadSubItemArray(constructor, state);
+
+				default:
+					return this.ReadValueArray(constructor, state);
 			}
 		}
 
@@ -138,27 +123,27 @@ namespace Verse.Schemas.Protobuf.Legacy
 			state.ReadingAction = LegacyReaderState.ReadingActionType.ReadValue;
 
 			return fieldIndex < this.objectFields.Count && this.objectFields[fieldIndex] != null
-				? this.objectFields[fieldIndex](ref target, state)
+				? this.objectFields[fieldIndex](state, ref target)
 				: LegacyReader<TEntity>.Ignore(state);
 		}
 
 		private bool ReadObjectValue(ref TEntity target, LegacyReaderState state)
 		{
-		    var lastSubItem = ProtoReader.StartSubItem(state.Reader);
+			var lastSubItem = ProtoReader.StartSubItem(state.Reader);
 
 			if (!state.EnterObject(out var visitCount))
 				return false;
 
 			while (ProtoReader.HasSubValue(ProtoBuf.WireType.None, state.Reader))
 			{
-			    state.ReadHeader(out var fieldIndex);
+				state.ReadHeader(out var fieldIndex);
 				state.AddObject(fieldIndex);
 
 				if (visitCount == 1 && fieldIndex < this.objectFields.Count && this.objectFields[fieldIndex] != null)
 				{
 					state.ReadingAction = LegacyReaderState.ReadingActionType.ReadValue;
 
-					if (!this.objectFields[fieldIndex](ref target, state))
+					if (!this.objectFields[fieldIndex](state, ref target))
 						return false;
 				}
 				else
@@ -168,7 +153,7 @@ namespace Verse.Schemas.Protobuf.Legacy
 					state.ReadingAction = LegacyReaderState.ReadingActionType.UseHeader;
 
 					if (!(index < this.arrayFields.Count && this.arrayFields[index] != null
-						? this.arrayFields[index](ref target, state)
+						? this.arrayFields[index](state, ref target)
 						: LegacyReader<TEntity>.Ignore(state)))
 						return false;
 				}
@@ -185,7 +170,7 @@ namespace Verse.Schemas.Protobuf.Legacy
 		{
 			int dummy;
 
-		    if (this.HoldValue)
+			if (this.IsValue)
 				return this.ReadValueArray(constructor, state);
 
 			state.ReadingAction = LegacyReaderState.ReadingActionType.ReadHeader;
@@ -196,7 +181,7 @@ namespace Verse.Schemas.Protobuf.Legacy
 			{
 				return (int index, out TEntity current) =>
 				{
-				    current = default;
+					current = default;
 
 					return BrowserState.Failure;
 				};
@@ -208,7 +193,7 @@ namespace Verse.Schemas.Protobuf.Legacy
 
 				if (!ProtoReader.HasSubValue(ProtoBuf.WireType.None, state.Reader))
 				{
-				    current = default;
+					current = default;
 
 					state.LeaveObject();
 
@@ -222,7 +207,7 @@ namespace Verse.Schemas.Protobuf.Legacy
 				if (this.Read(ref current, state))
 					return BrowserState.Continue;
 
-			    current = default;
+				current = default;
 
 				return BrowserState.Failure;
 			};

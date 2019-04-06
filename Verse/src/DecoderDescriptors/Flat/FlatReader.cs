@@ -3,7 +3,7 @@ using Verse.DecoderDescriptors.Base;
 
 namespace Verse.DecoderDescriptors.Flat
 {
-	abstract class FlatReader<TEntity, TState, TValue> : IReader<TEntity, TState>
+	abstract class FlatReader<TEntity, TState, TValue> : IReader<TState, TEntity>
 	{
 		protected bool IsValue => this.convert != null;
 
@@ -19,7 +19,7 @@ namespace Verse.DecoderDescriptors.Flat
 
 		public abstract bool ReadValue(TState state, out TEntity value);
 
-		public void DeclareField(string name, EntityReader<TEntity, TState> enter)
+		public void DeclareField(string name, EntityReader<TState, TEntity> enter)
 		{
 			if (!this.fields.Connect(name, enter))
 				throw new InvalidOperationException("can't declare same field '" + name + "' twice on same descriptor");

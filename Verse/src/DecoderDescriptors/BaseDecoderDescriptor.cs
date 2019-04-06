@@ -11,11 +11,11 @@ namespace Verse.DecoderDescriptors
 
 		private readonly IDecoderConverter<TValue> converter;
 
-		private readonly IReader<TEntity, TState> reader;
+		private readonly IReader<TState, TEntity> reader;
 
 		private readonly IReaderSession<TState> session;
 
-		protected BaseDecoderDescriptor(IDecoderConverter<TValue> converter, IReaderSession<TState> session, IReader<TEntity, TState> reader)
+		protected BaseDecoderDescriptor(IDecoderConverter<TValue> converter, IReaderSession<TState> session, IReader<TState, TEntity> reader)
 		{
 			this.constructors = new Dictionary<Type, object>();
 			this.converter = converter;

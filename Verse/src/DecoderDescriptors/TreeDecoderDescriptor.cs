@@ -9,11 +9,11 @@ namespace Verse.DecoderDescriptors
 	{
 		private readonly IDecoderConverter<TValue> converter;
 
-		private readonly TreeReader<TEntity, TState, TValue> reader;
+		private readonly TreeReader<TState, TEntity, TValue> reader;
 
 		private readonly IReaderSession<TState> session;
 
-		public TreeDecoderDescriptor(IDecoderConverter<TValue> converter, IReaderSession<TState> session, TreeReader<TEntity, TState, TValue> reader) :
+		public TreeDecoderDescriptor(IDecoderConverter<TValue> converter, IReaderSession<TState> session, TreeReader<TState, TEntity, TValue> reader) :
 			base(converter, session, reader)
 		{
 			this.converter = converter;
@@ -23,15 +23,13 @@ namespace Verse.DecoderDescriptors
 
 		public override IDecoderDescriptor<TField> HasField<TField>(string name, DecodeAssign<TEntity, TField> assign, IDecoderDescriptor<TField> parent)
 		{
-			var descriptor = parent as TreeDecoderDescriptor<TField, TState, TValue>;
-
-			if (descriptor == null)
+			if (!(parent is TreeDecoderDescriptor<TField, TState, TValue> descriptor))
 				throw new ArgumentOutOfRangeException(nameof(parent), "invalid target descriptor type");
 
 			var constructor = this.GetConstructor<TField>();
 			var child = descriptor.reader;
 
-			this.reader.HasField<TField>(name, (ref TEntity target, TState state) =>
+			this.reader.HasField<TField>(name, (TState state, ref TEntity target) =>
 			{
 				TField field = constructor();
 
@@ -48,11 +46,10 @@ namespace Verse.DecoderDescriptors
 
 		public override IDecoderDescriptor<TField> HasField<TField>(string name, DecodeAssign<TEntity, TField> assign)
 		{
-			TreeReader<TField, TState, TValue> child = null;
-
+			var child = default(TreeReader<TState, TField, TValue>);
 			var constructor = this.GetConstructor<TField>();
 
-			child = this.reader.HasField<TField>(name, (ref TEntity target, TState state) =>
+			child = this.reader.HasField<TField>(name, (TState state, ref TEntity target) =>
 			{
 				TField field = constructor();
 
@@ -69,50 +66,42 @@ namespace Verse.DecoderDescriptors
 
 		public override IDecoderDescriptor<TEntity> HasField(string name)
 		{
-			TreeReader<TEntity, TState, TValue> child = null;
+			var child = default(TreeReader<TState, TEntity, TValue>);
 
-			child = this.reader.HasField<TEntity>(name, (ref TEntity target, TState state) => child.Read(ref target, state));
+			child = this.reader.HasField<TEntity>(name, (TState state, ref TEntity target) => child.Read(ref target, state));
 
 			return new TreeDecoderDescriptor<TEntity, TState, TValue>(this.converter, this.session, child);
 		}
 
 		public override IDecoderDescriptor<TItem> HasItems<TItem>(DecodeAssign<TEntity, IEnumerable<TItem>> assign, IDecoderDescriptor<TItem> parent)
 		{
-			var descriptor = parent as TreeDecoderDescriptor<TItem, TState, TValue>;
-
-			if (descriptor == null)
+			if (!(parent is TreeDecoderDescriptor<TItem, TState, TValue> descriptor))
 				throw new ArgumentOutOfRangeException(nameof(parent), "incompatible descriptor type");
 
-			var constructor = this.GetConstructor<TItem>();
-			var child = descriptor.reader;
-
-			this.reader.HasItems<TItem>((ref TEntity entity, TState state) =>
-			{
-				using (var browser = new Browser<TItem>(child.Browse(constructor, state)))
-				{
-					// FIXME:
-					// This forces a unnecessary copy, and introduces some
-					// unexpected behavior (e.g. not enumerating the sequence
-					// resulting in an empty array). Method IsArray could just
-					// pass enumerable elements and let parent field assignment
-					// handle the copy if needed.
-					assign(ref entity, browser);
-
-					return browser.Finish();
-				}
-			});
+			this.HasItems(descriptor.reader, this.GetConstructor<TItem>(), assign);
 
 			return descriptor;
 		}
 
 		public override IDecoderDescriptor<TItem> HasItems<TItem>(DecodeAssign<TEntity, IEnumerable<TItem>> assign)
 		{
-			var child = default(TreeReader<TItem, TState, TValue>);
-			var constructor = this.GetConstructor<TItem>();
+			var child = this.reader.Create<TItem>();
 
-			child = this.reader.HasItems<TItem>((ref TEntity entity, TState state) =>
+			this.HasItems(child, this.GetConstructor<TItem>(), assign);
+
+			return new TreeDecoderDescriptor<TItem, TState, TValue>(this.converter, this.session, child);
+		}
+
+		public override void IsValue()
+		{
+			this.reader.DeclareValue(this.GetConverter());
+		}
+
+		private void HasItems<TItem>(TreeReader<TState, TItem, TValue> child, Func<TItem> constructor, DecodeAssign<TEntity, IEnumerable<TItem>> assign)
+		{
+			this.reader.DeclareArray((TState state, ref TEntity entity) =>
 			{
-				using (var browser = new Browser<TItem>(child.Browse(constructor, state)))
+				using (var browser = new Browser<TItem>(child.ReadItems(constructor, state)))
 				{
 					// FIXME:
 					// This forces a unnecessary copy, and introduces some
@@ -125,13 +114,6 @@ namespace Verse.DecoderDescriptors
 					return browser.Finish();
 				}
 			});
-
-			return new TreeDecoderDescriptor<TItem, TState, TValue>(this.converter, this.session, child);
-		}
-
-		public override void IsValue()
-		{
-			this.reader.IsValue(this.GetConverter());
 		}
 	}
 }

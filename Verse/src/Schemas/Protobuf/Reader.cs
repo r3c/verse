@@ -54,15 +54,13 @@ namespace Verse.Schemas.Protobuf
         }
     }
 
-    class Reader<TEntity> : TreeReader<TEntity, ReaderState, ProtobufValue>
+    class Reader<TEntity> : TreeReader<ReaderState, TEntity, ProtobufValue>
     {
         private static readonly Reader<TEntity> emptyReader = new Reader<TEntity>(new ProtoBinding[0], false);
 
-    	private EntityReader<TEntity, ReaderState> array = null;
-
         private readonly ProtoBinding[] bindings;
 
-        private readonly EntityReader<TEntity, ReaderState>[] fields;
+        private readonly EntityReader<ReaderState, TEntity>[] fields;
 
     	private readonly ulong maximumLength = 128 * 1024 * 1024;
 
@@ -71,16 +69,16 @@ namespace Verse.Schemas.Protobuf
         public Reader(ProtoBinding[] bindings, bool rejectUnknown)
         {
             this.bindings = bindings;
-            this.fields = new EntityReader<TEntity, ReaderState>[bindings.Length];
+            this.fields = new EntityReader<ReaderState, TEntity>[bindings.Length];
             this.rejectUnknown = rejectUnknown;
         }
 
-        public override BrowserMove<TEntity> Browse(Func<TEntity> constructor, ReaderState state)
-        {
-            throw new NotImplementedException();
-        }
+		public override TreeReader<ReaderState, TOther, ProtobufValue> Create<TOther>()
+		{
+			return new Reader<TOther>(this.bindings, this.rejectUnknown);
+		}
 
-		public override TreeReader<TField, ReaderState, ProtobufValue> HasField<TField>(string name, EntityReader<TEntity, ReaderState> enter)
+		public override TreeReader<ReaderState, TField, ProtobufValue> HasField<TField>(string name, EntityReader<ReaderState, TEntity> enter)
 		{
 			int index = Array.FindIndex(this.bindings, binding => binding.Name == name);
 
@@ -92,16 +90,6 @@ namespace Verse.Schemas.Protobuf
             return new Reader<TField>(this.bindings[index].Fields, this.rejectUnknown);
 		}
 
-		public override TreeReader<TItem, ReaderState, ProtobufValue> HasItems<TItem>(EntityReader<TEntity, ReaderState> enter)
-		{
-			if (this.array != null)
-				throw new InvalidOperationException("can't declare array twice on same descriptor");
-
-			this.array = enter;
-
-			return new Reader<TItem>(this.bindings, this.rejectUnknown);
-		}
-
         public override bool Read(ref TEntity entity, ReaderState state)
         {
             byte[] buffer;
@@ -110,15 +98,11 @@ namespace Verse.Schemas.Protobuf
             uint u32;
             ulong u64;
 
-            if (this.array != null)
-                return this.array(ref entity, state);
+            if (this.IsArray)
+                return this.ReadArray(ref entity, state);
 
-            if (this.HoldValue)
-            {
-            	entity = this.ConvertValue(state.Value);
-
-                return true;
-            }
+            if (this.IsValue)
+                return this.ReadValue(ref entity, state.Value);
 
             current = state.Stream.ReadByte();
 
@@ -323,8 +307,13 @@ namespace Verse.Schemas.Protobuf
             }
 
             return this.fields[index] != null
-                ? this.fields[index](ref entity, state)
+                ? this.fields[index](state, ref entity)
                 : Reader<TEntity>.Ignore(state);
+        }
+
+        public override BrowserMove<TEntity> ReadItems(Func<TEntity> constructor, ReaderState state)
+        {
+            throw new NotImplementedException();
         }
 
 		private static bool Ignore(ReaderState state)

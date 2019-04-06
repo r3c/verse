@@ -119,7 +119,7 @@ namespace Verse.Schemas.QueryString
 				if (state.Current == '=')
 					state.Pull();
 
-				if (!(node.Read != null ? node.Read(ref entity, state) : this.ScanValue(state, out unused)))
+				if (!(node.Read != null ? node.Read(state, ref entity) : this.ScanValue(state, out unused)))
 					return false;
 
 				if (state.Current == -1)

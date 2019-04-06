@@ -3,31 +3,52 @@ using Verse.DecoderDescriptors.Base;
 
 namespace Verse.DecoderDescriptors.Tree
 {
-	abstract class TreeReader<TEntity, TState, TValue> : IReader<TEntity, TState>
+	abstract class TreeReader<TState, TEntity, TValue> : IReader<TState, TEntity>
 	{
-		protected bool HoldValue => this.convert != null;
+		protected bool IsArray => this.arrayReader != null;
 
-	    private Converter<TValue, TEntity> convert = null;
+		protected bool IsValue => this.valueConverter != null;
 
-		public abstract BrowserMove<TEntity> Browse(Func<TEntity> constructor, TState state);
+		private EntityReader<TState, TEntity> arrayReader = null;
 
-		public abstract TreeReader<TField, TState, TValue> HasField<TField>(string name, EntityReader<TEntity, TState> enter);
+		private Converter<TValue, TEntity> valueConverter = null;
 
-		public abstract TreeReader<TItem, TState, TValue> HasItems<TItem>(EntityReader<TEntity, TState> enter);
+		public abstract TreeReader<TState, TOther, TValue> Create<TOther>();
+
+		public abstract TreeReader<TState, TField, TValue> HasField<TField>(string name, EntityReader<TState, TEntity> enter);
 
 		public abstract bool Read(ref TEntity entity, TState state);
 
-		public void IsValue(Converter<TValue, TEntity> convert)
-		{
-			if (this.convert != null)
-				throw new InvalidOperationException("can't declare value twice on same descriptor");
+		public abstract BrowserMove<TEntity> ReadItems(Func<TEntity> constructor, TState state);
 
-			this.convert = convert;
+		public void DeclareArray(EntityReader<TState, TEntity> reader)
+		{
+			if (this.arrayReader != null)
+				throw new InvalidOperationException("can't declare array twice on same descriptor");
+
+			this.arrayReader = reader;
 		}
 
-		protected TEntity ConvertValue(TValue value)
+		public void DeclareValue(Converter<TValue, TEntity> convert)
 		{
-			return this.convert(value);
+			if (this.valueConverter != null)
+				throw new InvalidOperationException("can't declare value twice on same descriptor");
+
+			this.valueConverter = convert;
+		}
+
+		protected bool ReadArray(ref TEntity entity, TState state)
+		{
+			return this.arrayReader(state, ref entity);
+		}
+
+		protected bool ReadValue(ref TEntity entity, TValue value)
+		{
+			entity = this.valueConverter(value);
+
+			// FIXME: API should be updated for "value to entity" conversion
+			// also be able to raise failures
+			return true;
 		}
 	}
 }
