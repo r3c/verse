@@ -107,8 +107,7 @@ namespace Verse.DecoderDescriptors
 
 		public override IDecoderDescriptor<TItem> HasItems<TItem>(DecodeAssign<TEntity, IEnumerable<TItem>> assign)
 		{
-			TreeReader<TItem, TState, TValue> child = null;
-
+			var child = default(TreeReader<TItem, TState, TValue>);
 			var constructor = this.GetConstructor<TItem>();
 
 			child = this.reader.HasItems<TItem>((ref TEntity entity, TState state) =>

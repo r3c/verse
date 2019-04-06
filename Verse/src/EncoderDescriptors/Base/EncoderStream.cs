@@ -7,9 +7,9 @@ namespace Verse.EncoderDescriptors.Base
 
 	    private readonly TState state;
 
-		private readonly IWriter<TEntity, TState> writer;
+		private readonly IWriter<TState, TEntity> writer;
 
-		public EncoderStream(IWriterSession<TState> session, IWriter<TEntity, TState> writer, TState state)
+		public EncoderStream(IWriterSession<TState> session, IWriter<TState, TEntity> writer, TState state)
 		{
 			this.session = session;
 		    this.state = state;
@@ -20,7 +20,7 @@ namespace Verse.EncoderDescriptors.Base
 		{
 			try
 			{
-				this.writer.WriteEntity(input, this.state);
+				this.writer.Write(this.state, input);
 			}
 			finally
 			{

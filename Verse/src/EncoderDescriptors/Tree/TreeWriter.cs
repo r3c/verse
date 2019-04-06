@@ -4,48 +4,58 @@ using Verse.EncoderDescriptors.Base;
 
 namespace Verse.EncoderDescriptors.Tree
 {
-	abstract class TreeWriter<TEntity, TState, TValue> : IWriter<TEntity, TState>
+	abstract class TreeWriter<TState, TEntity, TValue> : IWriter<TState, TEntity>
 	{
-		public bool IsArray => this.array != null;
+		private EntityWriter<TState, TEntity> arrayWriter = null;
 
-	    public bool IsValue => this.value != null;
+		private readonly Dictionary<string, EntityWriter<TState, TEntity>> fieldWriters = new Dictionary<string, EntityWriter<TState, TEntity>>();
 
-	    private EntityWriter<TEntity, TState> array = null;
+		private Converter<TEntity, TValue> valueConverter = null;
 
-		private Converter<TEntity, TValue> value = null;
+		public abstract TreeWriter<TState, TOther, TValue> Create<TOther>();
 
-		public abstract TreeWriter<TOther, TState, TValue> Create<TOther>();
+		public abstract void WriteElements(TState state, IEnumerable<TEntity> elements);
 
-		public abstract void DeclareField(string name, EntityWriter<TEntity, TState> enter);
+		public abstract void WriteFields(TState state, TEntity source, IReadOnlyDictionary<string, EntityWriter<TState, TEntity>> fields);
 
-		public abstract void WriteElements(IEnumerable<TEntity> elements, TState state);
+		public abstract void WriteNull(TState state);
 
-		public abstract void WriteEntity(TEntity source, TState state);
+		public abstract void WriteValue(TState state, TValue value);
 
-		public void DeclareArray(EntityWriter<TEntity, TState> enter)
+		public void DeclareArray(EntityWriter<TState, TEntity> writer)
 		{
-			if (this.array != null)
+			if (this.arrayWriter != null)
 				throw new InvalidOperationException("can't declare array twice on same descriptor");
 
-			this.array = enter;            
+			this.arrayWriter = writer;
+		}
+
+		public void DeclareField(string name, EntityWriter<TState, TEntity> writer)
+		{
+			if (this.fieldWriters.ContainsKey(name))
+				throw new InvalidOperationException($"can't declare same field '{name}' twice on same descriptor");
+
+			this.fieldWriters[name] = writer;
 		}
 
 		public void DeclareValue(Converter<TEntity, TValue> converter)
 		{
-			if (this.value != null)
+			if (this.valueConverter != null)
 				throw new InvalidOperationException("can't declare value twice on same descriptor");
 
-			this.value = converter;
+			this.valueConverter = converter;
 		}
 
-		protected TValue ConvertValue(TEntity entity)
+		public void Write(TState state, TEntity entity)
 		{
-			return this.value(entity);
-		}
-
-		protected void WriteArray(TEntity entity, TState state)
-		{
-			this.array(entity, state);
+			if (entity == null)
+				this.WriteNull(state);
+			else if (this.arrayWriter != null)
+				this.arrayWriter(state, entity);
+			else if (this.valueConverter != null)
+				this.WriteValue(state, this.valueConverter(entity));
+			else
+				this.WriteFields(state, entity, this.fieldWriters);
 		}
 	}
 }

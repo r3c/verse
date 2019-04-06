@@ -5,54 +5,44 @@ using Verse.EncoderDescriptors.Tree;
 
 namespace Verse.Schemas.JSON
 {
-	class Writer<TEntity> : TreeWriter<TEntity, WriterState, JSONValue>
+	class Writer<TEntity> : TreeWriter<WriterState, TEntity, JSONValue>
 	{
-		private readonly Dictionary<string, EntityWriter<TEntity, WriterState>> fields = new Dictionary<string, EntityWriter<TEntity, WriterState>>();
-
-		public override TreeWriter<TOther, WriterState, JSONValue> Create<TOther>()
+		public override TreeWriter<WriterState, TOther, JSONValue> Create<TOther>()
 		{
 			return new Writer<TOther>();
 		}
 
-		public override void DeclareField(string name, EntityWriter<TEntity, WriterState> enter)
-		{
-			if (this.fields.ContainsKey(name))
-				throw new InvalidOperationException("can't declare same field '" + name + "' twice on same descriptor");
-
-			this.fields[name] = enter;
-		}
-
-		public override void WriteElements(IEnumerable<TEntity> elements, WriterState state)
+		public override void WriteElements(WriterState state, IEnumerable<TEntity> elements)
 		{
 			state.ArrayBegin();
 
-            foreach (var item in elements)
-                this.WriteEntity(item, state);
+			foreach (var element in elements)
+				this.Write(state, element);
 
-            state.ArrayEnd();
+			state.ArrayEnd();
 		}
 
-		public override void WriteEntity(TEntity source, WriterState state)
+		public override void WriteFields(WriterState state, TEntity source, IReadOnlyDictionary<string, EntityWriter<WriterState, TEntity>> fields)
 		{
-		    if (source == null)
-				state.Value(JSON.JSONValue.Void);
-			else if (this.IsArray)
-				this.WriteArray(source, state);
-			else if (this.IsValue)
-				state.Value(this.ConvertValue(source));
-		    else
-		    {
-		        state.ObjectBegin();
+			state.ObjectBegin();
 
-		        foreach (var field in this.fields)
-		        {
-		            state.Key(field.Key);
+			foreach (var field in fields)
+			{
+				state.Key(field.Key);
+				field.Value(state, source);
+			}
 
-		            field.Value(source, state);
-                }
+			state.ObjectEnd();
+		}
 
-		        state.ObjectEnd();
-		    }
+		public override void WriteNull(WriterState state)
+		{
+			state.Value(JSON.JSONValue.Void);
+		}
+
+		public override void WriteValue(WriterState state, JSONValue value)
+		{
+			state.Value(value);
 		}
 	}
 }

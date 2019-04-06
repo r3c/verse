@@ -1,8 +1,8 @@
 ﻿
 namespace Verse.EncoderDescriptors.Base
 {
-	public interface IWriter<in TEntity, in TState>
+	public interface IWriter<in TState, in TEntity>
 	{
-		void WriteEntity(TEntity source, TState state);
+		void Write(TState state, TEntity entity);
 	}
 }

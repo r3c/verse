@@ -8,9 +8,9 @@ namespace Verse.EncoderDescriptors.Base
 
         private readonly IWriterSession<TState> session;
 
-        private readonly IWriter<TEntity, TState> writer;
+        private readonly IWriter<TState, TEntity> writer;
 
-        public Encoder(IWriterSession<TState> session, IWriter<TEntity, TState> writer)
+        public Encoder(IWriterSession<TState> session, IWriter<TState, TEntity> writer)
         {
             this.session = session;
             this.writer = writer;

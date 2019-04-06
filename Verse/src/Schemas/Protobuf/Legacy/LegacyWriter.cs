@@ -5,57 +5,45 @@ using Verse.EncoderDescriptors.Tree;
 
 namespace Verse.Schemas.Protobuf.Legacy
 {
-	class LegacyWriter<TEntity> : TreeWriter<TEntity, LegacyWriterState, ProtobufValue>
+	class LegacyWriter<TEntity> : TreeWriter<LegacyWriterState, TEntity, ProtobufValue>
 	{
-		private readonly Dictionary<string, EntityWriter<TEntity, LegacyWriterState>> fields = new Dictionary<string, EntityWriter<TEntity, LegacyWriterState>>();
-
-		public override TreeWriter<TOther, LegacyWriterState, ProtobufValue> Create<TOther>()
+		public override TreeWriter<LegacyWriterState, TOther, ProtobufValue> Create<TOther>()
 		{
 			return new LegacyWriter<TOther>();
 		}
 
-		public override void DeclareField(string name, EntityWriter<TEntity, LegacyWriterState> enter)
+		public override void WriteElements(LegacyWriterState state, IEnumerable<TEntity> elements)
 		{
-			if (this.fields.ContainsKey(name))
-				throw new InvalidOperationException("can't declare same field '" + name + "' twice on same descriptor");
-
-			this.fields[name] = enter;
+			foreach (var element in elements)
+				this.Write(state, element);
 		}
 
-		public override void WriteElements(IEnumerable<TEntity> elements, LegacyWriterState state)
+		public override void WriteFields(LegacyWriterState state, TEntity source, IReadOnlyDictionary<string, EntityWriter<LegacyWriterState, TEntity>> fields)
 		{
-			foreach (var item in elements)
-				this.WriteEntity(item, state);
+			state.ObjectBegin();
+
+			foreach (var field in fields)
+			{
+				if (field.Key.Length > 1 && field.Key[0] == '_')
+					state.Key(field.Key.Substring(1));
+				else
+					state.Key(field.Key);
+
+				field.Value(state, source);
+			}
+
+			state.ObjectEnd();
 		}
 
-		public override void WriteEntity(TEntity source, LegacyWriterState state)
+		public override void WriteNull(LegacyWriterState state)
 		{
-			if (source == null)
-				return;
+			// No-op
+		}
 
-			if (this.IsArray)
-				this.WriteArray(source, state);
-			else if (this.IsValue)
-			{
-				if (!state.Value(this.ConvertValue(source)))
-					state.Error("failed to write value");
-			}
-			else
-			{
-				state.ObjectBegin();
-
-				foreach (var field in this.fields)
-				{
-					if (field.Key.Length > 1 && field.Key[0] == '_')
-						state.Key(field.Key.Substring(1));
-					else
-						state.Key(field.Key);
-
-					field.Value(source, state);
-				}
-
-				state.ObjectEnd();
-			}
+		public override void WriteValue(LegacyWriterState state, ProtobufValue value)
+		{
+			if (!state.Value(value))
+				state.Error("failed to write value");
 		}
 	}
 }

@@ -9,9 +9,9 @@ namespace Verse.EncoderDescriptors
 	{
 		private readonly IWriterSession<TState> session;
 
-		private readonly TreeWriter<TEntity, TState, TValue> writer;
+		private readonly TreeWriter<TState, TEntity, TValue> writer;
 
-		public TreeEncoderDescriptor(IEncoderConverter<TValue> converter, IWriterSession<TState> session, TreeWriter<TEntity, TState, TValue> writer) :
+		public TreeEncoderDescriptor(IEncoderConverter<TValue> converter, IWriterSession<TState> session, TreeWriter<TState, TEntity, TValue> writer) :
 			base(converter)
 		{
 			this.session = session;
@@ -62,7 +62,7 @@ namespace Verse.EncoderDescriptors
 		{
 			var child = descriptor.writer;
 
-			this.writer.DeclareField(name, (source, state) => child.WriteEntity(access(source), state));
+			this.writer.DeclareField(name, (state, source) => child.Write(state, access(source)));
 
 			return descriptor;
 		}
@@ -71,7 +71,7 @@ namespace Verse.EncoderDescriptors
 		{
 			var child = descriptor.writer;
 
-			this.writer.DeclareArray((source, state) => child.WriteElements(access(source), state));
+			this.writer.DeclareArray((state, source) => child.WriteElements(state, access(source)));
 
 			return descriptor;
 		}
