@@ -1,12 +1,12 @@
 using System;
 using System.Globalization;
 using System.Text;
-using Verse.DecoderDescriptors.Abstract;
-using Verse.DecoderDescriptors.Recurse;
+using Verse.DecoderDescriptors.Base;
+using Verse.DecoderDescriptors.Tree;
 
 namespace Verse.Schemas.JSON
 {
-	class Reader<TEntity> : RecurseReader<TEntity, ReaderState, JSONValue>
+	class Reader<TEntity> : TreeReader<TEntity, ReaderState, JSONValue>
 	{
 		private EntityReader<TEntity, ReaderState> array = null;
 
@@ -37,7 +37,7 @@ namespace Verse.Schemas.JSON
 			}
 		}
 
-		public override RecurseReader<TField, ReaderState, JSONValue> HasField<TField>(string name, EntityReader<TEntity, ReaderState> enter)
+		public override TreeReader<TField, ReaderState, JSONValue> HasField<TField>(string name, EntityReader<TEntity, ReaderState> enter)
 		{
 			if (!this.fields.Connect(name, enter))
 				throw new InvalidOperationException("can't declare same field '" + name + "' twice on same descriptor");
@@ -45,7 +45,7 @@ namespace Verse.Schemas.JSON
 			return new Reader<TField>();
 		}
 
-		public override RecurseReader<TItem, ReaderState, JSONValue> HasItems<TItem>(EntityReader<TEntity, ReaderState> enter)
+		public override TreeReader<TItem, ReaderState, JSONValue> HasItems<TItem>(EntityReader<TEntity, ReaderState> enter)
 		{
 			if (this.array != null)
 				throw new InvalidOperationException("can't declare array twice on same descriptor");

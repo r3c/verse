@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
-using Verse.EncoderDescriptors.Abstract;
-using Verse.EncoderDescriptors.Recurse;
+using Verse.EncoderDescriptors.Base;
+using Verse.EncoderDescriptors.Tree;
 
 namespace Verse.Schemas.JSON
 {
-	class Writer<TEntity> : RecurseWriter<TEntity, WriterState, JSONValue>
+	class Writer<TEntity> : TreeWriter<TEntity, WriterState, JSONValue>
 	{
 		private readonly Dictionary<string, EntityWriter<TEntity, WriterState>> fields = new Dictionary<string, EntityWriter<TEntity, WriterState>>();
 
-		public override RecurseWriter<TOther, WriterState, JSONValue> Create<TOther>()
+		public override TreeWriter<TOther, WriterState, JSONValue> Create<TOther>()
 		{
 			return new Writer<TOther>();
 		}

@@ -1,5 +1,5 @@
 ﻿
-namespace Verse.EncoderDescriptors.Abstract
+namespace Verse.EncoderDescriptors.Base
 {
 	public interface IWriter<in TEntity, in TState>
 	{

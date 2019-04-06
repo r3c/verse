@@ -1,5 +1,5 @@
 ﻿using System;
-using Verse.DecoderDescriptors.Abstract;
+using Verse.DecoderDescriptors.Base;
 
 namespace Verse.DecoderDescriptors.Flat
 {

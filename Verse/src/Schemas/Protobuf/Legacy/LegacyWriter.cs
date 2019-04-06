@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using Verse.EncoderDescriptors.Abstract;
-using Verse.EncoderDescriptors.Recurse;
+using Verse.EncoderDescriptors.Base;
+using Verse.EncoderDescriptors.Tree;
 
 namespace Verse.Schemas.Protobuf.Legacy
 {
-	class LegacyWriter<TEntity> : RecurseWriter<TEntity, LegacyWriterState, ProtobufValue>
+	class LegacyWriter<TEntity> : TreeWriter<TEntity, LegacyWriterState, ProtobufValue>
 	{
 		private readonly Dictionary<string, EntityWriter<TEntity, LegacyWriterState>> fields = new Dictionary<string, EntityWriter<TEntity, LegacyWriterState>>();
 
-		public override RecurseWriter<TOther, LegacyWriterState, ProtobufValue> Create<TOther>()
+		public override TreeWriter<TOther, LegacyWriterState, ProtobufValue> Create<TOther>()
 		{
 			return new LegacyWriter<TOther>();
 		}

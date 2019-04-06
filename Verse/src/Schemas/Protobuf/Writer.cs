@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using Verse.EncoderDescriptors.Abstract;
-using Verse.EncoderDescriptors.Recurse;
+using Verse.EncoderDescriptors.Base;
+using Verse.EncoderDescriptors.Tree;
 using Verse.Schemas.Protobuf.Definition;
 
 namespace Verse.Schemas.Protobuf
 {
-    class Writer<TEntity> : RecurseWriter<TEntity, WriterState, ProtobufValue>
+    class Writer<TEntity> : TreeWriter<TEntity, WriterState, ProtobufValue>
     {
         private readonly ProtoBinding[] fields;
 
@@ -15,7 +15,7 @@ namespace Verse.Schemas.Protobuf
             this.fields = fields;
         }
 
-		public override RecurseWriter<TOther, WriterState, ProtobufValue> Create<TOther>()
+		public override TreeWriter<TOther, WriterState, ProtobufValue> Create<TOther>()
         {
             return new Writer<TOther>(this.fields);
         }

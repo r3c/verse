@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
-using Verse.EncoderDescriptors.Abstract;
+using Verse.EncoderDescriptors.Base;
 
 namespace Verse.EncoderDescriptors
 {
-	abstract class AbstractEncoderDescriptor<TEntity, TValue> : IEncoderDescriptor<TEntity>
+	abstract class BaseEncoderDescriptor<TEntity, TValue> : IEncoderDescriptor<TEntity>
 	{
 		protected readonly IEncoderConverter<TValue> converter;
 
-		protected AbstractEncoderDescriptor(IEncoderConverter<TValue> converter)
+		protected BaseEncoderDescriptor(IEncoderConverter<TValue> converter)
 		{
 			this.converter = converter;
 		}

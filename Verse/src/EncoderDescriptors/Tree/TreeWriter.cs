@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using Verse.EncoderDescriptors.Abstract;
+using Verse.EncoderDescriptors.Base;
 
-namespace Verse.EncoderDescriptors.Recurse
+namespace Verse.EncoderDescriptors.Tree
 {
-	abstract class RecurseWriter<TEntity, TState, TValue> : IWriter<TEntity, TState>
+	abstract class TreeWriter<TEntity, TState, TValue> : IWriter<TEntity, TState>
 	{
 		public bool IsArray => this.array != null;
 
@@ -14,7 +14,7 @@ namespace Verse.EncoderDescriptors.Recurse
 
 		private Converter<TEntity, TValue> value = null;
 
-		public abstract RecurseWriter<TOther, TState, TValue> Create<TOther>();
+		public abstract TreeWriter<TOther, TState, TValue> Create<TOther>();
 
 		public abstract void DeclareField(string name, EntityWriter<TEntity, TState> enter);
 

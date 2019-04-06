@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Verse.DecoderDescriptors.Recurse
+namespace Verse.DecoderDescriptors.Tree
 {
 	class Browser<TEntity> : IDisposable, IEnumerable<TEntity>
 	{

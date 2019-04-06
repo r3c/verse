@@ -1,6 +1,6 @@
 using System;
 
-namespace Verse.EncoderDescriptors.Abstract
+namespace Verse.EncoderDescriptors.Base
 {
 	interface IEncoderConverter<out TTo>
 	{

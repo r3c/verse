@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace Verse.EncoderDescriptors.Abstract
+namespace Verse.EncoderDescriptors.Base
 {
     class Encoder<TEntity, TState> : IEncoder<TEntity>
     {

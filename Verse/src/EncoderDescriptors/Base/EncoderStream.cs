@@ -1,5 +1,5 @@
 
-namespace Verse.EncoderDescriptors.Abstract
+namespace Verse.EncoderDescriptors.Base
 {
 	class EncoderStream<TEntity, TState> : IEncoderStream<TEntity>
 	{

@@ -1,6 +1,6 @@
 ﻿using System.IO;
 using System.Text;
-using Verse.DecoderDescriptors.Abstract;
+using Verse.DecoderDescriptors.Base;
 
 namespace Verse.Schemas.QueryString
 {

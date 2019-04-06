@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
-using Verse.DecoderDescriptors.Abstract;
-using Verse.DecoderDescriptors.Recurse;
+using Verse.DecoderDescriptors.Base;
+using Verse.DecoderDescriptors.Tree;
 using Verse.Schemas.Protobuf.Definition;
 
 namespace Verse.Schemas.Protobuf
@@ -54,7 +54,7 @@ namespace Verse.Schemas.Protobuf
         }
     }
 
-    class Reader<TEntity> : RecurseReader<TEntity, ReaderState, ProtobufValue>
+    class Reader<TEntity> : TreeReader<TEntity, ReaderState, ProtobufValue>
     {
         private static readonly Reader<TEntity> emptyReader = new Reader<TEntity>(new ProtoBinding[0], false);
 
@@ -80,7 +80,7 @@ namespace Verse.Schemas.Protobuf
             throw new NotImplementedException();
         }
 
-		public override RecurseReader<TField, ReaderState, ProtobufValue> HasField<TField>(string name, EntityReader<TEntity, ReaderState> enter)
+		public override TreeReader<TField, ReaderState, ProtobufValue> HasField<TField>(string name, EntityReader<TEntity, ReaderState> enter)
 		{
 			int index = Array.FindIndex(this.bindings, binding => binding.Name == name);
 
@@ -92,7 +92,7 @@ namespace Verse.Schemas.Protobuf
             return new Reader<TField>(this.bindings[index].Fields, this.rejectUnknown);
 		}
 
-		public override RecurseReader<TItem, ReaderState, ProtobufValue> HasItems<TItem>(EntityReader<TEntity, ReaderState> enter)
+		public override TreeReader<TItem, ReaderState, ProtobufValue> HasItems<TItem>(EntityReader<TEntity, ReaderState> enter)
 		{
 			if (this.array != null)
 				throw new InvalidOperationException("can't declare array twice on same descriptor");

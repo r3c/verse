@@ -1,6 +1,6 @@
 using System;
 
-namespace Verse.DecoderDescriptors.Abstract
+namespace Verse.DecoderDescriptors.Base
 {
 	interface IDecoderConverter<in TFrom>
 	{

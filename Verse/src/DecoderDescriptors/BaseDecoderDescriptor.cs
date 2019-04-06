@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using Verse.DecoderDescriptors.Abstract;
+using Verse.DecoderDescriptors.Base;
 using Verse.Tools;
 
 namespace Verse.DecoderDescriptors
 {
-	abstract class AbstractDecoderDescriptor<TEntity, TState, TValue> : IDecoderDescriptor<TEntity>
+	abstract class BaseDecoderDescriptor<TEntity, TState, TValue> : IDecoderDescriptor<TEntity>
 	{
 		private readonly Dictionary<Type, object> constructors;
 
@@ -15,7 +15,7 @@ namespace Verse.DecoderDescriptors
 
 		private readonly IReaderSession<TState> session;
 
-		protected AbstractDecoderDescriptor(IDecoderConverter<TValue> converter, IReaderSession<TState> session, IReader<TEntity, TState> reader)
+		protected BaseDecoderDescriptor(IDecoderConverter<TValue> converter, IReaderSession<TState> session, IReader<TEntity, TState> reader)
 		{
 			this.constructors = new Dictionary<Type, object>();
 			this.converter = converter;

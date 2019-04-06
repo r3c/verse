@@ -1,9 +1,9 @@
 ﻿using System;
-using Verse.DecoderDescriptors.Abstract;
+using Verse.DecoderDescriptors.Base;
 
-namespace Verse.DecoderDescriptors.Recurse
+namespace Verse.DecoderDescriptors.Tree
 {
-	abstract class RecurseReader<TEntity, TState, TValue> : IReader<TEntity, TState>
+	abstract class TreeReader<TEntity, TState, TValue> : IReader<TEntity, TState>
 	{
 		protected bool HoldValue => this.convert != null;
 
@@ -11,9 +11,9 @@ namespace Verse.DecoderDescriptors.Recurse
 
 		public abstract BrowserMove<TEntity> Browse(Func<TEntity> constructor, TState state);
 
-		public abstract RecurseReader<TField, TState, TValue> HasField<TField>(string name, EntityReader<TEntity, TState> enter);
+		public abstract TreeReader<TField, TState, TValue> HasField<TField>(string name, EntityReader<TEntity, TState> enter);
 
-		public abstract RecurseReader<TItem, TState, TValue> HasItems<TItem>(EntityReader<TEntity, TState> enter);
+		public abstract TreeReader<TItem, TState, TValue> HasItems<TItem>(EntityReader<TEntity, TState> enter);
 
 		public abstract bool Read(ref TEntity entity, TState state);
 

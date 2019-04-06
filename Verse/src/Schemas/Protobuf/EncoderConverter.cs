@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using Verse.EncoderDescriptors.Abstract;
+using Verse.EncoderDescriptors.Base;
 
 namespace Verse.Schemas.Protobuf
 {

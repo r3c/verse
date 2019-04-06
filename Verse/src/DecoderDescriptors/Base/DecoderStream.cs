@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Verse.DecoderDescriptors.Abstract
+namespace Verse.DecoderDescriptors.Base
 {
 	class DecoderStream<TEntity, TState> : IDecoderStream<TEntity>
 	{

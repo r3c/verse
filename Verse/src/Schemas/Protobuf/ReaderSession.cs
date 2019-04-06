@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using Verse.DecoderDescriptors.Abstract;
+using Verse.DecoderDescriptors.Base;
 
 namespace Verse.Schemas.Protobuf.Legacy
 {

@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using ProtoBuf;
-using Verse.DecoderDescriptors.Abstract;
-using Verse.DecoderDescriptors.Recurse;
+using Verse.DecoderDescriptors.Base;
+using Verse.DecoderDescriptors.Tree;
 
 namespace Verse.Schemas.Protobuf.Legacy
 {
-	class LegacyReader<TEntity> : RecurseReader<TEntity, LegacyReaderState, ProtobufValue>
+	class LegacyReader<TEntity> : TreeReader<TEntity, LegacyReaderState, ProtobufValue>
 	{
 		private EntityReader<TEntity, LegacyReaderState> array = null;
 
@@ -29,7 +29,7 @@ namespace Verse.Schemas.Protobuf.Legacy
 			}
 		}
 
-		public override RecurseReader<TField, LegacyReaderState, ProtobufValue> HasField<TField>(string name, EntityReader<TEntity, LegacyReaderState> enter)
+		public override TreeReader<TField, LegacyReaderState, ProtobufValue> HasField<TField>(string name, EntityReader<TEntity, LegacyReaderState> enter)
 		{
 			List<EntityReader<TEntity, LegacyReaderState>> fields;
 
@@ -48,7 +48,7 @@ namespace Verse.Schemas.Protobuf.Legacy
 			return new LegacyReader<TField>();
 		}
 
-		public override RecurseReader<TItem, LegacyReaderState, ProtobufValue> HasItems<TItem>(EntityReader<TEntity, LegacyReaderState> enter)
+		public override TreeReader<TItem, LegacyReaderState, ProtobufValue> HasItems<TItem>(EntityReader<TEntity, LegacyReaderState> enter)
 		{
 			if (this.array != null)
 				throw new InvalidOperationException("can't declare array twice on same descriptor");

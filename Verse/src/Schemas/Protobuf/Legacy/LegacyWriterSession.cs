@@ -1,5 +1,5 @@
 ﻿using System.IO;
-using Verse.EncoderDescriptors.Abstract;
+using Verse.EncoderDescriptors.Base;
 
 namespace Verse.Schemas.Protobuf.Legacy
 {

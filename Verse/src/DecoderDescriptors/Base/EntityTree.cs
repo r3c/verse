@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Verse.DecoderDescriptors.Abstract
+namespace Verse.DecoderDescriptors.Base
 {
 	class EntityTree<TEntity, TState>
 	{

@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace Verse.EncoderDescriptors.Abstract
+namespace Verse.EncoderDescriptors.Base
 {
 	interface IWriterSession<TState>
 	{

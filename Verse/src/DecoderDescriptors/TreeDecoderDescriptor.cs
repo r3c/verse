@@ -1,19 +1,19 @@
 using System;
 using System.Collections.Generic;
-using Verse.DecoderDescriptors.Abstract;
-using Verse.DecoderDescriptors.Recurse;
+using Verse.DecoderDescriptors.Base;
+using Verse.DecoderDescriptors.Tree;
 
 namespace Verse.DecoderDescriptors
 {
-	class RecurseDecoderDescriptor<TEntity, TState, TValue> : AbstractDecoderDescriptor<TEntity, TState, TValue>
+	class TreeDecoderDescriptor<TEntity, TState, TValue> : BaseDecoderDescriptor<TEntity, TState, TValue>
 	{
 		private readonly IDecoderConverter<TValue> converter;
 
-		private readonly RecurseReader<TEntity, TState, TValue> reader;
+		private readonly TreeReader<TEntity, TState, TValue> reader;
 
 		private readonly IReaderSession<TState> session;
 
-		public RecurseDecoderDescriptor(IDecoderConverter<TValue> converter, IReaderSession<TState> session, RecurseReader<TEntity, TState, TValue> reader) :
+		public TreeDecoderDescriptor(IDecoderConverter<TValue> converter, IReaderSession<TState> session, TreeReader<TEntity, TState, TValue> reader) :
 			base(converter, session, reader)
 		{
 			this.converter = converter;
@@ -23,7 +23,7 @@ namespace Verse.DecoderDescriptors
 
 		public override IDecoderDescriptor<TField> HasField<TField>(string name, DecodeAssign<TEntity, TField> assign, IDecoderDescriptor<TField> parent)
 		{
-			var descriptor = parent as RecurseDecoderDescriptor<TField, TState, TValue>;
+			var descriptor = parent as TreeDecoderDescriptor<TField, TState, TValue>;
 
 			if (descriptor == null)
 				throw new ArgumentOutOfRangeException(nameof(parent), "invalid target descriptor type");
@@ -48,7 +48,7 @@ namespace Verse.DecoderDescriptors
 
 		public override IDecoderDescriptor<TField> HasField<TField>(string name, DecodeAssign<TEntity, TField> assign)
 		{
-			RecurseReader<TField, TState, TValue> child = null;
+			TreeReader<TField, TState, TValue> child = null;
 
 			var constructor = this.GetConstructor<TField>();
 
@@ -64,21 +64,21 @@ namespace Verse.DecoderDescriptors
 				return true;
 			});
 
-			return new RecurseDecoderDescriptor<TField, TState, TValue>(this.converter, this.session, child);
+			return new TreeDecoderDescriptor<TField, TState, TValue>(this.converter, this.session, child);
 		}
 
 		public override IDecoderDescriptor<TEntity> HasField(string name)
 		{
-			RecurseReader<TEntity, TState, TValue> child = null;
+			TreeReader<TEntity, TState, TValue> child = null;
 
 			child = this.reader.HasField<TEntity>(name, (ref TEntity target, TState state) => child.Read(ref target, state));
 
-			return new RecurseDecoderDescriptor<TEntity, TState, TValue>(this.converter, this.session, child);
+			return new TreeDecoderDescriptor<TEntity, TState, TValue>(this.converter, this.session, child);
 		}
 
 		public override IDecoderDescriptor<TItem> HasItems<TItem>(DecodeAssign<TEntity, IEnumerable<TItem>> assign, IDecoderDescriptor<TItem> parent)
 		{
-			var descriptor = parent as RecurseDecoderDescriptor<TItem, TState, TValue>;
+			var descriptor = parent as TreeDecoderDescriptor<TItem, TState, TValue>;
 
 			if (descriptor == null)
 				throw new ArgumentOutOfRangeException(nameof(parent), "incompatible descriptor type");
@@ -107,7 +107,7 @@ namespace Verse.DecoderDescriptors
 
 		public override IDecoderDescriptor<TItem> HasItems<TItem>(DecodeAssign<TEntity, IEnumerable<TItem>> assign)
 		{
-			RecurseReader<TItem, TState, TValue> child = null;
+			TreeReader<TItem, TState, TValue> child = null;
 
 			var constructor = this.GetConstructor<TItem>();
 
@@ -127,7 +127,7 @@ namespace Verse.DecoderDescriptors
 				}
 			});
 
-			return new RecurseDecoderDescriptor<TItem, TState, TValue>(this.converter, this.session, child);
+			return new TreeDecoderDescriptor<TItem, TState, TValue>(this.converter, this.session, child);
 		}
 
 		public override void IsValue()

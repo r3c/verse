@@ -20,11 +20,11 @@ namespace Verse.Schemas
 
 	    private readonly DecoderConverter decoderConverter;
 
-		private readonly RecurseDecoderDescriptor<TEntity, ReaderState, JSONValue> decoderDescriptor;
+		private readonly TreeDecoderDescriptor<TEntity, ReaderState, JSONValue> decoderDescriptor;
 
 		private readonly EncoderConverter encoderConverter;
 
-		private readonly RecurseEncoderDescriptor<TEntity, WriterState, JSONValue> encoderDescriptor;
+		private readonly TreeEncoderDescriptor<TEntity, WriterState, JSONValue> encoderDescriptor;
 
 		/// <summary>
 		/// Create new JSON schema using given settings
@@ -36,8 +36,8 @@ namespace Verse.Schemas
 
 			this.decoderConverter = new DecoderConverter();
 			this.encoderConverter = new EncoderConverter();
-			this.decoderDescriptor = new RecurseDecoderDescriptor<TEntity, ReaderState, JSONValue>(this.decoderConverter, new ReaderSession(encoding), new Reader<TEntity>());
-			this.encoderDescriptor = new RecurseEncoderDescriptor<TEntity, WriterState, JSONValue>(this.encoderConverter, new WriterSession(encoding, settings.OmitNull), new Writer<TEntity>());
+			this.decoderDescriptor = new TreeDecoderDescriptor<TEntity, ReaderState, JSONValue>(this.decoderConverter, new ReaderSession(encoding), new Reader<TEntity>());
+			this.encoderDescriptor = new TreeEncoderDescriptor<TEntity, WriterState, JSONValue>(this.encoderConverter, new WriterSession(encoding, settings.OmitNull), new Writer<TEntity>());
 		}
 
 	    /// <summary>

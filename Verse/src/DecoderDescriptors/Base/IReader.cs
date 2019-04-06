@@ -1,5 +1,5 @@
 ﻿
-namespace Verse.DecoderDescriptors.Abstract
+namespace Verse.DecoderDescriptors.Base
 {
 	interface IReader<TEntity, in TState>
 	{

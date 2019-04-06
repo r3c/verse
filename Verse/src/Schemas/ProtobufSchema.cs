@@ -16,15 +16,15 @@ namespace Verse.Schemas
 
 	    private readonly DecoderConverter decoderConverter;
 
-		private readonly RecurseDecoderDescriptor<TEntity, ReaderState, ProtobufValue> decoderDescriptor;
+		private readonly TreeDecoderDescriptor<TEntity, ReaderState, ProtobufValue> decoderDescriptor;
 
 		private readonly EncoderConverter encoderConverter;
 
-		private readonly RecurseEncoderDescriptor<TEntity, WriterState, ProtobufValue> encoderDescriptor;
+		private readonly TreeEncoderDescriptor<TEntity, WriterState, ProtobufValue> encoderDescriptor;
 
-		private readonly RecurseDecoderDescriptor<TEntity, LegacyReaderState, ProtobufValue> legacyDecoderDescriptor;
+		private readonly TreeDecoderDescriptor<TEntity, LegacyReaderState, ProtobufValue> legacyDecoderDescriptor;
 		
-		private readonly RecurseEncoderDescriptor<TEntity, LegacyWriterState, ProtobufValue> legacyEncoderDescriptor;
+		private readonly TreeEncoderDescriptor<TEntity, LegacyWriterState, ProtobufValue> legacyEncoderDescriptor;
 
 		public ProtobufSchema(TextReader proto, string messageName, ProtobufConfiguration configuration)
         {
@@ -34,9 +34,9 @@ namespace Verse.Schemas
 
 			// Native implementation
 			this.decoderConverter = decoders;
-			this.decoderDescriptor = new RecurseDecoderDescriptor<TEntity, ReaderState, ProtobufValue>(decoders, new ReaderSession(), new Reader<TEntity>(bindings, configuration.RejectUnknown));
+			this.decoderDescriptor = new TreeDecoderDescriptor<TEntity, ReaderState, ProtobufValue>(decoders, new ReaderSession(), new Reader<TEntity>(bindings, configuration.RejectUnknown));
 			this.encoderConverter = encoders;
-			this.encoderDescriptor = new RecurseEncoderDescriptor<TEntity, WriterState, ProtobufValue>(encoders, new WriterSession(), new Writer<TEntity>(bindings));
+			this.encoderDescriptor = new TreeEncoderDescriptor<TEntity, WriterState, ProtobufValue>(encoders, new WriterSession(), new Writer<TEntity>(bindings));
 
 			// Legacy implementation
 			this.legacyDecoderDescriptor = null;
@@ -60,8 +60,8 @@ namespace Verse.Schemas
             this.encoderDescriptor = null;
 
             // Legacy implementation
-            this.legacyDecoderDescriptor = new RecurseDecoderDescriptor<TEntity, LegacyReaderState, ProtobufValue>(decoders, new LegacyReaderSession(), new LegacyReader<TEntity>());
-            this.legacyEncoderDescriptor = new RecurseEncoderDescriptor<TEntity, LegacyWriterState, ProtobufValue>(encoders, new LegacyWriterSession(), new LegacyWriter<TEntity>());
+            this.legacyDecoderDescriptor = new TreeDecoderDescriptor<TEntity, LegacyReaderState, ProtobufValue>(decoders, new LegacyReaderSession(), new LegacyReader<TEntity>());
+            this.legacyEncoderDescriptor = new TreeEncoderDescriptor<TEntity, LegacyWriterState, ProtobufValue>(encoders, new LegacyWriterSession(), new LegacyWriter<TEntity>());
         }
 
 		public IDecoder<TEntity> CreateDecoder()

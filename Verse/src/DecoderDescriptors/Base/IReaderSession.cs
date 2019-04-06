@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace Verse.DecoderDescriptors.Abstract
+namespace Verse.DecoderDescriptors.Base
 {
 	interface IReaderSession<TState>
 	{

@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using Verse.DecoderDescriptors.Abstract;
+using Verse.DecoderDescriptors.Base;
 using Verse.DecoderDescriptors.Flat;
 
 namespace Verse.DecoderDescriptors
 {
-	class FlatDecoderDescriptor<TEntity, TState, TValue> : AbstractDecoderDescriptor<TEntity, TState, TValue>
+	class FlatDecoderDescriptor<TEntity, TState, TValue> : BaseDecoderDescriptor<TEntity, TState, TValue>
 	{
 		private readonly IDecoderConverter<TValue> converter;
 

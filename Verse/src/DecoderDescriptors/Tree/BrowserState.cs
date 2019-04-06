@@ -1,4 +1,4 @@
-namespace Verse.DecoderDescriptors.Recurse
+namespace Verse.DecoderDescriptors.Tree
 {
 	enum BrowserState
 	{
