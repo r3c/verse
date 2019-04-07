@@ -24,9 +24,7 @@ namespace Verse.DecoderDescriptors.Base
 		{
 		    try
 		    {
-		        output = this.constructor();
-
-		        return this.reader.Read(ref output, state);
+		        return this.reader.Read(state, this.constructor, out output);
 		    }
 		    finally
 		    {

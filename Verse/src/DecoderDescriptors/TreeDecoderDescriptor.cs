@@ -31,9 +31,7 @@ namespace Verse.DecoderDescriptors
 
 			this.reader.HasField<TField>(name, (TState state, ref TEntity target) =>
 			{
-				TField field = constructor();
-
-				if (!child.Read(ref field, state))
+				if (!child.Read(state, constructor, out var field))
 					return false;
 
 				assign(ref target, field);
@@ -51,9 +49,7 @@ namespace Verse.DecoderDescriptors
 
 			child = this.reader.HasField<TField>(name, (TState state, ref TEntity target) =>
 			{
-				TField field = constructor();
-
-				if (!child.Read(ref field, state))
+				if (!child.Read(state, constructor, out var field))
 					return false;
 
 				assign(ref target, field);
@@ -68,7 +64,12 @@ namespace Verse.DecoderDescriptors
 		{
 			var child = default(TreeReader<TState, TEntity, TValue>);
 
-			child = this.reader.HasField<TEntity>(name, (TState state, ref TEntity target) => child.Read(ref target, state));
+			child = this.reader.HasField<TEntity>(name, (TState state, ref TEntity target) =>
+			{
+				var closure = target;
+
+				return child.Read(state, () => closure, out target);
+			});
 
 			return new TreeDecoderDescriptor<TEntity, TState, TValue>(this.converter, this.session, child);
 		}
@@ -97,11 +98,11 @@ namespace Verse.DecoderDescriptors
 			this.reader.DeclareValue(this.GetConverter());
 		}
 
-		private void HasItems<TItem>(TreeReader<TState, TItem, TValue> child, Func<TItem> constructor, DecodeAssign<TEntity, IEnumerable<TItem>> assign)
+		private void HasItems<TItem>(TreeReader<TState, TItem, TValue> child, Func<TItem> itemConstructor, DecodeAssign<TEntity, IEnumerable<TItem>> assign)
 		{
-			this.reader.DeclareArray((TState state, ref TEntity entity) =>
+			this.reader.DeclareArray((TState state, Func<TEntity> entityConstructor, out TEntity entity) =>
 			{
-				using (var browser = new Browser<TItem>(child.ReadItems(constructor, state)))
+				using (var browser = new Browser<TItem>(child.ReadItems(itemConstructor, state)))
 				{
 					// FIXME:
 					// This forces a unnecessary copy, and introduces some
@@ -109,6 +110,8 @@ namespace Verse.DecoderDescriptors
 					// resulting in an empty array). Method IsArray could just
 					// pass enumerable elements and let parent field assignment
 					// handle the copy if needed.
+					entity = entityConstructor();
+
 					assign(ref entity, browser);
 
 					return browser.Finish();

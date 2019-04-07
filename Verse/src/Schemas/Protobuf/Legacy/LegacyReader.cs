@@ -38,14 +38,18 @@ namespace Verse.Schemas.Protobuf.Legacy
 			return new LegacyReader<TField>();
 		}
 
-		public override bool Read(ref TEntity entity, LegacyReaderState state)
+		public override bool Read(LegacyReaderState state, Func<TEntity> constructor, out TEntity entity)
 		{
 			switch (state.ReadingAction)
 			{
 				case LegacyReaderState.ReadingActionType.UseHeader:
+					entity = constructor();
+
 					return this.FollowNode(state.Reader.FieldNumber, ref entity, state);
 
 				case LegacyReaderState.ReadingActionType.ReadHeader:
+					entity = constructor();
+
 					while (state.ReadHeader(out var fieldIndex))
 					{
 						state.AddObject(fieldIndex);
@@ -60,10 +64,12 @@ namespace Verse.Schemas.Protobuf.Legacy
 					state.ReadingAction = LegacyReaderState.ReadingActionType.ReadHeader;
 
 					if (this.IsArray)
-						return this.ReadArray(ref entity, state);
+						return this.ReadArray(state, constructor, out entity);
 
 					if (!this.IsValue)
 					{
+						entity = constructor();
+
 						// if it's not object, ignore
 						if ((state.Reader.WireType != ProtoBuf.WireType.StartGroup && state.Reader.WireType != ProtoBuf.WireType.String) ||
 							(this.arrayFields.Count == 0 && this.objectFields.Count == 0))
@@ -79,20 +85,22 @@ namespace Verse.Schemas.Protobuf.Legacy
 					switch (state.Reader.WireType)
 					{
 						case ProtoBuf.WireType.Fixed32:
-							return this.ReadValue(ref entity, new ProtobufValue(state.Reader.ReadSingle()));
+							return this.ReadValue(new ProtobufValue(state.Reader.ReadSingle()), out entity);
 
 						case ProtoBuf.WireType.Fixed64:
-							return this.ReadValue(ref entity, new ProtobufValue(state.Reader.ReadDouble()));
+							return this.ReadValue(new ProtobufValue(state.Reader.ReadDouble()), out entity);
 
 						case ProtoBuf.WireType.String:
-							return this.ReadValue(ref entity, new ProtobufValue(state.Reader.ReadString()));
+							return this.ReadValue(new ProtobufValue(state.Reader.ReadString()), out entity);
 
 						case ProtoBuf.WireType.Variant:
-							return this.ReadValue(ref entity, new ProtobufValue(state.Reader.ReadInt64()));
+							return this.ReadValue(new ProtobufValue(state.Reader.ReadInt64()), out entity);
 					}
 
 					state.Error("wire type not supported, skipped");
 					state.Reader.SkipField();
+
+					entity = constructor();
 
 					return true;
 			}
@@ -113,9 +121,7 @@ namespace Verse.Schemas.Protobuf.Legacy
 
 		private static bool Ignore(LegacyReaderState state)
 		{
-			var dummy = default(TEntity);
-
-			return LegacyReader<TEntity>.emptyReader.Read(ref dummy, state);
+			return LegacyReader<TEntity>.emptyReader.Read(state, () => default, out _);
 		}
 
 		private bool FollowNode(int fieldIndex, ref TEntity target, LegacyReaderState state)
@@ -202,9 +208,7 @@ namespace Verse.Schemas.Protobuf.Legacy
 					return BrowserState.Success;
 				}
 
-				current = constructor();
-
-				if (this.Read(ref current, state))
+				if (this.Read(state, constructor, out current))
 					return BrowserState.Continue;
 
 				current = default;
@@ -228,9 +232,7 @@ namespace Verse.Schemas.Protobuf.Legacy
 					return BrowserState.Success;
 				}
 
-				current = constructor();
-
-				if (!this.Read(ref current, state))
+				if (!this.Read(state, constructor, out current))
 					return BrowserState.Failure;
 
 				return BrowserState.Continue;

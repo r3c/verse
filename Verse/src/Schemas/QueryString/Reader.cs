@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using Verse.DecoderDescriptors.Flat;
 
 namespace Verse.Schemas.QueryString
@@ -91,17 +92,15 @@ namespace Verse.Schemas.QueryString
 			return new Reader<TOther>();
 		}
 
-		public override bool Read(ref TEntity entity, ReaderState state)
+		public override bool Read(ReaderState state, Func<TEntity> constructor, out TEntity entity)
 		{
+			entity = constructor();
+
 			while (state.Current != -1)
 			{
-			    string unused;
-
 				if (!Reader.IsUnreserved(state.Current))
 				{
 					state.Error("empty field");
-
-					entity = default;
 
 					return false;
 				}
@@ -119,8 +118,16 @@ namespace Verse.Schemas.QueryString
 				if (state.Current == '=')
 					state.Pull();
 
-				if (!(node.Read != null ? node.Read(state, ref entity) : this.ScanValue(state, out unused)))
-					return false;
+				if (node.Read != null)
+				{
+					if (!node.Read(state, ref entity))
+						return false;
+				}
+				else
+				{
+					if (!this.ScanValue(state, out _))
+						return false;
+				}
 
 				if (state.Current == -1)
 					break;
@@ -140,7 +147,7 @@ namespace Verse.Schemas.QueryString
 
 		public override bool ReadValue(ReaderState state, out TEntity value)
 		{
-		    if (!this.ScanValue(state, out var raw))
+			if (!this.ScanValue(state, out var raw))
 			{
 				value = default;
 
@@ -159,9 +166,9 @@ namespace Verse.Schemas.QueryString
 
 			while (state.Current != -1)
 			{
-			    int current = state.Current;
+				int current = state.Current;
 
-			    if (Reader.IsUnreserved(current))
+				if (Reader.IsUnreserved(current))
 				{
 					builder.Append((char)current);
 
@@ -175,9 +182,9 @@ namespace Verse.Schemas.QueryString
 				}
 				else if (current == '%')
 				{
-				    int count;
+					int count;
 
-				    for (count = 0; state.Current == '%'; ++count)
+					for (count = 0; state.Current == '%'; ++count)
 					{
 						if (count >= buffer.Length)
 						{

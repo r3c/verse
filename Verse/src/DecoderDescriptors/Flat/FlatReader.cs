@@ -15,7 +15,7 @@ namespace Verse.DecoderDescriptors.Flat
 
 		public abstract FlatReader<TOther, TState, TValue> Create<TOther>();
 
-		public abstract bool Read(ref TEntity entity, TState state);
+		public abstract bool Read(TState state, Func<TEntity> constructor, out TEntity entity);
 
 		public abstract bool ReadValue(TState state, out TEntity value);
 

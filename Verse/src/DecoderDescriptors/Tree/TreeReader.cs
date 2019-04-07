@@ -9,7 +9,7 @@ namespace Verse.DecoderDescriptors.Tree
 
 		protected bool IsValue => this.valueConverter != null;
 
-		private EntityReader<TState, TEntity> arrayReader = null;
+		private ArrayReader<TState, TEntity> arrayReader = null;
 
 		private Converter<TValue, TEntity> valueConverter = null;
 
@@ -17,11 +17,11 @@ namespace Verse.DecoderDescriptors.Tree
 
 		public abstract TreeReader<TState, TField, TValue> HasField<TField>(string name, EntityReader<TState, TEntity> enter);
 
-		public abstract bool Read(ref TEntity entity, TState state);
+		public abstract bool Read(TState state, Func<TEntity> constructor, out TEntity entity);
 
 		public abstract BrowserMove<TEntity> ReadItems(Func<TEntity> constructor, TState state);
 
-		public void DeclareArray(EntityReader<TState, TEntity> reader)
+		public void DeclareArray(ArrayReader<TState, TEntity> reader)
 		{
 			if (this.arrayReader != null)
 				throw new InvalidOperationException("can't declare array twice on same descriptor");
@@ -37,12 +37,12 @@ namespace Verse.DecoderDescriptors.Tree
 			this.valueConverter = convert;
 		}
 
-		protected bool ReadArray(ref TEntity entity, TState state)
+		protected bool ReadArray(TState state, Func<TEntity> constructor, out TEntity entity)
 		{
-			return this.arrayReader(state, ref entity);
+			return this.arrayReader(state, constructor, out entity);
 		}
 
-		protected bool ReadValue(ref TEntity entity, TValue value)
+		protected bool ReadValue(TValue value, out TEntity entity)
 		{
 			entity = this.valueConverter(value);
 
