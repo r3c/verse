@@ -61,33 +61,33 @@ namespace Verse.Test.Schemas
 			Assert.AreEqual(expected, value);
 		}
 
-	    [Test]
-	    [TestCase("?=v0")]
-	    [TestCase("?&f0")]
-	    [TestCase("?f0==v0")]
-	    public void DecodeFail(string query)
-	    {
-	        var schema = new QueryStringSchema<string>();
-	        var decoder = schema.CreateDecoder();
-
-	        using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(query)))
-	        {
-	            Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
-	            Assert.IsFalse(decoderStream.Decode(out _));
-	        }
-	    }
-
-	    private static T Decode<T>(ISchema<T> schema, string query)
+		[Test]
+		[TestCase("?=v0")]
+		[TestCase("?&f0")]
+		[TestCase("?f0==v0")]
+		public void DecodeFail(string query)
 		{
-		    var decoder = schema.CreateDecoder();
+			var schema = new QueryStringSchema<string>();
+			var decoder = schema.CreateDecoder();
 
-            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(query)))
-		    {
-		        Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
-                Assert.IsTrue(decoderStream.Decode(out var value));
+			using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(query)))
+			{
+				Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
+				Assert.IsFalse(decoderStream.Decode(out _));
+			}
+		}
 
-		        return value;
-            }
+		private static T Decode<T>(ISchema<T> schema, string query)
+		{
+			var decoder = schema.CreateDecoder();
+
+			using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(query)))
+			{
+				Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
+				Assert.IsTrue(decoderStream.Decode(out var value));
+
+				return value;
+			}
 		}
 	}
 }

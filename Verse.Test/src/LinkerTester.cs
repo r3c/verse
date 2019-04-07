@@ -15,11 +15,11 @@ namespace Verse.Test
 		[TestCase(new[] { 27.5, 19 }, "[27.5,19]")]
 		public void LinkEncoderArrayFromArray(double[] value, string expected)
 		{
-		    var encoder = Linker.CreateEncoder(new JSONSchema<double[]>());
+			var encoder = Linker.CreateEncoder(new JSONSchema<double[]>());
 
-		    using (var stream = new MemoryStream())
+			using (var stream = new MemoryStream())
 			{
-                Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
+				Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
 				Assert.IsTrue(encoderStream.Encode(value));
 
 				CollectionAssert.AreEqual(expected, Encoding.UTF8.GetString(stream.ToArray()));
@@ -31,12 +31,12 @@ namespace Verse.Test
 		[TestCase(new[] { 27.5, 19 }, "[27.5,19]")]
 		public void LinkEncoderArrayFromList(double[] value, string expected)
 		{
-		    var encoder = Linker.CreateEncoder(new JSONSchema<List<double>>());
+			var encoder = Linker.CreateEncoder(new JSONSchema<List<double>>());
 
-		    using (var stream = new MemoryStream())
+			using (var stream = new MemoryStream())
 			{
-			    Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
-                Assert.IsTrue(encoderStream.Encode(new List<double>(value)));
+				Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
+				Assert.IsTrue(encoderStream.Encode(new List<double>(value)));
 
 				CollectionAssert.AreEqual(expected, Encoding.UTF8.GetString(stream.ToArray()));
 			}
@@ -47,12 +47,12 @@ namespace Verse.Test
 		[TestCase("Black sheep wall", "{\"Field\":\"Black sheep wall\"}")]
 		public void LinkEncoderField<T>(T value, string expected)
 		{
-		    var encoder = Linker.CreateEncoder(new JSONSchema<FieldContainer<T>>());
+			var encoder = Linker.CreateEncoder(new JSONSchema<FieldContainer<T>>());
 
-		    using (var stream = new MemoryStream())
+			using (var stream = new MemoryStream())
 			{
-			    Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
-                Assert.IsTrue(encoderStream.Encode(new FieldContainer<T> { Field = value }));
+				Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
+				Assert.IsTrue(encoderStream.Encode(new FieldContainer<T> { Field = value }));
 
 				Assert.AreEqual(expected, Encoding.UTF8.GetString(stream.ToArray()));
 			}
@@ -63,33 +63,30 @@ namespace Verse.Test
 		[TestCase("Black sheep wall", "{\"Property\":\"Black sheep wall\"}")]
 		public void LinkEncoderProperty<T>(T value, string expected)
 		{
-		    var encoder = Linker.CreateEncoder(new JSONSchema<PropertyContainer<T>>());
+			var encoder = Linker.CreateEncoder(new JSONSchema<PropertyContainer<T>>());
 
-		    using (var stream = new MemoryStream())
+			using (var stream = new MemoryStream())
 			{
-			    Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
-                Assert.IsTrue(encoderStream.Encode(new PropertyContainer<T> { Property = value }));
+				Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
+				Assert.IsTrue(encoderStream.Encode(new PropertyContainer<T> { Property = value }));
 
 				Assert.AreEqual(expected, Encoding.UTF8.GetString(stream.ToArray()));
 			}
 		}
 
 		[Test]
-		[Theory]
-		public void LinkEncoderRecursive(bool ignoreNull)
+		[TestCase(false, "{\"r\":{\"r\":{\"r\":null,\"v\":42},\"v\":17},\"v\":3}")]
+		[TestCase(true, "{\"r\":{\"r\":{\"v\":42},\"v\":17},\"v\":3}")]
+		public void LinkEncoderRecursive(bool omitNull, string expected)
 		{
-		    var expected = ignoreNull
-			    ? "{\"r\":{\"r\":{\"v\":42},\"v\":17},\"v\":3}"
-			    : "{\"r\":{\"r\":{\"r\":null,\"v\":42},\"v\":17},\"v\":3}";
-
-			var encoder = Linker.CreateEncoder(new JSONSchema<Recursive>(new JSONConfiguration { OmitNull = ignoreNull }));
+			var encoder = Linker.CreateEncoder(new JSONSchema<Recursive>(new JSONConfiguration { OmitNull = omitNull }));
 
 			using (var stream = new MemoryStream())
 			{
 				var value = new Recursive { r = new Recursive { r = new Recursive { v = 42 }, v = 17 }, v = 3 };
 
-			    Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
-                Assert.IsTrue(encoderStream.Encode(value));
+				Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
+				Assert.IsTrue(encoderStream.Encode(value));
 
 				Assert.AreEqual(expected, Encoding.UTF8.GetString(stream.ToArray()));
 			}
@@ -100,15 +97,15 @@ namespace Verse.Test
 		[TestCase("{\"key1\": 27.5, \"key2\": 19}", new[] { 27.5, 19 })]
 		public void LinkDecoderArrayFromArray(string json, double[] expected)
 		{
-		    var decoder = Linker.CreateDecoder(new JSONSchema<double[]>());
+			var decoder = Linker.CreateDecoder(new JSONSchema<double[]>());
 
-		    using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
-		    {
-		        Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
-		        Assert.IsTrue(decoderStream.Decode(out var value));
+			using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
+			{
+				Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
+				Assert.IsTrue(decoderStream.Decode(out var value));
 
-		        CollectionAssert.AreEqual(expected, value);
-            }
+				CollectionAssert.AreEqual(expected, value);
+			}
 		}
 
 		[Test]
@@ -116,15 +113,15 @@ namespace Verse.Test
 		[TestCase("{\"key1\": 27.5, \"key2\": 19}", new[] { 27.5, 19 })]
 		public void LinkDecoderArrayFromList(string json, double[] expected)
 		{
-		    var decoder = Linker.CreateDecoder(new JSONSchema<List<double>>());
+			var decoder = Linker.CreateDecoder(new JSONSchema<List<double>>());
 
-		    using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
-		    {
-		        Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
-		        Assert.IsTrue(decoderStream.Decode(out var value));
+			using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
+			{
+				Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
+				Assert.IsTrue(decoderStream.Decode(out var value));
 
-		        CollectionAssert.AreEqual(expected, value);
-		    }
+				CollectionAssert.AreEqual(expected, value);
+			}
 		}
 
 		[Test]
@@ -132,15 +129,15 @@ namespace Verse.Test
 		[TestCase("{\"Field\": \"Black sheep wall\"}", "Black sheep wall")]
 		public void LinkDecoderField<T>(string json, T expected)
 		{
-		    var decoder = Linker.CreateDecoder(new JSONSchema<FieldContainer<T>>());
+			var decoder = Linker.CreateDecoder(new JSONSchema<FieldContainer<T>>());
 
-		    using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
-		    {
-		        Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
-		        Assert.IsTrue(decoderStream.Decode(out var value));
+			using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
+			{
+				Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
+				Assert.IsTrue(decoderStream.Decode(out var value));
 
-		        Assert.AreEqual(expected, value.Field);
-		    }
+				Assert.AreEqual(expected, value.Field);
+			}
 		}
 
 		[Test]
@@ -148,32 +145,32 @@ namespace Verse.Test
 		[TestCase("{\"Property\": \"Black sheep wall\"}", "Black sheep wall")]
 		public void LinkDecoderProperty<T>(string json, T expected)
 		{
-		    var decoder = Linker.CreateDecoder(new JSONSchema<PropertyContainer<T>>());
+			var decoder = Linker.CreateDecoder(new JSONSchema<PropertyContainer<T>>());
 
-		    using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
-		    {
-		        Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
-		        Assert.IsTrue(decoderStream.Decode(out var value));
+			using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
+			{
+				Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
+				Assert.IsTrue(decoderStream.Decode(out var value));
 
-		        Assert.AreEqual(expected, value.Property);
-		    }
+				Assert.AreEqual(expected, value.Property);
+			}
 		}
 
 		[Test]
 		public void LinkDecoderRecursive()
 		{
-		    var decoder = Linker.CreateDecoder(new JSONSchema<Recursive>());
+			var decoder = Linker.CreateDecoder(new JSONSchema<Recursive>());
 
-		    using (var stream =
-		        new MemoryStream(Encoding.UTF8.GetBytes("{\"r\": {\"r\": {\"v\": 42}, \"v\": 17}, \"v\": 3}")))
-		    {
-		        Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
-                Assert.IsTrue(decoderStream.Decode(out var value));
+			using (var stream =
+				new MemoryStream(Encoding.UTF8.GetBytes("{\"r\": {\"r\": {\"v\": 42}, \"v\": 17}, \"v\": 3}")))
+			{
+				Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
+				Assert.IsTrue(decoderStream.Decode(out var value));
 
-		        Assert.AreEqual(42, value.r.r.v);
-		        Assert.AreEqual(17, value.r.v);
-		        Assert.AreEqual(3, value.v);
-            }
+				Assert.AreEqual(42, value.r.r.v);
+				Assert.AreEqual(17, value.r.v);
+				Assert.AreEqual(3, value.v);
+			}
 		}
 
 		private class FieldContainer<T>

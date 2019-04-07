@@ -6,7 +6,7 @@ using NUnit.Framework;
 
 namespace Verse.Test.Schemas
 {
-	public abstract class AbstractSchemaTester
+	public abstract class BaseSchemaTester
 	{
 		[Test]
 		[Ignore("Arrays are always built before reading, so decoding 'null' would still create an empty array")]
@@ -14,9 +14,9 @@ namespace Verse.Test.Schemas
 		{
 			ISchema<NestedArray> schema = this.CreateSchema<NestedArray>();
 
-			AbstractSchemaTester.AssertRoundTrip(Linker.CreateDecoder(schema), Linker.CreateEncoder(schema), new NestedArray
+			BaseSchemaTester.AssertRoundTrip(Linker.CreateDecoder(schema), Linker.CreateEncoder(schema), new NestedArray
 			{
-				children = new []
+				children = new[]
 				{
 					new NestedArray
 					{
@@ -52,21 +52,21 @@ namespace Verse.Test.Schemas
 
 		[Test]
 		[Ignore("Enum types are not handled by linker yet.")]
-		public void	RoundTripMixedTypes()
+		public void RoundTripMixedTypes()
 		{
 			ISchema<MixedContainer> schema = this.CreateSchema<MixedContainer>();
 
-			AbstractSchemaTester.AssertRoundTrip(Linker.CreateDecoder(schema), Linker.CreateEncoder(schema), new MixedContainer
+			BaseSchemaTester.AssertRoundTrip(Linker.CreateDecoder(schema), Linker.CreateEncoder(schema), new MixedContainer
 			{
-				floats		= new float[] {1.1f, 2.2f, 3.3f},
-				integer		= 17,
-				option		= SomeEnum.B,
-				pairs		= new Dictionary<string, string>
+				floats = new float[] { 1.1f, 2.2f, 3.3f },
+				integer = 17,
+				option = SomeEnum.B,
+				pairs = new Dictionary<string, string>
 				{
 					{"a", "aaa"},
 					{"b", "bbb"}
 				},
-				text		= "Hello, World!"
+				text = "Hello, World!"
 			});
 		}
 
@@ -75,18 +75,18 @@ namespace Verse.Test.Schemas
 		{
 			ISchema<NestedValue> schema = this.CreateSchema<NestedValue>();
 
-			AbstractSchemaTester.AssertRoundTrip(Linker.CreateDecoder(schema), Linker.CreateEncoder(schema), new NestedValue
+			BaseSchemaTester.AssertRoundTrip(Linker.CreateDecoder(schema), Linker.CreateEncoder(schema), new NestedValue
 			{
-				child	= new NestedValue
+				child = new NestedValue
 				{
-					child	= new NestedValue
+					child = new NestedValue
 					{
-						child	= null,
-						value	= 64
+						child = null,
+						value = 64
 					},
-					value	= 42
+					value = 42
 				},
-				value	= 17
+				value = 17
 			});
 		}
 
@@ -97,7 +97,7 @@ namespace Verse.Test.Schemas
 		{
 			ISchema<T> schema = this.CreateSchema<T>();
 
-			AbstractSchemaTester.AssertRoundTrip(Linker.CreateDecoder(schema), Linker.CreateEncoder(schema), instance);
+			BaseSchemaTester.AssertRoundTrip(Linker.CreateDecoder(schema), Linker.CreateEncoder(schema), instance);
 		}
 
 		[Test]
@@ -106,44 +106,43 @@ namespace Verse.Test.Schemas
 		{
 			ISchema<double?> schema = this.CreateSchema<double?>();
 
-			AbstractSchemaTester.AssertRoundTrip(Linker.CreateDecoder(schema), Linker.CreateEncoder(schema), null);
-			AbstractSchemaTester.AssertRoundTrip(Linker.CreateDecoder(schema), Linker.CreateEncoder(schema), 42);
+			BaseSchemaTester.AssertRoundTrip(Linker.CreateDecoder(schema), Linker.CreateEncoder(schema), null);
+			BaseSchemaTester.AssertRoundTrip(Linker.CreateDecoder(schema), Linker.CreateEncoder(schema), 42);
 		}
 
 		protected static void AssertRoundTrip<T>(IDecoder<T> decoder, IEncoder<T> encoder, T instance)
 		{
 			T decoded;
-			byte[] first;
-			byte[] second;
-			Type type = typeof(T);
+			byte[] encoded1;
+			byte[] encoded2;
 
 			using (var stream = new MemoryStream())
 			{
-			    Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
-                Assert.IsTrue(encoderStream.Encode(instance));
+				Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
+				Assert.IsTrue(encoderStream.Encode(instance));
 
-				first = stream.ToArray();
+				encoded1 = stream.ToArray();
 			}
 
-			using (var stream = new MemoryStream(first))
+			using (var stream = new MemoryStream(encoded1))
 			{
-				decoded = type.IsValueType || type == typeof(string) ? default : (T)Activator.CreateInstance(type);
-
-                Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
+				Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
 				Assert.IsTrue(decoderStream.Decode(out decoded));
 			}
 
-			CollectionAssert.IsEmpty(new CompareLogic().Compare(instance, decoded).Differences);
+			var comparisonResult = new CompareLogic().Compare(instance, decoded);
+
+			CollectionAssert.IsEmpty(comparisonResult.Differences, $"differences found after decoding entity: {comparisonResult.DifferencesString}");
 
 			using (var stream = new MemoryStream())
 			{
-			    Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
-                Assert.IsTrue(encoderStream.Encode(decoded));
+				Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
+				Assert.IsTrue(encoderStream.Encode(decoded));
 
-				second = stream.ToArray();
+				encoded2 = stream.ToArray();
 			}
 
-			CollectionAssert.AreEqual(first, second);
+			CollectionAssert.AreEqual(encoded1, encoded2);
 		}
 
 		protected abstract ISchema<T> CreateSchema<T>();

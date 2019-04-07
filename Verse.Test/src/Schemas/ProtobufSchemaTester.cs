@@ -19,45 +19,45 @@ namespace Verse.Test.Schemas
 		private const double MAX_DOUBLE = 1.7976931348623157E+308;
 		private const string LONG_STRING = "Verum ad istam omnem orationem brevis est defensio. Nam quoad aetas M. Caeli dare potuit isti suspicioni locum, fuit primum ipsius pudore, deinde etiam patris diligentia disciplinaque munita. Qui ut huic virilem togam deditšnihil dicam hoc loco de me; tantum sit, quantum vos existimatis; hoc dicam, hunc a patre continuo ad me esse deductum; nemo hunc M. Caelium in illo aetatis flore vidit nisi aut cum patre aut mecum aut in M. Crassi castissima domo, cum artibus honestissimis erudiretur.";
 
-        [Test]
-        //[TestCase("res/Protobuf/Example2.proto", "outer")]
-        [TestCase("res/Protobuf/Example3.proto", "outer")]
-        [TestCase("res/Protobuf/Person.proto", "Person")]
-        public void Decode(string path, string messageName)
-        {
-            var proto = File.ReadAllText(Path.Combine(TestContext.CurrentContext.TestDirectory, path));
-            var schema = new ProtobufSchema<int>(new StringReader(proto), messageName);
+		[Test]
+		//[TestCase("res/Protobuf/Example2.proto", "outer")]
+		[TestCase("res/Protobuf/Example3.proto", "outer")]
+		[TestCase("res/Protobuf/Person.proto", "Person")]
+		public void Decode(string path, string messageName)
+		{
+			var proto = File.ReadAllText(Path.Combine(TestContext.CurrentContext.TestDirectory, path));
+			var schema = new ProtobufSchema<int>(new StringReader(proto), messageName);
 
-            Assert.NotNull(schema);
-        }
+			Assert.NotNull(schema);
+		}
 
-        class Person
-        {
-            public string Email;
-            public int Id;
-            public string Name;
-        }
+		class Person
+		{
+			public string Email;
+			public int Id;
+			public string Name;
+		}
 
-        [Test]
-        public void DecodeAssign()
-        {
-            var proto = File.ReadAllText(Path.Combine(TestContext.CurrentContext.TestDirectory, "res/Protobuf/Person.proto"));
-            var schema = new ProtobufSchema<Person>(new StringReader(proto), "Person");
+		[Test]
+		public void DecodeAssign()
+		{
+			var proto = File.ReadAllText(Path.Combine(TestContext.CurrentContext.TestDirectory, "res/Protobuf/Person.proto"));
+			var schema = new ProtobufSchema<Person>(new StringReader(proto), "Person");
 
-            schema.DecoderDescriptor.HasField("email", (ref Person p, string v) => p.Email = v).IsValue();
-            schema.DecoderDescriptor.HasField("id", (ref Person p, int v) => p.Id = v).IsValue();
-            schema.DecoderDescriptor.HasField("name", (ref Person p, string v) => p.Name = v).IsValue();
+			schema.DecoderDescriptor.HasField("email", (ref Person p, string v) => p.Email = v).IsValue();
+			schema.DecoderDescriptor.HasField("id", (ref Person p, int v) => p.Id = v).IsValue();
+			schema.DecoderDescriptor.HasField("name", (ref Person p, string v) => p.Name = v).IsValue();
 
-            var decoder = schema.CreateDecoder();
+			var decoder = schema.CreateDecoder();
 
-            using (var stream = new MemoryStream(new byte[] { 16, 17, 0, 0, 0 }))
-            {
-                Assert.True(decoder.TryOpen(stream, out var decoderStream));
-                Assert.True(decoderStream.Decode(out var person));
+			using (var stream = new MemoryStream(new byte[] { 16, 17, 0, 0, 0 }))
+			{
+				Assert.True(decoder.TryOpen(stream, out var decoderStream));
+				Assert.True(decoderStream.Decode(out var person));
 
-                Assert.AreEqual(17, person.Id);
-            }
-        }
+				Assert.AreEqual(17, person.Id);
+			}
+		}
 
 		[Test]
 		[TestCase(MIN_LONG, ProtobufType.Signed)]
@@ -123,7 +123,7 @@ namespace Verse.Test.Schemas
 			var testFieldClass = new TestFieldClass<T>();
 			List<T> value;
 
-			testFieldClass.items = new List<T> {a, b, c};
+			testFieldClass.items = new List<T> { a, b, c };
 
 			schema.DecoderDescriptor
 				.HasField("_2", (ref List<T> target, List<T> values) => target.AddRange(values))
@@ -175,7 +175,7 @@ namespace Verse.Test.Schemas
 		public void TestDecodeSubValues<T>(T a, T b, T c)
 		{
 			TestFieldClass<TestFieldClass<T>> decodedValue;
-			T[] expectedValues = {a, b, c};
+			T[] expectedValues = { a, b, c };
 			var schema = new ProtobufSchema<TestFieldClass<TestFieldClass<T>>>();
 			var testFieldClass = new TestFieldClass<TestFieldClass<T>>();
 
@@ -193,7 +193,7 @@ namespace Verse.Test.Schemas
 			schema.DecoderDescriptor
 				.HasField("_2", (ref TestFieldClass<TestFieldClass<T>> target, List<TestFieldClass<T>> value) => target.items.AddRange(value))
 				.HasItems((ref List<TestFieldClass<T>> target, IEnumerable<TestFieldClass<T>> value) => target.AddRange(value))
-				.HasField("_3", (ref TestFieldClass<T> target, SubTestFieldClass<T> value) => target.subValue  = value)
+				.HasField("_3", (ref TestFieldClass<T> target, SubTestFieldClass<T> value) => target.subValue = value)
 				.HasField("_4", (ref SubTestFieldClass<T> target, T value) => target.value = value)
 				.IsValue();
 
@@ -369,7 +369,7 @@ namespace Verse.Test.Schemas
 		[TestCase(LONG_STRING, LONG_STRING, LONG_STRING)]
 		public void TestEncodeValues<T>(T a, T b, T c)
 		{
-			var expectedItems = new [] {a, b, c};
+			var expectedItems = new[] { a, b, c };
 			var schema = new ProtobufSchema<List<T>>();
 			TestFieldClass<T> testFieldClass;
 
@@ -425,7 +425,7 @@ namespace Verse.Test.Schemas
 			TestFieldClass<TestFieldClass<T>> decodedFieldClass;
 			var fieldClass = new TestFieldClass<TestFieldClass<T>>();
 			var schema = new ProtobufSchema<TestFieldClass<TestFieldClass<T>>>();
-			var expectedValues = new [] {a, b, c};
+			var expectedValues = new[] { a, b, c };
 
 			foreach (var value in expectedValues)
 			{
@@ -466,10 +466,10 @@ namespace Verse.Test.Schemas
 
 				stream.Seek(0, SeekOrigin.Begin);
 
-			    Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
-                Assert.IsTrue(decoderStream.Decode(out var output));
+				Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
+				Assert.IsTrue(decoderStream.Decode(out var output));
 
-			    return output;
+				return output;
 			}
 		}
 
@@ -482,8 +482,8 @@ namespace Verse.Test.Schemas
 		{
 			using (var stream = new MemoryStream())
 			{
-			    Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
-                Assert.IsTrue(encoderStream.Encode(input));
+				Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
+				Assert.IsTrue(encoderStream.Encode(input));
 
 				stream.Seek(0, SeekOrigin.Begin);
 
