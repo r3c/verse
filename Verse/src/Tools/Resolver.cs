@@ -7,37 +7,30 @@ namespace Verse.Tools
 {
 	static class Resolver
 	{
-		public static MethodInfo FindMethod<TCaller>(Expression<TCaller> lambda, Type[] typeArguments,
-			Type[] methodArguments)
+		/// <Summary>
+		/// Replace type arguments of given generic method by another set of type arguments.
+		/// </Summary>
+		public static MethodInfo ChangeGenericMethodArguments(MethodInfo method, params Type[] arguments)
+		{
+			// Change method generic parameters if requested
+			if (!method.IsGenericMethod)
+				throw new ArgumentException("method is not generic", nameof(method));
+
+			if (method.GetGenericArguments().Length != arguments.Length)
+				throw new ArgumentException($"method doesn't have {arguments.Length} generic argument(s)", nameof(method));
+
+			return method.GetGenericMethodDefinition().MakeGenericMethod(arguments);
+		}
+
+		/// <Summary>
+		/// Resolve method information from given compile-type expression.
+		/// </Summary>
+		public static MethodInfo GetMethod<TMethod>(Expression<TMethod> lambda)
 		{
 			if (!(lambda.Body is MethodCallExpression expression))
 				throw new ArgumentException("can't get method information from expression", nameof(lambda));
 
-			var method = expression.Method;
-
-			// Change method generic parameters if requested
-			if (methodArguments != null && method.IsGenericMethod)
-			{
-				method = method.GetGenericMethodDefinition();
-
-				if (methodArguments.Length > 0)
-					method = method.MakeGenericMethod(methodArguments);
-			}
-
-			// Change target generic parameters if requested
-			if (typeArguments != null && method.DeclaringType.IsGenericType)
-			{
-				var type = method.DeclaringType.GetGenericTypeDefinition();
-
-				if (typeArguments.Length > 0)
-					type = type.MakeGenericType(typeArguments);
-
-				method = Array.Find(
-					type.GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public |
-									BindingFlags.Static), (m) => m.MetadataToken == method.MetadataToken);
-			}
-
-			return method;
+			return expression.Method;
 		}
 
 		/// <Summary>

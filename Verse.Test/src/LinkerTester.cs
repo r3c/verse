@@ -15,15 +15,9 @@ namespace Verse.Test
 		[TestCase(new[] { 27.5, 19 }, "[27.5,19]")]
 		public void LinkEncoderArrayFromArray(double[] value, string expected)
 		{
-			var encoder = Linker.CreateEncoder(new JSONSchema<double[]>());
+			var encoded = LinkAndEncode(new JSONSchema<double[]>(), value);
 
-			using (var stream = new MemoryStream())
-			{
-				Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
-				Assert.IsTrue(encoderStream.Encode(value));
-
-				CollectionAssert.AreEqual(expected, Encoding.UTF8.GetString(stream.ToArray()));
-			}
+			CollectionAssert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
 		}
 
 		[Test]
@@ -31,15 +25,10 @@ namespace Verse.Test
 		[TestCase(new[] { 27.5, 19 }, "[27.5,19]")]
 		public void LinkEncoderArrayFromList(double[] value, string expected)
 		{
-			var encoder = Linker.CreateEncoder(new JSONSchema<List<double>>());
+			var decoded = new List<double>(value);
+			var encoded = LinkAndEncode(new JSONSchema<List<double>>(), decoded);
 
-			using (var stream = new MemoryStream())
-			{
-				Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
-				Assert.IsTrue(encoderStream.Encode(new List<double>(value)));
-
-				CollectionAssert.AreEqual(expected, Encoding.UTF8.GetString(stream.ToArray()));
-			}
+			CollectionAssert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
 		}
 
 		[Test]
@@ -47,15 +36,10 @@ namespace Verse.Test
 		[TestCase("Black sheep wall", "{\"Field\":\"Black sheep wall\"}")]
 		public void LinkEncoderField<T>(T value, string expected)
 		{
-			var encoder = Linker.CreateEncoder(new JSONSchema<FieldContainer<T>>());
+			var decoded = new FieldContainer<T> { Field = value };
+			var encoded = LinkAndEncode(new JSONSchema<FieldContainer<T>>(), decoded);
 
-			using (var stream = new MemoryStream())
-			{
-				Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
-				Assert.IsTrue(encoderStream.Encode(new FieldContainer<T> { Field = value }));
-
-				Assert.AreEqual(expected, Encoding.UTF8.GetString(stream.ToArray()));
-			}
+			Assert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
 		}
 
 		[Test]
@@ -63,15 +47,10 @@ namespace Verse.Test
 		[TestCase("Black sheep wall", "{\"Property\":\"Black sheep wall\"}")]
 		public void LinkEncoderProperty<T>(T value, string expected)
 		{
-			var encoder = Linker.CreateEncoder(new JSONSchema<PropertyContainer<T>>());
+			var decoded = new PropertyContainer<T> { Property = value };
+			var encoded = LinkAndEncode(new JSONSchema<PropertyContainer<T>>(), decoded);
 
-			using (var stream = new MemoryStream())
-			{
-				Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
-				Assert.IsTrue(encoderStream.Encode(new PropertyContainer<T> { Property = value }));
-
-				Assert.AreEqual(expected, Encoding.UTF8.GetString(stream.ToArray()));
-			}
+			Assert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
 		}
 
 		[Test]
@@ -79,17 +58,10 @@ namespace Verse.Test
 		[TestCase(true, "{\"r\":{\"r\":{\"v\":42},\"v\":17},\"v\":3}")]
 		public void LinkEncoderRecursive(bool omitNull, string expected)
 		{
-			var encoder = Linker.CreateEncoder(new JSONSchema<Recursive>(new JSONConfiguration { OmitNull = omitNull }));
+			var decoded = new Recursive { r = new Recursive { r = new Recursive { v = 42 }, v = 17 }, v = 3 };
+			var encoded = LinkAndEncode(new JSONSchema<Recursive>(new JSONConfiguration { OmitNull = omitNull }), decoded);
 
-			using (var stream = new MemoryStream())
-			{
-				var value = new Recursive { r = new Recursive { r = new Recursive { v = 42 }, v = 17 }, v = 3 };
-
-				Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
-				Assert.IsTrue(encoderStream.Encode(value));
-
-				Assert.AreEqual(expected, Encoding.UTF8.GetString(stream.ToArray()));
-			}
+			Assert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
 		}
 
 		[Test]
@@ -97,15 +69,10 @@ namespace Verse.Test
 		[TestCase("{\"key1\": 27.5, \"key2\": 19}", new[] { 27.5, 19 })]
 		public void LinkDecoderArrayFromArray(string json, double[] expected)
 		{
-			var decoder = Linker.CreateDecoder(new JSONSchema<double[]>());
+			var encoded = Encoding.UTF8.GetBytes(json);
+			var decoded = LinkerTester.LinkAndDecode(new JSONSchema<double[]>(), encoded);
 
-			using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
-			{
-				Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
-				Assert.IsTrue(decoderStream.Decode(out var value));
-
-				CollectionAssert.AreEqual(expected, value);
-			}
+			CollectionAssert.AreEqual(expected, decoded);
 		}
 
 		[Test]
@@ -113,15 +80,10 @@ namespace Verse.Test
 		[TestCase("{\"key1\": 27.5, \"key2\": 19}", new[] { 27.5, 19 })]
 		public void LinkDecoderArrayFromList(string json, double[] expected)
 		{
-			var decoder = Linker.CreateDecoder(new JSONSchema<List<double>>());
+			var encoded = Encoding.UTF8.GetBytes(json);
+			var decoded = LinkerTester.LinkAndDecode(new JSONSchema<List<double>>(), encoded);
 
-			using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
-			{
-				Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
-				Assert.IsTrue(decoderStream.Decode(out var value));
-
-				CollectionAssert.AreEqual(expected, value);
-			}
+			CollectionAssert.AreEqual(expected, decoded);
 		}
 
 		[Test]
@@ -129,15 +91,10 @@ namespace Verse.Test
 		[TestCase("{\"Field\": \"Black sheep wall\"}", "Black sheep wall")]
 		public void LinkDecoderField<T>(string json, T expected)
 		{
-			var decoder = Linker.CreateDecoder(new JSONSchema<FieldContainer<T>>());
+			var encoded = Encoding.UTF8.GetBytes(json);
+			var decoded = LinkerTester.LinkAndDecode(new JSONSchema<FieldContainer<T>>(), encoded);
 
-			using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
-			{
-				Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
-				Assert.IsTrue(decoderStream.Decode(out var value));
-
-				Assert.AreEqual(expected, value.Field);
-			}
+			Assert.AreEqual(expected, decoded.Field);
 		}
 
 		[Test]
@@ -145,31 +102,46 @@ namespace Verse.Test
 		[TestCase("{\"Property\": \"Black sheep wall\"}", "Black sheep wall")]
 		public void LinkDecoderProperty<T>(string json, T expected)
 		{
-			var decoder = Linker.CreateDecoder(new JSONSchema<PropertyContainer<T>>());
+			var encoded = Encoding.UTF8.GetBytes(json);
+			var decoded = LinkerTester.LinkAndDecode(new JSONSchema<PropertyContainer<T>>(), encoded);
 
-			using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
-			{
-				Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
-				Assert.IsTrue(decoderStream.Decode(out var value));
-
-				Assert.AreEqual(expected, value.Property);
-			}
+			Assert.AreEqual(expected, decoded.Property);
 		}
 
 		[Test]
 		public void LinkDecoderRecursive()
 		{
-			var decoder = Linker.CreateDecoder(new JSONSchema<Recursive>());
+			var encoded = Encoding.UTF8.GetBytes("{\"r\": {\"r\": {\"v\": 42}, \"v\": 17}, \"v\": 3}");
+			var decoded = LinkerTester.LinkAndDecode(new JSONSchema<Recursive>(), encoded);
 
-			using (var stream =
-				new MemoryStream(Encoding.UTF8.GetBytes("{\"r\": {\"r\": {\"v\": 42}, \"v\": 17}, \"v\": 3}")))
+			Assert.AreEqual(42, decoded.r.r.v);
+			Assert.AreEqual(17, decoded.r.v);
+			Assert.AreEqual(3, decoded.v);
+		}
+
+		private static T LinkAndDecode<T>(ISchema<T> schema, byte[] encoded)
+		{
+			using (var stream = new MemoryStream(encoded))
 			{
-				Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
-				Assert.IsTrue(decoderStream.Decode(out var value));
+				var decoder = Linker.CreateDecoder(schema);
 
-				Assert.AreEqual(42, value.r.r.v);
-				Assert.AreEqual(17, value.r.v);
-				Assert.AreEqual(3, value.v);
+				Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
+				Assert.IsTrue(decoderStream.Decode(out var decoded));
+
+				return decoded;
+			}
+		}
+
+		private static byte[] LinkAndEncode<T>(ISchema<T> schema, T decoded)
+		{
+			var encoder = Linker.CreateEncoder(schema);
+
+			using (var stream = new MemoryStream())
+			{
+				Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
+				Assert.IsTrue(encoderStream.Encode(decoded));
+
+				return stream.ToArray();
 			}
 		}
 

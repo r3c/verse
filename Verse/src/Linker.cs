@@ -66,7 +66,7 @@ namespace Verse
 			if (type.IsArray)
 			{
 				var element = type.GetElementType();
-				var assign = Linker.MakeAssignArray(element);
+				var assign = Generator.CreateArraySetter(element);
 
 				return Linker.LinkDecoderArray(descriptor, element, assign, parents);
 			}
@@ -86,7 +86,7 @@ namespace Verse
 					if (parameters.Length != 1 || !Resolver.HasSameGenericDefinitionThan<IEnumerable<object>>(parameters[0].ParameterType, out var argument) || argument != itemType)
 						continue;
 
-					var assign = Linker.MakeAssignArray(constructor, itemType);
+					var assign = Generator.CreateConstructorSetter(constructor);
 
 					return Linker.LinkDecoderArray(descriptor, itemType, assign, parents);
 				}
@@ -98,9 +98,9 @@ namespace Verse
 				if (property.GetGetMethod() == null || property.GetSetMethod() == null || property.Attributes.HasFlag(PropertyAttributes.SpecialName))
 					continue;
 
-				var assign = Linker.MakeAssignField(property);
+				var setter = Generator.CreatePropertySetter(property);
 
-				if (!Linker.LinkDecoderField(descriptor, property.PropertyType, property.Name, assign, parents))
+				if (!Linker.LinkDecoderField(descriptor, property.PropertyType, property.Name, setter, parents))
 					return false;
 			}
 
@@ -110,65 +110,76 @@ namespace Verse
 				if (field.Attributes.HasFlag(FieldAttributes.SpecialName))
 					continue;
 
-				var assign = Linker.MakeAssignField(field);
+				var setter = Generator.CreateFieldSetter(field);
 
-				if (!Linker.LinkDecoderField(descriptor, field.FieldType, field.Name, assign, parents))
+				if (!Linker.LinkDecoderField(descriptor, field.FieldType, field.Name, setter, parents))
 					return false;
 			}
 
 			return true;
 		}
 
-		private static bool LinkDecoderArray<TEntity>(IDecoderDescriptor<TEntity> descriptor, Type type, object assign,
+		private static bool LinkDecoderArray<TEntity>(IDecoderDescriptor<TEntity> descriptor, Type type, object setter,
 			IDictionary<Type, object> parents)
 		{
 			if (parents.TryGetValue(type, out var recurse))
 			{
+				var hasKnownItems = Resolver.GetMethod<Func<IDecoderDescriptor<TEntity>, DecodeAssign<TEntity, IEnumerable<object>>,
+					IDecoderDescriptor<object>, IDecoderDescriptor<object>>>((d, a, p) => d.HasItems(a, p));
+
 				Resolver
-					.FindMethod<Func<IDecoderDescriptor<TEntity>, DecodeAssign<TEntity, IEnumerable<object>>,
-						IDecoderDescriptor<object>, IDecoderDescriptor<object>>>((d, a, p) => d.HasItems(a, p), null,
-						new[] { type })
-					.Invoke(descriptor, new[] { assign, recurse });
+					.ChangeGenericMethodArguments(hasKnownItems, type)
+					.Invoke(descriptor, new[] { setter, recurse });
 
 				return true;
 			}
 
-			recurse = Resolver
-				.FindMethod<Func<IDecoderDescriptor<TEntity>, DecodeAssign<TEntity, IEnumerable<object>>,
-					IDecoderDescriptor<object>>>((d, a) => d.HasItems(a), null, new[] { type })
-				.Invoke(descriptor, new[] { assign });
+			var hasItems = Resolver.GetMethod<Func<IDecoderDescriptor<TEntity>, DecodeAssign<TEntity, IEnumerable<object>>,
+				IDecoderDescriptor<object>>>((d, a) => d.HasItems(a));
+
+			var itemDescriptor = Resolver
+				.ChangeGenericMethodArguments(hasItems, type)
+				.Invoke(descriptor, new[] { setter });
+
+			var linkItems = Resolver.GetMethod<Func<IDecoderDescriptor<object>, Dictionary<Type, object>, bool>>(
+				(d, p) => Linker.LinkDecoder(d, p));
 
 			var result = Resolver
-				.FindMethod<Func<IDecoderDescriptor<object>, Dictionary<Type, object>, bool>>(
-					(d, p) => Linker.LinkDecoder(d, p), null, new[] { type })
-				.Invoke(null, new object[] { recurse, parents });
+				.ChangeGenericMethodArguments(linkItems, type)
+				.Invoke(null, new object[] { itemDescriptor, parents });
 
 			return result is bool success && success;
 		}
 
 		private static bool LinkDecoderField<TEntity>(IDecoderDescriptor<TEntity> descriptor, Type type, string name,
-			object assign, IDictionary<Type, object> parents)
+			object setter, IDictionary<Type, object> parents)
 		{
 			if (parents.TryGetValue(type, out var recurse))
 			{
+				var hasKnownField = Resolver.GetMethod<Func<IDecoderDescriptor<TEntity>, string, DecodeAssign<TEntity, object>,
+					IDecoderDescriptor<object>, IDecoderDescriptor<object>>>((d, n, a, p) => d.HasField(n, a, p));
+
 				Resolver
-					.FindMethod<Func<IDecoderDescriptor<TEntity>, string, DecodeAssign<TEntity, object>,
-						IDecoderDescriptor<object>, IDecoderDescriptor<object>>>((d, n, a, p) => d.HasField(n, a, p),
-						null, new[] { type })
-					.Invoke(descriptor, new object[] { name, assign, recurse });
+					.ChangeGenericMethodArguments(hasKnownField, type)
+					.Invoke(descriptor, new object[] { name, setter, recurse });
 
 				return true;
 			}
 
-			recurse = Resolver
-				.FindMethod<Func<IDecoderDescriptor<TEntity>, string, DecodeAssign<TEntity, object>,
-					IDecoderDescriptor<object>>>((d, n, a) => d.HasField(n, a), null, new[] { type })
-				.Invoke(descriptor, new object[] { name, assign });
+			var hasField = Resolver
+				.GetMethod<Func<IDecoderDescriptor<TEntity>, string, DecodeAssign<TEntity, object>,
+					IDecoderDescriptor<object>>>((d, n, a) => d.HasField(n, a));
+
+			var fieldDescriptor = Resolver
+				.ChangeGenericMethodArguments(hasField, type)
+				.Invoke(descriptor, new object[] { name, setter });
+
+			var linkField = Resolver.GetMethod<Func<IDecoderDescriptor<object>, Dictionary<Type, object>, bool>>(
+				(d, p) => Linker.LinkDecoder(d, p));
 
 			var result = Resolver
-				.FindMethod<Func<IDecoderDescriptor<object>, Dictionary<Type, object>, bool>>(
-					(d, p) => Linker.LinkDecoder(d, p), null, new[] { type })
-				.Invoke(null, new object[] { recurse, parents });
+				.ChangeGenericMethodArguments(linkField, type)
+				.Invoke(null, new object[] { fieldDescriptor, parents });
 
 			return result is bool success && success;
 		}
@@ -193,9 +204,9 @@ namespace Verse
 			if (type.IsArray)
 			{
 				var element = type.GetElementType();
-				var access = Linker.MakeAccessArray(element);
+				var getter = Generator.CreateIdentity(typeof(IEnumerable<>).MakeGenericType(element));
 
-				return Linker.LinkEncoderArray(descriptor, element, access, parents);
+				return Linker.LinkEncoderArray(descriptor, element, getter, parents);
 			}
 
 			// Target type implements IEnumerable<> interface
@@ -204,9 +215,9 @@ namespace Verse
 				if (!Resolver.HasSameGenericDefinitionThan<IEnumerable<object>>(iface, out var argument))
 					continue;
 
-				var access = Linker.MakeAccessArray(argument);
+				var getter = Generator.CreateIdentity(typeof(IEnumerable<>).MakeGenericType(argument));
 
-				return Linker.LinkEncoderArray(descriptor, argument, access, parents);
+				return Linker.LinkEncoderArray(descriptor, argument, getter, parents);
 			}
 
 			// Link public readable and writable instance properties
@@ -215,9 +226,9 @@ namespace Verse
 				if (property.GetGetMethod() == null || property.GetSetMethod() == null || property.Attributes.HasFlag(PropertyAttributes.SpecialName))
 					continue;
 
-				var access = Linker.MakeAccessField(property);
+				var getter = Generator.CreatePropertyGetter(property);
 
-				if (!Linker.LinkEncoderField(descriptor, property.PropertyType, property.Name, access, parents))
+				if (!Linker.LinkEncoderField(descriptor, property.PropertyType, property.Name, getter, parents))
 					return false;
 			}
 
@@ -227,193 +238,77 @@ namespace Verse
 				if (field.Attributes.HasFlag(FieldAttributes.SpecialName))
 					continue;
 
-				var access = Linker.MakeAccessField(field);
+				var getter = Generator.CreateFieldGetter(field);
 
-				if (!Linker.LinkEncoderField(descriptor, field.FieldType, field.Name, access, parents))
+				if (!Linker.LinkEncoderField(descriptor, field.FieldType, field.Name, getter, parents))
 					return false;
 			}
 
 			return true;
 		}
 
-		private static bool LinkEncoderArray<T>(IEncoderDescriptor<T> descriptor, Type type, object access,
+		private static bool LinkEncoderArray<T>(IEncoderDescriptor<T> descriptor, Type type, object getter,
 			IDictionary<Type, object> parents)
 		{
 			if (parents.TryGetValue(type, out var recurse))
 			{
+				var hasKnownItems = Resolver.GetMethod<Func<IEncoderDescriptor<T>, Func<T, IEnumerable<object>>, IEncoderDescriptor<object>,
+					IEncoderDescriptor<object>>>((d, a, p) => d.HasItems(a, p));
+
 				Resolver
-					.FindMethod<Func<IEncoderDescriptor<T>, Func<T, IEnumerable<object>>, IEncoderDescriptor<object>,
-						IEncoderDescriptor<object>>>((d, a, p) => d.HasItems(a, p), null, new[] { type })
-					.Invoke(descriptor, new[] { access, recurse });
+					.ChangeGenericMethodArguments(hasKnownItems, type)
+					.Invoke(descriptor, new[] { getter, recurse });
 
 				return true;
 			}
 
-			recurse = Resolver
-				.FindMethod<Func<IEncoderDescriptor<T>, Func<T, IEnumerable<object>>, IEncoderDescriptor<object>>>(
-					(d, a) => d.HasItems(a), null, new[] { type })
-				.Invoke(descriptor, new[] { access });
+			var hasItems = Resolver.GetMethod<Func<IEncoderDescriptor<T>, Func<T, IEnumerable<object>>, IEncoderDescriptor<object>>>(
+				(d, a) => d.HasItems(a));
+
+			var itemDescriptor = Resolver
+				.ChangeGenericMethodArguments(hasItems, type)
+				.Invoke(descriptor, new[] { getter });
+
+			var linkItems = Resolver.GetMethod<Func<IEncoderDescriptor<object>, Dictionary<Type, object>, bool>>(
+				(d, p) => Linker.LinkEncoder(d, p));
 
 			var result = Resolver
-				.FindMethod<Func<IEncoderDescriptor<object>, Dictionary<Type, object>, bool>>(
-					(d, p) => Linker.LinkEncoder(d, p), null, new[] { type })
-				.Invoke(null, new object[] { recurse, parents });
+				.ChangeGenericMethodArguments(linkItems, type)
+				.Invoke(null, new object[] { itemDescriptor, parents });
 
 			return result is bool success && success;
 		}
 
-		private static bool LinkEncoderField<T>(IEncoderDescriptor<T> descriptor, Type type, string name, object access,
+		private static bool LinkEncoderField<T>(IEncoderDescriptor<T> descriptor, Type type, string name, object getter,
 			IDictionary<Type, object> parents)
 		{
 			if (parents.TryGetValue(type, out var recurse))
 			{
+				var hasKnownField = Resolver.GetMethod<Func<IEncoderDescriptor<T>, string, Func<T, object>, IEncoderDescriptor<object>,
+					IEncoderDescriptor<object>>>((d, n, a, p) => d.HasField(n, a, p));
+
 				Resolver
-					.FindMethod<Func<IEncoderDescriptor<T>, string, Func<T, object>, IEncoderDescriptor<object>,
-						IEncoderDescriptor<object>>>((d, n, a, p) => d.HasField(n, a, p), null, new[] { type })
-					.Invoke(descriptor, new object[] { name, access, recurse });
+					.ChangeGenericMethodArguments(hasKnownField, type)
+					.Invoke(descriptor, new object[] { name, getter, recurse });
 
 				return true;
 			}
 
-			recurse = Resolver
-				.FindMethod<Func<IEncoderDescriptor<T>, string, Func<T, object>, IEncoderDescriptor<object>>>(
-					(d, n, a) => d.HasField(n, a), null, new[] { type })
-				.Invoke(descriptor, new object[] { name, access });
+			var hasField = Resolver.GetMethod<Func<IEncoderDescriptor<T>, string, Func<T, object>, IEncoderDescriptor<object>>>(
+				(d, n, a) => d.HasField(n, a));
+
+			var fieldDescriptor = Resolver
+				.ChangeGenericMethodArguments(hasField, type)
+				.Invoke(descriptor, new object[] { name, getter });
+
+			var linkField = Resolver.GetMethod<Func<IEncoderDescriptor<object>, Dictionary<Type, object>, bool>>(
+				(d, p) => Linker.LinkEncoder(d, p));
 
 			var result = Resolver
-				.FindMethod<Func<IEncoderDescriptor<object>, Dictionary<Type, object>, bool>>(
-					(d, p) => Linker.LinkEncoder(d, p), null, new[] { type })
-				.Invoke(null, new object[] { recurse, parents });
+				.ChangeGenericMethodArguments(linkField, type)
+				.Invoke(null, new object[] { fieldDescriptor, parents });
 
 			return result is bool success && success;
-		}
-
-		private static object MakeAccessArray(Type inner)
-		{
-			var enumerable = typeof(IEnumerable<>).MakeGenericType(inner);
-			var method = new DynamicMethod(string.Empty, enumerable, new[] { enumerable }, inner.Module, true);
-			var generator = method.GetILGenerator();
-
-			generator.Emit(OpCodes.Ldarg_0);
-			generator.Emit(OpCodes.Ret);
-
-			return method.CreateDelegate(typeof(Func<,>).MakeGenericType(enumerable, enumerable));
-		}
-
-		private static object MakeAccessField(FieldInfo field)
-		{
-			var method = new DynamicMethod(string.Empty, field.FieldType, new[] { field.DeclaringType }, field.Module, true);
-			var generator = method.GetILGenerator();
-
-			generator.Emit(OpCodes.Ldarg_0);
-			generator.Emit(OpCodes.Ldfld, field);
-			generator.Emit(OpCodes.Ret);
-
-			return method.CreateDelegate(typeof(Func<,>).MakeGenericType(field.DeclaringType, field.FieldType));
-		}
-
-		private static object MakeAccessField(PropertyInfo property)
-		{
-			var method = new DynamicMethod(string.Empty, property.PropertyType, new[] { property.DeclaringType },
-				property.Module, true);
-			var generator = method.GetILGenerator();
-
-			generator.Emit(OpCodes.Ldarg_0);
-			generator.Emit(OpCodes.Call, property.GetGetMethod());
-			generator.Emit(OpCodes.Ret);
-
-			return method.CreateDelegate(typeof(Func<,>).MakeGenericType(property.DeclaringType,
-				property.PropertyType));
-		}
-
-		/// <summary>
-		/// Generate DecoderAssign delegate from IEnumerable to any compatible
-		/// object, using a constructor taking the IEnumerable as its argument.
-		/// </summary>
-		/// <param name="constructor">Compatible constructor</param>
-		/// <param name="inner">Inner elements type</param>
-		/// <returns>DecoderAssign delegate</returns>
-		private static object MakeAssignArray(ConstructorInfo constructor, Type inner)
-		{
-			var enumerable = typeof(IEnumerable<>).MakeGenericType(inner);
-			var method = new DynamicMethod(string.Empty, null,
-				new[] { constructor.DeclaringType.MakeByRefType(), enumerable }, constructor.Module, true);
-			var generator = method.GetILGenerator();
-
-			generator.Emit(OpCodes.Ldarg_0);
-			generator.Emit(OpCodes.Ldarg_1);
-			generator.Emit(OpCodes.Newobj, constructor);
-
-			if (constructor.DeclaringType.IsValueType)
-				generator.Emit(OpCodes.Stobj, constructor.DeclaringType);
-			else
-				generator.Emit(OpCodes.Stind_Ref);
-
-			generator.Emit(OpCodes.Ret);
-
-			return method.CreateDelegate(
-				typeof(DecodeAssign<,>).MakeGenericType(constructor.DeclaringType, enumerable));
-		}
-
-		/// <summary>
-		/// Generate DecoderAssign delegate from IEnumerable to compatible array
-		/// type, using Linq Enumerable.ToArray conversion.
-		/// </summary>
-		/// <param name="inner">Inner elements type</param>
-		/// <returns>DecoderAssign delegate</returns>
-		private static object MakeAssignArray(Type inner)
-		{
-			var converter = Resolver.FindMethod<Func<IEnumerable<object>, object[]>>((e) => e.ToArray(), null, new[] { inner });
-			var enumerable = typeof(IEnumerable<>).MakeGenericType(inner);
-			var method = new DynamicMethod(string.Empty, null, new[] { inner.MakeArrayType().MakeByRefType(), enumerable },
-				converter.Module, true);
-			var generator = method.GetILGenerator();
-
-			generator.Emit(OpCodes.Ldarg_0);
-			generator.Emit(OpCodes.Ldarg_1);
-			generator.Emit(OpCodes.Call, converter);
-			generator.Emit(OpCodes.Stind_Ref);
-			generator.Emit(OpCodes.Ret);
-
-			return method.CreateDelegate(typeof(DecodeAssign<,>).MakeGenericType(inner.MakeArrayType(), enumerable));
-		}
-
-		private static object MakeAssignField(FieldInfo field)
-		{
-			var method = new DynamicMethod(string.Empty, null,
-				new[] { field.DeclaringType.MakeByRefType(), field.FieldType },
-				field.Module, true);
-			var generator = method.GetILGenerator();
-
-			generator.Emit(OpCodes.Ldarg_0);
-
-			if (!field.DeclaringType.IsValueType)
-				generator.Emit(OpCodes.Ldind_Ref);
-
-			generator.Emit(OpCodes.Ldarg_1);
-			generator.Emit(OpCodes.Stfld, field);
-			generator.Emit(OpCodes.Ret);
-
-			return method.CreateDelegate(typeof(DecodeAssign<,>).MakeGenericType(field.DeclaringType, field.FieldType));
-		}
-
-		private static object MakeAssignField(PropertyInfo property)
-		{
-			var method = new DynamicMethod(string.Empty, null,
-				new[] { property.DeclaringType.MakeByRefType(), property.PropertyType }, property.Module, true);
-			var generator = method.GetILGenerator();
-
-			generator.Emit(OpCodes.Ldarg_0);
-
-			if (!property.DeclaringType.IsValueType)
-				generator.Emit(OpCodes.Ldind_Ref);
-
-			generator.Emit(OpCodes.Ldarg_1);
-			generator.Emit(OpCodes.Call, property.GetSetMethod());
-			generator.Emit(OpCodes.Ret);
-
-			return method.CreateDelegate(
-				typeof(DecodeAssign<,>).MakeGenericType(property.DeclaringType, property.PropertyType));
 		}
 	}
 }

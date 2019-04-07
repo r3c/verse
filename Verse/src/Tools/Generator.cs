@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -9,6 +11,29 @@ namespace Verse.Tools
 		private static readonly OpCode[] OpCodeLdArgs = { OpCodes.Ldarg_0, OpCodes.Ldarg_1, OpCodes.Ldarg_2, OpCodes.Ldarg_3 };
 		private static readonly Type[] Functions = { typeof(Func<>), typeof(Func<,>), typeof(Func<,,>), typeof(Func<,,,>), typeof(Func<,,,,>) };
 
+		/// <summary>
+		/// Create DecodeAssign<T[], IEnumerable<T>> delegate using underlying Enumerable.ToArray call.
+		/// </summary>
+		public static object CreateArraySetter(Type inner)
+		{
+			var genericConverter = Resolver.GetMethod<Func<IEnumerable<object>, object[]>>((e) => e.ToArray());
+			var arrayType = inner.MakeArrayType();
+			var converter = Resolver.ChangeGenericMethodArguments(genericConverter, inner);
+			var enumerableType = typeof(IEnumerable<>).MakeGenericType(inner);
+			var method = new DynamicMethod(string.Empty, null, new[] { arrayType.MakeByRefType(), enumerableType }, inner.Module, true);
+			var generator = method.GetILGenerator();
+
+			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Ldarg_1);
+			generator.Emit(OpCodes.Call, converter);
+			generator.Emit(OpCodes.Stind_Ref);
+			generator.Emit(OpCodes.Ret);
+
+			var type = typeof(DecodeAssign<,>).MakeGenericType(arrayType, enumerableType);
+
+			return method.CreateDelegate(type);
+		}
+
 		public static Func<T> CreateConstructor<T>()
 		{
 			var constructor = typeof(T).GetConstructor(
@@ -18,11 +43,6 @@ namespace Verse.Tools
 			if (constructor == null)
 				return () => default;
 
-			return (Func<T>)Generator.Create(constructor);
-		}
-
-		private static object Create(ConstructorInfo constructor)
-		{
 			var parameters = constructor.GetParameters();
 
 			if (parameters.Length >= Functions.Length)
@@ -39,14 +59,142 @@ namespace Verse.Tools
 			generator.Emit(OpCodes.Newobj, constructor);
 			generator.Emit(OpCodes.Ret);
 
-			var generics = new Type[parameters.Length + 1];
+			var arguments = new[] { constructor.DeclaringType }
+				.Concat(parameters.Select(p => p.ParameterType))
+				.ToArray();
 
-			generics[0] = constructor.DeclaringType;
+			var type = Functions[parameters.Length].MakeGenericType(arguments);
 
-			for (index = 0; index < parameters.Length; ++index)
-				generics[index + 1] = parameters[index].ParameterType;
+			return (Func<T>)method.CreateDelegate(type);
+		}
 
-			return method.CreateDelegate(Functions[parameters.Length].MakeGenericType(generics));
+		/// <summary>
+		/// Create DecoderAssign<T, U> delegate using compatible constructor.
+		/// </summary>
+		public static object CreateConstructorSetter(ConstructorInfo constructor)
+		{
+			var parameters = constructor.GetParameters();
+
+			if (parameters.Length != 1)
+				throw new ArgumentException("constructor doesn't take one argument", nameof(constructor));
+
+			var parameterType = parameters[0].ParameterType;
+			var caller = constructor.DeclaringType;
+			var method = new DynamicMethod(string.Empty, null, new[] { caller.MakeByRefType(), parameterType }, constructor.Module, true);
+			var generator = method.GetILGenerator();
+
+			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Ldarg_1);
+			generator.Emit(OpCodes.Newobj, constructor);
+
+			if (caller.IsValueType)
+				generator.Emit(OpCodes.Stobj, caller);
+			else
+				generator.Emit(OpCodes.Stind_Ref);
+
+			generator.Emit(OpCodes.Ret);
+
+			var type = typeof(DecodeAssign<,>).MakeGenericType(caller, parameterType);
+
+			return method.CreateDelegate(type);
+		}
+
+		/// <Summary>
+		/// Create field getter delegate for given runtime field.
+		/// </Summary>
+		public static object CreateFieldGetter(FieldInfo field)
+		{
+			var parentType = field.DeclaringType;
+			var method = new DynamicMethod(string.Empty, field.FieldType, new[] { parentType }, field.Module, true);
+			var generator = method.GetILGenerator();
+
+			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Ldfld, field);
+			generator.Emit(OpCodes.Ret);
+
+			var methodType = typeof(Func<,>).MakeGenericType(parentType, field.FieldType);
+
+			return method.CreateDelegate(methodType);
+		}
+
+		/// <Summary>
+		/// Create field setter delegate for given runtime field.
+		/// </Summary>
+		public static object CreateFieldSetter(FieldInfo field)
+		{
+			var parentType = field.DeclaringType;
+			var method = new DynamicMethod(string.Empty, null, new[] { parentType.MakeByRefType(), field.FieldType }, field.Module, true);
+			var generator = method.GetILGenerator();
+
+			generator.Emit(OpCodes.Ldarg_0);
+
+			if (!parentType.IsValueType)
+				generator.Emit(OpCodes.Ldind_Ref);
+
+			generator.Emit(OpCodes.Ldarg_1);
+			generator.Emit(OpCodes.Stfld, field);
+			generator.Emit(OpCodes.Ret);
+
+			var methodType = typeof(DecodeAssign<,>).MakeGenericType(parentType, field.FieldType);
+
+			return method.CreateDelegate(methodType);
+		}
+
+		/// <Summary>
+		/// Create identity function for given runtime type.
+		/// </Summary>
+		public static object CreateIdentity(Type type)
+		{
+			var method = new DynamicMethod(string.Empty, type, new[] { type }, type.Module, true);
+			var generator = method.GetILGenerator();
+
+			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Ret);
+
+			return method.CreateDelegate(typeof(Func<,>).MakeGenericType(type, type));
+		}
+
+		/// <Summary>
+		/// Create property getter delegate for given runtime property.
+		/// </Summary>
+		public static object CreatePropertyGetter(PropertyInfo property)
+		{
+			var getter = property.GetGetMethod();
+
+			if (getter == null)
+				throw new ArgumentException("property has no getter", nameof(property));
+
+			var methodType = typeof(Func<,>).MakeGenericType(property.DeclaringType, property.PropertyType);
+
+			return Delegate.CreateDelegate(methodType, getter);
+		}
+
+		/// <Summary>
+		/// Create property setter delegate for given runtime property.
+		/// </Summary>
+		public static object CreatePropertySetter(PropertyInfo property)
+		{
+			var setter = property.GetSetMethod();
+
+			if (setter == null)
+				throw new ArgumentException("property has no setter", nameof(property));
+
+			var parentType = property.DeclaringType;
+			var method = new DynamicMethod(string.Empty, null, new[] { parentType.MakeByRefType(), property.PropertyType }, property.Module, true);
+			var generator = method.GetILGenerator();
+
+			generator.Emit(OpCodes.Ldarg_0);
+
+			if (!parentType.IsValueType)
+				generator.Emit(OpCodes.Ldind_Ref);
+
+			generator.Emit(OpCodes.Ldarg_1);
+			generator.Emit(OpCodes.Call, property.GetSetMethod());
+			generator.Emit(OpCodes.Ret);
+
+			var methodType = typeof(DecodeAssign<,>).MakeGenericType(parentType, property.PropertyType);
+
+			return method.CreateDelegate(methodType);
 		}
 
 		private static void LoadParameter(ILGenerator generator, ParameterInfo parameter, int index)
