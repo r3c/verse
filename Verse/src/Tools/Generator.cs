@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using Verse.Resolvers;
 
 namespace Verse.Tools
 {
@@ -10,29 +11,6 @@ namespace Verse.Tools
 	{
 		private static readonly OpCode[] OpCodeLdArgs = { OpCodes.Ldarg_0, OpCodes.Ldarg_1, OpCodes.Ldarg_2, OpCodes.Ldarg_3 };
 		private static readonly Type[] Functions = { typeof(Func<>), typeof(Func<,>), typeof(Func<,,>), typeof(Func<,,,>), typeof(Func<,,,,>) };
-
-		/// <summary>
-		/// Create DecodeAssign<T[], IEnumerable<T>> delegate using underlying Enumerable.ToArray call.
-		/// </summary>
-		public static object CreateArraySetter(Type inner)
-		{
-			var genericConverter = Resolver.GetMethod<Func<IEnumerable<object>, object[]>>((e) => e.ToArray());
-			var arrayType = inner.MakeArrayType();
-			var converter = Resolver.ChangeGenericMethodArguments(genericConverter, inner);
-			var enumerableType = typeof(IEnumerable<>).MakeGenericType(inner);
-			var method = new DynamicMethod(string.Empty, null, new[] { arrayType.MakeByRefType(), enumerableType }, inner.Module, true);
-			var generator = method.GetILGenerator();
-
-			generator.Emit(OpCodes.Ldarg_0);
-			generator.Emit(OpCodes.Ldarg_1);
-			generator.Emit(OpCodes.Call, converter);
-			generator.Emit(OpCodes.Stind_Ref);
-			generator.Emit(OpCodes.Ret);
-
-			var type = typeof(DecodeAssign<,>).MakeGenericType(arrayType, enumerableType);
-
-			return method.CreateDelegate(type);
-		}
 
 		public static Func<T> CreateConstructor<T>()
 		{
@@ -138,20 +116,6 @@ namespace Verse.Tools
 			var methodType = typeof(DecodeAssign<,>).MakeGenericType(parentType, field.FieldType);
 
 			return method.CreateDelegate(methodType);
-		}
-
-		/// <Summary>
-		/// Create identity function for given runtime type.
-		/// </Summary>
-		public static object CreateIdentity(Type type)
-		{
-			var method = new DynamicMethod(string.Empty, type, new[] { type }, type.Module, true);
-			var generator = method.GetILGenerator();
-
-			generator.Emit(OpCodes.Ldarg_0);
-			generator.Emit(OpCodes.Ret);
-
-			return method.CreateDelegate(typeof(Func<,>).MakeGenericType(type, type));
 		}
 
 		/// <Summary>

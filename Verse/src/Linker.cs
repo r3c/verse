@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using Verse.Resolvers;
 using Verse.Tools;
 
 namespace Verse
@@ -46,6 +47,16 @@ namespace Verse
 			return schema.CreateEncoder();
 		}
 
+		private static DecodeAssign<T[], IEnumerable<T>> CreateArraySetter<T>()
+		{
+			return (ref T[] target, IEnumerable<T> value) => target = value.ToArray();
+		}
+
+		private static Func<T, T> CreateIdentity<T>()
+		{
+			return v => v;
+		}
+
 		private static bool LinkDecoder<T>(IDecoderDescriptor<T> descriptor, Dictionary<Type, object> parents)
 		{
 			try
@@ -66,29 +77,39 @@ namespace Verse
 			if (type.IsArray)
 			{
 				var element = type.GetElementType();
-				var assign = Generator.CreateArraySetter(element);
+				var setter = MethodResolver
+					.Create<Func<DecodeAssign<object[], object[]>>>(() => Linker.CreateArraySetter<object>())
+					.SetGenericArguments(element)
+					.Invoke(null);
 
-				return Linker.LinkDecoderArray(descriptor, element, assign, parents);
+				return Linker.LinkDecoderArray(descriptor, element, setter, parents);
 			}
 
 			// Target type implements IEnumerable<> interface
-			foreach (var iface in type.GetInterfaces())
+			foreach (var interfaceType in type.GetInterfaces())
 			{
 				// Found interface, inner elements type is "argument"
-				if (!Resolver.HasSameGenericDefinitionThan<IEnumerable<object>>(iface, out var itemType))
+				if (!TypeResolver.Create(interfaceType).HasSameDefinitionThan<IEnumerable<object>>(out var interfaceTypeArguments))
 					continue;
+
+				var elementType = interfaceTypeArguments[0];
 
 				// Search constructor compatible with IEnumerable<>
 				foreach (ConstructorInfo constructor in type.GetConstructors())
 				{
 					var parameters = constructor.GetParameters();
 
-					if (parameters.Length != 1 || !Resolver.HasSameGenericDefinitionThan<IEnumerable<object>>(parameters[0].ParameterType, out var argument) || argument != itemType)
+					if (parameters.Length != 1)
 						continue;
 
-					var assign = Generator.CreateConstructorSetter(constructor);
+					var parameterType = parameters[0].ParameterType;
 
-					return Linker.LinkDecoderArray(descriptor, itemType, assign, parents);
+					if (!TypeResolver.Create(parameterType).HasSameDefinitionThan<IEnumerable<object>>(out var parameterArguments) || parameterArguments[0] != elementType)
+						continue;
+
+					var setter = Generator.CreateConstructorSetter(constructor);
+
+					return Linker.LinkDecoderArray(descriptor, elementType, setter, parents);
 				}
 			}
 
@@ -124,29 +145,24 @@ namespace Verse
 		{
 			if (parents.TryGetValue(type, out var recurse))
 			{
-				var hasKnownItems = Resolver.GetMethod<Func<IDecoderDescriptor<TEntity>, DecodeAssign<TEntity, IEnumerable<object>>,
-					IDecoderDescriptor<object>, IDecoderDescriptor<object>>>((d, a, p) => d.HasItems(a, p));
-
-				Resolver
-					.ChangeGenericMethodArguments(hasKnownItems, type)
-					.Invoke(descriptor, new[] { setter, recurse });
+				MethodResolver
+					.Create<Func<IDecoderDescriptor<TEntity>, DecodeAssign<TEntity, IEnumerable<object>>, IDecoderDescriptor<object>, IDecoderDescriptor<object>>>((d, a, p) => d.HasItems(a, p))
+					.SetGenericArguments(type)
+					.Invoke(descriptor, setter, recurse);
 
 				return true;
 			}
 
-			var hasItems = Resolver.GetMethod<Func<IDecoderDescriptor<TEntity>, DecodeAssign<TEntity, IEnumerable<object>>,
-				IDecoderDescriptor<object>>>((d, a) => d.HasItems(a));
+			var itemDescriptor = MethodResolver
+				.Create<Func<IDecoderDescriptor<TEntity>, DecodeAssign<TEntity, IEnumerable<object>>, IDecoderDescriptor<object>>>((d, a) => d.HasItems(a))
+				.SetGenericArguments(type)
+				.Invoke(descriptor, setter);
 
-			var itemDescriptor = Resolver
-				.ChangeGenericMethodArguments(hasItems, type)
-				.Invoke(descriptor, new[] { setter });
-
-			var linkItems = Resolver.GetMethod<Func<IDecoderDescriptor<object>, Dictionary<Type, object>, bool>>(
-				(d, p) => Linker.LinkDecoder(d, p));
-
-			var result = Resolver
-				.ChangeGenericMethodArguments(linkItems, type)
-				.Invoke(null, new object[] { itemDescriptor, parents });
+			var result = MethodResolver
+				.Create<Func<IDecoderDescriptor<object>, Dictionary<Type, object>, bool>>(
+					(IDecoderDescriptor<object> d, Dictionary<Type, object> p) => Linker.LinkDecoder(d, p))
+				.SetGenericArguments(type)
+				.Invoke(null, itemDescriptor, parents);
 
 			return result is bool success && success;
 		}
@@ -156,30 +172,24 @@ namespace Verse
 		{
 			if (parents.TryGetValue(type, out var recurse))
 			{
-				var hasKnownField = Resolver.GetMethod<Func<IDecoderDescriptor<TEntity>, string, DecodeAssign<TEntity, object>,
-					IDecoderDescriptor<object>, IDecoderDescriptor<object>>>((d, n, a, p) => d.HasField(n, a, p));
-
-				Resolver
-					.ChangeGenericMethodArguments(hasKnownField, type)
-					.Invoke(descriptor, new object[] { name, setter, recurse });
+				MethodResolver
+					.Create<Func<IDecoderDescriptor<TEntity>, string, DecodeAssign<TEntity, object>, IDecoderDescriptor<object>, IDecoderDescriptor<object>>>((d, n, a, p) => d.HasField(n, a, p))
+					.SetGenericArguments(type)
+					.Invoke(descriptor, name, setter, recurse);
 
 				return true;
 			}
 
-			var hasField = Resolver
-				.GetMethod<Func<IDecoderDescriptor<TEntity>, string, DecodeAssign<TEntity, object>,
-					IDecoderDescriptor<object>>>((d, n, a) => d.HasField(n, a));
+			var fieldDescriptor = MethodResolver
+				.Create<Func<IDecoderDescriptor<TEntity>, string, DecodeAssign<TEntity, object>, IDecoderDescriptor<object>>>((d, n, a) => d.HasField(n, a))
+				.SetGenericArguments(type)
+				.Invoke(descriptor, name, setter);
 
-			var fieldDescriptor = Resolver
-				.ChangeGenericMethodArguments(hasField, type)
-				.Invoke(descriptor, new object[] { name, setter });
-
-			var linkField = Resolver.GetMethod<Func<IDecoderDescriptor<object>, Dictionary<Type, object>, bool>>(
-				(d, p) => Linker.LinkDecoder(d, p));
-
-			var result = Resolver
-				.ChangeGenericMethodArguments(linkField, type)
-				.Invoke(null, new object[] { fieldDescriptor, parents });
+			var result = MethodResolver
+				.Create<Func<IDecoderDescriptor<object>, Dictionary<Type, object>, bool>>(
+					(IDecoderDescriptor<object> d, Dictionary<Type, object> p) => Linker.LinkDecoder(d, p))
+				.SetGenericArguments(type)
+				.Invoke(null, fieldDescriptor, parents);
 
 			return result is bool success && success;
 		}
@@ -204,20 +214,27 @@ namespace Verse
 			if (type.IsArray)
 			{
 				var element = type.GetElementType();
-				var getter = Generator.CreateIdentity(typeof(IEnumerable<>).MakeGenericType(element));
+				var getter = MethodResolver
+					.Create<Func<Func<object, object>>>(() => Linker.CreateIdentity<object>())
+					.SetGenericArguments(typeof(IEnumerable<>).MakeGenericType(element))
+					.Invoke(null);
 
 				return Linker.LinkEncoderArray(descriptor, element, getter, parents);
 			}
 
 			// Target type implements IEnumerable<> interface
-			foreach (Type iface in type.GetInterfaces())
+			foreach (Type interfaceType in type.GetInterfaces())
 			{
-				if (!Resolver.HasSameGenericDefinitionThan<IEnumerable<object>>(iface, out var argument))
+				if (!TypeResolver.Create(interfaceType).HasSameDefinitionThan<IEnumerable<object>>(out var arguments))
 					continue;
 
-				var getter = Generator.CreateIdentity(typeof(IEnumerable<>).MakeGenericType(argument));
+				var elementType = arguments[0];
+				var getter = MethodResolver
+					.Create<Func<Func<object, object>>>(() => Linker.CreateIdentity<object>())
+					.SetGenericArguments(typeof(IEnumerable<>).MakeGenericType(elementType))
+					.Invoke(null);
 
-				return Linker.LinkEncoderArray(descriptor, argument, getter, parents);
+				return Linker.LinkEncoderArray(descriptor, elementType, getter, parents);
 			}
 
 			// Link public readable and writable instance properties
@@ -252,29 +269,23 @@ namespace Verse
 		{
 			if (parents.TryGetValue(type, out var recurse))
 			{
-				var hasKnownItems = Resolver.GetMethod<Func<IEncoderDescriptor<T>, Func<T, IEnumerable<object>>, IEncoderDescriptor<object>,
-					IEncoderDescriptor<object>>>((d, a, p) => d.HasItems(a, p));
-
-				Resolver
-					.ChangeGenericMethodArguments(hasKnownItems, type)
-					.Invoke(descriptor, new[] { getter, recurse });
+				MethodResolver
+					.Create<Func<IEncoderDescriptor<T>, Func<T, IEnumerable<object>>, IEncoderDescriptor<object>, IEncoderDescriptor<object>>>((d, a, p) => d.HasItems(a, p))
+					.SetGenericArguments(type)
+					.Invoke(descriptor, getter, recurse);
 
 				return true;
 			}
 
-			var hasItems = Resolver.GetMethod<Func<IEncoderDescriptor<T>, Func<T, IEnumerable<object>>, IEncoderDescriptor<object>>>(
-				(d, a) => d.HasItems(a));
+			var itemDescriptor = MethodResolver
+				.Create<Func<IEncoderDescriptor<T>, Func<T, IEnumerable<object>>, IEncoderDescriptor<object>>>((d, a) => d.HasItems(a))
+				.SetGenericArguments(type)
+				.Invoke(descriptor, getter);
 
-			var itemDescriptor = Resolver
-				.ChangeGenericMethodArguments(hasItems, type)
-				.Invoke(descriptor, new[] { getter });
-
-			var linkItems = Resolver.GetMethod<Func<IEncoderDescriptor<object>, Dictionary<Type, object>, bool>>(
-				(d, p) => Linker.LinkEncoder(d, p));
-
-			var result = Resolver
-				.ChangeGenericMethodArguments(linkItems, type)
-				.Invoke(null, new object[] { itemDescriptor, parents });
+			var result = MethodResolver
+				.Create<Func<IEncoderDescriptor<object>, Dictionary<Type, object>, bool>>((d, p) => Linker.LinkEncoder(d, p))
+				.SetGenericArguments(type)
+				.Invoke(null, itemDescriptor, parents);
 
 			return result is bool success && success;
 		}
@@ -284,29 +295,24 @@ namespace Verse
 		{
 			if (parents.TryGetValue(type, out var recurse))
 			{
-				var hasKnownField = Resolver.GetMethod<Func<IEncoderDescriptor<T>, string, Func<T, object>, IEncoderDescriptor<object>,
-					IEncoderDescriptor<object>>>((d, n, a, p) => d.HasField(n, a, p));
-
-				Resolver
-					.ChangeGenericMethodArguments(hasKnownField, type)
-					.Invoke(descriptor, new object[] { name, getter, recurse });
+				MethodResolver
+					.Create<Func<IEncoderDescriptor<T>, string, Func<T, object>, IEncoderDescriptor<object>, IEncoderDescriptor<object>>>((d, n, a, p) => d.HasField(n, a, p))
+					.SetGenericArguments(type)
+					.Invoke(descriptor, name, getter, recurse);
 
 				return true;
 			}
 
-			var hasField = Resolver.GetMethod<Func<IEncoderDescriptor<T>, string, Func<T, object>, IEncoderDescriptor<object>>>(
-				(d, n, a) => d.HasField(n, a));
+			var fieldDescriptor = MethodResolver
+				.Create<Func<IEncoderDescriptor<T>, string, Func<T, object>, IEncoderDescriptor<object>>>((d, n, a) => d.HasField(n, a))
+				.SetGenericArguments(type)
+				.Invoke(descriptor, name, getter);
 
-			var fieldDescriptor = Resolver
-				.ChangeGenericMethodArguments(hasField, type)
-				.Invoke(descriptor, new object[] { name, getter });
-
-			var linkField = Resolver.GetMethod<Func<IEncoderDescriptor<object>, Dictionary<Type, object>, bool>>(
-				(d, p) => Linker.LinkEncoder(d, p));
-
-			var result = Resolver
-				.ChangeGenericMethodArguments(linkField, type)
-				.Invoke(null, new object[] { fieldDescriptor, parents });
+			var result = MethodResolver
+				.Create<Func<IEncoderDescriptor<object>, Dictionary<Type, object>, bool>>(
+					(IEncoderDescriptor<object> d, Dictionary<Type, object> p) => Linker.LinkEncoder(d, p))
+				.SetGenericArguments(type)
+				.Invoke(null, fieldDescriptor, parents);
 
 			return result is bool success && success;
 		}
