@@ -79,7 +79,7 @@ namespace Verse.DecoderDescriptors
 			if (!(parent is TreeDecoderDescriptor<TItem, TState, TValue> descriptor))
 				throw new ArgumentOutOfRangeException(nameof(parent), "incompatible descriptor type");
 
-			this.HasItems(descriptor.reader, this.GetConstructor<TItem>(), assign);
+			this.HasItems(descriptor.reader, assign);
 
 			return descriptor;
 		}
@@ -88,7 +88,7 @@ namespace Verse.DecoderDescriptors
 		{
 			var child = this.reader.Create<TItem>();
 
-			this.HasItems(child, this.GetConstructor<TItem>(), assign);
+			this.HasItems(child, assign);
 
 			return new TreeDecoderDescriptor<TItem, TState, TValue>(this.converter, this.session, child);
 		}
@@ -98,8 +98,10 @@ namespace Verse.DecoderDescriptors
 			this.reader.DeclareValue(this.GetConverter());
 		}
 
-		private void HasItems<TItem>(TreeReader<TState, TItem, TValue> child, Func<TItem> itemConstructor, DecodeAssign<TEntity, IEnumerable<TItem>> assign)
+		private void HasItems<TItem>(TreeReader<TState, TItem, TValue> child, DecodeAssign<TEntity, IEnumerable<TItem>> assign)
 		{
+			var itemConstructor = this.GetConstructor<TItem>();
+
 			this.reader.DeclareArray((TState state, Func<TEntity> entityConstructor, out TEntity entity) =>
 			{
 				using (var browser = new Browser<TItem>(child.ReadItems(itemConstructor, state)))
