@@ -4,27 +4,27 @@ namespace Verse.Schemas.JSON
 	/// <summary>
 	/// Native JSON value.
 	/// </summary>
-	public struct JSONValue
+	public readonly struct JSONValue
 	{
 		/// <summary>
 		/// Boolean value (only set if type is boolean).
 		/// </summary>
-		public bool Boolean;
+		public readonly bool Boolean;
 
 		/// <summary>
 		/// Numeric value (only set if type is number).
 		/// </summary>
-		public double Number;
+		public readonly double Number;
 
 		/// <summary>
 		/// String value (only set if type is string).
 		/// </summary>
-		public string String;
+		public readonly string String;
 
 		/// <summary>
 		/// Value content type.
 		/// </summary>
-		public JSONType Type;
+		public readonly JSONType Type;
 
 		/// <summary>
 		/// Static instance of undefined value.
@@ -38,7 +38,7 @@ namespace Verse.Schemas.JSON
 		/// <returns>JSON boolean value</returns>
 		public static JSONValue FromBoolean(bool value)
 		{
-			return new JSONValue { Boolean = value, Type = JSONType.Boolean };
+			return new JSONValue(JSONType.Boolean, value, default, default);
 		}
 
 		/// <summary>
@@ -48,7 +48,7 @@ namespace Verse.Schemas.JSON
 		/// <returns>JSON number value</returns>
 		public static JSONValue FromNumber(double value)
 		{
-			return new JSONValue { Number = value, Type = JSONType.Number };
+			return new JSONValue(JSONType.Number, default, value, default);
 		}
 
 		/// <summary>
@@ -58,7 +58,15 @@ namespace Verse.Schemas.JSON
 		/// <returns>JSON string value</returns>
 		public static JSONValue FromString(string value)
 		{
-			return new JSONValue { String = value, Type = JSONType.String };
+			return new JSONValue(JSONType.String, default, default, value);
+		}
+
+		private JSONValue(JSONType type, bool boolean, double number, string str)
+		{
+			this.Boolean = boolean;
+			this.Number = number;
+			this.String = str;
+			this.Type = type;
 		}
 	}
 }
