@@ -9,18 +9,19 @@ namespace Verse.Test.Schemas
 	public abstract class BaseSchemaTester
 	{
 		[Test]
-		[Ignore("Arrays are always built before reading, so decoding 'null' would still create an empty array")]
 		public virtual void RoundTripNestedArray()
 		{
-			ISchema<NestedArray> schema = this.CreateSchema<NestedArray>();
+			var schema = this.CreateSchema<NestedArray>();
+			var decoder = Linker.CreateDecoder(schema);
+			var encoder = Linker.CreateEncoder(schema);
 
-			BaseSchemaTester.AssertRoundTrip(Linker.CreateDecoder(schema), Linker.CreateEncoder(schema), new NestedArray
+			BaseSchemaTester.AssertRoundTrip(decoder, encoder, new NestedArray
 			{
 				children = new[]
 				{
 					new NestedArray
 					{
-						children = null,
+						children = Array.Empty<NestedArray>(),
 						value = "a"
 					},
 					new NestedArray
@@ -29,12 +30,12 @@ namespace Verse.Test.Schemas
 						{
 							new NestedArray
 							{
-								children = null,
+								children = Array.Empty<NestedArray>(),
 								value = "b"
 							},
 							new NestedArray
 							{
-								children = null,
+								children = Array.Empty<NestedArray>(),
 								value = "c"
 							}
 						},
@@ -42,7 +43,7 @@ namespace Verse.Test.Schemas
 					},
 					new NestedArray
 					{
-						children = new NestedArray[0],
+						children = Array.Empty<NestedArray>(),
 						value = "e"
 					}
 				},
@@ -54,9 +55,11 @@ namespace Verse.Test.Schemas
 		[Ignore("Enum types are not handled by linker yet.")]
 		public void RoundTripMixedTypes()
 		{
-			ISchema<MixedContainer> schema = this.CreateSchema<MixedContainer>();
+			var schema = this.CreateSchema<MixedContainer>();
+			var decoder = Linker.CreateDecoder(schema);
+			var encoder = Linker.CreateEncoder(schema);
 
-			BaseSchemaTester.AssertRoundTrip(Linker.CreateDecoder(schema), Linker.CreateEncoder(schema), new MixedContainer
+			BaseSchemaTester.AssertRoundTrip(decoder, encoder, new MixedContainer
 			{
 				floats = new float[] { 1.1f, 2.2f, 3.3f },
 				integer = 17,
@@ -73,9 +76,11 @@ namespace Verse.Test.Schemas
 		[Test]
 		public virtual void RoundTripNestedValue()
 		{
-			ISchema<NestedValue> schema = this.CreateSchema<NestedValue>();
+			var schema = this.CreateSchema<NestedValue>();
+			var decoder = Linker.CreateDecoder(schema);
+			var encoder = Linker.CreateEncoder(schema);
 
-			BaseSchemaTester.AssertRoundTrip(Linker.CreateDecoder(schema), Linker.CreateEncoder(schema), new NestedValue
+			BaseSchemaTester.AssertRoundTrip(decoder, encoder, new NestedValue
 			{
 				child = new NestedValue
 				{
@@ -95,19 +100,23 @@ namespace Verse.Test.Schemas
 		[TestCase(25.5)]
 		public virtual void RoundTripValueNative<T>(T instance)
 		{
-			ISchema<T> schema = this.CreateSchema<T>();
+			var schema = this.CreateSchema<T>();
+			var decoder = Linker.CreateDecoder(schema);
+			var encoder = Linker.CreateEncoder(schema);
 
-			BaseSchemaTester.AssertRoundTrip(Linker.CreateDecoder(schema), Linker.CreateEncoder(schema), instance);
+			BaseSchemaTester.AssertRoundTrip(decoder, encoder, instance);
 		}
 
 		[Test]
 		[Ignore("Nullable types are not handled by linker yet.")]
 		public virtual void RoundTripValueNullable()
 		{
-			ISchema<double?> schema = this.CreateSchema<double?>();
+			var schema = this.CreateSchema<double?>();
+			var decoder = Linker.CreateDecoder(schema);
+			var encoder = Linker.CreateEncoder(schema);
 
-			BaseSchemaTester.AssertRoundTrip(Linker.CreateDecoder(schema), Linker.CreateEncoder(schema), null);
-			BaseSchemaTester.AssertRoundTrip(Linker.CreateDecoder(schema), Linker.CreateEncoder(schema), 42);
+			BaseSchemaTester.AssertRoundTrip(decoder, encoder, null);
+			BaseSchemaTester.AssertRoundTrip(decoder, encoder, 42);
 		}
 
 		protected static void AssertRoundTrip<T>(IDecoder<T> decoder, IEncoder<T> encoder, T instance)

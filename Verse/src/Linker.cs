@@ -71,21 +71,12 @@ namespace Verse
 
 		private static bool LinkDecoder<T>(IDecoderDescriptor<T> descriptor, BindingFlags bindings, Dictionary<Type, object> parents)
 		{
-			// Try to bind descriptor as a value if possible
-			try
-			{
-				descriptor.IsValue();
-
-				return true;
-			}
-			// Invalid cast exception being thrown means binding fails
-			catch (InvalidCastException)
-			{
-			}
-
 			var type = typeof(T);
 
 			parents[type] = descriptor;
+
+			if (TryLinkDecoderAsValue(descriptor))
+				return true;
 
 			// Bind descriptor as an array of target type is also array
 			if (type.IsArray)
@@ -100,7 +91,7 @@ namespace Verse
 			}
 
 			// Try to bind descriptor as an array if target type IEnumerable<>
-			foreach (var interfaceType in type.GetInterfaces())
+			foreach (Type interfaceType in type.GetInterfaces())
 			{
 				// Make sure that interface is IEnumerable<T> and store typeof(T)
 				if (!TypeResolver.Create(interfaceType).HasSameDefinitionThan<IEnumerable<object>>(out var interfaceTypeArguments))
@@ -208,21 +199,12 @@ namespace Verse
 
 		private static bool LinkEncoder<T>(IEncoderDescriptor<T> descriptor, BindingFlags bindings, Dictionary<Type, object> parents)
 		{
-			// Try to bind descriptor as a value if possible
-			try
-			{
-				descriptor.IsValue();
-
-				return true;
-			}
-			// Invalid cast exception being thrown means binding fails
-			catch (InvalidCastException)
-			{
-			}
-
 			var type = typeof(T);
 
 			parents[type] = descriptor;
+
+			if (TryLinkEncoderAsValue(descriptor))
+				return true;
 
 			// Bind descriptor as an array of target type is also array
 			if (type.IsArray)
@@ -329,6 +311,36 @@ namespace Verse
 				.Invoke(null, fieldDescriptor, bindings, parents);
 
 			return result is bool success && success;
+		}
+
+		public static bool TryLinkDecoderAsValue<TEntity>(IDecoderDescriptor<TEntity> descriptor)
+		{
+			try
+			{
+				descriptor.IsValue();
+
+				return true;
+			}
+			catch (InvalidCastException)
+			{
+				// Invalid cast exception being thrown means binding fails
+				return false;
+			}
+		}
+
+		public static bool TryLinkEncoderAsValue<TEntity>(IEncoderDescriptor<TEntity> descriptor)
+		{
+			try
+			{
+				descriptor.IsValue();
+
+				return true;
+			}
+			catch (InvalidCastException)
+			{
+				// Invalid cast exception being thrown means binding fails
+				return false;
+			}
 		}
 	}
 }

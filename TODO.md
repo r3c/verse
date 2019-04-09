@@ -4,7 +4,6 @@ Verse TODO list
 TODO
 ----
 
-- Extend "omit null values" options to support arrays
 - Support "ignore case" option in schemas using PatternReader
 - Change .IsArray method, see comment in RecurseDecoderDescriptor
 - Factorize "Ignore" methods in all leaf IReader implementations
