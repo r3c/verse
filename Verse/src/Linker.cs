@@ -22,13 +22,19 @@ namespace Verse
 		/// </summary>
 		/// <typeparam name="TEntity">Entity type</typeparam>
 		/// <param name="schema">Entity schema</param>
+		/// <param name="bindings">Binding flags used to filter bound fields and properties</param>
 		/// <returns>Entity decoder</returns>
-		public static IDecoder<TEntity> CreateDecoder<TEntity>(ISchema<TEntity> schema)
+		public static IDecoder<TEntity> CreateDecoder<TEntity>(ISchema<TEntity> schema, BindingFlags bindings)
 		{
-			if (!Linker.LinkDecoder(schema.DecoderDescriptor, new Dictionary<Type, object>()))
+			if (!Linker.LinkDecoder(schema.DecoderDescriptor, bindings, new Dictionary<Type, object>()))
 				throw new ArgumentException($"can't link decoder for type '{typeof(TEntity)}'", nameof(schema));
 
 			return schema.CreateDecoder();
+		}
+
+		public static IDecoder<TEntity> CreateDecoder<TEntity>(ISchema<TEntity> schema)
+		{
+			return CreateDecoder(schema, BindingFlags.Instance | BindingFlags.Public);
 		}
 
 		/// <summary>
@@ -38,13 +44,19 @@ namespace Verse
 		/// </summary>
 		/// <typeparam name="TEntity">Entity type</typeparam>
 		/// <param name="schema">Entity schema</param>
+		/// <param name="bindings">Binding flags used to filter bound fields and properties</param>
 		/// <returns>Entity encoder</returns>
-		public static IEncoder<TEntity> CreateEncoder<TEntity>(ISchema<TEntity> schema)
+		public static IEncoder<TEntity> CreateEncoder<TEntity>(ISchema<TEntity> schema, BindingFlags bindings)
 		{
-			if (!Linker.LinkEncoder(schema.EncoderDescriptor, new Dictionary<Type, object>()))
+			if (!Linker.LinkEncoder(schema.EncoderDescriptor, bindings, new Dictionary<Type, object>()))
 				throw new ArgumentException($"can't link encoder for type '{typeof(TEntity)}'", nameof(schema));
 
 			return schema.CreateEncoder();
+		}
+
+		public static IEncoder<TEntity> CreateEncoder<TEntity>(ISchema<TEntity> schema)
+		{
+			return CreateEncoder(schema, BindingFlags.Instance | BindingFlags.Public);
 		}
 
 		private static DecodeAssign<T[], IEnumerable<T>> CreateArraySetter<T>()
@@ -57,15 +69,17 @@ namespace Verse
 			return v => v;
 		}
 
-		private static bool LinkDecoder<T>(IDecoderDescriptor<T> descriptor, Dictionary<Type, object> parents)
+		private static bool LinkDecoder<T>(IDecoderDescriptor<T> descriptor, BindingFlags bindings, Dictionary<Type, object> parents)
 		{
+			// Try to bind descriptor as a value if possible
 			try
 			{
 				descriptor.IsValue();
 
 				return true;
 			}
-			catch (InvalidCastException) // FIXME: hack
+			// Invalid cast exception being thrown means binding fails
+			catch (InvalidCastException)
 			{
 			}
 
@@ -73,7 +87,7 @@ namespace Verse
 
 			parents[type] = descriptor;
 
-			// Target type is an array
+			// Bind descriptor as an array of target type is also array
 			if (type.IsArray)
 			{
 				var element = type.GetElementType();
@@ -82,13 +96,13 @@ namespace Verse
 					.SetGenericArguments(element)
 					.Invoke(null);
 
-				return Linker.LinkDecoderArray(descriptor, element, setter, parents);
+				return Linker.LinkDecoderAsArray(descriptor, bindings, element, setter, parents);
 			}
 
-			// Target type implements IEnumerable<> interface
+			// Try to bind descriptor as an array if target type IEnumerable<>
 			foreach (var interfaceType in type.GetInterfaces())
 			{
-				// Found interface, inner elements type is "argument"
+				// Make sure that interface is IEnumerable<T> and store typeof(T)
 				if (!TypeResolver.Create(interfaceType).HasSameDefinitionThan<IEnumerable<object>>(out var interfaceTypeArguments))
 					continue;
 
@@ -109,39 +123,39 @@ namespace Verse
 
 					var setter = Generator.CreateConstructorSetter(constructor);
 
-					return Linker.LinkDecoderArray(descriptor, elementType, setter, parents);
+					return Linker.LinkDecoderAsArray(descriptor, bindings, elementType, setter, parents);
 				}
 			}
 
-			// Link public readable and writable instance properties
-			foreach (PropertyInfo property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+			// Bind readable and writable instance properties
+			foreach (PropertyInfo property in type.GetProperties(bindings))
 			{
 				if (property.GetGetMethod() == null || property.GetSetMethod() == null || property.Attributes.HasFlag(PropertyAttributes.SpecialName))
 					continue;
 
 				var setter = Generator.CreatePropertySetter(property);
 
-				if (!Linker.LinkDecoderField(descriptor, property.PropertyType, property.Name, setter, parents))
+				if (!Linker.LinkDecoderAsObject(descriptor, bindings, property.PropertyType, property.Name, setter, parents))
 					return false;
 			}
 
-			// Link public instance fields
-			foreach (FieldInfo field in type.GetFields(BindingFlags.Instance | BindingFlags.Public))
+			// Bind public instance fields
+			foreach (FieldInfo field in type.GetFields(bindings))
 			{
 				if (field.Attributes.HasFlag(FieldAttributes.SpecialName))
 					continue;
 
 				var setter = Generator.CreateFieldSetter(field);
 
-				if (!Linker.LinkDecoderField(descriptor, field.FieldType, field.Name, setter, parents))
+				if (!Linker.LinkDecoderAsObject(descriptor, bindings, field.FieldType, field.Name, setter, parents))
 					return false;
 			}
 
 			return true;
 		}
 
-		private static bool LinkDecoderArray<TEntity>(IDecoderDescriptor<TEntity> descriptor, Type type, object setter,
-			IDictionary<Type, object> parents)
+		private static bool LinkDecoderAsArray<TEntity>(IDecoderDescriptor<TEntity> descriptor, BindingFlags bindings,
+			Type type, object setter, IDictionary<Type, object> parents)
 		{
 			if (parents.TryGetValue(type, out var recurse))
 			{
@@ -159,16 +173,15 @@ namespace Verse
 				.Invoke(descriptor, setter);
 
 			var result = MethodResolver
-				.Create<Func<IDecoderDescriptor<object>, Dictionary<Type, object>, bool>>(
-					(IDecoderDescriptor<object> d, Dictionary<Type, object> p) => Linker.LinkDecoder(d, p))
+				.Create<Func<IDecoderDescriptor<object>, BindingFlags, Dictionary<Type, object>, bool>>((d, f, p) => Linker.LinkDecoder(d, f, p))
 				.SetGenericArguments(type)
-				.Invoke(null, itemDescriptor, parents);
+				.Invoke(null, itemDescriptor, bindings, parents);
 
 			return result is bool success && success;
 		}
 
-		private static bool LinkDecoderField<TEntity>(IDecoderDescriptor<TEntity> descriptor, Type type, string name,
-			object setter, IDictionary<Type, object> parents)
+		private static bool LinkDecoderAsObject<TEntity>(IDecoderDescriptor<TEntity> descriptor, BindingFlags bindings,
+			Type type, string name, object setter, IDictionary<Type, object> parents)
 		{
 			if (parents.TryGetValue(type, out var recurse))
 			{
@@ -186,23 +199,24 @@ namespace Verse
 				.Invoke(descriptor, name, setter);
 
 			var result = MethodResolver
-				.Create<Func<IDecoderDescriptor<object>, Dictionary<Type, object>, bool>>(
-					(IDecoderDescriptor<object> d, Dictionary<Type, object> p) => Linker.LinkDecoder(d, p))
+				.Create<Func<IDecoderDescriptor<object>, BindingFlags, Dictionary<Type, object>, bool>>((d, f, p) => Linker.LinkDecoder(d, f, p))
 				.SetGenericArguments(type)
-				.Invoke(null, fieldDescriptor, parents);
+				.Invoke(null, fieldDescriptor, bindings, parents);
 
 			return result is bool success && success;
 		}
 
-		private static bool LinkEncoder<T>(IEncoderDescriptor<T> descriptor, Dictionary<Type, object> parents)
+		private static bool LinkEncoder<T>(IEncoderDescriptor<T> descriptor, BindingFlags bindings, Dictionary<Type, object> parents)
 		{
+			// Try to bind descriptor as a value if possible
 			try
 			{
 				descriptor.IsValue();
 
 				return true;
 			}
-			catch (InvalidCastException) // FIXME: hack
+			// Invalid cast exception being thrown means binding fails
+			catch (InvalidCastException)
 			{
 			}
 
@@ -210,7 +224,7 @@ namespace Verse
 
 			parents[type] = descriptor;
 
-			// Target type is an array
+			// Bind descriptor as an array of target type is also array
 			if (type.IsArray)
 			{
 				var element = type.GetElementType();
@@ -219,12 +233,13 @@ namespace Verse
 					.SetGenericArguments(typeof(IEnumerable<>).MakeGenericType(element))
 					.Invoke(null);
 
-				return Linker.LinkEncoderArray(descriptor, element, getter, parents);
+				return Linker.LinkEncoderAsArray(descriptor, bindings, element, getter, parents);
 			}
 
-			// Target type implements IEnumerable<> interface
+			// Try to bind descriptor as an array if target type IEnumerable<>
 			foreach (Type interfaceType in type.GetInterfaces())
 			{
+				// Make sure that interface is IEnumerable<T> and store typeof(T)
 				if (!TypeResolver.Create(interfaceType).HasSameDefinitionThan<IEnumerable<object>>(out var arguments))
 					continue;
 
@@ -234,43 +249,43 @@ namespace Verse
 					.SetGenericArguments(typeof(IEnumerable<>).MakeGenericType(elementType))
 					.Invoke(null);
 
-				return Linker.LinkEncoderArray(descriptor, elementType, getter, parents);
+				return Linker.LinkEncoderAsArray(descriptor, bindings, elementType, getter, parents);
 			}
 
-			// Link public readable and writable instance properties
-			foreach (PropertyInfo property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+			// Bind readable and writable instance properties
+			foreach (PropertyInfo property in type.GetProperties(bindings))
 			{
 				if (property.GetGetMethod() == null || property.GetSetMethod() == null || property.Attributes.HasFlag(PropertyAttributes.SpecialName))
 					continue;
 
 				var getter = Generator.CreatePropertyGetter(property);
 
-				if (!Linker.LinkEncoderField(descriptor, property.PropertyType, property.Name, getter, parents))
+				if (!Linker.LinkEncoderAsObject(descriptor, bindings, property.PropertyType, property.Name, getter, parents))
 					return false;
 			}
 
-			// Link public instance fields
-			foreach (FieldInfo field in type.GetFields(BindingFlags.Instance | BindingFlags.Public))
+			// Bind public instance fields
+			foreach (FieldInfo field in type.GetFields(bindings))
 			{
 				if (field.Attributes.HasFlag(FieldAttributes.SpecialName))
 					continue;
 
 				var getter = Generator.CreateFieldGetter(field);
 
-				if (!Linker.LinkEncoderField(descriptor, field.FieldType, field.Name, getter, parents))
+				if (!Linker.LinkEncoderAsObject(descriptor, bindings, field.FieldType, field.Name, getter, parents))
 					return false;
 			}
 
 			return true;
 		}
 
-		private static bool LinkEncoderArray<T>(IEncoderDescriptor<T> descriptor, Type type, object getter,
-			IDictionary<Type, object> parents)
+		private static bool LinkEncoderAsArray<TEntity>(IEncoderDescriptor<TEntity> descriptor, BindingFlags bindings, Type type,
+			object getter, IDictionary<Type, object> parents)
 		{
 			if (parents.TryGetValue(type, out var recurse))
 			{
 				MethodResolver
-					.Create<Func<IEncoderDescriptor<T>, Func<T, IEnumerable<object>>, IEncoderDescriptor<object>, IEncoderDescriptor<object>>>((d, a, p) => d.HasItems(a, p))
+					.Create<Func<IEncoderDescriptor<TEntity>, Func<TEntity, IEnumerable<object>>, IEncoderDescriptor<object>, IEncoderDescriptor<object>>>((d, a, p) => d.HasItems(a, p))
 					.SetGenericArguments(type)
 					.Invoke(descriptor, getter, recurse);
 
@@ -278,25 +293,25 @@ namespace Verse
 			}
 
 			var itemDescriptor = MethodResolver
-				.Create<Func<IEncoderDescriptor<T>, Func<T, IEnumerable<object>>, IEncoderDescriptor<object>>>((d, a) => d.HasItems(a))
+				.Create<Func<IEncoderDescriptor<TEntity>, Func<TEntity, IEnumerable<object>>, IEncoderDescriptor<object>>>((d, a) => d.HasItems(a))
 				.SetGenericArguments(type)
 				.Invoke(descriptor, getter);
 
 			var result = MethodResolver
-				.Create<Func<IEncoderDescriptor<object>, Dictionary<Type, object>, bool>>((d, p) => Linker.LinkEncoder(d, p))
+				.Create<Func<IEncoderDescriptor<object>, BindingFlags, Dictionary<Type, object>, bool>>((d, f, p) => Linker.LinkEncoder(d, f, p))
 				.SetGenericArguments(type)
-				.Invoke(null, itemDescriptor, parents);
+				.Invoke(null, itemDescriptor, bindings, parents);
 
 			return result is bool success && success;
 		}
 
-		private static bool LinkEncoderField<T>(IEncoderDescriptor<T> descriptor, Type type, string name, object getter,
-			IDictionary<Type, object> parents)
+		private static bool LinkEncoderAsObject<TEntity>(IEncoderDescriptor<TEntity> descriptor, BindingFlags bindings,
+			Type type, string name, object getter, IDictionary<Type, object> parents)
 		{
 			if (parents.TryGetValue(type, out var recurse))
 			{
 				MethodResolver
-					.Create<Func<IEncoderDescriptor<T>, string, Func<T, object>, IEncoderDescriptor<object>, IEncoderDescriptor<object>>>((d, n, a, p) => d.HasField(n, a, p))
+					.Create<Func<IEncoderDescriptor<TEntity>, string, Func<TEntity, object>, IEncoderDescriptor<object>, IEncoderDescriptor<object>>>((d, n, a, p) => d.HasField(n, a, p))
 					.SetGenericArguments(type)
 					.Invoke(descriptor, name, getter, recurse);
 
@@ -304,15 +319,14 @@ namespace Verse
 			}
 
 			var fieldDescriptor = MethodResolver
-				.Create<Func<IEncoderDescriptor<T>, string, Func<T, object>, IEncoderDescriptor<object>>>((d, n, a) => d.HasField(n, a))
+				.Create<Func<IEncoderDescriptor<TEntity>, string, Func<TEntity, object>, IEncoderDescriptor<object>>>((d, n, a) => d.HasField(n, a))
 				.SetGenericArguments(type)
 				.Invoke(descriptor, name, getter);
 
 			var result = MethodResolver
-				.Create<Func<IEncoderDescriptor<object>, Dictionary<Type, object>, bool>>(
-					(IEncoderDescriptor<object> d, Dictionary<Type, object> p) => Linker.LinkEncoder(d, p))
+				.Create<Func<IEncoderDescriptor<object>, BindingFlags, Dictionary<Type, object>, bool>>((d, f, p) => Linker.LinkEncoder(d, f, p))
 				.SetGenericArguments(type)
-				.Invoke(null, fieldDescriptor, parents);
+				.Invoke(null, fieldDescriptor, bindings, parents);
 
 			return result is bool success && success;
 		}
