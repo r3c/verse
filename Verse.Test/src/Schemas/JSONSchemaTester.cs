@@ -207,9 +207,11 @@ namespace Verse.Test.Schemas
 
 			schema = new JSONSchema<JSONValue>(new JSONConfiguration { OmitNull = omitNull });
 			schema.EncoderDescriptor
-				.HasField("values")
-				.HasItems(v => new[] { JSONValue.Void, v, })
-				.HasField("value")
+				.IsObject()
+				.HasField("values", v => v)
+				.IsArray(v => new[] { JSONValue.Void, v, })
+				.IsObject()
+				.HasField("value", v => v)
 				.IsValue();
 
 			this.AssertEncodeAndEqual(schema, JSONValue.FromString("test"), expected);
@@ -223,7 +225,7 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new JSONSchema<int[]>();
 
-			schema.EncoderDescriptor.HasItems((source) => source).IsValue();
+			schema.EncoderDescriptor.IsArray(entity => entity).IsValue();
 
 			this.AssertEncodeAndEqual(schema, value, expected);
 		}
@@ -234,12 +236,13 @@ namespace Verse.Test.Schemas
 		public void EncodeEntityOmitNull(bool omitNull, string expected)
 		{
 			var schema = new JSONSchema<string>(new JSONConfiguration { OmitNull = omitNull });
+			var top = schema.EncoderDescriptor.IsObject();
 
-			schema.EncoderDescriptor.HasField("firstnull", s => JSONValue.Void).IsValue();
-			schema.EncoderDescriptor.HasField("value").IsValue();
-			schema.EncoderDescriptor.HasField("secondnull", s => JSONValue.Void).IsValue();
-			schema.EncoderDescriptor.HasField("item").HasField("values").HasItems(v => new[] { null, "val1", null, "val2", null }).IsValue();
-			schema.EncoderDescriptor.HasField("lastnull", s => JSONValue.Void).IsValue();
+			top.HasField("firstnull", s => JSONValue.Void).IsValue();
+			top.HasField("value", v => v).IsValue();
+			top.HasField("secondnull", s => JSONValue.Void).IsValue();
+			top.HasField("item", v => v).IsObject().HasField("values", v => v).IsArray(v => new[] { null, "val1", null, "val2", null }).IsValue();
+			top.HasField("lastnull", s => JSONValue.Void).IsValue();
 
 			this.AssertEncodeAndEqual(schema, "test", expected);
 		}
@@ -251,9 +254,23 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new JSONSchema<T>();
 
-			schema.EncoderDescriptor.HasField(name).IsValue();
+			schema.EncoderDescriptor.IsObject().HasField(name, v => v).IsValue();
 
 			this.AssertEncodeAndEqual(schema, value, expected);
+		}
+
+		[Test]
+		public void EncodeRecursiveDescriptorDefinedAfterUse()
+		{
+			var schema = new JSONSchema<RecursiveEntity>();
+
+			var root = schema.EncoderDescriptor;
+			var rootObject = root.IsObject();
+
+			rootObject.HasField("field", o => o.field, root);
+			rootObject.HasField("value", o => o.value).IsValue();
+
+			this.AssertEncodeAndEqual(schema, new RecursiveEntity { field = new RecursiveEntity { value = 1 }, value = 2 }, "{\"field\":{\"field\":null,\"value\":1},\"value\":2}");
 		}
 
 		[Test]

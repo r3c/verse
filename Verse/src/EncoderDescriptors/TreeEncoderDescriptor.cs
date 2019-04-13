@@ -1,75 +1,115 @@
 using System;
 using System.Collections.Generic;
-using Verse.EncoderDescriptors.Base;
 using Verse.EncoderDescriptors.Tree;
 
 namespace Verse.EncoderDescriptors
 {
-	class TreeEncoderDescriptor<TEntity, TState, TValue> : BaseEncoderDescriptor<TEntity, TValue>
+	class TreeEncoderDescriptor<TEntity, TState, TNative> : IEncoderDescriptor<TEntity>
 	{
-		private readonly IWriterSession<TState> session;
+		private readonly IEncoderConverter<TNative> converter;
 
-		private readonly TreeWriter<TState, TEntity, TValue> writer;
+		private readonly WriterDefinition<TState, TNative, TEntity> definition;
 
-		public TreeEncoderDescriptor(IEncoderConverter<TValue> converter, IWriterSession<TState> session, TreeWriter<TState, TEntity, TValue> writer) :
-			base(converter)
+		public TreeEncoderDescriptor(IEncoderConverter<TNative> converter, WriterDefinition<TState, TNative, TEntity> definition)
 		{
-			this.session = session;
-			this.writer = writer;
+			this.converter = converter;
+			this.definition = definition;
 		}
 
-		public IEncoder<TEntity> CreateEncoder()
+		public IEncoder<TEntity> CreateEncoder(IWriterSession<TState, TNative> session)
 		{
-			return new Encoder<TEntity, TState>(this.session, this.writer);
+			return new TreeEncoder<TState, TNative, TEntity>(session, this.definition.Callback);
 		}
 
-		public override IEncoderDescriptor<TField> HasField<TField>(string name, Func<TEntity, TField> access, IEncoderDescriptor<TField> parent)
+		public IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> getter, IEncoderDescriptor<TElement> descriptor)
 		{
-			if (!(parent is TreeEncoderDescriptor<TField, TState, TValue> descriptor))
-				throw new ArgumentOutOfRangeException(nameof(parent), "incompatible descriptor type");
+			if (!(descriptor is TreeEncoderDescriptor<TElement, TState, TNative> ancestor))
+				throw new ArgumentOutOfRangeException(nameof(descriptor), "incompatible descriptor type");
 
-			return this.HasField(name, access, descriptor);
+			var definition = ancestor.definition;
+
+			this.definition.Callback = (session, state, entity) => session.WriteArray(state, getter(entity), definition.Callback);
+
+			return ancestor;
 		}
 
-		public override IEncoderDescriptor<TField> HasField<TField>(string name, Func<TEntity, TField> access)
+		public IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> getter)
 		{
-			return this.HasField(name, access, new TreeEncoderDescriptor<TField, TState, TValue>(this.converter, this.session, this.writer.Create<TField>()));
+			var definition = this.definition.Create<TElement>();
+			var descriptor = new TreeEncoderDescriptor<TElement, TState, TNative>(this.converter, definition);
+
+			return this.IsArray(getter, descriptor);
 		}
 
-		public override IEncoderDescriptor<TItem> HasItems<TItem>(Func<TEntity, IEnumerable<TItem>> access, IEncoderDescriptor<TItem> parent)
+		public IEncoderObjectDescriptor<TObject> IsObject<TObject>(Func<TEntity, TObject> getter)
 		{
-			if (!(parent is TreeEncoderDescriptor<TItem, TState, TValue> descriptor))
-				throw new ArgumentOutOfRangeException(nameof(parent), "incompatible descriptor type");
+			var definition = this.definition.Create<TObject>();
+			var fields = new Dictionary<string, WriterCallback<TState, TNative, TObject>>();
 
-			return this.IsArray(access, descriptor);
+			this.definition.Callback = (session, state, entity) => session.WriteObject(state, getter(entity), fields);
+
+			return new TreeEncoderDescriptor<TObject, TState, TNative>.ObjectDescriptor<TObject>(this.converter, definition, fields);
 		}
 
-		public override IEncoderDescriptor<TItem> HasItems<TItem>(Func<TEntity, IEnumerable<TItem>> access)
+		public IEncoderObjectDescriptor<TEntity> IsObject()
 		{
-			return this.IsArray(access, new TreeEncoderDescriptor<TItem, TState, TValue>(this.converter, this.session, this.writer.Create<TItem>()));
+			return this.IsObject(self => self);
 		}
 
-		public override void IsValue()
+		public void IsValue<TValue>(Func<TEntity, TValue> converter)
 		{
-			this.writer.DeclareValue(this.GetConverter());
+			var native = this.converter.Get<TValue>();
+
+			this.definition.Callback = (session, state, entity) => session.WriteValue(state, native(converter(entity)));
 		}
 
-		private TreeEncoderDescriptor<TField, TState, TValue> HasField<TField>(string name, Func<TEntity, TField> access, TreeEncoderDescriptor<TField, TState, TValue> descriptor)
+		public void IsValue()
 		{
-			var child = descriptor.writer;
+			var converter = this.converter.Get<TEntity>();
 
-			this.writer.DeclareField(name, (state, source) => child.Write(state, access(source)));
-
-			return descriptor;
+			this.definition.Callback = (session, state, entity) => session.WriteValue(state, converter(entity));
 		}
 
-		private TreeEncoderDescriptor<TItem, TState, TValue> IsArray<TItem>(Func<TEntity, IEnumerable<TItem>> access, TreeEncoderDescriptor<TItem, TState, TValue> descriptor)
+		private class ObjectDescriptor<TObject> : IEncoderObjectDescriptor<TObject>
 		{
-			var child = descriptor.writer;
+			private readonly WriterDefinition<TState, TNative, TObject> definition;
+			private readonly IEncoderConverter<TNative> converter;
+			private readonly Dictionary<string, WriterCallback<TState, TNative, TObject>> fields;
 
-			this.writer.DeclareArray((state, source) => child.WriteElements(state, access(source)));
+			public ObjectDescriptor(IEncoderConverter<TNative> converter, WriterDefinition<TState, TNative, TObject> definition, Dictionary<string, WriterCallback<TState, TNative, TObject>> fields)
+			{
+				this.converter = converter;
+				this.definition = definition;
+				this.fields = fields;
+			}
 
-			return descriptor;
+			public IEncoderDescriptor<TField> HasField<TField>(string name, Func<TObject, TField> getter, IEncoderDescriptor<TField> descriptor)
+			{
+				if (!(descriptor is TreeEncoderDescriptor<TField, TState, TNative> ancestor))
+					throw new ArgumentOutOfRangeException(nameof(descriptor), "incompatible descriptor type");
+
+				return this.HasField(name, getter, ancestor);
+			}
+
+			public IEncoderDescriptor<TField> HasField<TField>(string name, Func<TObject, TField> getter)
+			{
+				var definition = this.definition.Create<TField>();
+				var descriptor = new TreeEncoderDescriptor<TField, TState, TNative>(this.converter, definition);
+
+				return this.HasField(name, getter, descriptor);
+			}
+
+			private IEncoderDescriptor<TField> HasField<TField>(string name, Func<TObject, TField> getter, TreeEncoderDescriptor<TField, TState, TNative> descriptor)
+			{
+				if (this.fields.ContainsKey(name))
+					throw new InvalidOperationException($"field '{name}' was declared twice on same descriptor");
+
+				var definition = descriptor.definition;
+
+				this.fields[name] = (session, state, entity) => definition.Callback(session, state, getter(entity));
+
+				return descriptor;
+			}
 		}
 	}
 }

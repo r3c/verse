@@ -327,7 +327,8 @@ namespace Verse.Test.Schemas
 
 			schema = new ProtobufSchema<ProtobufValue>();
 			schema.EncoderDescriptor
-				.HasField("_1")
+				.IsObject()
+				.HasField("_1", v => v)
 				.IsValue();
 
 			switch (type)
@@ -374,8 +375,9 @@ namespace Verse.Test.Schemas
 			TestFieldClass<T> testFieldClass;
 
 			schema.EncoderDescriptor
-				.HasField("_2")
-				.HasItems(source => source)
+				.IsObject()
+				.HasField("_2", v => v)
+				.IsArray(source => source)
 				.IsValue();
 
 			testFieldClass = ProtobufSchemaTester.EncodeTranscode<List<T>, TestFieldClass<T>>(schema.CreateEncoder(), new List<T>(expectedItems));
@@ -402,7 +404,9 @@ namespace Verse.Test.Schemas
 			testFieldClass.subValue.value = expectedValue;
 
 			schema.EncoderDescriptor
+				.IsObject()
 				.HasField("_3", target => target.subValue)
+				.IsObject()
 				.HasField("_4", target => target.value)
 				.IsValue();
 
@@ -439,9 +443,12 @@ namespace Verse.Test.Schemas
 			}
 
 			schema.EncoderDescriptor
-				.HasField("_2")
-				.HasItems(source => source.items)
+				.IsObject()
+				.HasField("_2", v => v)
+				.IsArray(source => source.items)
+				.IsObject()
 				.HasField("_3", target => target.subValue)
+				.IsObject()
 				.HasField("_4", target => target.value)
 				.IsValue();
 

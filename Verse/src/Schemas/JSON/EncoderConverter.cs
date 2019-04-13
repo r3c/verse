@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using Verse.EncoderDescriptors.Base;
+using Verse.EncoderDescriptors.Tree;
 
 namespace Verse.Schemas.JSON
 {
@@ -28,7 +28,7 @@ namespace Verse.Schemas.JSON
 
 		public Converter<TFrom, JSONValue> Get<TFrom>()
 		{
-		    if (!this.converters.TryGetValue(typeof (TFrom), out var box))
+			if (!this.converters.TryGetValue(typeof (TFrom), out var box))
 				throw new InvalidCastException(string.Format(CultureInfo.InvariantCulture, "cannot convert '{0}' into JSON value, please register a converter using schema's SetEncoderConverter method", typeof (TFrom)));
 
 			return (Converter<TFrom, JSONValue>)box;
@@ -36,7 +36,7 @@ namespace Verse.Schemas.JSON
 
 		public void Set<TFrom>(Converter<TFrom, JSONValue> converter)
 		{
-            this.converters[typeof (TFrom)] = converter ?? throw new ArgumentNullException(nameof(converter));
+			this.converters[typeof (TFrom)] = converter ?? throw new ArgumentNullException(nameof(converter));
 		}
 	}
 }

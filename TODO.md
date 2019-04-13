@@ -8,7 +8,12 @@ TODO
 - Change .IsArray method, see comment in RecurseDecoderDescriptor
 - Factorize "Ignore" methods in all leaf IReader implementations
 - Support configuration options for Protobuf schema [proto-settings]
-- IDecoderStream & IEncoderStream should be IDisposable
+- IDecoderStream & IEncoderStream should be IDisposable and flush at dispose
+- Rename IDecoder.TryOpen to IDecoder.Open
+- Rename IEncoder.TryOpen to IEncoder.Open
+- Rename IDecoderStream.Decode to IDecoderStream.TryDecode
+- Return true from IEncoderStream.Encode
+- Allow decoding converters to return false
 
 DONE
 ----

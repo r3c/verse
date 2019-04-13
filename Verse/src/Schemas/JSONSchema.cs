@@ -2,6 +2,7 @@ using System;
 using System.Text;
 using Verse.DecoderDescriptors;
 using Verse.EncoderDescriptors;
+using Verse.EncoderDescriptors.Tree;
 using Verse.Schemas.JSON;
 
 namespace Verse.Schemas
@@ -15,10 +16,12 @@ namespace Verse.Schemas
 		/// <inheritdoc/>
 		public IDecoderDescriptor<TEntity> DecoderDescriptor => this.decoderDescriptor;
 
-	    /// <inheritdoc/>
+		/// <inheritdoc/>
 		public IEncoderDescriptor<TEntity> EncoderDescriptor => this.encoderDescriptor;
 
-	    private readonly DecoderConverter decoderConverter;
+		private readonly JSONConfiguration configuration;
+
+		private readonly DecoderConverter decoderConverter;
 
 		private readonly TreeDecoderDescriptor<TEntity, ReaderState, JSONValue> decoderDescriptor;
 
@@ -29,26 +32,28 @@ namespace Verse.Schemas
 		/// <summary>
 		/// Create new JSON schema using given settings
 		/// </summary>
-		/// <param name="settings">Text encoding, ignore null...</param>
-		public JSONSchema(JSONConfiguration settings)
+		/// <param name="configuration">Text encoding, ignore null...</param>
+		public JSONSchema(JSONConfiguration configuration)
 		{
-			var encoding = settings.Encoding ?? new UTF8Encoding(false);
+			var encoding = configuration.Encoding ?? new UTF8Encoding(false);
+			var writerDefinition = new WriterDefinition<WriterState, JSONValue, TEntity>();
 
+			this.configuration = configuration;
 			this.decoderConverter = new DecoderConverter();
 			this.encoderConverter = new EncoderConverter();
 			this.decoderDescriptor = new TreeDecoderDescriptor<TEntity, ReaderState, JSONValue>(this.decoderConverter, new ReaderSession(encoding), new Reader<TEntity>());
-			this.encoderDescriptor = new TreeEncoderDescriptor<TEntity, WriterState, JSONValue>(this.encoderConverter, new WriterSession(encoding, settings.OmitNull), new Writer<TEntity>());
+			this.encoderDescriptor = new TreeEncoderDescriptor<TEntity, WriterState, JSONValue>(this.encoderConverter, writerDefinition);
 		}
 
-	    /// <summary>
-	    /// Create JSON schema using default UTF8 encoding.
-	    /// </summary>
-	    public JSONSchema()
-	        : this(default)
-	    {
-	    }
+		/// <summary>
+		/// Create JSON schema using default UTF8 encoding.
+		/// </summary>
+		public JSONSchema()
+			: this(default)
+		{
+		}
 
-	    /// <inheritdoc/>
+		/// <inheritdoc/>
 		public IDecoder<TEntity> CreateDecoder()
 		{
 			return this.decoderDescriptor.CreateDecoder();
@@ -57,7 +62,10 @@ namespace Verse.Schemas
 		/// <inheritdoc/>
 		public IEncoder<TEntity> CreateEncoder()
 		{
-			return this.encoderDescriptor.CreateEncoder();
+			var encoding = this.configuration.Encoding ?? new UTF8Encoding(false);
+			var session = new WriterSession(encoding, this.configuration.OmitNull);
+
+			return this.encoderDescriptor.CreateEncoder(session);
 		}
 
 		/// <summary>

@@ -12,60 +12,52 @@ namespace Verse
 	public interface IEncoderDescriptor<out TEntity>
 	{
 		/// <summary>
-		/// Declare new named schema field and reuse previously existing
-		/// descriptor to define how it should be encoded. This method
-		/// can be used to describe recursive schemas.
+		/// Declare entity as a collection of elements and reuse existing
+		/// descriptor to define how they should be encoded. This method can be
+		/// used to describe recursive schemas.
 		/// </summary>
-		/// <typeparam name="TField">Field type</typeparam>
-		/// <param name="name">Field name</param>
-		/// <param name="access">Access child entity from current one</param>
-		/// <param name="parent">Existing encoder descriptor</param>
-		/// <returns>Field encoder descriptor</returns>
-		IEncoderDescriptor<TField> HasField<TField>(string name, Func<TEntity, TField> access, IEncoderDescriptor<TField> parent);
-
-		/// <summary>
-		/// Declare new named schema field which should be encoded from a new
-		/// child entity. Resulting descriptor defines how this field should
-		/// be encoded from child entity.
-		/// </summary>
-		/// <typeparam name="TField">Field type</typeparam>
-		/// <param name="name">Field name</param>
-		/// <param name="access">Access child entity from current one</param>
-		/// <returns>Field encoder descriptor</returns>
-		IEncoderDescriptor<TField> HasField<TField>(string name, Func<TEntity, TField> access);
-
-		/// <summary>
-		/// Declare new named schema field which should be encoded from current
-		/// entity. Resulting descriptor defines how contents under this field
-		/// should be encoded from entity.
-		/// </summary>
-		/// <param name="name">Field name</param>
-		/// <returns>Entity encoder descriptor</returns>
-		IEncoderDescriptor<TEntity> HasField(string name);
-
-		/// <summary>
-		/// Declare new elements collection within current entity, and reuse
-		/// existing encoder to describe them.
-		/// </summary>
-		/// <typeparam name="TItem">Element type</typeparam>
-		/// <param name="access">Parent entity to elements accessor delegate</param>
-		/// <param name="parent">Existing encoder descriptor for this elements
-		/// collection, needed if you want to declare recursive entities</param>
+		/// <typeparam name="TElement">Element type</typeparam>
+		/// <param name="getter">Elements getter from current entity</param>
+		/// <param name="descriptor">Existing encoder descriptor</param>
 		/// <returns>Element encoder descriptor</returns>
-		IEncoderDescriptor<TItem> HasItems<TItem>(Func<TEntity, IEnumerable<TItem>> access, IEncoderDescriptor<TItem> parent);
+		IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> getter, IEncoderDescriptor<TElement> descriptor);
 
 		/// <summary>
-		/// Declare new elements collection within current entity.
+		/// Declare entity as a collection of elements. Resulting descriptor
+		/// defines how elements should be encoded.
 		/// </summary>
-		/// <typeparam name="TItem">Element type</typeparam>
-		/// <param name="access">Parent entity to elements accessor delegate</param>
+		/// <typeparam name="TElement">Element type</typeparam>
+		/// <param name="getter">Elements getter from current entity</param>
 		/// <returns>Element encoder descriptor</returns>
-		IEncoderDescriptor<TItem> HasItems<TItem>(Func<TEntity, IEnumerable<TItem>> access);
+		IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> getter);
 
 		/// <summary>
-		/// Declare entity as a value. Entity type must have a known encoder
-		/// declared (through its schema), otherwise you'll get a type error
-		/// when calling this method.
+		/// Declare entity as a complex object using a getter to read its
+		/// value. Resulting field descriptor defines how its contents should
+		/// be encoded.
+		/// </summary>
+		/// <typeparam name="TElement">Element type</typeparam>
+		/// <param name="getter">Object getter from current entity</param>
+		/// <returns>Object encoder field descriptor</returns>
+		IEncoderObjectDescriptor<TObject> IsObject<TObject>(Func<TEntity, TObject> getter);
+
+		/// <summary>
+		/// Declare entity as a complex object. Resulting field descriptor
+		/// defines how its contents should be encoded.
+		/// </summary>
+		/// <typeparam name="TElement">Element type</typeparam>
+		/// <returns>Object encoder field descriptor</returns>
+		IEncoderObjectDescriptor<TEntity> IsObject();
+
+		/// <summary>
+		/// Declare entity as a value and use given converter to access it.
+		/// </summary>
+		/// <param name="converter">Entity to value converter</param>
+		void IsValue<TValue>(Func<TEntity, TValue> converter);
+
+		/// <summary>
+		/// Declare entity as a value. Its type must be natively compatible
+		/// with current schema or have a custom encoder declared.
 		/// </summary>
 		void IsValue();
 	}
