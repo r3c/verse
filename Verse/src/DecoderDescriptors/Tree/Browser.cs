@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Verse.DecoderDescriptors.Tree
 {
-	class Browser<TEntity> : IDisposable, IEnumerable<TEntity>
+	internal class Browser<TEntity> : IDisposable, IEnumerable<TEntity>
 	{
 		private Enumerator enumerator;
 

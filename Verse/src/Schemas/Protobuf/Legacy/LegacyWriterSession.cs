@@ -4,7 +4,7 @@ using Verse.EncoderDescriptors.Tree;
 
 namespace Verse.Schemas.Protobuf.Legacy
 {
-	class LegacyWriterSession : IWriterSession<LegacyWriterState, ProtobufValue>
+	internal class LegacyWriterSession : IWriterSession<LegacyWriterState, ProtobufValue>
 	{
 		public bool Start(Stream stream, EncodeError error, out LegacyWriterState state)
 		{

@@ -21,7 +21,7 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new JSONSchema<double[]>();
 
-			schema.DecoderDescriptor.HasItems((ref double[] target, IEnumerable<double> items) => target = items.ToArray()).IsValue();
+			schema.DecoderDescriptor.IsArray<double>(elements => elements.ToArray()).IsValue();
 
 			var decoder = schema.CreateDecoder();
 
@@ -66,7 +66,7 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new JSONSchema<int>();
 
-			schema.DecoderDescriptor.HasField("match").IsValue();
+			schema.DecoderDescriptor.IsObject(() => default).HasField("match", (ref int o, int v) => o = v).IsValue();
 
 			this.AssertDecodeAndEqual(schema, "{\"match1\": 17}", 0);
 			this.AssertDecodeAndEqual(schema, "{\"matc\": 17}", 0);
@@ -77,7 +77,7 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new JSONSchema<int>();
 
-			schema.DecoderDescriptor.HasField("match").IsValue();
+			schema.DecoderDescriptor.IsObject(() => default).HasField("match", (ref int o, int v) => o = v).IsValue();
 
 			this.AssertDecodeAndEqual(schema, "{\"unknown\": {\"match\": 17}}", 0);
 		}
@@ -92,7 +92,7 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new JSONSchema<T>();
 
-			schema.DecoderDescriptor.HasField(name).IsValue();
+			schema.DecoderDescriptor.IsObject(() => default).HasField(name, (ref T o, T v) => o = v).IsValue();
 
 			this.AssertDecodeAndEqual(schema, json, expected);
 		}
@@ -103,8 +103,9 @@ namespace Verse.Test.Schemas
 			var schema = new JSONSchema<RecursiveEntity>();
 			var descriptor = schema.DecoderDescriptor;
 
-			descriptor.HasField("f", (ref RecursiveEntity r, RecursiveEntity v) => r.field = v, descriptor);
-			descriptor.HasField("v", (ref RecursiveEntity r, int v) => r.value = v).IsValue();
+			var root = descriptor.IsObject(() => new RecursiveEntity());
+			root.HasField("f", (ref RecursiveEntity r, RecursiveEntity v) => r.field = v, descriptor);
+			root.HasField("v", (ref RecursiveEntity r, int v) => r.value = v).IsValue();
 
 			var decoder = schema.CreateDecoder();
 
@@ -126,8 +127,7 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new JSONSchema<int>();
 
-			schema.DecoderDescriptor.HasItems<string>((ref int target, IEnumerable<string> elements) => target = elements.Count());
-			schema.DecoderDescriptor.IsValue();
+			schema.DecoderDescriptor.IsArray<string>(elements => elements.Count()).IsValue();
 
 			this.AssertDecodeAndEqual(schema, json, 0);
 		}
@@ -135,16 +135,23 @@ namespace Verse.Test.Schemas
 		[Test]
 		public void DecodeValueWithCustomConstructor()
 		{
-			var schema = new JSONSchema<Tuple<Tuple<int, int>>>();
+			const int fromConstructor = 17;
+			const int fromConverter = 42;
 
-			schema.DecoderDescriptor.CanCreate(() => Tuple.Create(0, 0));
+			var schema = new JSONSchema<Tuple<Tuple<int, int, int>, int>>();
 
-			var descriptor = schema.DecoderDescriptor.HasField("tuple", (ref Tuple<Tuple<int, int>> target, Tuple<int, int> value) => target = Tuple.Create(value));
+			var root = schema.DecoderDescriptor.IsObject(() => Tuple.Create(0, 0, fromConstructor),
+				v => Tuple.Create(v, fromConverter));
 
-			descriptor.HasField("a", (ref Tuple<int, int> target, int value) => target = Tuple.Create(value, target.Item2)).IsValue();
-			descriptor.HasField("b", (ref Tuple<int, int> target, int value) => target = Tuple.Create(target.Item1, value)).IsValue();
+			var tuple = root
+				.HasField("tuple",
+					(ref Tuple<int, int, int> t, Tuple<int, int> v) => t = Tuple.Create(v.Item1, v.Item2, t.Item3))
+				.IsObject(() => Tuple.Create(0, 0));
 
-			this.AssertDecodeAndEqual(schema, "{\"tuple\": {\"a\": 5, \"b\": 7}}", Tuple.Create(Tuple.Create(5, 7)));
+			tuple.HasField("a", (ref Tuple<int, int> target, int value) => target = Tuple.Create(value, target.Item2)).IsValue();
+			tuple.HasField("b", (ref Tuple<int, int> target, int value) => target = Tuple.Create(target.Item1, value)).IsValue();
+
+			this.AssertDecodeAndEqual(schema, "{\"tuple\": {\"a\": 5, \"b\": 7}}", Tuple.Create(Tuple.Create(5, 7, fromConstructor), fromConverter));
 		}
 
 		[Test]

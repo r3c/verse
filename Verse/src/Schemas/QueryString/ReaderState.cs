@@ -9,6 +9,8 @@ namespace Verse.Schemas.QueryString
 
 		public readonly Encoding Encoding;
 
+		public QueryStringLocation Location;
+
 		private readonly DecodeError error;
 
 		private int position;
@@ -25,6 +27,8 @@ namespace Verse.Schemas.QueryString
 			this.reader = new StreamReader(stream, encoding);
 
 			this.Pull();
+
+			this.Location = QueryStringLocation.Sequence;
 		}
 
 		public void Error(string message)

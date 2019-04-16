@@ -11,8 +11,8 @@ namespace Verse
 		/// <summary>
 		/// Read entity from input stream.
 		/// </summary>
-		/// <param name="output">Output entity</param>
+		/// <param name="entity">Output entity</param>
 		/// <returns>True if decoding succeeded, false otherwise</returns>
-		bool Decode(out TEntity output);
+		bool Decode(out TEntity entity);
 	}
 }

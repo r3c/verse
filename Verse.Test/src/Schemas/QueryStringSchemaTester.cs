@@ -37,7 +37,7 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new QueryStringSchema<T>();
 
-			schema.DecoderDescriptor.HasField(name).IsValue();
+			schema.DecoderDescriptor.IsObject(() => default).HasField(name, (ref T t, T v) => t = v).IsValue();
 
 			T value = QueryStringSchemaTester.Decode(schema, query);
 
@@ -54,7 +54,7 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new QueryStringSchema<T>();
 
-			schema.DecoderDescriptor.HasField(name).IsValue();
+			schema.DecoderDescriptor.IsObject(() => default).HasField(name, (ref T t, T v) => t = v).IsValue();
 
 			T value = QueryStringSchemaTester.Decode(schema, query);
 

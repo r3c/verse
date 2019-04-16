@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Emit;
 using Verse.Resolvers;
 using Verse.Tools;
 
@@ -34,7 +32,7 @@ namespace Verse
 
 		public static IDecoder<TEntity> CreateDecoder<TEntity>(ISchema<TEntity> schema)
 		{
-			return CreateDecoder(schema, BindingFlags.Instance | BindingFlags.Public);
+			return Linker.CreateDecoder(schema, BindingFlags.Instance | BindingFlags.Public);
 		}
 
 		/// <summary>
@@ -56,12 +54,12 @@ namespace Verse
 
 		public static IEncoder<TEntity> CreateEncoder<TEntity>(ISchema<TEntity> schema)
 		{
-			return CreateEncoder(schema, BindingFlags.Instance | BindingFlags.Public);
+			return Linker.CreateEncoder(schema, BindingFlags.Instance | BindingFlags.Public);
 		}
 
-		private static DecodeAssign<T[], IEnumerable<T>> CreateArraySetter<T>()
+		private static Func<IEnumerable<T>, T[]> CreateArrayConverter<T>()
 		{
-			return (ref T[] target, IEnumerable<T> value) => target = value.ToArray();
+			return elements => elements.ToArray();
 		}
 
 		private static Func<T, T> CreateIdentity<T>()
@@ -75,7 +73,7 @@ namespace Verse
 
 			parents[type] = descriptor;
 
-			if (TryLinkDecoderAsValue(descriptor))
+			if (Linker.TryLinkDecoderAsValue(descriptor))
 				return true;
 
 			// Bind descriptor as an array of target type is also array
@@ -83,7 +81,7 @@ namespace Verse
 			{
 				var element = type.GetElementType();
 				var setter = MethodResolver
-					.Create<Func<DecodeAssign<object[], object[]>>>(() => Linker.CreateArraySetter<object>())
+					.Create<Func<Func<IEnumerable<object>, object[]>>>(() => Linker.CreateArrayConverter<object>())
 					.SetGenericArguments(element)
 					.Invoke(null);
 
@@ -118,6 +116,9 @@ namespace Verse
 				}
 			}
 
+			// Try to bind descriptor as a complex object otherwise
+			var fieldDescriptor = descriptor.IsObject(Generator.CreateConstructor<T>());
+
 			// Bind readable and writable instance properties
 			foreach (PropertyInfo property in type.GetProperties(bindings))
 			{
@@ -126,7 +127,7 @@ namespace Verse
 
 				var setter = Generator.CreatePropertySetter(property);
 
-				if (!Linker.LinkDecoderAsObject(descriptor, bindings, property.PropertyType, property.Name, setter, parents))
+				if (!Linker.LinkDecoderAsObject(fieldDescriptor, bindings, property.PropertyType, property.Name, setter, parents))
 					return false;
 			}
 
@@ -138,7 +139,7 @@ namespace Verse
 
 				var setter = Generator.CreateFieldSetter(field);
 
-				if (!Linker.LinkDecoderAsObject(descriptor, bindings, field.FieldType, field.Name, setter, parents))
+				if (!Linker.LinkDecoderAsObject(fieldDescriptor, bindings, field.FieldType, field.Name, setter, parents))
 					return false;
 			}
 
@@ -151,7 +152,7 @@ namespace Verse
 			if (parents.TryGetValue(type, out var recurse))
 			{
 				MethodResolver
-					.Create<Func<IDecoderDescriptor<TEntity>, DecodeAssign<TEntity, IEnumerable<object>>, IDecoderDescriptor<object>, IDecoderDescriptor<object>>>((d, a, p) => d.HasItems(a, p))
+					.Create<Func<IDecoderDescriptor<TEntity>, Func<IEnumerable<object>, TEntity>, IDecoderDescriptor<object>, IDecoderDescriptor<object>>>((d, a, p) => d.IsArray(a, p))
 					.SetGenericArguments(type)
 					.Invoke(descriptor, setter, recurse);
 
@@ -159,7 +160,7 @@ namespace Verse
 			}
 
 			var itemDescriptor = MethodResolver
-				.Create<Func<IDecoderDescriptor<TEntity>, DecodeAssign<TEntity, IEnumerable<object>>, IDecoderDescriptor<object>>>((d, a) => d.HasItems(a))
+				.Create<Func<IDecoderDescriptor<TEntity>, Func<IEnumerable<object>, TEntity>, IDecoderDescriptor<object>>>((d, a) => d.IsArray(a))
 				.SetGenericArguments(type)
 				.Invoke(descriptor, setter);
 
@@ -171,21 +172,21 @@ namespace Verse
 			return result is bool success && success;
 		}
 
-		private static bool LinkDecoderAsObject<TEntity>(IDecoderDescriptor<TEntity> descriptor, BindingFlags bindings,
+		private static bool LinkDecoderAsObject<TEntity>(IDecoderObjectDescriptor<TEntity> descriptor, BindingFlags bindings,
 			Type type, string name, object setter, IDictionary<Type, object> parents)
 		{
-			if (parents.TryGetValue(type, out var recurse))
+			if (parents.TryGetValue(type, out var parent))
 			{
 				MethodResolver
-					.Create<Func<IDecoderDescriptor<TEntity>, string, DecodeAssign<TEntity, object>, IDecoderDescriptor<object>, IDecoderDescriptor<object>>>((d, n, a, p) => d.HasField(n, a, p))
+					.Create<Func<IDecoderObjectDescriptor<TEntity>, string, Setter<TEntity, object>, IDecoderDescriptor<object>, IDecoderDescriptor<object>>>((d, n, a, p) => d.HasField(n, a, p))
 					.SetGenericArguments(type)
-					.Invoke(descriptor, name, setter, recurse);
+					.Invoke(descriptor, name, setter, parent);
 
 				return true;
 			}
 
 			var fieldDescriptor = MethodResolver
-				.Create<Func<IDecoderDescriptor<TEntity>, string, DecodeAssign<TEntity, object>, IDecoderDescriptor<object>>>((d, n, a) => d.HasField(n, a))
+				.Create<Func<IDecoderObjectDescriptor<TEntity>, string, Setter<TEntity, object>, IDecoderDescriptor<object>>>((d, n, a) => d.HasField(n, a))
 				.SetGenericArguments(type)
 				.Invoke(descriptor, name, setter);
 
@@ -203,7 +204,7 @@ namespace Verse
 
 			parents[type] = descriptor;
 
-			if (TryLinkEncoderAsValue(descriptor))
+			if (Linker.TryLinkEncoderAsValue(descriptor))
 				return true;
 
 			// Bind descriptor as an array of target type is also array
@@ -316,7 +317,7 @@ namespace Verse
 			return result is bool success && success;
 		}
 
-		public static bool TryLinkDecoderAsValue<TEntity>(IDecoderDescriptor<TEntity> descriptor)
+		private static bool TryLinkDecoderAsValue<TEntity>(IDecoderDescriptor<TEntity> descriptor)
 		{
 			try
 			{
@@ -331,7 +332,7 @@ namespace Verse
 			}
 		}
 
-		public static bool TryLinkEncoderAsValue<TEntity>(IEncoderDescriptor<TEntity> descriptor)
+		private static bool TryLinkEncoderAsValue<TEntity>(IEncoderDescriptor<TEntity> descriptor)
 		{
 			try
 			{

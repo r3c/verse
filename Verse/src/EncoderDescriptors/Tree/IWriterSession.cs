@@ -9,9 +9,9 @@ namespace Verse.EncoderDescriptors.Tree
 
 		void Stop(TState state);
 
-		void WriteArray<TEntity>(TState state, IEnumerable<TEntity> elements, WriterCallback<TState, TNative, TEntity> callback);
+		void WriteArray<TElement>(TState state, IEnumerable<TElement> elements, WriterCallback<TState, TNative, TElement> callback);
 
-		void WriteObject<TEntity>(TState state, TEntity parent, IReadOnlyDictionary<string, WriterCallback<TState, TNative, TEntity>> fields);
+		void WriteObject<TObject>(TState state, TObject source, IReadOnlyDictionary<string, WriterCallback<TState, TNative, TObject>> fields);
 
 		void WriteValue(TState state, TNative value);
 	}

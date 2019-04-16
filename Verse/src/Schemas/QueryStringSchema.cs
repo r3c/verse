@@ -1,6 +1,7 @@
 using System;
 using System.Text;
 using Verse.DecoderDescriptors;
+using Verse.DecoderDescriptors.Tree;
 using Verse.Schemas.QueryString;
 
 namespace Verse.Schemas
@@ -9,18 +10,21 @@ namespace Verse.Schemas
 	{
 		public IDecoderDescriptor<TEntity> DecoderDescriptor => this.decoderDescriptor;
 
-	    public IEncoderDescriptor<TEntity> EncoderDescriptor => throw new NotImplementedException("encoding not implemented");
+		public IEncoderDescriptor<TEntity> EncoderDescriptor => throw new NotImplementedException("encoding not implemented");
 
-	    private readonly DecoderConverter decoderConverter;
+		private readonly DecoderConverter decoderConverter;
 
-		private readonly FlatDecoderDescriptor<TEntity, ReaderState, string> decoderDescriptor;
+		private readonly TreeDecoderDescriptor<TEntity, ReaderState, string> decoderDescriptor;
+
+		private readonly Encoding encoding;
 
 		public QueryStringSchema(Encoding encoding)
 		{
-			var sourceConverter = new DecoderConverter();
+			var decoderConverter = new DecoderConverter();
 
-			this.decoderConverter = sourceConverter;
-			this.decoderDescriptor = new FlatDecoderDescriptor<TEntity, ReaderState, string>(sourceConverter, new ReaderSession(encoding), new Reader<TEntity>());
+			this.decoderConverter = decoderConverter;
+			this.decoderDescriptor = new TreeDecoderDescriptor<TEntity, ReaderState, string>(decoderConverter, new ReaderDefinition<ReaderState, string, TEntity>());
+			this.encoding = encoding;
 		}
 
 		public QueryStringSchema() :
@@ -31,7 +35,7 @@ namespace Verse.Schemas
 		/// <inheritdoc/>
 		public IDecoder<TEntity> CreateDecoder()
 		{
-			return this.decoderDescriptor.CreateDecoder();
+			return this.decoderDescriptor.CreateDecoder(new ReaderSession(this.encoding));
 		}
 
 		/// <inheritdoc/>

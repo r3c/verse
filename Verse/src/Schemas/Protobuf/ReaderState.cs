@@ -15,7 +15,7 @@ namespace Verse.Schemas.Protobuf
         {
             this.error = error;
             this.Stream = stream;
-            this.Value = ProtobufValue.Void;
+            this.Value = ProtobufValue.Empty;
         }
 
         public void RaiseError(string format, params object[] args)

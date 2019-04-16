@@ -74,9 +74,9 @@ namespace Verse.Schemas.Protobuf.Definition
 
                 case LexemType.Symbol:
                     if (lexer.Current.Value == "false")
-                        value = new ProtobufValue(false);
+                        value = default; // FIXME: new ProtobufValue(false);
                     else if (lexer.Current.Value == "true")
-                        value = new ProtobufValue(true);
+                        value = default; // FIXME: new ProtobufValue(true);
                     else
                         break;
 
@@ -306,7 +306,7 @@ namespace Verse.Schemas.Protobuf.Definition
             if (int.TryParse(number, NumberStyles.Integer, CultureInfo.InvariantCulture, out var asInteger))
                 return new ProtobufValue(sign * asInteger);
             else if (double.TryParse(number, NumberStyles.Float, CultureInfo.InvariantCulture, out var asDecimal))
-                return new ProtobufValue(sign * asDecimal);
+                return default; // FIXME: new ProtobufValue(sign * asDecimal);
             else
                 throw new ParserException(lexer.Position, "invalid literal number");
         }

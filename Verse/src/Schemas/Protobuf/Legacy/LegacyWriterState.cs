@@ -5,7 +5,7 @@ using ProtoBuf;
 
 namespace Verse.Schemas.Protobuf.Legacy
 {
-	class LegacyWriterState
+	internal class LegacyWriterState
 	{
 		private readonly EncodeError error;
 

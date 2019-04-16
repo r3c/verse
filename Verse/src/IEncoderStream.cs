@@ -11,8 +11,8 @@ namespace Verse
 		/// <summary>
 		/// Write entity to output stream.
 		/// </summary>
-		/// <param name="input">Input entity</param>
+		/// <param name="entity">Input entity</param>
 		/// <returns>True if encoding succeeded, false otherwise</returns>
-		bool Encode(TEntity input);
+		bool Encode(TEntity entity);
 	}
 }

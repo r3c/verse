@@ -58,7 +58,7 @@ namespace Verse.Bench
 			builder.Append("]");
 
 			schema = new JSONSchema<long[]>();
-			schema.DecoderDescriptor.HasItems((ref long[] target, IEnumerable<long> value) => target = value.ToArray()).IsValue();
+			schema.DecoderDescriptor.IsArray<long>(elements => elements.ToArray()).IsValue();
 			decoder = schema.CreateDecoder();
 
 			this.BenchDecode(decoder, builder.ToString(), count);

@@ -47,7 +47,7 @@ namespace Verse.Tools
 		}
 
 		/// <summary>
-		/// Create DecoderAssign<T, U> delegate using compatible constructor.
+		/// Create Func<T, U> delegate using compatible constructor.
 		/// </summary>
 		public static object CreateConstructorSetter(ConstructorInfo constructor)
 		{
@@ -57,22 +57,15 @@ namespace Verse.Tools
 				throw new ArgumentException("constructor doesn't take one argument", nameof(constructor));
 
 			var parameterType = parameters[0].ParameterType;
-			var caller = constructor.DeclaringType;
-			var method = new DynamicMethod(string.Empty, null, new[] { caller.MakeByRefType(), parameterType }, constructor.Module, true);
+			var targetType = constructor.DeclaringType;
+			var method = new DynamicMethod(string.Empty, targetType, new[] { parameterType }, constructor.Module, true);
 			var generator = method.GetILGenerator();
 
 			generator.Emit(OpCodes.Ldarg_0);
-			generator.Emit(OpCodes.Ldarg_1);
 			generator.Emit(OpCodes.Newobj, constructor);
-
-			if (caller.IsValueType)
-				generator.Emit(OpCodes.Stobj, caller);
-			else
-				generator.Emit(OpCodes.Stind_Ref);
-
 			generator.Emit(OpCodes.Ret);
 
-			var type = typeof(DecodeAssign<,>).MakeGenericType(caller, parameterType);
+			var type = typeof(Func<,>).MakeGenericType(parameterType, targetType);
 
 			return method.CreateDelegate(type);
 		}
@@ -113,7 +106,7 @@ namespace Verse.Tools
 			generator.Emit(OpCodes.Stfld, field);
 			generator.Emit(OpCodes.Ret);
 
-			var methodType = typeof(DecodeAssign<,>).MakeGenericType(parentType, field.FieldType);
+			var methodType = typeof(Setter<,>).MakeGenericType(parentType, field.FieldType);
 
 			return method.CreateDelegate(methodType);
 		}
@@ -156,7 +149,7 @@ namespace Verse.Tools
 			generator.Emit(OpCodes.Call, property.GetSetMethod());
 			generator.Emit(OpCodes.Ret);
 
-			var methodType = typeof(DecodeAssign<,>).MakeGenericType(parentType, property.PropertyType);
+			var methodType = typeof(Setter<,>).MakeGenericType(parentType, property.PropertyType);
 
 			return method.CreateDelegate(methodType);
 		}

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using Verse.EncoderDescriptors.Tree;
 
-namespace Verse.Schemas.Protobuf
+namespace Verse.Schemas.Protobuf.Legacy
 {
-	internal class EncoderConverter : IEncoderConverter<ProtobufValue>
+	internal class LegacyEncoderConverter : IEncoderConverter<ProtobufValue>
 	{
 		private readonly Dictionary<Type, object> converters = new Dictionary<Type, object>
 		{

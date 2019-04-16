@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Verse.DecoderDescriptors;
+using Verse.DecoderDescriptors.Tree;
 using Verse.EncoderDescriptors;
 using Verse.EncoderDescriptors.Tree;
 using Verse.Schemas.Protobuf;
@@ -23,59 +24,71 @@ namespace Verse.Schemas
 
 		private readonly TreeEncoderDescriptor<TEntity, WriterState, ProtobufValue> encoderDescriptor;
 
+		private readonly LegacyDecoderConverter legacyDecoderConverter;
+
 		private readonly TreeDecoderDescriptor<TEntity, LegacyReaderState, ProtobufValue> legacyDecoderDescriptor;
+
+		private readonly LegacyEncoderConverter legacyEncoderConverter;
 
 		private readonly TreeEncoderDescriptor<TEntity, LegacyWriterState, ProtobufValue> legacyEncoderDescriptor;
 
 		public ProtobufSchema(TextReader proto, string messageName, ProtobufConfiguration configuration)
 		{
-			var bindings = Parser.Parse(proto).Resolve(messageName);
-			var decoders = new DecoderConverter();
-			var encoders = new EncoderConverter();
-
 			// Native implementation
-			this.decoderConverter = decoders;
-			this.decoderDescriptor = new TreeDecoderDescriptor<TEntity, ReaderState, ProtobufValue>(decoders, new ReaderSession(), new Reader<TEntity>(bindings, configuration.RejectUnknown));
-
+			var bindings = Parser.Parse(proto).Resolve(messageName);
+			var decoderConverter = new DecoderConverter();
+			var encoderConverter = new EncoderConverter();
+			var reader = new Reader<TEntity>(bindings, configuration.RejectUnknown);
 			var writer = new Writer<TEntity>(bindings);
 
-			this.encoderConverter = encoders;
-			this.encoderDescriptor = new TreeEncoderDescriptor<TEntity, WriterState, ProtobufValue>(encoders, writer);
+			this.decoderConverter = decoderConverter;
+			this.decoderDescriptor =
+				new TreeDecoderDescriptor<TEntity, ReaderState, ProtobufValue>(decoderConverter, reader);
+
+			this.encoderConverter = encoderConverter;
+			this.encoderDescriptor =
+				new TreeEncoderDescriptor<TEntity, WriterState, ProtobufValue>(encoderConverter, writer);
 
 			// Legacy implementation
+			this.legacyDecoderConverter = null;
 			this.legacyDecoderDescriptor = null;
+			this.legacyEncoderConverter = null;
 			this.legacyEncoderDescriptor = null;
 		}
 
 		public ProtobufSchema(TextReader proto, string messageName)
-			: this(proto, messageName, new ProtobufConfiguration())
+			: this(proto, messageName, default)
 		{
 		}
 
 		public ProtobufSchema()
 		{
-			var decoders = new DecoderConverter();
-			var encoders = new EncoderConverter();
-
 			// Native implementation
-			this.decoderConverter = decoders;
+			this.decoderConverter = null;
 			this.decoderDescriptor = null;
-			this.encoderConverter = encoders;
+			this.encoderConverter = null;
 			this.encoderDescriptor = null;
 
 			// Legacy implementation
+			var decoderConverter = new LegacyDecoderConverter();
+			var encoderConverter = new LegacyEncoderConverter();
+			var reader = new ReaderDefinition<LegacyReaderState, ProtobufValue, TEntity>();
 			var writer = new WriterDefinition<LegacyWriterState, ProtobufValue, TEntity>();
 
-			this.legacyDecoderDescriptor = new TreeDecoderDescriptor<TEntity, LegacyReaderState, ProtobufValue>(decoders, new LegacyReaderSession(), new LegacyReader<TEntity>());
-			this.legacyEncoderDescriptor = new TreeEncoderDescriptor<TEntity, LegacyWriterState, ProtobufValue>(encoders, writer);
+			this.legacyDecoderConverter = decoderConverter;
+			this.legacyDecoderDescriptor =
+				new TreeDecoderDescriptor<TEntity, LegacyReaderState, ProtobufValue>(decoderConverter, reader);
+			this.legacyEncoderConverter = encoderConverter;
+			this.legacyEncoderDescriptor =
+				new TreeEncoderDescriptor<TEntity, LegacyWriterState, ProtobufValue>(encoderConverter, writer);
 		}
 
 		public IDecoder<TEntity> CreateDecoder()
 		{
 			if (this.legacyDecoderDescriptor != null)
-				return this.legacyDecoderDescriptor.CreateDecoder();
+				return this.legacyDecoderDescriptor.CreateDecoder(new LegacyReaderSession());
 
-			return this.decoderDescriptor.CreateDecoder();
+			return this.decoderDescriptor.CreateDecoder(new ReaderSession());
 		}
 
 		public IEncoder<TEntity> CreateEncoder()
@@ -88,12 +101,18 @@ namespace Verse.Schemas
 
 		public void SetDecoderConverter<U>(Converter<ProtobufValue, U> converter)
 		{
-			this.decoderConverter.Set(converter);
+			if (this.legacyDecoderConverter != null)
+				this.legacyDecoderConverter.Set(converter);
+			else
+				this.decoderConverter.Set(converter);
 		}
 
 		public void SetEncoderConverter<U>(Converter<U, ProtobufValue> converter)
 		{
-			this.encoderConverter.Set(converter);
+			if (this.legacyEncoderConverter != null)
+				this.legacyEncoderConverter.Set(converter);
+			else
+				this.encoderConverter.Set(converter);
 		}
 	}
 }

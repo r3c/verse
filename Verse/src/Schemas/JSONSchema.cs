@@ -1,6 +1,7 @@
 using System;
 using System.Text;
 using Verse.DecoderDescriptors;
+using Verse.DecoderDescriptors.Tree;
 using Verse.EncoderDescriptors;
 using Verse.EncoderDescriptors.Tree;
 using Verse.Schemas.JSON;
@@ -37,11 +38,12 @@ namespace Verse.Schemas
 		{
 			var encoding = configuration.Encoding ?? new UTF8Encoding(false);
 			var writerDefinition = new WriterDefinition<WriterState, JSONValue, TEntity>();
+			var readerDefinition = new ReaderDefinition<ReaderState, JSONValue, TEntity>();
 
 			this.configuration = configuration;
 			this.decoderConverter = new DecoderConverter();
 			this.encoderConverter = new EncoderConverter();
-			this.decoderDescriptor = new TreeDecoderDescriptor<TEntity, ReaderState, JSONValue>(this.decoderConverter, new ReaderSession(encoding), new Reader<TEntity>());
+			this.decoderDescriptor = new TreeDecoderDescriptor<TEntity, ReaderState, JSONValue>(this.decoderConverter, readerDefinition);
 			this.encoderDescriptor = new TreeEncoderDescriptor<TEntity, WriterState, JSONValue>(this.encoderConverter, writerDefinition);
 		}
 
@@ -56,7 +58,10 @@ namespace Verse.Schemas
 		/// <inheritdoc/>
 		public IDecoder<TEntity> CreateDecoder()
 		{
-			return this.decoderDescriptor.CreateDecoder();
+			var encoding = this.configuration.Encoding ?? new UTF8Encoding(false);
+			var session = new ReaderSession(encoding);
+
+			return this.decoderDescriptor.CreateDecoder(session);
 		}
 
 		/// <inheritdoc/>

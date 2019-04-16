@@ -17,35 +17,33 @@ namespace Verse
 		/// used to describe recursive schemas.
 		/// </summary>
 		/// <typeparam name="TElement">Element type</typeparam>
-		/// <param name="getter">Elements getter from current entity</param>
+		/// <param name="converter">Elements converter from current entity</param>
 		/// <param name="descriptor">Existing encoder descriptor</param>
 		/// <returns>Element encoder descriptor</returns>
-		IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> getter, IEncoderDescriptor<TElement> descriptor);
+		IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> converter, IEncoderDescriptor<TElement> descriptor);
 
 		/// <summary>
 		/// Declare entity as a collection of elements. Resulting descriptor
 		/// defines how elements should be encoded.
 		/// </summary>
 		/// <typeparam name="TElement">Element type</typeparam>
-		/// <param name="getter">Elements getter from current entity</param>
+		/// <param name="converter">Elements converter from current entity</param>
 		/// <returns>Element encoder descriptor</returns>
-		IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> getter);
+		IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> converter);
 
 		/// <summary>
-		/// Declare entity as a complex object using a getter to read its
+		/// Declare entity as a complex object using a converter to read its
 		/// value. Resulting field descriptor defines how its contents should
 		/// be encoded.
 		/// </summary>
-		/// <typeparam name="TElement">Element type</typeparam>
-		/// <param name="getter">Object getter from current entity</param>
+		/// <param name="converter">Object converter from current entity</param>
 		/// <returns>Object encoder field descriptor</returns>
-		IEncoderObjectDescriptor<TObject> IsObject<TObject>(Func<TEntity, TObject> getter);
+		IEncoderObjectDescriptor<TObject> IsObject<TObject>(Func<TEntity, TObject> converter);
 
 		/// <summary>
 		/// Declare entity as a complex object. Resulting field descriptor
 		/// defines how its contents should be encoded.
 		/// </summary>
-		/// <typeparam name="TElement">Element type</typeparam>
 		/// <returns>Object encoder field descriptor</returns>
 		IEncoderObjectDescriptor<TEntity> IsObject();
 

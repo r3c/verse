@@ -1,23 +1,25 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using NUnit.Framework;
 using ProtoBuf;
-using Verse.Schemas.Protobuf;
 using Verse.Schemas;
+using Verse.Schemas.Protobuf;
 
 namespace Verse.Test.Schemas
 {
 	[TestFixture]
-	class ProtobufSchemaTester
+	internal class ProtobufSchemaTester
 	{
-		private const long MIN_LONG = 0;
-		private const long MAX_LONG = 9223372036854775807;
-		private const float MIN_FLOAT = -3.40282347E+38f;
-		private const float MAX_FLOAT = 3.40282347E+38f;
-		private const double MIN_DOUBLE = -1.7976931348623157E+308;
-		private const double MAX_DOUBLE = 1.7976931348623157E+308;
-		private const string LONG_STRING = "Verum ad istam omnem orationem brevis est defensio. Nam quoad aetas M. Caeli dare potuit isti suspicioni locum, fuit primum ipsius pudore, deinde etiam patris diligentia disciplinaque munita. Qui ut huic virilem togam deditšnihil dicam hoc loco de me; tantum sit, quantum vos existimatis; hoc dicam, hunc a patre continuo ad me esse deductum; nemo hunc M. Caelium in illo aetatis flore vidit nisi aut cum patre aut mecum aut in M. Crassi castissima domo, cum artibus honestissimis erudiretur.";
+		private const string LongString =
+			"Verum ad istam omnem orationem brevis est defensio. " +
+			"Nam quoad aetas M. Caeli dare potuit isti suspicioni locum, fuit primum ipsius pudore, " +
+			"deinde etiam patris diligentia disciplinaque munita. " +
+			"Qui ut huic virilem togam deditšnihil dicam hoc loco de me; " +
+			"tantum sit, quantum vos existimatis; hoc dicam, hunc a patre continuo ad me esse deductum; " +
+			"nemo hunc M. Caelium in illo aetatis flore vidit nisi aut cum patre aut mecum aut in M. Crassi castissima domo, cum artibus honestissimis erudiretur.";
 
 		[Test]
 		//[TestCase("res/Protobuf/Example2.proto", "outer")]
@@ -31,7 +33,7 @@ namespace Verse.Test.Schemas
 			Assert.NotNull(schema);
 		}
 
-		class Person
+		private class Person
 		{
 			public string Email;
 			public int Id;
@@ -39,171 +41,145 @@ namespace Verse.Test.Schemas
 		}
 
 		[Test]
+		[Ignore("Proto messages are not supported yet")]
 		public void DecodeAssign()
 		{
 			var proto = File.ReadAllText(Path.Combine(TestContext.CurrentContext.TestDirectory, "res/Protobuf/Person.proto"));
 			var schema = new ProtobufSchema<Person>(new StringReader(proto), "Person");
 
-			schema.DecoderDescriptor.HasField("email", (ref Person p, string v) => p.Email = v).IsValue();
-			schema.DecoderDescriptor.HasField("id", (ref Person p, int v) => p.Id = v).IsValue();
-			schema.DecoderDescriptor.HasField("name", (ref Person p, string v) => p.Name = v).IsValue();
+			var person = schema.DecoderDescriptor.IsObject(() => new Person());
+			person.HasField("email", (ref Person p, string v) => p.Email = v).IsValue();
+			person.HasField("id", (ref Person p, int v) => p.Id = v).IsValue();
+			person.HasField("name", (ref Person p, string v) => p.Name = v).IsValue();
 
 			var decoder = schema.CreateDecoder();
 
 			using (var stream = new MemoryStream(new byte[] { 16, 17, 0, 0, 0 }))
 			{
 				Assert.True(decoder.TryOpen(stream, out var decoderStream));
-				Assert.True(decoderStream.Decode(out var person));
+				Assert.True(decoderStream.Decode(out var entity));
 
-				Assert.AreEqual(17, person.Id);
+				Assert.AreEqual(17, entity.Id);
 			}
 		}
 
 		[Test]
-		[TestCase(MIN_LONG, ProtobufType.Signed)]
-		[TestCase(MAX_LONG, ProtobufType.Signed)]
-		[TestCase(MIN_FLOAT, ProtobufType.Float32)]
-		[TestCase(MAX_FLOAT, ProtobufType.Float32)]
-		[TestCase(0f, ProtobufType.Float32)]
-		[TestCase(MIN_DOUBLE, ProtobufType.Float64)]
-		[TestCase(MAX_DOUBLE, ProtobufType.Float64)]
-		[TestCase(0.0, ProtobufType.Float64)]
-		[TestCase("", ProtobufType.String)]
-		[TestCase(LONG_STRING, ProtobufType.String)]
-		public void TestDecodeValue<T>(T value, ProtobufType type)
-		{
-			ProtobufValue decodedValue;
-			var schema = new ProtobufSchema<ProtobufValue>();
-			var testFieldClass = new TestFieldClass<T>();
-
-			testFieldClass.value = value;
-
-			schema.DecoderDescriptor.HasField("_1").IsValue();
-
-			decodedValue = ProtobufSchemaTester.DecodeTranscode<TestFieldClass<T>, ProtobufValue>(schema.CreateDecoder(), testFieldClass);
-
-			Assert.AreEqual(type, decodedValue.Type);
-
-			switch (type)
-			{
-				case ProtobufType.Float32:
-					Assert.AreEqual(value, decodedValue.Float32);
-					break;
-
-				case ProtobufType.Float64:
-					Assert.AreEqual(value, decodedValue.Float64);
-					break;
-
-				case ProtobufType.Signed:
-					Assert.AreEqual(value, decodedValue.Signed);
-					break;
-
-				case ProtobufType.String:
-					Assert.AreEqual(value, decodedValue.String);
-					break;
-
-				default:
-					Assert.Fail("Invalid content type");
-					break;
-			}
-		}
-
-		[Test]
-		[TestCase(MIN_LONG, MIN_LONG, MIN_LONG)]
-		[TestCase(MAX_LONG, MAX_LONG, MAX_LONG)]
-		[TestCase(MIN_FLOAT, MIN_FLOAT, MIN_FLOAT)]
-		[TestCase(MAX_FLOAT, MAX_FLOAT, MAX_FLOAT)]
-		[TestCase(MIN_DOUBLE, MIN_DOUBLE, MIN_DOUBLE)]
-		[TestCase(MAX_DOUBLE, MAX_DOUBLE, MAX_DOUBLE)]
+		[TestCase(long.MinValue, long.MinValue, long.MinValue)]
+		[TestCase(long.MaxValue, long.MaxValue, long.MaxValue)]
+		[TestCase(float.MinValue, float.MinValue, float.MinValue)]
+		[TestCase(float.MaxValue, float.MaxValue, float.MaxValue)]
+		[TestCase(double.MinValue, double.MinValue, double.MinValue)]
+		[TestCase(double.MaxValue, double.MaxValue, double.MaxValue)]
 		[TestCase("", "", "")]
-		[TestCase(LONG_STRING, LONG_STRING, LONG_STRING)]
-		public void TestDecodeValues<T>(T a, T b, T c)
+		[TestCase(ProtobufSchemaTester.LongString, ProtobufSchemaTester.LongString, ProtobufSchemaTester.LongString)]
+		public void DecodeRepeatedScalarFromObject<T>(T a, T b, T c)
 		{
 			var schema = new ProtobufSchema<List<T>>();
-			var testFieldClass = new TestFieldClass<T>();
-			List<T> value;
-
-			testFieldClass.items = new List<T> { a, b, c };
+			var testFieldClass = new TestFieldClass<T> {Items = new List<T> {a, b, c}};
 
 			schema.DecoderDescriptor
-				.HasField("_2", (ref List<T> target, List<T> values) => target.AddRange(values))
-				.HasItems((ref List<T> target, IEnumerable<T> enumerable) => target.AddRange(enumerable))
+				.IsObject(() => new List<T>())
+				.HasField("_2", (ref List<T> target, T[] values) => target.AddRange(values))
+				.IsArray<T>(elements => elements.ToArray())
 				.IsValue();
 
-			value = ProtobufSchemaTester.DecodeTranscode<TestFieldClass<T>, List<T>>(schema.CreateDecoder(), testFieldClass);
+			var value = ProtobufSchemaTester.DecodeTranscode(schema.CreateDecoder(), testFieldClass);
 
-			CollectionAssert.AreEqual(testFieldClass.items, value);
+			CollectionAssert.AreEqual(testFieldClass.Items, value);
 		}
 
 		[Test]
-		[TestCase(MIN_LONG)]
-		[TestCase(MAX_LONG)]
-		[TestCase(MIN_FLOAT)]
-		[TestCase(MAX_FLOAT)]
-		[TestCase(MIN_DOUBLE)]
-		[TestCase(MAX_DOUBLE)]
+		[TestCase(long.MinValue)]
+		[TestCase(long.MaxValue)]
+		[TestCase(float.MinValue)]
+		[TestCase(float.MaxValue)]
+		[TestCase(double.MinValue)]
+		[TestCase(double.MaxValue)]
 		[TestCase("")]
-		[TestCase(LONG_STRING)]
-		public void TestDecodeSubValue<T>(T expectedValue)
+		[TestCase(ProtobufSchemaTester.LongString)]
+		public void DecodeScalarFromNestedObject<T>(T expectedValue)
 		{
 			var schema = new ProtobufSchema<T>();
-			var testFieldClass = new TestFieldClass<T>();
-			T value;
-
-			testFieldClass.subValue = new SubTestFieldClass<T>();
-			testFieldClass.subValue.value = expectedValue;
+			var testFieldClass = new TestFieldClass<T> {SubValue = new SubTestFieldClass<T> {Value = expectedValue}};
 
 			schema.DecoderDescriptor
-				.HasField("_3")
-				.HasField("_4")
+				.IsObject(() => default)
+				.HasField("_3", (ref T t, T v) => t = v)
+				.IsObject(() => default)
+				.HasField("_4", (ref T t, T v) => t = v)
 				.IsValue();
 
-			value = ProtobufSchemaTester.DecodeTranscode<TestFieldClass<T>, T>(schema.CreateDecoder(), testFieldClass);
+			var value = ProtobufSchemaTester.DecodeTranscode(schema.CreateDecoder(), testFieldClass);
 
 			Assert.AreEqual(expectedValue, value);
 		}
 
 		[Test]
-		[TestCase(MIN_LONG, MIN_LONG, MIN_LONG)]
-		[TestCase(MAX_LONG, MAX_LONG, MAX_LONG)]
-		[TestCase(MIN_FLOAT, MIN_FLOAT, MIN_FLOAT)]
-		[TestCase(MAX_FLOAT, MAX_FLOAT, MAX_FLOAT)]
-		[TestCase(MIN_DOUBLE, MIN_DOUBLE, MIN_DOUBLE)]
-		[TestCase(MAX_DOUBLE, MAX_DOUBLE, MAX_DOUBLE)]
-		[TestCase("", "", "")]
-		[TestCase(LONG_STRING, LONG_STRING, LONG_STRING)]
-		public void TestDecodeSubValues<T>(T a, T b, T c)
+		[TestCase(long.MinValue, ProtobufType.Signed)]
+		[TestCase(long.MaxValue, ProtobufType.Signed)]
+		[TestCase(float.MinValue, ProtobufType.Float32)]
+		[TestCase(float.MaxValue, ProtobufType.Float32)]
+		[TestCase(0f, ProtobufType.Float32)]
+		[TestCase(double.MinValue, ProtobufType.Float64)]
+		[TestCase(double.MaxValue, ProtobufType.Float64)]
+		[TestCase(0.0, ProtobufType.Float64)]
+		[TestCase("", ProtobufType.String)]
+		[TestCase(ProtobufSchemaTester.LongString, ProtobufType.String)]
+		public void DecodeScalarFromObject<T>(T value, ProtobufType type)
 		{
-			TestFieldClass<TestFieldClass<T>> decodedValue;
+			var schema = new ProtobufSchema<T>();
+			var testFieldClass = new TestFieldClass<T> {Value = value};
+
+			schema.DecoderDescriptor.IsObject(() => default).HasField("_1", (ref T obj, T v) => obj = v).IsValue();
+
+			var decodedValue = ProtobufSchemaTester.DecodeTranscode(schema.CreateDecoder(), testFieldClass);
+
+			Assert.AreEqual(value, decodedValue);
+		}
+
+		[Test]
+		[TestCase(long.MinValue, long.MinValue, long.MinValue)]
+		[TestCase(long.MaxValue, long.MaxValue, long.MaxValue)]
+		[TestCase(float.MinValue, float.MinValue, float.MinValue)]
+		[TestCase(float.MaxValue, float.MaxValue, float.MaxValue)]
+		[TestCase(double.MinValue, double.MinValue, double.MinValue)]
+		[TestCase(double.MaxValue, double.MaxValue, double.MaxValue)]
+		[TestCase("", "", "")]
+		[TestCase(ProtobufSchemaTester.LongString, ProtobufSchemaTester.LongString, ProtobufSchemaTester.LongString)]
+		public void DecodeScalarFromRepeatedObject<T>(T a, T b, T c)
+		{
 			T[] expectedValues = { a, b, c };
 			var schema = new ProtobufSchema<TestFieldClass<TestFieldClass<T>>>();
 			var testFieldClass = new TestFieldClass<TestFieldClass<T>>();
 
 			foreach (var value in expectedValues)
 			{
-				testFieldClass.items.Add(new TestFieldClass<T>
+				testFieldClass.Items.Add(new TestFieldClass<T>
 				{
-					subValue = new SubTestFieldClass<T>
+					SubValue = new SubTestFieldClass<T>
 					{
-						value = value
+						Value = value
 					}
 				});
 			}
 
 			schema.DecoderDescriptor
-				.HasField("_2", (ref TestFieldClass<TestFieldClass<T>> target, List<TestFieldClass<T>> value) => target.items.AddRange(value))
-				.HasItems((ref List<TestFieldClass<T>> target, IEnumerable<TestFieldClass<T>> value) => target.AddRange(value))
-				.HasField("_3", (ref TestFieldClass<T> target, SubTestFieldClass<T> value) => target.subValue = value)
-				.HasField("_4", (ref SubTestFieldClass<T> target, T value) => target.value = value)
+				.IsObject(() => new TestFieldClass<TestFieldClass<T>>())
+				.HasField("_2", (ref TestFieldClass<TestFieldClass<T>> target, TestFieldClass<T>[] value) => target.Items.AddRange(value))
+				.IsArray<TestFieldClass<T>>(elements => elements.ToArray())
+				.IsObject(() => new TestFieldClass<T>())
+				.HasField("_3", (ref TestFieldClass<T> target, SubTestFieldClass<T> value) => target.SubValue = value)
+				.IsObject(() => new SubTestFieldClass<T>())
+				.HasField("_4", (ref SubTestFieldClass<T> target, T value) => target.Value = value)
 				.IsValue();
 
-			decodedValue = ProtobufSchemaTester.DecodeRoundTrip(schema.CreateDecoder(), testFieldClass);
+			var decodedValue = ProtobufSchemaTester.DecodeRoundTrip(schema.CreateDecoder(), testFieldClass);
 
-			Assert.AreEqual(expectedValues.Length, decodedValue.items.Count);
+			Assert.AreEqual(expectedValues.Length, decodedValue.Items.Count);
 
-			for (int i = 0; i < expectedValues.Length; ++i)
+			for (var i = 0; i < expectedValues.Length; ++i)
 			{
-				Assert.AreEqual(expectedValues[i], decodedValue.items[i].subValue.value);
+				Assert.AreEqual(expectedValues[i], decodedValue.Items[i].SubValue.Value);
 			}
 		}
 
@@ -224,108 +200,135 @@ namespace Verse.Test.Schemas
 		[TestCase(null, 1, 20)]
 		[TestCase(null, 2, 30)]
 		[TestCase(null, null, 10)]
-		public void TestDecodeSubObjectIndex(int? index0, int? index1, int expected)
+		[Ignore("This feature is currently not supported")]
+		public void DecodeFromNestedFixedIndex(int? index0, int? index1, int expected)
 		{
-			IDecoderDescriptor<int> descriptor;
 			var schema = new ProtobufSchema<int>();
-			var testFieldClass = new TestFieldClass<TestFieldClass<SubTestFieldClass<int>>>();
-			int value;
-
-			testFieldClass.items = new List<TestFieldClass<SubTestFieldClass<int>>>
+			var testFieldClass = new TestFieldClass<TestFieldClass<SubTestFieldClass<int>>>
 			{
-				new TestFieldClass<SubTestFieldClass<int>>
+				Items = new List<TestFieldClass<SubTestFieldClass<int>>>
 				{
-					items = new List<SubTestFieldClass<int>>
+					new TestFieldClass<SubTestFieldClass<int>>
 					{
-						new SubTestFieldClass<int>
+						Items = new List<SubTestFieldClass<int>>
 						{
-							value = 10
-						},
-						new SubTestFieldClass<int>
+							new SubTestFieldClass<int> {Value = 10},
+							new SubTestFieldClass<int> {Value = 20},
+							new SubTestFieldClass<int> {Value = 30}
+						}
+					},
+					new TestFieldClass<SubTestFieldClass<int>>
+					{
+						Items = new List<SubTestFieldClass<int>>
 						{
-							value = 20
-						},
-						new SubTestFieldClass<int>
+							new SubTestFieldClass<int> {Value = 40},
+							new SubTestFieldClass<int> {Value = 50},
+							new SubTestFieldClass<int> {Value = 60}
+						}
+					},
+					new TestFieldClass<SubTestFieldClass<int>>
+					{
+						Items = new List<SubTestFieldClass<int>>
 						{
-							value = 30
+							new SubTestFieldClass<int> {Value = 70},
+							new SubTestFieldClass<int> {Value = 80},
+							new SubTestFieldClass<int> {Value = 90}
 						}
 					}
-				},
-				new TestFieldClass<SubTestFieldClass<int>>
-				{
-					items = new List<SubTestFieldClass<int>>
-					{
-						new SubTestFieldClass<int>
-						{
-							value = 40
-						},
-						new SubTestFieldClass<int>
-						{
-							value = 50
-						},
-						new SubTestFieldClass<int>
-						{
-							value = 60
-						}
-					}
-				},
-				new TestFieldClass<SubTestFieldClass<int>>
-				{
-					items = new List<SubTestFieldClass<int>>
-					{
-						new SubTestFieldClass<int>
-						{
-							value = 70
-						},
-						new SubTestFieldClass<int>
-						{
-							value = 80
-						},
-						new SubTestFieldClass<int>
-						{
-							value = 90
-						}
-					}
-				},
+				}
 			};
 
-			descriptor = schema.DecoderDescriptor
-				.HasField("_2");
+			var descriptor = schema.DecoderDescriptor
+				.IsObject(() => 0)
+				.HasField("_2", (ref int t, int v) => t = v);
 
 			if (index0.HasValue)
-				descriptor = descriptor.HasField(index0.Value.ToString(CultureInfo.InvariantCulture));
+				descriptor = descriptor.IsObject(() => 0).HasField(index0.Value.ToString(CultureInfo.InvariantCulture),
+					(ref int t, int v) => t = v);
 
 			descriptor = descriptor
-				.HasField("_2");
+				.IsObject(() => 0)
+				.HasField("_2", (ref int t, int v) => t = v);
 
 			if (index1.HasValue)
-				descriptor = descriptor.HasField(index1.Value.ToString(CultureInfo.InvariantCulture));
+				descriptor = descriptor.IsObject(() => 0).HasField(index1.Value.ToString(CultureInfo.InvariantCulture),
+					(ref int t, int v) => t = v);
 
 			descriptor
-				.HasField("_4")
+				.IsObject(() => 0)
+				.HasField("_4", (ref int t, int v) => t = v)
 				.IsValue();
 
-			value = ProtobufSchemaTester.DecodeTranscode<TestFieldClass<TestFieldClass<SubTestFieldClass<int>>>, int>(schema.CreateDecoder(), testFieldClass);
+			var value = ProtobufSchemaTester.DecodeTranscode(schema.CreateDecoder(), testFieldClass);
 
 			Assert.AreEqual(expected, value);
 		}
 
 		[Test]
-		[TestCase(MIN_LONG, ProtobufType.Signed)]
-		[TestCase(MAX_LONG, ProtobufType.Signed)]
-		[TestCase(MIN_FLOAT, ProtobufType.Float32)]
-		[TestCase(MAX_FLOAT, ProtobufType.Float32)]
-		[TestCase(MIN_DOUBLE, ProtobufType.Float64)]
-		[TestCase(MAX_DOUBLE, ProtobufType.Float64)]
+		[TestCase(long.MinValue, long.MinValue, long.MinValue)]
+		[TestCase(long.MaxValue, long.MaxValue, long.MaxValue)]
+		[TestCase(float.MinValue, float.MinValue, float.MinValue)]
+		[TestCase(float.MaxValue, float.MaxValue, float.MaxValue)]
+		[TestCase(double.MinValue, double.MinValue, double.MinValue)]
+		[TestCase(double.MaxValue, double.MaxValue, double.MaxValue)]
+		[TestCase("", "", "")]
+		[TestCase(ProtobufSchemaTester.LongString, ProtobufSchemaTester.LongString, ProtobufSchemaTester.LongString)]
+		public void EncodeRepeatedScalarToObject<T>(T a, T b, T c)
+		{
+			var expectedItems = new[] { a, b, c };
+			var schema = new ProtobufSchema<List<T>>();
+
+			schema.EncoderDescriptor
+				.IsObject()
+				.HasField("_2", v => v)
+				.IsArray(source => source)
+				.IsValue();
+
+			var testFieldClass = ProtobufSchemaTester.EncodeTranscode<List<T>, TestFieldClass<T>>(schema.CreateEncoder(), new List<T>(expectedItems));
+
+			CollectionAssert.AreEqual(expectedItems, testFieldClass.Items);
+		}
+
+		[Test]
+		[TestCase(long.MinValue)]
+		[TestCase(long.MaxValue)]
+		[TestCase(float.MinValue)]
+		[TestCase(float.MaxValue)]
+		[TestCase(double.MinValue)]
+		[TestCase(double.MaxValue)]
+		[TestCase("")]
+		[TestCase(ProtobufSchemaTester.LongString)]
+		public void EncodeScalarToNestedObject<T>(T expectedValue)
+		{
+			var schema = new ProtobufSchema<TestFieldClass<T>>();
+			var testFieldClass = new TestFieldClass<T> {SubValue = new SubTestFieldClass<T> {Value = expectedValue}};
+
+			schema.EncoderDescriptor
+				.IsObject()
+				.HasField("_3", target => target.SubValue)
+				.IsObject()
+				.HasField("_4", target => target.Value)
+				.IsValue();
+
+			var decodedTestFieldClass = ProtobufSchemaTester.EncodeRoundTrip(schema.CreateEncoder(), testFieldClass);
+
+			Assert.AreEqual(expectedValue, decodedTestFieldClass.SubValue.Value);
+		}
+
+		[Test]
+		[TestCase(long.MinValue, ProtobufType.Signed)]
+		[TestCase(long.MaxValue, ProtobufType.Signed)]
+		[TestCase(float.MinValue, ProtobufType.Float32)]
+		[TestCase(float.MaxValue, ProtobufType.Float32)]
+		[TestCase(double.MinValue, ProtobufType.Float64)]
+		[TestCase(double.MaxValue, ProtobufType.Float64)]
 		[TestCase("", ProtobufType.String)]
-		[TestCase(LONG_STRING, ProtobufType.String)]
-		public void TestEncodeValue<T>(T value, ProtobufType type)
+		[TestCase(ProtobufSchemaTester.LongString, ProtobufType.String)]
+		public void EncodeScalarToObject<T>(T value, ProtobufType type)
 		{
 			ProtobufValue protoValue;
-			ISchema<ProtobufValue> schema;
-			TestFieldClass<T> testFieldClass;
 
-			schema = new ProtobufSchema<ProtobufValue>();
+			ISchema<ProtobufValue> schema = new ProtobufSchema<ProtobufValue>();
 			schema.EncoderDescriptor
 				.IsObject()
 				.HasField("_1", v => v)
@@ -354,90 +357,35 @@ namespace Verse.Test.Schemas
 					return;
 			}
 
-			testFieldClass = ProtobufSchemaTester.EncodeTranscode<ProtobufValue, TestFieldClass<T>>(schema.CreateEncoder(), protoValue);
+			var testFieldClass =
+				ProtobufSchemaTester.EncodeTranscode<ProtobufValue, TestFieldClass<T>>(schema.CreateEncoder(),
+					protoValue);
 
-			Assert.AreEqual(value, testFieldClass.value);
+			Assert.AreEqual(value, testFieldClass.Value);
 		}
 
 		[Test]
-		[TestCase(MIN_LONG, MIN_LONG, MIN_LONG)]
-		[TestCase(MAX_LONG, MAX_LONG, MAX_LONG)]
-		[TestCase(MIN_FLOAT, MIN_FLOAT, MIN_FLOAT)]
-		[TestCase(MAX_FLOAT, MAX_FLOAT, MAX_FLOAT)]
-		[TestCase(MIN_DOUBLE, MIN_DOUBLE, MIN_DOUBLE)]
-		[TestCase(MAX_DOUBLE, MAX_DOUBLE, MAX_DOUBLE)]
+		[TestCase(long.MinValue, long.MinValue, long.MinValue)]
+		[TestCase(long.MaxValue, long.MaxValue, long.MaxValue)]
+		[TestCase(float.MinValue, float.MinValue, float.MinValue)]
+		[TestCase(float.MaxValue, float.MaxValue, float.MaxValue)]
+		[TestCase(double.MinValue, double.MinValue, double.MinValue)]
+		[TestCase(double.MaxValue, double.MaxValue, double.MaxValue)]
 		[TestCase("", "", "")]
-		[TestCase(LONG_STRING, LONG_STRING, LONG_STRING)]
-		public void TestEncodeValues<T>(T a, T b, T c)
+		[TestCase(ProtobufSchemaTester.LongString, ProtobufSchemaTester.LongString, ProtobufSchemaTester.LongString)]
+		public void EncodeScalarToRepeatedObject<T>(T a, T b, T c)
 		{
-			var expectedItems = new[] { a, b, c };
-			var schema = new ProtobufSchema<List<T>>();
-			TestFieldClass<T> testFieldClass;
-
-			schema.EncoderDescriptor
-				.IsObject()
-				.HasField("_2", v => v)
-				.IsArray(source => source)
-				.IsValue();
-
-			testFieldClass = ProtobufSchemaTester.EncodeTranscode<List<T>, TestFieldClass<T>>(schema.CreateEncoder(), new List<T>(expectedItems));
-
-			CollectionAssert.AreEqual(expectedItems, testFieldClass.items);
-		}
-
-		[Test]
-		[TestCase(MIN_LONG)]
-		[TestCase(MAX_LONG)]
-		[TestCase(MIN_FLOAT)]
-		[TestCase(MAX_FLOAT)]
-		[TestCase(MIN_DOUBLE)]
-		[TestCase(MAX_DOUBLE)]
-		[TestCase("")]
-		[TestCase(LONG_STRING)]
-		public void TestEncodeSubValue<T>(T expectedValue)
-		{
-			TestFieldClass<T> decodedTestFieldClass;
-			var schema = new ProtobufSchema<TestFieldClass<T>>();
-			var testFieldClass = new TestFieldClass<T>();
-
-			testFieldClass.subValue = new SubTestFieldClass<T>();
-			testFieldClass.subValue.value = expectedValue;
-
-			schema.EncoderDescriptor
-				.IsObject()
-				.HasField("_3", target => target.subValue)
-				.IsObject()
-				.HasField("_4", target => target.value)
-				.IsValue();
-
-			decodedTestFieldClass = ProtobufSchemaTester.EncodeRoundTrip(schema.CreateEncoder(), testFieldClass);
-
-			Assert.AreEqual(expectedValue, decodedTestFieldClass.subValue.value);
-		}
-
-		[Test]
-		[TestCase(MIN_LONG, MIN_LONG, MIN_LONG)]
-		[TestCase(MAX_LONG, MAX_LONG, MAX_LONG)]
-		[TestCase(MIN_FLOAT, MIN_FLOAT, MIN_FLOAT)]
-		[TestCase(MAX_FLOAT, MAX_FLOAT, MAX_FLOAT)]
-		[TestCase(MIN_DOUBLE, MIN_DOUBLE, MIN_DOUBLE)]
-		[TestCase(MAX_DOUBLE, MAX_DOUBLE, MAX_DOUBLE)]
-		[TestCase("", "", "")]
-		[TestCase(LONG_STRING, LONG_STRING, LONG_STRING)]
-		public void TestEncodeSubValues<T>(T a, T b, T c)
-		{
-			TestFieldClass<TestFieldClass<T>> decodedFieldClass;
 			var fieldClass = new TestFieldClass<TestFieldClass<T>>();
 			var schema = new ProtobufSchema<TestFieldClass<TestFieldClass<T>>>();
 			var expectedValues = new[] { a, b, c };
 
 			foreach (var value in expectedValues)
 			{
-				fieldClass.items.Add(new TestFieldClass<T>
+				fieldClass.Items.Add(new TestFieldClass<T>
 				{
-					subValue = new SubTestFieldClass<T>
+					SubValue = new SubTestFieldClass<T>
 					{
-						value = value
+						Value = value
 					}
 				});
 			}
@@ -445,24 +393,24 @@ namespace Verse.Test.Schemas
 			schema.EncoderDescriptor
 				.IsObject()
 				.HasField("_2", v => v)
-				.IsArray(source => source.items)
+				.IsArray(source => source.Items)
 				.IsObject()
-				.HasField("_3", target => target.subValue)
+				.HasField("_3", target => target.SubValue)
 				.IsObject()
-				.HasField("_4", target => target.value)
+				.HasField("_4", target => target.Value)
 				.IsValue();
 
-			decodedFieldClass = ProtobufSchemaTester.EncodeRoundTrip(schema.CreateEncoder(), fieldClass);
+			var decodedFieldClass = ProtobufSchemaTester.EncodeRoundTrip(schema.CreateEncoder(), fieldClass);
 
-			Assert.AreEqual(expectedValues.Length, decodedFieldClass.items.Count);
+			Assert.AreEqual(expectedValues.Length, decodedFieldClass.Items.Count);
 
-			for (int i = 0; i < expectedValues.Length; ++i)
-				Assert.AreEqual(expectedValues[i], decodedFieldClass.items[i].subValue.value);
+			for (var i = 0; i < expectedValues.Length; ++i)
+				Assert.AreEqual(expectedValues[i], decodedFieldClass.Items[i].SubValue.Value);
 		}
 
 		private static T DecodeRoundTrip<T>(IDecoder<T> decoder, T input)
 		{
-			return ProtobufSchemaTester.DecodeTranscode<T, T>(decoder, input);
+			return ProtobufSchemaTester.DecodeTranscode(decoder, input);
 		}
 
 		private static U DecodeTranscode<T, U>(IDecoder<U> decoder, T input)
@@ -498,55 +446,59 @@ namespace Verse.Test.Schemas
 			}
 		}
 
-		[global::System.Serializable, global::ProtoBuf.ProtoContract(Name = @"SubTestFieldClass")]
-		public class SubTestFieldClass<T> : global::ProtoBuf.IExtensible
+		[Serializable, ProtoContract(Name = @"SubTestFieldClass")]
+		public class SubTestFieldClass<T> : IExtensible
 		{
-			private T _value;
-			[global::ProtoBuf.ProtoMember(4, IsRequired = true)]
-			public T value
+			private T value;
+
+			[ProtoMember(4, IsRequired = true)]
+			public T Value
 			{
-				get { return _value; }
-				set { _value = value; }
+				get => this.value;
+				set => this.value = value;
 			}
 
-			private global::ProtoBuf.IExtension extensionObject;
-			global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+			private IExtension extensionObject;
+			IExtension IExtensible.GetExtensionObject(bool createIfMissing)
 			{
-				return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing);
+				return Extensible.GetExtensionObject(ref extensionObject, createIfMissing);
 			}
 		}
 
-		[global::System.Serializable, global::ProtoBuf.ProtoContract(Name = @"TestFieldClass")]
-		public class TestFieldClass<T> : global::ProtoBuf.IExtensible
+		[Serializable, ProtoContract(Name = @"TestFieldClass")]
+		public class TestFieldClass<T> : IExtensible
 		{
-			private T _value;
-			[global::ProtoBuf.ProtoMember(1, IsRequired = true)]
-			public T value
+			private T value;
+
+			[ProtoMember(1, IsRequired = true)]
+			public T Value
 			{
-				get { return _value; }
-				set { _value = value; }
+				get => this.value;
+				set => this.value = value;
 			}
 
-			private global::System.Collections.Generic.List<T> _items = new global::System.Collections.Generic.List<T>();
-			[global::ProtoBuf.ProtoMember(2, IsRequired = true, DataFormat = global::ProtoBuf.DataFormat.Default)]
-			public global::System.Collections.Generic.List<T> items
+			private List<T> items = new List<T>();
+
+			[ProtoMember(2, IsRequired = true, DataFormat = DataFormat.Default)]
+			public List<T> Items
 			{
-				get { return _items; }
-				set { _items = value; }
+				get => this.items;
+				set => this.items = value;
 			}
 
-			private SubTestFieldClass<T> _subValue;
-			[global::ProtoBuf.ProtoMember(3, IsRequired = true)]
-			public SubTestFieldClass<T> subValue
+			private SubTestFieldClass<T> subValue;
+
+			[ProtoMember(3, IsRequired = true)]
+			public SubTestFieldClass<T> SubValue
 			{
-				get { return _subValue; }
-				set { _subValue = value; }
+				get => this.subValue;
+				set => this.subValue = value;
 			}
 
-			private global::ProtoBuf.IExtension extensionObject;
-			global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+			private IExtension extensionObject;
+			IExtension IExtensible.GetExtensionObject(bool createIfMissing)
 			{
-				return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing);
+				return Extensible.GetExtensionObject(ref extensionObject, createIfMissing);
 			}
 		}
 	}

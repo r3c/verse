@@ -21,32 +21,32 @@ namespace Verse.EncoderDescriptors
 			return new TreeEncoder<TState, TNative, TEntity>(session, this.definition.Callback);
 		}
 
-		public IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> getter, IEncoderDescriptor<TElement> descriptor)
+		public IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> converter, IEncoderDescriptor<TElement> descriptor)
 		{
 			if (!(descriptor is TreeEncoderDescriptor<TElement, TState, TNative> ancestor))
 				throw new ArgumentOutOfRangeException(nameof(descriptor), "incompatible descriptor type");
 
 			var definition = ancestor.definition;
 
-			this.definition.Callback = (session, state, entity) => session.WriteArray(state, getter(entity), definition.Callback);
+			this.definition.Callback = (session, state, entity) => session.WriteArray(state, converter(entity), definition.Callback);
 
 			return ancestor;
 		}
 
-		public IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> getter)
+		public IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> converter)
 		{
 			var definition = this.definition.Create<TElement>();
 			var descriptor = new TreeEncoderDescriptor<TElement, TState, TNative>(this.converter, definition);
 
-			return this.IsArray(getter, descriptor);
+			return this.IsArray(converter, descriptor);
 		}
 
-		public IEncoderObjectDescriptor<TObject> IsObject<TObject>(Func<TEntity, TObject> getter)
+		public IEncoderObjectDescriptor<TObject> IsObject<TObject>(Func<TEntity, TObject> converter)
 		{
 			var definition = this.definition.Create<TObject>();
 			var fields = new Dictionary<string, WriterCallback<TState, TNative, TObject>>();
 
-			this.definition.Callback = (session, state, entity) => session.WriteObject(state, getter(entity), fields);
+			this.definition.Callback = (session, state, entity) => session.WriteObject(state, converter(entity), fields);
 
 			return new TreeEncoderDescriptor<TObject, TState, TNative>.ObjectDescriptor<TObject>(this.converter, definition, fields);
 		}

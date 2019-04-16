@@ -7,7 +7,7 @@ namespace Verse.Schemas.Protobuf
 #endif
 	public struct ProtobufValue
 	{
-		public static readonly ProtobufValue Void;
+		public static readonly ProtobufValue Empty;
 
 #if !__MonoCS__
 	    [FieldOffset(0)]

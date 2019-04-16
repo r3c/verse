@@ -29,7 +29,7 @@ namespace Verse.Schemas.JSON
 			state.Flush();
 		}
 
-		public void WriteArray<TEntity>(WriterState state, IEnumerable<TEntity> elements, WriterCallback<WriterState, JSONValue, TEntity> writer)
+		public void WriteArray<TElement>(WriterState state, IEnumerable<TElement> elements, WriterCallback<WriterState, JSONValue, TElement> writer)
 		{
 			if (elements == null)
 				this.WriteValue(state, JSONValue.Void);
@@ -44,7 +44,7 @@ namespace Verse.Schemas.JSON
 			}
 		}
 
-		public void WriteObject<TEntity>(WriterState state, TEntity parent, IReadOnlyDictionary<string, WriterCallback<WriterState, JSONValue, TEntity>> fields)
+		public void WriteObject<TObject>(WriterState state, TObject parent, IReadOnlyDictionary<string, WriterCallback<WriterState, JSONValue, TObject>> fields)
 		{
 			if (parent == null)
 				this.WriteValue(state, JSONValue.Void);
