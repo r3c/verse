@@ -3,6 +3,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using Verse.DecoderDescriptors.Tree;
+using Verse.Lookups;
 
 namespace Verse.Schemas.JSON
 {
@@ -37,7 +38,7 @@ namespace Verse.Schemas.JSON
 			}
 		}
 
-		public bool ReadToObject<TEntity>(ReaderState state, EntityTree<ReaderSetter<ReaderState, JSONValue, TEntity>> fields, ref TEntity target)
+		public bool ReadToObject<TEntity>(ReaderState state, ILookup<int, ReaderSetter<ReaderState, JSONValue, TEntity>> fields, ref TEntity target)
 		{
 			switch (state.Current)
 			{
@@ -73,7 +74,7 @@ namespace Verse.Schemas.JSON
 				case '7':
 				case '8':
 				case '9':
-					return ReadToValueFromNumber(state, out value);
+					return ReaderSession.ReadToValueFromNumber(state, out value);
 
 				case 'f':
 					state.Read();
@@ -266,7 +267,7 @@ namespace Verse.Schemas.JSON
 			};
 		}
 
-		private bool ReadToObjectFromArray<TObject>(ReaderState state, EntityTree<ReaderSetter<ReaderState, JSONValue, TObject>> fields, ref TObject target)
+		private bool ReadToObjectFromArray<TObject>(ReaderState state, ILookup<int, ReaderSetter<ReaderState, JSONValue, TObject>> fields, ref TObject target)
 		{
 			state.Read();
 
@@ -307,11 +308,12 @@ namespace Verse.Schemas.JSON
 			return true;
 		}
 
-		private bool ReadToObjectFromObject<TObject>(ReaderState state, EntityTree<ReaderSetter<ReaderState, JSONValue, TObject>> fields, ref TObject target)
+		private bool ReadToObjectFromObject<TObject>(ReaderState state,
+			ILookup<int, ReaderSetter<ReaderState, JSONValue, TObject>> fields, ref TObject target)
 		{
 			state.Read();
 
-			for (int index = 0; true; ++index)
+			for (var index = 0;; ++index)
 			{
 				state.PullIgnored();
 
@@ -532,7 +534,7 @@ namespace Verse.Schemas.JSON
 				case '7':
 				case '8':
 				case '9':
-					return ReadToValueFromNumber(state, out _);
+					return ReaderSession.ReadToValueFromNumber(state, out _);
 
 				case 'f':
 					state.Read();
@@ -550,10 +552,10 @@ namespace Verse.Schemas.JSON
 					return state.PullExpected('r') && state.PullExpected('u') && state.PullExpected('e');
 
 				case '[':
-					return this.ReadToObjectFromArray(state, EntityTree<ReaderSetter<ReaderState, JSONValue, bool>>.Empty, ref empty);
+					return this.ReadToObjectFromArray(state, NameLookup<ReaderSetter<ReaderState, JSONValue, bool>>.Empty, ref empty);
 
 				case '{':
-					return this.ReadToObjectFromObject(state, EntityTree<ReaderSetter<ReaderState, JSONValue, bool>>.Empty, ref empty);
+					return this.ReadToObjectFromObject(state, NameLookup<ReaderSetter<ReaderState, JSONValue, bool>>.Empty, ref empty);
 
 				default:
 					state.Error("expected array, object or value");

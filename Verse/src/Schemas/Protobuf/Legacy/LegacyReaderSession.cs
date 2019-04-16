@@ -34,7 +34,7 @@ namespace Verse.Schemas.Protobuf.Legacy
 		}
 
 		public bool ReadToObject<TObject>(LegacyReaderState state,
-			EntityTree<ReaderSetter<LegacyReaderState, ProtobufValue, TObject>> fields, ref TObject target)
+			ILookup<int, ReaderSetter<LegacyReaderState, ProtobufValue, TObject>> fields, ref TObject target)
 		{
 			// Complex objects are expected to be at top-level (no parent field type) or contained within string type
 			if (state.FieldType.GetValueOrDefault(ProtoBuf.WireType.String) != ProtoBuf.WireType.String)

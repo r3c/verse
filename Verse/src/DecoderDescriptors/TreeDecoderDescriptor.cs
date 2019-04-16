@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Verse.DecoderDescriptors.Tree;
+using Verse.Lookups;
 
 namespace Verse.DecoderDescriptors
 {
@@ -52,7 +54,7 @@ namespace Verse.DecoderDescriptors
 		public IDecoderObjectDescriptor<TObject> IsObject<TObject>(Func<TObject> constructor, Func<TObject, TEntity> converter)
 		{
 			var definition = this.definition.Create<TObject>();
-			var fields = new EntityTree<ReaderSetter<TState, TNative, TObject>>();
+			var fields = new NameLookup<ReaderSetter<TState, TNative, TObject>>();
 
 			this.definition.Callback = (IReaderSession<TState, TNative> session, TState state, out TEntity target) =>
 			{
@@ -123,9 +125,9 @@ namespace Verse.DecoderDescriptors
 		{
 			private readonly IDecoderConverter<TNative> converter;
 			private readonly ReaderDefinition<TState, TNative, TObject> definition;
-			private readonly EntityTree<ReaderSetter<TState, TNative, TObject>> fields;
+			private readonly NameLookup<ReaderSetter<TState, TNative, TObject>> fields;
 
-			public ObjectDescriptor(IDecoderConverter<TNative> converter, ReaderDefinition<TState, TNative, TObject> definition, EntityTree<ReaderSetter<TState, TNative, TObject>> fields)
+			public ObjectDescriptor(IDecoderConverter<TNative> converter, ReaderDefinition<TState, TNative, TObject> definition, NameLookup<ReaderSetter<TState, TNative, TObject>> fields)
 			{
 				this.converter = converter;
 				this.definition = definition;
@@ -151,15 +153,16 @@ namespace Verse.DecoderDescriptors
 			private IDecoderDescriptor<TField> HasField<TField>(string name, Setter<TObject, TField> setter, TreeDecoderDescriptor<TField, TState, TNative> descriptor)
 			{
 				var definition = descriptor.definition;
-				var success = this.fields.Connect(name, (IReaderSession<TState, TNative> session, TState state, ref TObject entity) =>
-				{
-					if (!definition.Callback(session, state, out var field))
-						return false;
+				var success = this.fields.ConnectTo(name,
+					(IReaderSession<TState, TNative> session, TState state, ref TObject entity) =>
+					{
+						if (!definition.Callback(session, state, out var field))
+							return false;
 
-					setter(ref entity, field);
+						setter(ref entity, field);
 
-					return true;
-				});
+						return true;
+					});
 
 				if (!success)
 					throw new InvalidOperationException($"field '{name}' was declared twice on same descriptor");

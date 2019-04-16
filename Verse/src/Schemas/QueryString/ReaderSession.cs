@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using Verse.DecoderDescriptors.Tree;
+using Verse.Lookups;
 
 namespace Verse.Schemas.QueryString
 {
@@ -24,7 +25,7 @@ namespace Verse.Schemas.QueryString
 			};
 		}
 
-		public bool ReadToObject<TObject>(ReaderState state, EntityTree<ReaderSetter<ReaderState, string, TObject>> fields, ref TObject target)
+		public bool ReadToObject<TObject>(ReaderState state, ILookup<int, ReaderSetter<ReaderState, string, TObject>> fields, ref TObject target)
 		{
 			if (state.Current == -1)
 				return true;
@@ -105,7 +106,7 @@ namespace Verse.Schemas.QueryString
 
 					value = default;
 
-					return this.ReadToObject(state, EntityTree<ReaderSetter<ReaderState, string, bool>>.Empty,
+					return this.ReadToObject(state, NameLookup<ReaderSetter<ReaderState, string, bool>>.Empty,
 						ref dummy);
 
 				case QueryStringLocation.ValueBegin:

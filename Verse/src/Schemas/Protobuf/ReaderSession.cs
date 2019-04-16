@@ -61,7 +61,7 @@ namespace Verse.Schemas.Protobuf.Legacy
 			throw new NotImplementedException();
 		}
 
-		public bool ReadToObject<TObject>(ReaderState state, EntityTree<ReaderSetter<ReaderState, ProtobufValue, TObject>> fields, ref TObject target)
+		public bool ReadToObject<TObject>(ReaderState state, ILookup<int, ReaderSetter<ReaderState, ProtobufValue, TObject>> fields, ref TObject target)
 		{
 			var current = state.Stream.ReadByte();
 

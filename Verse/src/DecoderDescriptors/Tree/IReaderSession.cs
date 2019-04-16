@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 
 namespace Verse.DecoderDescriptors.Tree
 {
-	interface IReaderSession<TState, TNative>
+	internal interface IReaderSession<TState, TNative>
 	{
 		BrowserMove<TElement> ReadToArray<TElement>(TState state, ReaderCallback<TState, TNative, TElement> callback);
 
-		bool ReadToObject<TObject>(TState state, EntityTree<ReaderSetter<TState, TNative, TObject>> fields, ref TObject target);
+		bool ReadToObject<TObject>(TState state, ILookup<int, ReaderSetter<TState, TNative, TObject>> fields, ref TObject target);
 
 		bool ReadToValue(TState state, out TNative value);
 
