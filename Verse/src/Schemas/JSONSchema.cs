@@ -24,11 +24,11 @@ namespace Verse.Schemas
 
 		private readonly DecoderConverter decoderConverter;
 
-		private readonly TreeDecoderDescriptor<TEntity, ReaderState, JSONValue> decoderDescriptor;
+		private readonly TreeDecoderDescriptor<ReaderState, JSONValue, TEntity> decoderDescriptor;
 
 		private readonly EncoderConverter encoderConverter;
 
-		private readonly TreeEncoderDescriptor<TEntity, WriterState, JSONValue> encoderDescriptor;
+		private readonly TreeEncoderDescriptor<WriterState, JSONValue, TEntity> encoderDescriptor;
 
 		/// <summary>
 		/// Create new JSON schema using given settings
@@ -36,15 +36,14 @@ namespace Verse.Schemas
 		/// <param name="configuration">Text encoding, ignore null...</param>
 		public JSONSchema(JSONConfiguration configuration)
 		{
-			var encoding = configuration.Encoding ?? new UTF8Encoding(false);
 			var writerDefinition = new WriterDefinition<WriterState, JSONValue, TEntity>();
 			var readerDefinition = new ReaderDefinition<ReaderState, JSONValue, TEntity>();
 
 			this.configuration = configuration;
 			this.decoderConverter = new DecoderConverter();
 			this.encoderConverter = new EncoderConverter();
-			this.decoderDescriptor = new TreeDecoderDescriptor<TEntity, ReaderState, JSONValue>(this.decoderConverter, readerDefinition);
-			this.encoderDescriptor = new TreeEncoderDescriptor<TEntity, WriterState, JSONValue>(this.encoderConverter, writerDefinition);
+			this.decoderDescriptor = new TreeDecoderDescriptor<ReaderState, JSONValue, TEntity>(this.decoderConverter, readerDefinition);
+			this.encoderDescriptor = new TreeEncoderDescriptor<WriterState, JSONValue, TEntity>(this.encoderConverter, writerDefinition);
 		}
 
 		/// <summary>

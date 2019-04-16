@@ -4,7 +4,7 @@ using Verse.EncoderDescriptors.Tree;
 
 namespace Verse.EncoderDescriptors
 {
-	class TreeEncoderDescriptor<TEntity, TState, TNative> : IEncoderDescriptor<TEntity>
+	internal class TreeEncoderDescriptor<TState, TNative, TEntity> : IEncoderDescriptor<TEntity>
 	{
 		private readonly IEncoderConverter<TNative> converter;
 
@@ -23,7 +23,7 @@ namespace Verse.EncoderDescriptors
 
 		public IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> converter, IEncoderDescriptor<TElement> descriptor)
 		{
-			if (!(descriptor is TreeEncoderDescriptor<TElement, TState, TNative> ancestor))
+			if (!(descriptor is TreeEncoderDescriptor<TState, TNative, TElement> ancestor))
 				throw new ArgumentOutOfRangeException(nameof(descriptor), "incompatible descriptor type");
 
 			var definition = ancestor.definition;
@@ -36,7 +36,7 @@ namespace Verse.EncoderDescriptors
 		public IEncoderDescriptor<TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> converter)
 		{
 			var definition = this.definition.Create<TElement>();
-			var descriptor = new TreeEncoderDescriptor<TElement, TState, TNative>(this.converter, definition);
+			var descriptor = new TreeEncoderDescriptor<TState, TNative, TElement>(this.converter, definition);
 
 			return this.IsArray(converter, descriptor);
 		}
@@ -48,7 +48,7 @@ namespace Verse.EncoderDescriptors
 
 			this.definition.Callback = (session, state, entity) => session.WriteObject(state, converter(entity), fields);
 
-			return new TreeEncoderDescriptor<TObject, TState, TNative>.ObjectDescriptor<TObject>(this.converter, definition, fields);
+			return new TreeEncoderDescriptor<TState, TNative, TObject>.ObjectDescriptor<TObject>(this.converter, definition, fields);
 		}
 
 		public IEncoderObjectDescriptor<TEntity> IsObject()
@@ -85,7 +85,7 @@ namespace Verse.EncoderDescriptors
 
 			public IEncoderDescriptor<TField> HasField<TField>(string name, Func<TObject, TField> getter, IEncoderDescriptor<TField> descriptor)
 			{
-				if (!(descriptor is TreeEncoderDescriptor<TField, TState, TNative> ancestor))
+				if (!(descriptor is TreeEncoderDescriptor<TState, TNative, TField> ancestor))
 					throw new ArgumentOutOfRangeException(nameof(descriptor), "incompatible descriptor type");
 
 				return this.HasField(name, getter, ancestor);
@@ -94,12 +94,12 @@ namespace Verse.EncoderDescriptors
 			public IEncoderDescriptor<TField> HasField<TField>(string name, Func<TObject, TField> getter)
 			{
 				var definition = this.definition.Create<TField>();
-				var descriptor = new TreeEncoderDescriptor<TField, TState, TNative>(this.converter, definition);
+				var descriptor = new TreeEncoderDescriptor<TState, TNative, TField>(this.converter, definition);
 
 				return this.HasField(name, getter, descriptor);
 			}
 
-			private IEncoderDescriptor<TField> HasField<TField>(string name, Func<TObject, TField> getter, TreeEncoderDescriptor<TField, TState, TNative> descriptor)
+			private IEncoderDescriptor<TField> HasField<TField>(string name, Func<TObject, TField> getter, TreeEncoderDescriptor<TState, TNative, TField> descriptor)
 			{
 				if (this.fields.ContainsKey(name))
 					throw new InvalidOperationException($"field '{name}' was declared twice on same descriptor");

@@ -6,7 +6,7 @@ using Verse.Lookups;
 
 namespace Verse.DecoderDescriptors
 {
-	class TreeDecoderDescriptor<TEntity, TState, TNative> : IDecoderDescriptor<TEntity>
+	internal class TreeDecoderDescriptor<TState, TNative, TEntity> : IDecoderDescriptor<TEntity>
 	{
 		private readonly IDecoderConverter<TNative> converter;
 
@@ -25,7 +25,7 @@ namespace Verse.DecoderDescriptors
 
 		public IDecoderDescriptor<TElement> IsArray<TElement>(Func<IEnumerable<TElement>, TEntity> converter, IDecoderDescriptor<TElement> parent)
 		{
-			if (!(parent is TreeDecoderDescriptor<TElement, TState, TNative> ancestor))
+			if (!(parent is TreeDecoderDescriptor<TState, TNative, TElement> ancestor))
 				throw new ArgumentOutOfRangeException(nameof(parent), "incompatible descriptor type");
 
 			var definition = ancestor.definition;
@@ -46,7 +46,7 @@ namespace Verse.DecoderDescriptors
 		public IDecoderDescriptor<TElement> IsArray<TElement>(Func<IEnumerable<TElement>, TEntity> converter)
 		{
 			var definition = this.definition.Create<TElement>();
-			var descriptor = new TreeDecoderDescriptor<TElement, TState, TNative>(this.converter, definition);
+			var descriptor = new TreeDecoderDescriptor<TState, TNative, TElement>(this.converter, definition);
 
 			return this.IsArray(converter, descriptor);
 		}
@@ -72,7 +72,7 @@ namespace Verse.DecoderDescriptors
 				return true;
 			};
 
-			return new TreeDecoderDescriptor<TObject, TState, TNative>.ObjectDescriptor<TObject>(this.converter, definition, fields);
+			return new TreeDecoderDescriptor<TState, TNative, TObject>.ObjectDescriptor<TObject>(this.converter, definition, fields);
 		}
 
 		public IDecoderObjectDescriptor<TEntity> IsObject(Func<TEntity> constructor)
@@ -136,7 +136,7 @@ namespace Verse.DecoderDescriptors
 
 			public IDecoderDescriptor<TField> HasField<TField>(string name, Setter<TObject, TField> setter, IDecoderDescriptor<TField> descriptor)
 			{
-				if (!(descriptor is TreeDecoderDescriptor<TField, TState, TNative> ancestor))
+				if (!(descriptor is TreeDecoderDescriptor<TState, TNative, TField> ancestor))
 					throw new ArgumentOutOfRangeException(nameof(descriptor), "incompatible descriptor type");
 
 				return this.HasField(name, setter, ancestor);
@@ -145,12 +145,12 @@ namespace Verse.DecoderDescriptors
 			public IDecoderDescriptor<TField> HasField<TField>(string name, Setter<TObject, TField> setter)
 			{
 				var definition = this.definition.Create<TField>();
-				var descriptor = new TreeDecoderDescriptor<TField, TState, TNative>(this.converter, definition);
+				var descriptor = new TreeDecoderDescriptor<TState, TNative, TField>(this.converter, definition);
 
 				return this.HasField(name, setter, descriptor);
 			}
 
-			private IDecoderDescriptor<TField> HasField<TField>(string name, Setter<TObject, TField> setter, TreeDecoderDescriptor<TField, TState, TNative> descriptor)
+			private IDecoderDescriptor<TField> HasField<TField>(string name, Setter<TObject, TField> setter, TreeDecoderDescriptor<TState, TNative, TField> descriptor)
 			{
 				var definition = descriptor.definition;
 				var success = this.fields.ConnectTo(name,

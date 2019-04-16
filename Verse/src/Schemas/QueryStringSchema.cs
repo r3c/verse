@@ -14,7 +14,7 @@ namespace Verse.Schemas
 
 		private readonly DecoderConverter decoderConverter;
 
-		private readonly TreeDecoderDescriptor<TEntity, ReaderState, string> decoderDescriptor;
+		private readonly TreeDecoderDescriptor<ReaderState, string, TEntity> decoderDescriptor;
 
 		private readonly Encoding encoding;
 
@@ -23,7 +23,7 @@ namespace Verse.Schemas
 			var decoderConverter = new DecoderConverter();
 
 			this.decoderConverter = decoderConverter;
-			this.decoderDescriptor = new TreeDecoderDescriptor<TEntity, ReaderState, string>(decoderConverter, new ReaderDefinition<ReaderState, string, TEntity>());
+			this.decoderDescriptor = new TreeDecoderDescriptor<ReaderState, string, TEntity>(decoderConverter, new ReaderDefinition<ReaderState, string, TEntity>());
 			this.encoding = encoding;
 		}
 

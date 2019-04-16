@@ -18,19 +18,19 @@ namespace Verse.Schemas
 
 		private readonly DecoderConverter decoderConverter;
 
-		private readonly TreeDecoderDescriptor<TEntity, ReaderState, ProtobufValue> decoderDescriptor;
+		private readonly TreeDecoderDescriptor<ReaderState, ProtobufValue, TEntity> decoderDescriptor;
 
 		private readonly EncoderConverter encoderConverter;
 
-		private readonly TreeEncoderDescriptor<TEntity, WriterState, ProtobufValue> encoderDescriptor;
+		private readonly TreeEncoderDescriptor<WriterState, ProtobufValue, TEntity> encoderDescriptor;
 
 		private readonly LegacyDecoderConverter legacyDecoderConverter;
 
-		private readonly TreeDecoderDescriptor<TEntity, LegacyReaderState, ProtobufValue> legacyDecoderDescriptor;
+		private readonly TreeDecoderDescriptor<LegacyReaderState, ProtobufValue, TEntity> legacyDecoderDescriptor;
 
 		private readonly LegacyEncoderConverter legacyEncoderConverter;
 
-		private readonly TreeEncoderDescriptor<TEntity, LegacyWriterState, ProtobufValue> legacyEncoderDescriptor;
+		private readonly TreeEncoderDescriptor<LegacyWriterState, ProtobufValue, TEntity> legacyEncoderDescriptor;
 
 		public ProtobufSchema(TextReader proto, string messageName, ProtobufConfiguration configuration)
 		{
@@ -43,11 +43,11 @@ namespace Verse.Schemas
 
 			this.decoderConverter = decoderConverter;
 			this.decoderDescriptor =
-				new TreeDecoderDescriptor<TEntity, ReaderState, ProtobufValue>(decoderConverter, reader);
+				new TreeDecoderDescriptor<ReaderState, ProtobufValue, TEntity>(decoderConverter, reader);
 
 			this.encoderConverter = encoderConverter;
 			this.encoderDescriptor =
-				new TreeEncoderDescriptor<TEntity, WriterState, ProtobufValue>(encoderConverter, writer);
+				new TreeEncoderDescriptor<WriterState, ProtobufValue, TEntity>(encoderConverter, writer);
 
 			// Legacy implementation
 			this.legacyDecoderConverter = null;
@@ -77,10 +77,10 @@ namespace Verse.Schemas
 
 			this.legacyDecoderConverter = decoderConverter;
 			this.legacyDecoderDescriptor =
-				new TreeDecoderDescriptor<TEntity, LegacyReaderState, ProtobufValue>(decoderConverter, reader);
+				new TreeDecoderDescriptor<LegacyReaderState, ProtobufValue, TEntity>(decoderConverter, reader);
 			this.legacyEncoderConverter = encoderConverter;
 			this.legacyEncoderDescriptor =
-				new TreeEncoderDescriptor<TEntity, LegacyWriterState, ProtobufValue>(encoderConverter, writer);
+				new TreeEncoderDescriptor<LegacyWriterState, ProtobufValue, TEntity>(encoderConverter, writer);
 		}
 
 		public IDecoder<TEntity> CreateDecoder()
