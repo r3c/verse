@@ -59,7 +59,7 @@ namespace Verse.Schemas.RawProtobuf
 				else
 					field = field.Follow((char) ('0' + state.FieldIndex));
 
-				if (!(field.Value?.Invoke(this, state, ref target) ?? RawProtobufReaderSession.Skip(state)))
+				if (!(field.HasValue ? field.Value(this, state, ref target) : RawProtobufReaderSession.Skip(state)))
 					return false;
 			}
 		}

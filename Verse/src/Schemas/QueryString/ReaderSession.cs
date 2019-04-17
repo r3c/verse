@@ -59,7 +59,7 @@ namespace Verse.Schemas.QueryString
 						state.Pull();
 						state.Location = QueryStringLocation.ValueBegin;
 
-						if (!(node.Value?.Invoke(this, state, ref target) ?? this.ReadToValue(state, out _)))
+						if (!(node.HasValue ? node.Value(this, state, ref target) : this.ReadToValue(state, out _)))
 							return false;
 
 						break;
@@ -67,7 +67,7 @@ namespace Verse.Schemas.QueryString
 					default:
 						state.Location = QueryStringLocation.ValueEnd;
 
-						if (node.Value != null && !node.Value(this, state, ref target))
+						if (node.HasValue && !node.Value(this, state, ref target))
 							return false;
 
 						break;

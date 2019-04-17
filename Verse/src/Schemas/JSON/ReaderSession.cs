@@ -299,7 +299,7 @@ namespace Verse.Schemas.JSON
 					field = field.Follow((char)('0' + index));
 
 				// Read array value
-				if (!(field.Value?.Invoke(this, state, ref target) ?? this.Skip(state)))
+				if (!(field.HasValue ? field.Value(this, state, ref target) : this.Skip(state)))
 					return false;
 			}
 
@@ -358,7 +358,7 @@ namespace Verse.Schemas.JSON
 				// Read object value
 				state.PullIgnored();
 
-				if (!(field.Value?.Invoke(this, state, ref target) ?? this.Skip(state)))
+				if (!(field.HasValue ? field.Value(this, state, ref target) : this.Skip(state)))
 					return false;
 			}
 
