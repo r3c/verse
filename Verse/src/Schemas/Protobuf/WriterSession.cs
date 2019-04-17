@@ -2,7 +2,7 @@
 using System.IO;
 using Verse.EncoderDescriptors.Tree;
 
-namespace Verse.Schemas.Protobuf.Legacy
+namespace Verse.Schemas.Protobuf
 {
 	class WriterSession : IWriterSession<WriterState, ProtobufValue>
 	{

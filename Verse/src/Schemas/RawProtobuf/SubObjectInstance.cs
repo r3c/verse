@@ -2,7 +2,7 @@
 using ProtoBuf;
 using ProtoBuf.Meta;
 
-namespace Verse.Schemas.Protobuf.Legacy
+namespace Verse.Schemas.RawProtobuf
 {
 	struct SubObjectInstance
 	{

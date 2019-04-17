@@ -4,7 +4,7 @@ using System.Text;
 using Verse.DecoderDescriptors.Tree;
 using Verse.Schemas.Protobuf.Definition;
 
-namespace Verse.Schemas.Protobuf.Legacy
+namespace Verse.Schemas.Protobuf
 {
 	static class ReaderSessionHelper
 	{

@@ -2,19 +2,19 @@
 using ProtoBuf;
 using ProtoBuf.Meta;
 
-namespace Verse.Schemas.Protobuf.Legacy
+namespace Verse.Schemas.RawProtobuf
 {
-	internal class LegacyReaderState
+	internal class RawProtobufReaderState
 	{
 		public readonly ProtoReader Reader;
 
 		public int FieldIndex;
 
-		public ProtoBuf.WireType? FieldType;
+		public WireType? FieldType;
 
 		private readonly DecodeError error;
 
-		public LegacyReaderState(Stream stream, DecodeError error)
+		public RawProtobufReaderState(Stream stream, DecodeError error)
 		{
 			this.error = error;
 

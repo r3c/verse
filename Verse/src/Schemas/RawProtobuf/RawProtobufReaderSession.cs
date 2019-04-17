@@ -3,11 +3,11 @@ using System.IO;
 using ProtoBuf;
 using Verse.DecoderDescriptors.Tree;
 
-namespace Verse.Schemas.Protobuf.Legacy
+namespace Verse.Schemas.RawProtobuf
 {
-	internal class LegacyReaderSession : IReaderSession<LegacyReaderState, ProtobufValue>
+	internal class RawProtobufReaderSession : IReaderSession<RawProtobufReaderState, RawProtobufValue>
 	{
-		public BrowserMove<TElement> ReadToArray<TElement>(LegacyReaderState state, ReaderCallback<LegacyReaderState, ProtobufValue, TElement> callback)
+		public BrowserMove<TElement> ReadToArray<TElement>(RawProtobufReaderState state, ReaderCallback<RawProtobufReaderState, RawProtobufValue, TElement> callback)
 		{
 			var fieldIndex = state.FieldIndex;
 
@@ -33,13 +33,13 @@ namespace Verse.Schemas.Protobuf.Legacy
 			};
 		}
 
-		public bool ReadToObject<TObject>(LegacyReaderState state,
-			ILookup<int, ReaderSetter<LegacyReaderState, ProtobufValue, TObject>> fields, ref TObject target)
+		public bool ReadToObject<TObject>(RawProtobufReaderState state,
+			ILookup<int, ReaderSetter<RawProtobufReaderState, RawProtobufValue, TObject>> fields, ref TObject target)
 		{
 			// Complex objects are expected to be at top-level (no parent field type) or contained within string type
-			if (state.FieldType.GetValueOrDefault(ProtoBuf.WireType.String) != ProtoBuf.WireType.String)
+			if (state.FieldType.GetValueOrDefault(WireType.String) != WireType.String)
 			{
-				LegacyReaderSession.Skip(state);
+				RawProtobufReaderSession.Skip(state);
 
 				return true;
 			}
@@ -74,12 +74,12 @@ namespace Verse.Schemas.Protobuf.Legacy
 				else
 					field = field.Follow((char) ('0' + state.FieldIndex));
 
-				if (!(field.Value?.Invoke(this, state, ref target) ?? LegacyReaderSession.Skip(state)))
+				if (!(field.Value?.Invoke(this, state, ref target) ?? RawProtobufReaderSession.Skip(state)))
 					return false;
 			}
 		}
 
-		public bool ReadToValue(LegacyReaderState state, out ProtobufValue value)
+		public bool ReadToValue(RawProtobufReaderState state, out RawProtobufValue value)
 		{
 			var fieldType = state.FieldType.GetValueOrDefault();
 
@@ -87,19 +87,23 @@ namespace Verse.Schemas.Protobuf.Legacy
 
 			switch (fieldType)
 			{
-				case ProtoBuf.WireType.Fixed32:
-					value = new ProtobufValue(state.Reader.ReadInt32());
+				case WireType.Fixed32:
+					value = new RawProtobufValue(state.Reader.ReadInt32(), RawProtobufStorage.Fixed32);
 
 					return true;
 
-				case ProtoBuf.WireType.Fixed64:
-				case ProtoBuf.WireType.Variant:
-					value = new ProtobufValue(state.Reader.ReadInt64());
+				case WireType.Fixed64:
+					value = new RawProtobufValue(state.Reader.ReadInt64(), RawProtobufStorage.Fixed64);
 
 					return true;
 
-				case ProtoBuf.WireType.String:
-					value = new ProtobufValue(state.Reader.ReadString());
+				case WireType.String:
+					value = new RawProtobufValue(state.Reader.ReadString(), RawProtobufStorage.String);
+
+					return true;
+
+				case WireType.Variant:
+					value = new RawProtobufValue(state.Reader.ReadInt64(), RawProtobufStorage.Variant);
 
 					return true;
 
@@ -112,18 +116,18 @@ namespace Verse.Schemas.Protobuf.Legacy
 			}
 		}
 
-		public bool Start(Stream stream, DecodeError error, out LegacyReaderState state)
+		public bool Start(Stream stream, DecodeError error, out RawProtobufReaderState state)
 		{
-			state = new LegacyReaderState(stream, error);
+			state = new RawProtobufReaderState(stream, error);
 
 			return true;
 		}
 
-		public void Stop(LegacyReaderState state)
+		public void Stop(RawProtobufReaderState state)
 		{
 		}
 
-		private static bool Skip(LegacyReaderState state)
+		private static bool Skip(RawProtobufReaderState state)
 		{
 			state.Reader.SkipField();
 			state.ClearHeader();

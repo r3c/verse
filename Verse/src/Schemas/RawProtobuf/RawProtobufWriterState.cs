@@ -3,9 +3,9 @@ using System.Globalization;
 using System.IO;
 using ProtoBuf;
 
-namespace Verse.Schemas.Protobuf.Legacy
+namespace Verse.Schemas.RawProtobuf
 {
-	internal class LegacyWriterState
+	internal class RawProtobufWriterState
 	{
 		private readonly EncodeError error;
 
@@ -17,7 +17,7 @@ namespace Verse.Schemas.Protobuf.Legacy
 
 		private readonly Stack<SubObjectInstance> subObjectInstances;
 
-		public LegacyWriterState(Stream stream, EncodeError error)
+		public RawProtobufWriterState(Stream stream, EncodeError error)
 		{
 			this.error = error;
 
@@ -66,47 +66,33 @@ namespace Verse.Schemas.Protobuf.Legacy
 			return true;
 		}
 
-		public bool Value(ProtobufValue value)
+		public bool Value(RawProtobufValue value)
 		{
 		    if (this.subObjectInstances.Count == 0)
 				return false;
 
-			var destWriter = this.subObjectInstances.Peek().Writer;
+			var writer = this.subObjectInstances.Peek().Writer;
 
-			switch (value.Type)
+			switch (value.Storage)
 			{
-				case ProtobufType.Boolean:
-					ProtoWriter.WriteFieldHeader(this.fieldIndex, ProtoBuf.WireType.Variant, destWriter);
-					ProtoWriter.WriteBoolean(value.Boolean, destWriter);
+				case RawProtobufStorage.Fixed32:
+					ProtoWriter.WriteFieldHeader(this.fieldIndex, WireType.Fixed32, writer);
+					ProtoWriter.WriteInt64(value.Number, writer);
 					break;
 
-				case ProtobufType.Float32:
-					ProtoWriter.WriteFieldHeader(this.fieldIndex, ProtoBuf.WireType.Fixed32, destWriter);
-					ProtoWriter.WriteSingle(value.Float32, destWriter);
+				case RawProtobufStorage.Fixed64:
+					ProtoWriter.WriteFieldHeader(this.fieldIndex, WireType.Fixed64, writer);
+					ProtoWriter.WriteInt64(value.Number, writer);
 					break;
 
-				case ProtobufType.Float64:
-					ProtoWriter.WriteFieldHeader(this.fieldIndex, ProtoBuf.WireType.Fixed64, destWriter);
-					ProtoWriter.WriteDouble(value.Float64, destWriter);
+				case RawProtobufStorage.String:
+					ProtoWriter.WriteFieldHeader(this.fieldIndex, WireType.String, writer);
+					ProtoWriter.WriteString(value.String, writer);
 					break;
 
-				case ProtobufType.Signed:
-					ProtoWriter.WriteFieldHeader(this.fieldIndex, ProtoBuf.WireType.Variant, destWriter);
-					ProtoWriter.WriteInt64(value.Signed, destWriter);
-					break;
-
-				case ProtobufType.String:
-					ProtoWriter.WriteFieldHeader(this.fieldIndex, ProtoBuf.WireType.String, destWriter);
-					ProtoWriter.WriteString(value.String ?? string.Empty, destWriter);
-					break;
-
-				case ProtobufType.Unsigned:
-					ProtoWriter.WriteFieldHeader(this.fieldIndex, ProtoBuf.WireType.Variant, destWriter);
-					ProtoWriter.WriteUInt64(value.Unsigned, destWriter);
-					break;
-
-				case ProtobufType.Void:
-					// do nothing
+				case RawProtobufStorage.Variant:
+					ProtoWriter.WriteFieldHeader(this.fieldIndex, WireType.Variant, writer);
+					ProtoWriter.WriteInt64(value.Number, writer);
 					break;
 			}
 
