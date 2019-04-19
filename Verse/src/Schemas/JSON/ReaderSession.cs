@@ -9,11 +9,13 @@ namespace Verse.Schemas.JSON
 {
 	internal class ReaderSession : IReaderSession<ReaderState, JSONValue>
 	{
+		private readonly bool acceptObjectAsArray;
 		private readonly bool acceptValueAsArray;
 		private readonly Encoding encoding;
 
-		public ReaderSession(Encoding encoding, bool acceptValueAsArray)
+		public ReaderSession(Encoding encoding, bool acceptObjectAsArray, bool acceptValueAsArray)
 		{
+			this.acceptObjectAsArray = acceptObjectAsArray;
 			this.acceptValueAsArray = acceptValueAsArray;
 			this.encoding = encoding;
 		}
@@ -26,7 +28,10 @@ namespace Verse.Schemas.JSON
 					return this.ReadToArrayFromArray(state, callback);
 
 				case '{':
-					return this.ReadToArrayFromObject(state, callback);
+					if (this.acceptObjectAsArray)
+						return this.ReadToArrayFromObject(state, callback);
+
+					goto default;
 
 				default:
 					// Accept any scalar value as an array of one element
@@ -47,17 +52,7 @@ namespace Verse.Schemas.JSON
 
 					// Ignore array when not supported by current descriptor
 					else
-					{
-
-						var success = this.Skip(state);
-
-						return (int index, out TEntity current) =>
-						{
-							current = default;
-
-							return success ? BrowserState.Success : BrowserState.Failure;
-						};
-					}
+						return this.Skip(state) ? Browser<TEntity>.EmptySuccess : Browser<TEntity>.EmptyFailure;
 			}
 		}
 

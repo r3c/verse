@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using KellermanSoftware.CompareNetObjects;
 using NUnit.Framework;
 using Verse.Schemas;
 using Verse.Schemas.JSON;
@@ -13,25 +14,50 @@ namespace Verse.Test.Schemas
 	public class JSONSchemaTester : BaseSchemaTester
 	{
 		[Test]
+		[TestCase(false, "{\"value1\" : [ { \"value2\" : 123 } ]}", new[] {123d})]
+		[TestCase(true, "{\"value1\" : [ { \"value2\" : 123 } ]}", new[] {123d})]
+		[TestCase(false, "{\"value1\" : [ { \"value2\" : 123 }, { \"value2\" : 124 } ]}", new[] {123d, 124d})]
+		[TestCase(true, "{\"value1\" : [ { \"value2\" : 123 }, { \"value2\" : 124 } ]}", new[] {123d, 124d})]
+		[TestCase(false, "{\"value1\" : { \"value2\" : 123 } }", new double[0])]
+		[TestCase(true, "{\"value1\" : { \"value2\" : 123 } }", new[] {123d})]
+		public void DecodeObjectAsArray(bool acceptAsArray, string json, double[] expected)
+		{
+			var schema = new JSONSchema<double[]>(new JSONConfiguration {AcceptValueAsArray = acceptAsArray});
+
+			schema.DecoderDescriptor
+				.IsObject(() => default)
+				.HasField("value1", (ref double[] entity, double[] value) => entity = value)
+				.IsArray<double>(elements => elements.ToArray())
+				.IsObject(() => default)
+				.HasField("value2", (ref double entity, double value) => entity = value)
+				.IsValue();
+
+			JSONSchemaTester.AssertDecodeAndEqual(schema, json, expected);
+		}
+
+		[Test]
+		[TestCase(false, "{\"key1\": 27.5, \"key2\": 19}", new double[0])]
+		[TestCase(true, "{\"key1\": 27.5, \"key2\": 19}", new[] {27.5, 19})]
+		public void DecodeValueAsArray(bool acceptAsArray, string json, double[] expected)
+		{
+			var schema = new JSONSchema<double[]>(new JSONConfiguration {AcceptObjectAsArray = acceptAsArray});
+
+			schema.DecoderDescriptor.IsArray<double>(elements => elements.ToArray()).IsValue();
+
+			JSONSchemaTester.AssertDecodeAndEqual(schema, json, expected);
+		}
+
+		[Test]
 		[TestCase("[]", new double[0])]
 		[TestCase("[-42.1]", new[] { -42.1 })]
 		[TestCase("[0, 5, 90, 23, -9, 5.32]", new[] { 0, 5, 90, 23, -9, 5.32 })]
-		[TestCase("{\"key1\": 27.5, \"key2\": 19}", new[] { 27.5, 19 })]
 		public void DecodeArrayOfIntegers(string json, double[] expected)
 		{
 			var schema = new JSONSchema<double[]>();
 
 			schema.DecoderDescriptor.IsArray<double>(elements => elements.ToArray()).IsValue();
 
-			var decoder = schema.CreateDecoder();
-
-			using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
-			{
-				Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
-				Assert.IsTrue(decoderStream.Decode(out var value));
-
-				CollectionAssert.AreEqual(expected, value);
-			}
+			JSONSchemaTester.AssertDecodeAndEqual(schema, json, expected);
 		}
 
 		[Test]
@@ -68,8 +94,8 @@ namespace Verse.Test.Schemas
 
 			schema.DecoderDescriptor.IsObject(() => default).HasField("match", (ref int o, int v) => o = v).IsValue();
 
-			this.AssertDecodeAndEqual(schema, "{\"match1\": 17}", 0);
-			this.AssertDecodeAndEqual(schema, "{\"matc\": 17}", 0);
+			JSONSchemaTester.AssertDecodeAndEqual(schema, "{\"match1\": 17}", 0);
+			JSONSchemaTester.AssertDecodeAndEqual(schema, "{\"matc\": 17}", 0);
 		}
 
 		[Test]
@@ -79,7 +105,7 @@ namespace Verse.Test.Schemas
 
 			schema.DecoderDescriptor.IsObject(() => default).HasField("match", (ref int o, int v) => o = v).IsValue();
 
-			this.AssertDecodeAndEqual(schema, "{\"unknown\": {\"match\": 17}}", 0);
+			JSONSchemaTester.AssertDecodeAndEqual(schema, "{\"unknown\": {\"match\": 17}}", 0);
 		}
 
 		[Test]
@@ -94,7 +120,7 @@ namespace Verse.Test.Schemas
 
 			schema.DecoderDescriptor.IsObject(() => default).HasField(name, (ref T o, T v) => o = v).IsValue();
 
-			this.AssertDecodeAndEqual(schema, json, expected);
+			JSONSchemaTester.AssertDecodeAndEqual(schema, json, expected);
 		}
 
 		[Test]
@@ -130,7 +156,7 @@ namespace Verse.Test.Schemas
 
 			schema.DecoderDescriptor.IsArray<T>(elements => elements.FirstOrDefault()).IsValue();
 
-			this.AssertDecodeAndEqual(schema, json, expected);
+			JSONSchemaTester.AssertDecodeAndEqual(schema, json, expected);
 		}
 
 		[Test]
@@ -142,7 +168,7 @@ namespace Verse.Test.Schemas
 
 			schema.DecoderDescriptor.IsArray<string>(elements => elements.Count()).IsValue();
 
-			this.AssertDecodeAndEqual(schema, json, 0);
+			JSONSchemaTester.AssertDecodeAndEqual(schema, json, 0);
 		}
 
 		[Test]
@@ -164,7 +190,7 @@ namespace Verse.Test.Schemas
 			tuple.HasField("a", (ref Tuple<int, int> target, int value) => target = Tuple.Create(value, target.Item2)).IsValue();
 			tuple.HasField("b", (ref Tuple<int, int> target, int value) => target = Tuple.Create(target.Item1, value)).IsValue();
 
-			this.AssertDecodeAndEqual(schema, "{\"tuple\": {\"a\": 5, \"b\": 7}}", Tuple.Create(Tuple.Create(5, 7, fromConstructor), fromConverter));
+			JSONSchemaTester.AssertDecodeAndEqual(schema, "{\"tuple\": {\"a\": 5, \"b\": 7}}", Tuple.Create(Tuple.Create(5, 7, fromConstructor), fromConverter));
 		}
 
 		[Test]
@@ -177,7 +203,7 @@ namespace Verse.Test.Schemas
 			schema.SetDecoderConverter((v) => Guid.Parse(v.String));
 			schema.DecoderDescriptor.IsValue();
 
-			this.AssertDecodeAndEqual(schema, json, Guid.Parse(expected));
+			JSONSchemaTester.AssertDecodeAndEqual(schema, json, Guid.Parse(expected));
 		}
 
 		[Test]
@@ -205,7 +231,7 @@ namespace Verse.Test.Schemas
 
 			schema.DecoderDescriptor.IsValue();
 
-			this.AssertDecodeAndEqual(schema, json, expected);
+			JSONSchemaTester.AssertDecodeAndEqual(schema, json, expected);
 		}
 
 		[Test]
@@ -215,7 +241,7 @@ namespace Verse.Test.Schemas
 
 			schema.DecoderDescriptor.IsValue();
 
-			this.AssertDecodeAndEqual(schema, "1e-28", 1e-28m);
+			JSONSchemaTester.AssertDecodeAndEqual(schema, "1e-28", 1e-28m);
 		}
 
 		[Test]
@@ -223,9 +249,8 @@ namespace Verse.Test.Schemas
 		[TestCase(true, "{\"values\":[{},{\"value\":\"test\"}]}")]
 		public void EncodeArrayOfEntities(bool omitNull, string expected)
 		{
-			JSONSchema<JSONValue> schema;
+			var schema = new JSONSchema<JSONValue>(new JSONConfiguration {OmitNull = omitNull});
 
-			schema = new JSONSchema<JSONValue>(new JSONConfiguration { OmitNull = omitNull });
 			schema.EncoderDescriptor
 				.IsObject()
 				.HasField("values", v => v)
@@ -234,7 +259,7 @@ namespace Verse.Test.Schemas
 				.HasField("value", v => v)
 				.IsValue();
 
-			this.AssertEncodeAndEqual(schema, JSONValue.FromString("test"), expected);
+			JSONSchemaTester.AssertEncodeAndEqual(schema, JSONValue.FromString("test"), expected);
 		}
 
 		[Test]
@@ -247,7 +272,7 @@ namespace Verse.Test.Schemas
 
 			schema.EncoderDescriptor.IsArray(entity => entity).IsValue();
 
-			this.AssertEncodeAndEqual(schema, value, expected);
+			JSONSchemaTester.AssertEncodeAndEqual(schema, value, expected);
 		}
 
 		[Test]
@@ -264,7 +289,7 @@ namespace Verse.Test.Schemas
 			top.HasField("item", v => v).IsObject().HasField("values", v => v).IsArray(v => new[] { null, "val1", null, "val2", null }).IsValue();
 			top.HasField("lastnull", s => JSONValue.Void).IsValue();
 
-			this.AssertEncodeAndEqual(schema, "test", expected);
+			JSONSchemaTester.AssertEncodeAndEqual(schema, "test", expected);
 		}
 
 		[Test]
@@ -276,7 +301,7 @@ namespace Verse.Test.Schemas
 
 			schema.EncoderDescriptor.IsObject().HasField(name, v => v).IsValue();
 
-			this.AssertEncodeAndEqual(schema, value, expected);
+			JSONSchemaTester.AssertEncodeAndEqual(schema, value, expected);
 		}
 
 		[Test]
@@ -290,7 +315,7 @@ namespace Verse.Test.Schemas
 			rootObject.HasField("field", o => o.field, root);
 			rootObject.HasField("value", o => o.value).IsValue();
 
-			this.AssertEncodeAndEqual(schema, new RecursiveEntity { field = new RecursiveEntity { value = 1 }, value = 2 }, "{\"field\":{\"field\":null,\"value\":1},\"value\":2}");
+			JSONSchemaTester.AssertEncodeAndEqual(schema, new RecursiveEntity { field = new RecursiveEntity { value = 1 }, value = 2 }, "{\"field\":{\"field\":null,\"value\":1},\"value\":2}");
 		}
 
 		[Test]
@@ -303,7 +328,7 @@ namespace Verse.Test.Schemas
 			schema.SetEncoderConverter<Guid>((v) => JSONValue.FromString(v.ToString()));
 			schema.EncoderDescriptor.IsValue();
 
-			this.AssertEncodeAndEqual(schema, Guid.Parse(guid), expected);
+			JSONSchemaTester.AssertEncodeAndEqual(schema, Guid.Parse(guid), expected);
 		}
 
 		[Test]
@@ -321,7 +346,7 @@ namespace Verse.Test.Schemas
 
 			schema.EncoderDescriptor.IsValue();
 
-			this.AssertEncodeAndEqual(schema, value, expected);
+			JSONSchemaTester.AssertEncodeAndEqual(schema, value, expected);
 		}
 
 		[Test]
@@ -333,7 +358,7 @@ namespace Verse.Test.Schemas
 
 			schema.EncoderDescriptor.IsValue();
 
-			this.AssertEncodeAndEqual(schema, null, expected);
+			JSONSchemaTester.AssertEncodeAndEqual(schema, null, expected);
 		}
 
 		[Test]
@@ -355,7 +380,7 @@ namespace Verse.Test.Schemas
 			return new JSONSchema<T>();
 		}
 
-		private void AssertDecodeAndEqual<T>(ISchema<T> schema, string json, T expected)
+		private static void AssertDecodeAndEqual<T>(ISchema<T> schema, string json, T expected)
 		{
 			var decoder = schema.CreateDecoder();
 
@@ -364,11 +389,14 @@ namespace Verse.Test.Schemas
 				Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
 				Assert.IsTrue(decoderStream.Decode(out var value));
 
-				Assert.AreEqual(expected, value);
+				var compare = new CompareLogic();
+				var result = compare.Compare(expected, value);
+
+				Assert.That(result.AreEqual, Is.True, result.DifferencesString);
 			}
 		}
 
-		private void AssertEncodeAndEqual<T>(ISchema<T> schema, T value, string expected)
+		private static void AssertEncodeAndEqual<T>(ISchema<T> schema, T value, string expected)
 		{
 			var encoder = schema.CreateEncoder();
 
@@ -377,7 +405,7 @@ namespace Verse.Test.Schemas
 				Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
 				Assert.IsTrue(encoderStream.Encode(value));
 
-				Assert.AreEqual(expected, Encoding.UTF8.GetString(stream.ToArray()));
+				Assert.That(Encoding.UTF8.GetString(stream.ToArray()), Is.EqualTo(expected));
 			}
 		}
 

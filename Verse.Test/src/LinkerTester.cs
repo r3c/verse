@@ -12,8 +12,8 @@ namespace Verse.Test
 	public class LinkerTester
 	{
 		[Test]
-		[TestCase("[0, 5, 90, 23, -9, 5.32]", new[] { 0, 5, 90, 23, -9, 5.32 })]
-		[TestCase("{\"key1\": 27.5, \"key2\": 19}", new[] { 27.5, 19 })]
+		[TestCase("[]", new double[0])]
+		[TestCase("[0, 5, 90, 23, -9, 5.32]", new[] {0, 5, 90, 23, -9, 5.32})]
 		public void LinkDecoderArrayFromArray(string json, double[] expected)
 		{
 			var encoded = Encoding.UTF8.GetBytes(json);
@@ -23,8 +23,8 @@ namespace Verse.Test
 		}
 
 		[Test]
+		[TestCase("[]", new double[0])]
 		[TestCase("[0, 5, 90, 23, -9, 5.32]", new[] { 0, 5, 90, 23, -9, 5.32 })]
-		[TestCase("{\"key1\": 27.5, \"key2\": 19}", new[] { 27.5, 19 })]
 		public void LinkDecoderArrayFromList(string json, double[] expected)
 		{
 			var encoded = Encoding.UTF8.GetBytes(json);
