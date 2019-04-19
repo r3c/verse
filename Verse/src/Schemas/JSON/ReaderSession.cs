@@ -32,20 +32,16 @@ namespace Verse.Schemas.JSON
 					// Accept any scalar value as an array of one element
 					if (this.acceptValueAsArray)
 					{
-						var success = false;
-
 						return (int index, out TEntity current) =>
 						{
-							if (success)
-							{
-								current = default;
+							if (index == 0)
+								return callback(this, state, out current)
+									? BrowserState.Continue
+									: BrowserState.Failure;
 
-								return BrowserState.Success;
-							}
+							current = default;
 
-							success = true;
-
-							return callback(this, state, out current) ? BrowserState.Continue : BrowserState.Failure;
+							return BrowserState.Success;
 						};
 					}
 
