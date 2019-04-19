@@ -121,6 +121,19 @@ namespace Verse.Test.Schemas
 		}
 
 		[Test]
+		[TestCase(false, "19", 0)]
+		[TestCase(true, "19", 19)]
+		[TestCase(true, "\"test\"", "test")]
+		public void DecodeValueAsArray<T>(bool acceptValueAsArray, string json, T expected)
+		{
+			var schema = new JSONSchema<T>(new JSONConfiguration {AcceptValueAsArray = acceptValueAsArray});
+
+			schema.DecoderDescriptor.IsArray<T>(elements => elements.FirstOrDefault()).IsValue();
+
+			this.AssertDecodeAndEqual(schema, json, expected);
+		}
+
+		[Test]
 		[TestCase("\"test\"")]
 		[TestCase("53")]
 		public void DecodeValueFailsWhenTypeDoesNotMatch(string json)

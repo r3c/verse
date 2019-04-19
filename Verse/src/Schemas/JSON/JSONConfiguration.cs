@@ -5,6 +5,11 @@ namespace Verse.Schemas.JSON
 	public struct JSONConfiguration
 	{
 		/// <summary>
+		/// Accept scalar value as valid input for descriptors declared as array, producing a 1-element array.
+		/// </summary>
+		public bool AcceptValueAsArray;
+
+		/// <summary>
 		/// Encoding used to read/write JSON text from/to binary stream.
 		/// </summary>
 		public Encoding Encoding;

@@ -58,7 +58,7 @@ namespace Verse.Schemas
 		public IDecoder<TEntity> CreateDecoder()
 		{
 			var encoding = this.configuration.Encoding ?? new UTF8Encoding(false);
-			var session = new ReaderSession(encoding);
+			var session = new ReaderSession(encoding, this.configuration.AcceptValueAsArray);
 
 			return this.decoderDescriptor.CreateDecoder(session);
 		}
