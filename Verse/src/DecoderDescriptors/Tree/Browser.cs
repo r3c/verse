@@ -65,6 +65,8 @@ namespace Verse.DecoderDescriptors.Tree
 	
 			public void Dispose()
 			{
+				this.Finish();
+
 				this.move = null;
 			}
 
@@ -80,8 +82,9 @@ namespace Verse.DecoderDescriptors.Tree
 			{
 				if (this.state != BrowserState.Continue)
 					return false;
-	
-				this.state = this.move(this.index++, out this.current);
+
+				if (this.move != null)
+					this.state = this.move(this.index++, out this.current);
 	
 				return this.state == BrowserState.Continue;
 			}
