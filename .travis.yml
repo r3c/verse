@@ -4,7 +4,7 @@ solution: Verse.sln
 matrix:
   include:
     - os: linux
-      dist: trusty
+      dist: xenial
       dotnet: 2.1.502
 
 script:
