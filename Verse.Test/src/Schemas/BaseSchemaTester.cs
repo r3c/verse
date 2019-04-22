@@ -9,7 +9,19 @@ namespace Verse.Test.Schemas
 	public abstract class BaseSchemaTester
 	{
 		[Test]
-		public virtual void RoundTripNestedArray()
+		public void RoundTripFieldFlatten()
+		{
+			var schema = this.CreateSchema<int>();
+
+			schema.DecoderDescriptor.HasField("virtual").HasField("value", () => 0,
+				(ref int target, int source) => target = source).HasValue();
+			schema.EncoderDescriptor.HasField("virtual").HasField("value", source => source).HasValue();
+
+			BaseSchemaTester.AssertRoundTrip(schema.CreateDecoder(() => 0), schema.CreateEncoder(), 17);
+		}
+
+		[Test]
+		public void RoundTripNestedArray()
 		{
 			var schema = this.CreateSchema<NestedArray>();
 			var decoder = Linker.CreateDecoder(schema);
@@ -74,7 +86,7 @@ namespace Verse.Test.Schemas
 		}
 
 		[Test]
-		public virtual void RoundTripNestedValue()
+		public void RoundTripNestedValue()
 		{
 			var schema = this.CreateSchema<NestedValue>();
 			var decoder = Linker.CreateDecoder(schema);
@@ -98,7 +110,7 @@ namespace Verse.Test.Schemas
 		[Test]
 		[TestCase("Hello")]
 		[TestCase(25.5)]
-		public virtual void RoundTripValueNative<T>(T instance)
+		public void RoundTripValueNative<T>(T instance)
 		{
 			var schema = this.CreateSchema<T>();
 			var decoder = Linker.CreateDecoder(schema);
@@ -109,7 +121,7 @@ namespace Verse.Test.Schemas
 
 		[Test]
 		[Ignore("Nullable types are not handled by linker yet.")]
-		public virtual void RoundTripValueNullable()
+		public void RoundTripValueNullable()
 		{
 			var schema = this.CreateSchema<double?>();
 			var decoder = Linker.CreateDecoder(schema);

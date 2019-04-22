@@ -7,10 +7,13 @@ using Verse.Resolvers;
 
 namespace Verse.Tools
 {
-	static class Generator
+	internal static class Generator
 	{
-		private static readonly OpCode[] OpCodeLdArgs = { OpCodes.Ldarg_0, OpCodes.Ldarg_1, OpCodes.Ldarg_2, OpCodes.Ldarg_3 };
-		private static readonly Type[] Functions = { typeof(Func<>), typeof(Func<,>), typeof(Func<,,>), typeof(Func<,,,>), typeof(Func<,,,,>) };
+		private static readonly OpCode[] OpCodeLdArgs =
+			{OpCodes.Ldarg_0, OpCodes.Ldarg_1, OpCodes.Ldarg_2, OpCodes.Ldarg_3};
+
+		private static readonly Type[] Functions =
+			{typeof(Func<>), typeof(Func<,>), typeof(Func<,,>), typeof(Func<,,,>), typeof(Func<,,,,>)};
 
 		public static Func<T> CreateConstructor<T>()
 		{
@@ -23,51 +26,90 @@ namespace Verse.Tools
 
 			var parameters = constructor.GetParameters();
 
-			if (parameters.Length >= Functions.Length)
-				throw new ArgumentOutOfRangeException(nameof(constructor), $"can't generate constructor with more than {Functions.Length} arguments");
+			if (parameters.Length >= Generator.Functions.Length)
+				throw new ArgumentOutOfRangeException(nameof(constructor),
+					$"can't generate constructor with more than {Generator.Functions.Length} arguments");
 
 			var method = new DynamicMethod(string.Empty, constructor.DeclaringType,
 				Array.ConvertAll(parameters, (p) => p.ParameterType), constructor.Module, true);
 			var generator = method.GetILGenerator();
 			var index = 0;
 
-			foreach (ParameterInfo parameter in parameters)
-				LoadParameter(generator, parameter, index++);
+			foreach (var parameter in parameters)
+				Generator.LoadParameter(generator, parameter.ParameterType, index++);
 
 			generator.Emit(OpCodes.Newobj, constructor);
 			generator.Emit(OpCodes.Ret);
 
-			var arguments = new[] { constructor.DeclaringType }
+			var arguments = new[] {constructor.DeclaringType}
 				.Concat(parameters.Select(p => p.ParameterType))
 				.ToArray();
 
-			var type = Functions[parameters.Length].MakeGenericType(arguments);
+			var type = Generator.Functions[parameters.Length].MakeGenericType(arguments);
 
-			return (Func<T>)method.CreateDelegate(type);
+			return (Func<T>) method.CreateDelegate(type);
 		}
 
 		/// <summary>
-		/// Create Func<T, U> delegate using compatible constructor.
+		/// Create setter from any <see cref="IEnumerable{T}"/> elements to array target.
 		/// </summary>
-		public static object CreateConstructorSetter(ConstructorInfo constructor)
+		/// <typeparam name="TElement">Element type</typeparam>
+		/// <returns>Setter callback</returns>
+		public static Setter<TElement[], IEnumerable<TElement>> CreateSetterFromArrayConverter<TElement>()
+		{
+			var converter = MethodResolver.Create<Func<IEnumerable<TElement>, TElement[]>>(e => e.ToArray());
+			var parameterTypes = new[] {typeof(TElement[]).MakeByRefType(), typeof(IEnumerable<TElement>)};
+
+			var method = new DynamicMethod(string.Empty, null, parameterTypes, typeof(TElement).Module, true);
+			var generator = method.GetILGenerator();
+
+			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Ldarg_1);
+			generator.Emit(OpCodes.Call, converter.Method);
+			generator.Emit(OpCodes.Stind_Ref);
+			generator.Emit(OpCodes.Ret);
+
+			var type = typeof(Setter<TElement[], IEnumerable<TElement>>);
+
+			return (Setter<TElement[], IEnumerable<TElement>>) method.CreateDelegate(type);
+		}
+
+		/// <summary>
+		/// Create setter using compatible constructor.
+		/// </summary>
+		public static Setter<TEntity, TParameter> CreateSetterFromConstructor<TEntity, TParameter>(
+			ConstructorInfo constructor)
 		{
 			var parameters = constructor.GetParameters();
 
 			if (parameters.Length != 1)
 				throw new ArgumentException("constructor doesn't take one argument", nameof(constructor));
 
+			var entityType = constructor.DeclaringType;
+
+			if (entityType != typeof(TEntity))
+				throw new ArgumentException($"constructor parent type is not {typeof(TEntity)}",
+					nameof(constructor));
+
 			var parameterType = parameters[0].ParameterType;
-			var targetType = constructor.DeclaringType;
-			var method = new DynamicMethod(string.Empty, targetType, new[] { parameterType }, constructor.Module, true);
+
+			if (parameterType != typeof(TParameter))
+				throw new ArgumentException($"constructor argument type is not {typeof(TParameter)}",
+					nameof(constructor));
+
+			var parameterTypes = new[] {entityType.MakeByRefType(), parameterType};
+			var method = new DynamicMethod(string.Empty, null, parameterTypes, constructor.Module, true);
 			var generator = method.GetILGenerator();
 
 			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Ldarg_1);
 			generator.Emit(OpCodes.Newobj, constructor);
+			generator.Emit(OpCodes.Stind_Ref);
 			generator.Emit(OpCodes.Ret);
 
-			var type = typeof(Func<,>).MakeGenericType(parameterType, targetType);
+			var type = typeof(Setter<,>).MakeGenericType(entityType, parameterType);
 
-			return method.CreateDelegate(type);
+			return (Setter<TEntity, TParameter>) method.CreateDelegate(type);
 		}
 
 		/// <Summary>
@@ -76,7 +118,7 @@ namespace Verse.Tools
 		public static object CreateFieldGetter(FieldInfo field)
 		{
 			var parentType = field.DeclaringType;
-			var method = new DynamicMethod(string.Empty, field.FieldType, new[] { parentType }, field.Module, true);
+			var method = new DynamicMethod(string.Empty, field.FieldType, new[] {parentType}, field.Module, true);
 			var generator = method.GetILGenerator();
 
 			generator.Emit(OpCodes.Ldarg_0);
@@ -94,7 +136,8 @@ namespace Verse.Tools
 		public static object CreateFieldSetter(FieldInfo field)
 		{
 			var parentType = field.DeclaringType;
-			var method = new DynamicMethod(string.Empty, null, new[] { parentType.MakeByRefType(), field.FieldType }, field.Module, true);
+			var method = new DynamicMethod(string.Empty, null, new[] {parentType.MakeByRefType(), field.FieldType},
+				field.Module, true);
 			var generator = method.GetILGenerator();
 
 			generator.Emit(OpCodes.Ldarg_0);
@@ -137,7 +180,8 @@ namespace Verse.Tools
 				throw new ArgumentException("property has no setter", nameof(property));
 
 			var parentType = property.DeclaringType;
-			var method = new DynamicMethod(string.Empty, null, new[] { parentType.MakeByRefType(), property.PropertyType }, property.Module, true);
+			var method = new DynamicMethod(string.Empty, null,
+				new[] {parentType.MakeByRefType(), property.PropertyType}, property.Module, true);
 			var generator = method.GetILGenerator();
 
 			generator.Emit(OpCodes.Ldarg_0);
@@ -154,9 +198,9 @@ namespace Verse.Tools
 			return method.CreateDelegate(methodType);
 		}
 
-		private static void LoadParameter(ILGenerator generator, ParameterInfo parameter, int index)
+		private static void LoadParameter(ILGenerator generator, Type type, int index)
 		{
-			if (parameter.ParameterType.IsByRef)
+			if (type.IsByRef)
 				generator.Emit(index < 256 ? OpCodes.Ldarga_S : OpCodes.Ldarga, index);
 			else if (index < Generator.OpCodeLdArgs.Length)
 				generator.Emit(Generator.OpCodeLdArgs[index]);

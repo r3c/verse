@@ -55,13 +55,13 @@ namespace Verse.Schemas
 		}
 
 		/// <inheritdoc/>
-		public IDecoder<TEntity> CreateDecoder()
+		public IDecoder<TEntity> CreateDecoder(Func<TEntity> constructor)
 		{
 			var configuration = this.configuration;
 			var session = new ReaderSession(configuration.Encoding ?? new UTF8Encoding(false),
 				configuration.AcceptObjectAsArray, configuration.AcceptValueAsArray);
 
-			return this.decoderDescriptor.CreateDecoder(session);
+			return this.decoderDescriptor.CreateDecoder(session, constructor);
 		}
 
 		/// <inheritdoc/>

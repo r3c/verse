@@ -25,14 +25,12 @@ namespace Verse.Test.Schemas
 			var schema = new JSONSchema<double[]>(new JSONConfiguration {AcceptValueAsArray = acceptAsArray});
 
 			schema.DecoderDescriptor
-				.IsObject(() => default)
-				.HasField("value1", (ref double[] entity, double[] value) => entity = value)
-				.IsArray<double>(elements => elements.ToArray())
-				.IsObject(() => default)
-				.HasField("value2", (ref double entity, double value) => entity = value)
-				.IsValue();
+				.HasField("value1", () => default, (ref double[] entity, double[] value) => entity = value)
+				.HasElements(() => 0d, (ref double[] t, IEnumerable<double> e) => t = e.ToArray())
+				.HasField("value2", () => default, (ref double entity, double value) => entity = value)
+				.HasValue();
 
-			JSONSchemaTester.AssertDecodeAndEqual(schema, json, expected);
+			JSONSchemaTester.AssertDecodeAndEqual(schema, Array.Empty<double>, json, expected);
 		}
 
 		[Test]
@@ -42,22 +40,24 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new JSONSchema<double[]>(new JSONConfiguration {AcceptObjectAsArray = acceptAsArray});
 
-			schema.DecoderDescriptor.IsArray<double>(elements => elements.ToArray()).IsValue();
+			schema.DecoderDescriptor.HasElements(() => 0d, (ref double[] t, IEnumerable<double> e) => t = e.ToArray())
+				.HasValue();
 
-			JSONSchemaTester.AssertDecodeAndEqual(schema, json, expected);
+			JSONSchemaTester.AssertDecodeAndEqual(schema, Array.Empty<double>, json, expected);
 		}
 
 		[Test]
 		[TestCase("[]", new double[0])]
-		[TestCase("[-42.1]", new[] { -42.1 })]
-		[TestCase("[0, 5, 90, 23, -9, 5.32]", new[] { 0, 5, 90, 23, -9, 5.32 })]
+		[TestCase("[-42.1]", new[] {-42.1})]
+		[TestCase("[0, 5, 90, 23, -9, 5.32]", new[] {0, 5, 90, 23, -9, 5.32})]
 		public void DecodeArrayOfIntegers(string json, double[] expected)
 		{
 			var schema = new JSONSchema<double[]>();
 
-			schema.DecoderDescriptor.IsArray<double>(elements => elements.ToArray()).IsValue();
+			schema.DecoderDescriptor.HasElements(() => 0d, (ref double[] t, IEnumerable<double> e) => t = e.ToArray())
+				.HasValue();
 
-			JSONSchemaTester.AssertDecodeAndEqual(schema, json, expected);
+			JSONSchemaTester.AssertDecodeAndEqual(schema, Array.Empty<double>, json, expected);
 		}
 
 		[Test]
@@ -72,9 +72,9 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new JSONSchema<string>();
 
-			schema.DecoderDescriptor.IsValue();
+			schema.DecoderDescriptor.HasValue();
 
-			var decoder = schema.CreateDecoder();
+			var decoder = schema.CreateDecoder(() => string.Empty);
 			var position = -1;
 
 			decoder.Error += (p, m) => position = p;
@@ -92,10 +92,11 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new JSONSchema<int>();
 
-			schema.DecoderDescriptor.IsObject(() => default).HasField("match", (ref int o, int v) => o = v).IsValue();
+			schema.DecoderDescriptor.HasField("match", () => default, (ref int target, int value) => target = value)
+				.HasValue();
 
-			JSONSchemaTester.AssertDecodeAndEqual(schema, "{\"match1\": 17}", 0);
-			JSONSchemaTester.AssertDecodeAndEqual(schema, "{\"matc\": 17}", 0);
+			JSONSchemaTester.AssertDecodeAndEqual(schema, () => 0, "{\"match1\": 17}", 0);
+			JSONSchemaTester.AssertDecodeAndEqual(schema, () => 0, "{\"matc\": 17}", 0);
 		}
 
 		[Test]
@@ -103,9 +104,22 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new JSONSchema<int>();
 
-			schema.DecoderDescriptor.IsObject(() => default).HasField("match", (ref int o, int v) => o = v).IsValue();
+			schema.DecoderDescriptor.HasField("match", () => default, (ref int o, int v) => o = v).HasValue();
 
-			JSONSchemaTester.AssertDecodeAndEqual(schema, "{\"unknown\": {\"match\": 17}}", 0);
+			JSONSchemaTester.AssertDecodeAndEqual(schema, () => 0, "{\"unknown\": {\"match\": 17}}", 0);
+		}
+
+		[Test]
+		public void DecodeFieldFromSameEntity()
+		{
+			var schema = new JSONSchema<int[]>();
+			var root = schema.DecoderDescriptor;
+
+			root.HasField("virtual0", () => 0, (ref int[] target, int source) => target[0] = source).HasValue();
+			root.HasField("virtual1", () => 0, (ref int[] target, int source) => target[1] = source).HasValue();
+
+			JSONSchemaTester.AssertDecodeAndEqual(schema, () => new[] {0, 0}, "{\"virtual0\": 42, \"virtual1\": 17}",
+				new[] {42, 17});
 		}
 
 		[Test]
@@ -118,9 +132,9 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new JSONSchema<T>();
 
-			schema.DecoderDescriptor.IsObject(() => default).HasField(name, (ref T o, T v) => o = v).IsValue();
+			schema.DecoderDescriptor.HasField(name, () => default, (ref T o, T v) => o = v).HasValue();
 
-			JSONSchemaTester.AssertDecodeAndEqual(schema, json, expected);
+			JSONSchemaTester.AssertDecodeAndEqual(schema, () => default, json, expected);
 		}
 
 		[Test]
@@ -129,13 +143,14 @@ namespace Verse.Test.Schemas
 			var schema = new JSONSchema<RecursiveEntity>();
 			var descriptor = schema.DecoderDescriptor;
 
-			var root = descriptor.IsObject(() => new RecursiveEntity());
-			root.HasField("f", (ref RecursiveEntity r, RecursiveEntity v) => r.field = v, descriptor);
-			root.HasField("v", (ref RecursiveEntity r, int v) => r.value = v).IsValue();
+			descriptor.HasField("f", () => new RecursiveEntity(),
+				(ref RecursiveEntity r, RecursiveEntity v) => r.field = v, descriptor);
+			descriptor.HasField("v", () => 0, (ref RecursiveEntity r, int v) => r.value = v).HasValue();
 
-			var decoder = schema.CreateDecoder();
+			var decoder = schema.CreateDecoder(() => new RecursiveEntity());
 
-			using (var stream = new MemoryStream(Encoding.UTF8.GetBytes("{\"f\": {\"f\": {\"v\": 42}, \"v\": 17}, \"v\": 3}")))
+			using (var stream =
+				new MemoryStream(Encoding.UTF8.GetBytes("{\"f\": {\"f\": {\"v\": 42}, \"v\": 17}, \"v\": 3}")))
 			{
 				Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
 				Assert.IsTrue(decoderStream.Decode(out var value));
@@ -154,9 +169,10 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new JSONSchema<T>(new JSONConfiguration {AcceptValueAsArray = acceptValueAsArray});
 
-			schema.DecoderDescriptor.IsArray<T>(elements => elements.FirstOrDefault()).IsValue();
+			schema.DecoderDescriptor.HasElements(() => default,
+				(ref T target, IEnumerable<T> elements) => target = elements.FirstOrDefault()).HasValue();
 
-			JSONSchemaTester.AssertDecodeAndEqual(schema, json, expected);
+			JSONSchemaTester.AssertDecodeAndEqual(schema, () => default, json, expected);
 		}
 
 		[Test]
@@ -166,44 +182,10 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new JSONSchema<int>();
 
-			schema.DecoderDescriptor.IsArray<string>(elements => elements.Count()).IsValue();
+			schema.DecoderDescriptor.HasElements(() => string.Empty,
+				(ref int target, IEnumerable<string> elements) => target = elements.Count()).HasValue();
 
-			JSONSchemaTester.AssertDecodeAndEqual(schema, json, 0);
-		}
-
-		[Test]
-		public void DecodeValueWithCustomConstructor()
-		{
-			const int fromConstructor = 17;
-			const int fromConverter = 42;
-
-			var schema = new JSONSchema<Tuple<Tuple<int, int, int>, int>>();
-
-			var root = schema.DecoderDescriptor.IsObject(() => Tuple.Create(0, 0, fromConstructor),
-				v => Tuple.Create(v, fromConverter));
-
-			var tuple = root
-				.HasField("tuple",
-					(ref Tuple<int, int, int> t, Tuple<int, int> v) => t = Tuple.Create(v.Item1, v.Item2, t.Item3))
-				.IsObject(() => Tuple.Create(0, 0));
-
-			tuple.HasField("a", (ref Tuple<int, int> target, int value) => target = Tuple.Create(value, target.Item2)).IsValue();
-			tuple.HasField("b", (ref Tuple<int, int> target, int value) => target = Tuple.Create(target.Item1, value)).IsValue();
-
-			JSONSchemaTester.AssertDecodeAndEqual(schema, "{\"tuple\": {\"a\": 5, \"b\": 7}}", Tuple.Create(Tuple.Create(5, 7, fromConstructor), fromConverter));
-		}
-
-		[Test]
-		[TestCase("\"90f59097-d06a-4796-b8d5-87eb6af7ed8b\"", "90f59097-d06a-4796-b8d5-87eb6af7ed8b")]
-		[TestCase("\"c566a1c7-d89e-4e3f-8c5f-d4bcd0b82025\"", "c566a1c7-d89e-4e3f-8c5f-d4bcd0b82025")]
-		public void DecodeValueWithCustomDecoder(string json, string expected)
-		{
-			var schema = new JSONSchema<Guid>();
-
-			schema.SetDecoderConverter((v) => Guid.Parse(v.String));
-			schema.DecoderDescriptor.IsValue();
-
-			JSONSchemaTester.AssertDecodeAndEqual(schema, json, Guid.Parse(expected));
+			JSONSchemaTester.AssertDecodeAndEqual(schema, () => default, json, 0);
 		}
 
 		[Test]
@@ -225,23 +207,74 @@ namespace Verse.Test.Schemas
 		[TestCase("\"\\\"\"", "\"")]
 		[TestCase("\"\\\\\"", "\\")]
 		[TestCase("9223372036854775807", 9223372036854775807.0)]
-		public void DecodeValueNativeConstant<T>(string json, T expected)
+		public void DecodeValueFromNativeConstant<T>(string json, T expected)
 		{
 			var schema = new JSONSchema<T>();
 
-			schema.DecoderDescriptor.IsValue();
+			schema.DecoderDescriptor.HasValue();
 
-			JSONSchemaTester.AssertDecodeAndEqual(schema, json, expected);
+			JSONSchemaTester.AssertDecodeAndEqual(schema, () => default, json, expected);
 		}
 
 		[Test]
-		public void DecodeValueNativeDecimal()
+		public void DecodeValueFromNativeDecimal()
 		{
 			var schema = new JSONSchema<decimal>();
 
-			schema.DecoderDescriptor.IsValue();
+			schema.DecoderDescriptor.HasValue();
 
-			JSONSchemaTester.AssertDecodeAndEqual(schema, "1e-28", 1e-28m);
+			JSONSchemaTester.AssertDecodeAndEqual(schema, () => default, "1e-28", 1e-28m);
+		}
+
+		[Test]
+		public void DecodeValueWithCustomConstructor()
+		{
+			const int fromConstructor = 17;
+
+			var schema = new JSONSchema<Tuple<int, int, int>>();
+			var descriptor = schema.DecoderDescriptor;
+
+			var tuple = descriptor.HasField("tuple", () => Tuple.Create(0, 0),
+				(ref Tuple<int, int, int> target, Tuple<int, int> field) => target =
+					Tuple.Create(field.Item1, field.Item2, target.Item3));
+
+			tuple.HasField("a", () => 0,
+					(ref Tuple<int, int> target, int value) => target = Tuple.Create(value, target.Item2))
+				.HasValue();
+
+			tuple.HasField("b", () => 0,
+					(ref Tuple<int, int> target, int value) => target = Tuple.Create(target.Item1, value))
+				.HasValue();
+
+			JSONSchemaTester.AssertDecodeAndEqual(schema,
+				() => Tuple.Create(0, 0, fromConstructor),
+				"{\"tuple\": {\"a\": 5, \"b\": 7}}", Tuple.Create(5, 7, fromConstructor));
+		}
+
+		[Test]
+		[TestCase("\"90f59097-d06a-4796-b8d5-87eb6af7ed8b\"", "90f59097-d06a-4796-b8d5-87eb6af7ed8b")]
+		[TestCase("\"c566a1c7-d89e-4e3f-8c5f-d4bcd0b82025\"", "c566a1c7-d89e-4e3f-8c5f-d4bcd0b82025")]
+		public void DecodeValueWithCustomDecoder(string json, string expected)
+		{
+			var schema = new JSONSchema<Guid>();
+
+			schema.SetDecoderConverter(v => Guid.Parse(v.String));
+			schema.DecoderDescriptor.HasValue();
+
+			JSONSchemaTester.AssertDecodeAndEqual(schema, () => Guid.Empty, json, Guid.Parse(expected));
+		}
+
+		[Test]
+		[TestCase("\"90f59097-d06a-4796-b8d5-87eb6af7ed8b\"", "90f59097-d06a-4796-b8d5-87eb6af7ed8b")]
+		[TestCase("\"c566a1c7-d89e-4e3f-8c5f-d4bcd0b82025\"", "c566a1c7-d89e-4e3f-8c5f-d4bcd0b82025")]
+		public void DecodeValueWithCustomSetter(string json, string expected)
+		{
+			var schema = new JSONSchema<Guid>();
+
+			schema.DecoderDescriptor.HasValue((ref Guid target, JSONValue source) =>
+				target = Guid.Parse(source.String));
+
+			JSONSchemaTester.AssertDecodeAndEqual(schema, () => Guid.Empty, json, Guid.Parse(expected));
 		}
 
 		[Test]
@@ -252,42 +285,42 @@ namespace Verse.Test.Schemas
 			var schema = new JSONSchema<JSONValue>(new JSONConfiguration {OmitNull = omitNull});
 
 			schema.EncoderDescriptor
-				.IsObject()
 				.HasField("values", v => v)
-				.IsArray(v => new[] { JSONValue.Void, v, })
-				.IsObject()
+				.HasElements(v => new[] {JSONValue.Void, v})
 				.HasField("value", v => v)
-				.IsValue();
+				.HasValue();
 
 			JSONSchemaTester.AssertEncodeAndEqual(schema, JSONValue.FromString("test"), expected);
 		}
 
 		[Test]
 		[TestCase(new int[0], "[]")]
-		[TestCase(new[] { 21 }, "[21]")]
-		[TestCase(new[] { 54, 90, -3, 34, 0, 49 }, "[54,90,-3,34,0,49]")]
+		[TestCase(new[] {21}, "[21]")]
+		[TestCase(new[] {54, 90, -3, 34, 0, 49}, "[54,90,-3,34,0,49]")]
 		public void EncodeArrayOfIntegers(int[] value, string expected)
 		{
 			var schema = new JSONSchema<int[]>();
 
-			schema.EncoderDescriptor.IsArray(entity => entity).IsValue();
+			schema.EncoderDescriptor.HasElements(entity => entity).HasValue();
 
 			JSONSchemaTester.AssertEncodeAndEqual(schema, value, expected);
 		}
 
 		[Test]
-		[TestCase(false, "{\"firstnull\":null,\"value\":\"test\",\"secondnull\":null,\"item\":{\"values\":[null,\"val1\",null,\"val2\",null]},\"lastnull\":null}")]
+		[TestCase(false,
+			"{\"firstnull\":null,\"value\":\"test\",\"secondnull\":null,\"item\":{\"values\":[null,\"val1\",null,\"val2\",null]},\"lastnull\":null}")]
 		[TestCase(true, "{\"value\":\"test\",\"item\":{\"values\":[\"val1\",\"val2\"]}}")]
 		public void EncodeEntityOmitNull(bool omitNull, string expected)
 		{
-			var schema = new JSONSchema<string>(new JSONConfiguration { OmitNull = omitNull });
-			var top = schema.EncoderDescriptor.IsObject();
+			var schema = new JSONSchema<string>(new JSONConfiguration {OmitNull = omitNull});
+			var descriptor = schema.EncoderDescriptor;
 
-			top.HasField("firstnull", s => JSONValue.Void).IsValue();
-			top.HasField("value", v => v).IsValue();
-			top.HasField("secondnull", s => JSONValue.Void).IsValue();
-			top.HasField("item", v => v).IsObject().HasField("values", v => v).IsArray(v => new[] { null, "val1", null, "val2", null }).IsValue();
-			top.HasField("lastnull", s => JSONValue.Void).IsValue();
+			descriptor.HasField("firstnull", s => JSONValue.Void).HasValue();
+			descriptor.HasField("value", v => v).HasValue();
+			descriptor.HasField("secondnull", s => JSONValue.Void).HasValue();
+			descriptor.HasField("item", v => v).HasField("values", v => v)
+				.HasElements(v => new[] {null, "val1", null, "val2", null}).HasValue();
+			descriptor.HasField("lastnull", s => JSONValue.Void).HasValue();
 
 			JSONSchemaTester.AssertEncodeAndEqual(schema, "test", expected);
 		}
@@ -299,34 +332,58 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new JSONSchema<T>();
 
-			schema.EncoderDescriptor.IsObject().HasField(name, v => v).IsValue();
+			schema.EncoderDescriptor.HasField(name, v => v).HasValue();
 
 			JSONSchemaTester.AssertEncodeAndEqual(schema, value, expected);
+		}
+
+		[Test]
+		public void EncodeFieldFromSameEntity()
+		{
+			var schema = new JSONSchema<int[]>();
+			var root = schema.EncoderDescriptor;
+
+			root.HasField("virtual0", source => source[0]).HasValue();
+			root.HasField("virtual1", source => source[1]).HasValue();
+
+			JSONSchemaTester.AssertEncodeAndEqual(schema, new[] {42, 17}, "{\"virtual0\":42,\"virtual1\":17}");
 		}
 
 		[Test]
 		public void EncodeRecursiveDescriptorDefinedAfterUse()
 		{
 			var schema = new JSONSchema<RecursiveEntity>();
+			var descriptor = schema.EncoderDescriptor;
 
-			var root = schema.EncoderDescriptor;
-			var rootObject = root.IsObject();
+			descriptor.HasField("field", o => o.field, descriptor);
+			descriptor.HasField("value", o => o.value).HasValue();
 
-			rootObject.HasField("field", o => o.field, root);
-			rootObject.HasField("value", o => o.value).IsValue();
-
-			JSONSchemaTester.AssertEncodeAndEqual(schema, new RecursiveEntity { field = new RecursiveEntity { value = 1 }, value = 2 }, "{\"field\":{\"field\":null,\"value\":1},\"value\":2}");
+			JSONSchemaTester.AssertEncodeAndEqual(schema,
+				new RecursiveEntity {field = new RecursiveEntity {value = 1}, value = 2},
+				"{\"field\":{\"field\":null,\"value\":1},\"value\":2}");
 		}
 
 		[Test]
 		[TestCase("90f59097-d06a-4796-b8d5-87eb6af7ed8b", "\"90f59097-d06a-4796-b8d5-87eb6af7ed8b\"")]
 		[TestCase("c566a1c7-d89e-4e3f-8c5f-d4bcd0b82025", "\"c566a1c7-d89e-4e3f-8c5f-d4bcd0b82025\"")]
-		public void EncodeValueCustomEncoder(string guid, string expected)
+		public void EncodeValueWithCustomEncoder(string guid, string expected)
 		{
 			var schema = new JSONSchema<Guid>();
 
-			schema.SetEncoderConverter<Guid>((v) => JSONValue.FromString(v.ToString()));
-			schema.EncoderDescriptor.IsValue();
+			schema.SetEncoderConverter<Guid>(v => JSONValue.FromString(v.ToString()));
+			schema.EncoderDescriptor.HasValue();
+
+			JSONSchemaTester.AssertEncodeAndEqual(schema, Guid.Parse(guid), expected);
+		}
+
+		[Test]
+		[TestCase("90f59097-d06a-4796-b8d5-87eb6af7ed8b", "\"90f59097-d06a-4796-b8d5-87eb6af7ed8b\"")]
+		[TestCase("c566a1c7-d89e-4e3f-8c5f-d4bcd0b82025", "\"c566a1c7-d89e-4e3f-8c5f-d4bcd0b82025\"")]
+		public void EncodeValueWithCustomGetter(string guid, string expected)
+		{
+			var schema = new JSONSchema<Guid>();
+
+			schema.EncoderDescriptor.HasValue(v => JSONValue.FromString(v.ToString()));
 
 			JSONSchemaTester.AssertEncodeAndEqual(schema, Guid.Parse(guid), expected);
 		}
@@ -344,7 +401,7 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new JSONSchema<T>();
 
-			schema.EncoderDescriptor.IsValue();
+			schema.EncoderDescriptor.HasValue();
 
 			JSONSchemaTester.AssertEncodeAndEqual(schema, value, expected);
 		}
@@ -354,9 +411,9 @@ namespace Verse.Test.Schemas
 		[TestCase(true, "")]
 		public void EncodeValueNull(bool omitNull, string expected)
 		{
-			var schema = new JSONSchema<string>(new JSONConfiguration { OmitNull = omitNull });
+			var schema = new JSONSchema<string>(new JSONConfiguration {OmitNull = omitNull});
 
-			schema.EncoderDescriptor.IsValue();
+			schema.EncoderDescriptor.HasValue();
 
 			JSONSchemaTester.AssertEncodeAndEqual(schema, null, expected);
 		}
@@ -366,13 +423,14 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new JSONSchema<GuidContainer>();
 
-			schema.SetDecoderConverter<Guid>(v => Guid.Parse(v.String));
+			schema.SetDecoderConverter(v => Guid.Parse(v.String));
 			schema.SetEncoderConverter<Guid>(g => JSONValue.FromString(g.ToString()));
 
-			BaseSchemaTester.AssertRoundTrip(Linker.CreateDecoder(schema), Linker.CreateEncoder(schema), new GuidContainer
-			{
-				guid = Guid.NewGuid()
-			});
+			BaseSchemaTester.AssertRoundTrip(Linker.CreateDecoder(schema), Linker.CreateEncoder(schema),
+				new GuidContainer
+				{
+					guid = Guid.NewGuid()
+				});
 		}
 
 		protected override ISchema<T> CreateSchema<T>()
@@ -380,9 +438,9 @@ namespace Verse.Test.Schemas
 			return new JSONSchema<T>();
 		}
 
-		private static void AssertDecodeAndEqual<T>(ISchema<T> schema, string json, T expected)
+		private static void AssertDecodeAndEqual<T>(ISchema<T> schema, Func<T> constructor, string json, T expected)
 		{
-			var decoder = schema.CreateDecoder();
+			var decoder = schema.CreateDecoder(constructor);
 
 			using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
 			{
@@ -411,11 +469,7 @@ namespace Verse.Test.Schemas
 
 		private class GuidContainer
 		{
-			public Guid guid
-			{
-				get;
-				set;
-			}
+			public Guid guid { get; set; }
 		}
 
 		private class RecursiveEntity

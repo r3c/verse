@@ -15,7 +15,8 @@ namespace Verse.Schemas.QueryString
 			this.encoding = encoding;
 		}
 
-		public BrowserMove<TElement> ReadToArray<TElement>(ReaderState state, ReaderCallback<ReaderState, string, TElement> callback)
+		public BrowserMove<TElement> ReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
+			ReaderCallback<ReaderState, string, TElement> callback)
 		{
 			return (int index, out TElement element) =>
 			{
@@ -25,7 +26,8 @@ namespace Verse.Schemas.QueryString
 			};
 		}
 
-		public bool ReadToObject<TObject>(ReaderState state, ILookup<int, ReaderSetter<ReaderState, string, TObject>> fields, ref TObject target)
+		public bool ReadToObject<TObject>(ReaderState state,
+			ILookup<int, ReaderCallback<ReaderState, string, TObject>> fields, ref TObject target)
 		{
 			if (state.Current == -1)
 				return true;
@@ -74,7 +76,8 @@ namespace Verse.Schemas.QueryString
 				}
 
 				if (state.Location != QueryStringLocation.ValueEnd)
-					throw new InvalidOperationException("internal error, please report an issue on GitHub: https://github.com/r3c/verse/issues");
+					throw new InvalidOperationException(
+						"internal error, please report an issue on GitHub: https://github.com/r3c/verse/issues");
 
 				// Expect either field separator or end of stream
 				if (state.Current == -1)
@@ -106,7 +109,7 @@ namespace Verse.Schemas.QueryString
 
 					value = default;
 
-					return this.ReadToObject(state, NameLookup<ReaderSetter<ReaderState, string, bool>>.Empty,
+					return this.ReadToObject(state, NameLookup<ReaderCallback<ReaderState, string, bool>>.Empty,
 						ref dummy);
 
 				case QueryStringLocation.ValueBegin:

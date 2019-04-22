@@ -20,16 +20,17 @@ namespace Verse.Schemas.JSON
 			this.encoding = encoding;
 		}
 
-		public BrowserMove<TEntity> ReadToArray<TEntity>(ReaderState state, ReaderCallback<ReaderState, JSONValue, TEntity> callback)
+		public BrowserMove<TElement> ReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
+			ReaderCallback<ReaderState, JSONValue, TElement> callback)
 		{
 			switch (state.Current)
 			{
 				case '[':
-					return this.ReadToArrayFromArray(state, callback);
+					return this.ReadToArrayFromArray(state, constructor, callback);
 
 				case '{':
 					if (this.acceptObjectAsArray)
-						return this.ReadToArrayFromObject(state, callback);
+						return this.ReadToArrayFromObject(state, constructor, callback);
 
 					goto default;
 
@@ -37,26 +38,31 @@ namespace Verse.Schemas.JSON
 					// Accept any scalar value as an array of one element
 					if (this.acceptValueAsArray)
 					{
-						return (int index, out TEntity current) =>
+						return (int index, out TElement current) =>
 						{
-							if (index == 0)
-								return callback(this, state, out current)
-									? BrowserState.Continue
-									: BrowserState.Failure;
+							if (index > 0)
+							{
+								current = default;
 
-							current = default;
+								return BrowserState.Success;
+							}
 
-							return BrowserState.Success;
+							current = constructor();
+
+							return callback(this, state, ref current)
+								? BrowserState.Continue
+								: BrowserState.Failure;
 						};
 					}
 
 					// Ignore array when not supported by current descriptor
 					else
-						return this.Skip(state) ? Browser<TEntity>.EmptySuccess : Browser<TEntity>.EmptyFailure;
+						return this.Skip(state) ? Browser<TElement>.EmptySuccess : Browser<TElement>.EmptyFailure;
 			}
 		}
 
-		public bool ReadToObject<TEntity>(ReaderState state, ILookup<int, ReaderSetter<ReaderState, JSONValue, TEntity>> fields, ref TEntity target)
+		public bool ReadToObject<TObject>(ReaderState state,
+			ILookup<int, ReaderCallback<ReaderState, JSONValue, TObject>> fields, ref TObject target)
 		{
 			switch (state.Current)
 			{
@@ -174,7 +180,8 @@ namespace Verse.Schemas.JSON
 		{
 		}
 
-		private BrowserMove<TElement> ReadToArrayFromArray<TElement>(ReaderState state, ReaderCallback<ReaderState, JSONValue, TElement> callback)
+		private BrowserMove<TElement> ReadToArrayFromArray<TElement>(ReaderState state, Func<TElement> constructor,
+			ReaderCallback<ReaderState, JSONValue, TElement> callback)
 		{
 			state.Read();
 
@@ -205,14 +212,14 @@ namespace Verse.Schemas.JSON
 				}
 
 				// Read array value
-				if (!callback(this, state, out current))
-					return BrowserState.Failure;
+				current = constructor();
 
-				return BrowserState.Continue;
+				return callback(this, state, ref current) ? BrowserState.Continue : BrowserState.Failure;
 			};
 		}
 
-		private BrowserMove<TElement> ReadToArrayFromObject<TElement>(ReaderState state, ReaderCallback<ReaderState, JSONValue, TElement> callback)
+		private BrowserMove<TElement> ReadToArrayFromObject<TElement>(ReaderState state, Func<TElement> constructor,
+			ReaderCallback<ReaderState, JSONValue, TElement> callback)
 		{
 			state.Read();
 
@@ -278,14 +285,13 @@ namespace Verse.Schemas.JSON
 				state.PullIgnored();
 
 				// Read array value
-				if (!callback(this, state, out current))
-					return BrowserState.Failure;
+				current = constructor();
 
-				return BrowserState.Continue;
+				return callback(this, state, ref current) ? BrowserState.Continue : BrowserState.Failure;
 			};
 		}
 
-		private bool ReadToObjectFromArray<TObject>(ReaderState state, ILookup<int, ReaderSetter<ReaderState, JSONValue, TObject>> fields, ref TObject target)
+		private bool ReadToObjectFromArray<TObject>(ReaderState state, ILookup<int, ReaderCallback<ReaderState, JSONValue, TObject>> fields, ref TObject target)
 		{
 			state.Read();
 
@@ -327,7 +333,7 @@ namespace Verse.Schemas.JSON
 		}
 
 		private bool ReadToObjectFromObject<TObject>(ReaderState state,
-			ILookup<int, ReaderSetter<ReaderState, JSONValue, TObject>> fields, ref TObject target)
+			ILookup<int, ReaderCallback<ReaderState, JSONValue, TObject>> fields, ref TObject target)
 		{
 			state.Read();
 
@@ -570,10 +576,10 @@ namespace Verse.Schemas.JSON
 					return state.PullExpected('r') && state.PullExpected('u') && state.PullExpected('e');
 
 				case '[':
-					return this.ReadToObjectFromArray(state, NameLookup<ReaderSetter<ReaderState, JSONValue, bool>>.Empty, ref empty);
+					return this.ReadToObjectFromArray(state, NameLookup<ReaderCallback<ReaderState, JSONValue, bool>>.Empty, ref empty);
 
 				case '{':
-					return this.ReadToObjectFromObject(state, NameLookup<ReaderSetter<ReaderState, JSONValue, bool>>.Empty, ref empty);
+					return this.ReadToObjectFromObject(state, NameLookup<ReaderCallback<ReaderState, JSONValue, bool>>.Empty, ref empty);
 
 				default:
 					state.Error("expected array, object or value");

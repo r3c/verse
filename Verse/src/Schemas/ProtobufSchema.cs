@@ -43,9 +43,9 @@ namespace Verse.Schemas
 		{
 		}
 
-		public IDecoder<TEntity> CreateDecoder()
+		public IDecoder<TEntity> CreateDecoder(Func<TEntity> constructor)
 		{
-			return this.decoderDescriptor.CreateDecoder(new ReaderSession());
+			return this.decoderDescriptor.CreateDecoder(new ReaderSession(), constructor);
 		}
 
 		public IEncoder<TEntity> CreateEncoder()

@@ -7,7 +7,6 @@ using NUnit.Framework;
 using ProtoBuf;
 using Verse.Schemas;
 using Verse.Schemas.Protobuf;
-using Verse.Schemas.RawProtobuf;
 
 namespace Verse.Test.Schemas
 {
@@ -37,12 +36,12 @@ namespace Verse.Test.Schemas
 			var testFieldClass = new TestFieldClass<T> {Items = new List<T> {a, b, c}};
 
 			schema.DecoderDescriptor
-				.IsObject(() => new List<T>())
-				.HasField("_2", (ref List<T> target, T[] values) => target.AddRange(values))
-				.IsArray<T>(elements => elements.ToArray())
-				.IsValue();
+				.HasField("_2", Array.Empty<T>, (ref List<T> target, T[] values) => target.AddRange(values))
+				.HasElements(() => default, (ref T[] target, IEnumerable<T> elements) => target = elements.ToArray())
+				.HasValue();
 
-			var value = RawProtobufSchemaTester.DecodeTranscode(schema.CreateDecoder(), testFieldClass);
+			var value = RawProtobufSchemaTester.DecodeTranscode(schema.CreateDecoder(() => new List<T>()),
+				testFieldClass);
 
 			CollectionAssert.AreEqual(testFieldClass.Items, value);
 		}
@@ -62,13 +61,11 @@ namespace Verse.Test.Schemas
 			var testFieldClass = new TestFieldClass<T> {SubValue = new SubTestFieldClass<T> {Value = expectedValue}};
 
 			schema.DecoderDescriptor
-				.IsObject(() => default)
-				.HasField("_3", (ref T t, T v) => t = v)
-				.IsObject(() => default)
-				.HasField("_4", (ref T t, T v) => t = v)
-				.IsValue();
+				.HasField("_3", () => default, (ref T t, T v) => t = v)
+				.HasField("_4", () => default, (ref T t, T v) => t = v)
+				.HasValue();
 
-			var value = RawProtobufSchemaTester.DecodeTranscode(schema.CreateDecoder(), testFieldClass);
+			var value = RawProtobufSchemaTester.DecodeTranscode(schema.CreateDecoder(() => default), testFieldClass);
 
 			Assert.AreEqual(expectedValue, value);
 		}
@@ -89,9 +86,9 @@ namespace Verse.Test.Schemas
 			var schema = new RawProtobufSchema<T>();
 			var testFieldClass = new TestFieldClass<T> {Value = value};
 
-			schema.DecoderDescriptor.IsObject(() => default).HasField("_1", (ref T obj, T v) => obj = v).IsValue();
+			schema.DecoderDescriptor.HasField("_1", () => default, (ref T obj, T v) => obj = v).HasValue();
 
-			var decodedValue = RawProtobufSchemaTester.DecodeTranscode(schema.CreateDecoder(), testFieldClass);
+			var decodedValue = RawProtobufSchemaTester.DecodeTranscode(schema.CreateDecoder(() => default), testFieldClass);
 
 			Assert.AreEqual(value, decodedValue);
 		}
@@ -123,16 +120,20 @@ namespace Verse.Test.Schemas
 			}
 
 			schema.DecoderDescriptor
-				.IsObject(() => new TestFieldClass<TestFieldClass<T>>())
-				.HasField("_2", (ref TestFieldClass<TestFieldClass<T>> target, TestFieldClass<T>[] value) => target.Items.AddRange(value))
-				.IsArray<TestFieldClass<T>>(elements => elements.ToArray())
-				.IsObject(() => new TestFieldClass<T>())
-				.HasField("_3", (ref TestFieldClass<T> target, SubTestFieldClass<T> value) => target.SubValue = value)
-				.IsObject(() => new SubTestFieldClass<T>())
-				.HasField("_4", (ref SubTestFieldClass<T> target, T value) => target.Value = value)
-				.IsValue();
+				.HasField("_2", () => default,
+					(ref TestFieldClass<TestFieldClass<T>> target, TestFieldClass<T>[] value) =>
+						target.Items.AddRange(value))
+				.HasElements(() => new TestFieldClass<T>(),
+					(ref TestFieldClass<T>[] target, IEnumerable<TestFieldClass<T>> elements) =>
+						target = elements.ToArray())
+				.HasField("_3", () => new SubTestFieldClass<T>(),
+					(ref TestFieldClass<T> target, SubTestFieldClass<T> value) => target.SubValue = value)
+				.HasField("_4", () => default, (ref SubTestFieldClass<T> target, T value) => target.Value = value)
+				.HasValue();
 
-			var decodedValue = RawProtobufSchemaTester.DecodeRoundTrip(schema.CreateDecoder(), testFieldClass);
+			var decodedValue =
+				RawProtobufSchemaTester.DecodeRoundTrip(
+					schema.CreateDecoder(() => new TestFieldClass<TestFieldClass<T>>()), testFieldClass);
 
 			Assert.AreEqual(expectedValues.Length, decodedValue.Items.Count);
 
@@ -198,27 +199,23 @@ namespace Verse.Test.Schemas
 			};
 
 			var descriptor = schema.DecoderDescriptor
-				.IsObject(() => 0)
-				.HasField("_2", (ref int t, int v) => t = v);
+				.HasField("_2", () => default, (ref int t, int v) => t = v);
 
 			if (index0.HasValue)
-				descriptor = descriptor.IsObject(() => 0).HasField(index0.Value.ToString(CultureInfo.InvariantCulture),
+				descriptor = descriptor.HasField(index0.Value.ToString(CultureInfo.InvariantCulture), () => default,
 					(ref int t, int v) => t = v);
 
-			descriptor = descriptor
-				.IsObject(() => 0)
-				.HasField("_2", (ref int t, int v) => t = v);
+			descriptor = descriptor.HasField("_2", () => default, (ref int t, int v) => t = v);
 
 			if (index1.HasValue)
-				descriptor = descriptor.IsObject(() => 0).HasField(index1.Value.ToString(CultureInfo.InvariantCulture),
+				descriptor = descriptor.HasField(index1.Value.ToString(CultureInfo.InvariantCulture), () => default,
 					(ref int t, int v) => t = v);
 
 			descriptor
-				.IsObject(() => 0)
-				.HasField("_4", (ref int t, int v) => t = v)
-				.IsValue();
+				.HasField("_4", () => default, (ref int t, int v) => t = v)
+				.HasValue();
 
-			var value = RawProtobufSchemaTester.DecodeTranscode(schema.CreateDecoder(), testFieldClass);
+			var value = RawProtobufSchemaTester.DecodeTranscode(schema.CreateDecoder(() => 0), testFieldClass);
 
 			Assert.AreEqual(expected, value);
 		}
@@ -238,10 +235,9 @@ namespace Verse.Test.Schemas
 			var schema = new RawProtobufSchema<List<T>>();
 
 			schema.EncoderDescriptor
-				.IsObject()
 				.HasField("_2", v => v)
-				.IsArray(source => source)
-				.IsValue();
+				.HasElements(source => source)
+				.HasValue();
 
 			var testFieldClass = RawProtobufSchemaTester.EncodeTranscode<List<T>, TestFieldClass<T>>(schema.CreateEncoder(), new List<T>(expectedItems));
 
@@ -263,11 +259,9 @@ namespace Verse.Test.Schemas
 			var testFieldClass = new TestFieldClass<T> {SubValue = new SubTestFieldClass<T> {Value = expectedValue}};
 
 			schema.EncoderDescriptor
-				.IsObject()
 				.HasField("_3", target => target.SubValue)
-				.IsObject()
 				.HasField("_4", target => target.Value)
-				.IsValue();
+				.HasValue();
 
 			var decodedTestFieldClass = RawProtobufSchemaTester.EncodeRoundTrip(schema.CreateEncoder(), testFieldClass);
 
@@ -290,9 +284,8 @@ namespace Verse.Test.Schemas
 			var schema = new RawProtobufSchema<T>();
 
 			schema.EncoderDescriptor
-				.IsObject()
 				.HasField("_1", v => v)
-				.IsValue();
+				.HasValue();
 
 			var testFieldClass =
 				RawProtobufSchemaTester.EncodeTranscode<T, TestFieldClass<T>>(schema.CreateEncoder(),
@@ -328,14 +321,11 @@ namespace Verse.Test.Schemas
 			}
 
 			schema.EncoderDescriptor
-				.IsObject()
 				.HasField("_2", v => v)
-				.IsArray(source => source.Items)
-				.IsObject()
+				.HasElements(source => source.Items)
 				.HasField("_3", target => target.SubValue)
-				.IsObject()
 				.HasField("_4", target => target.Value)
-				.IsValue();
+				.HasValue();
 
 			var decodedFieldClass = RawProtobufSchemaTester.EncodeRoundTrip(schema.CreateEncoder(), fieldClass);
 
@@ -350,7 +340,7 @@ namespace Verse.Test.Schemas
 			return RawProtobufSchemaTester.DecodeTranscode(decoder, input);
 		}
 
-		private static U DecodeTranscode<T, U>(IDecoder<U> decoder, T input)
+		private static TOutput DecodeTranscode<TInput, TOutput>(IDecoder<TOutput> decoder, TInput input)
 		{
 			using (var stream = new MemoryStream())
 			{
@@ -370,7 +360,7 @@ namespace Verse.Test.Schemas
 			return RawProtobufSchemaTester.EncodeTranscode<T, T>(encoder, input);
 		}
 
-		private static U EncodeTranscode<T, U>(IEncoder<T> encoder, T input)
+		private static TOutput EncodeTranscode<TInput, TOutput>(IEncoder<TInput> encoder, TInput input)
 		{
 			using (var stream = new MemoryStream())
 			{
@@ -379,7 +369,7 @@ namespace Verse.Test.Schemas
 
 				stream.Seek(0, SeekOrigin.Begin);
 
-				return Serializer.Deserialize<U>(stream);
+				return Serializer.Deserialize<TOutput>(stream);
 			}
 		}
 
@@ -396,9 +386,10 @@ namespace Verse.Test.Schemas
 			}
 
 			private IExtension extensionObject;
+
 			IExtension IExtensible.GetExtensionObject(bool createIfMissing)
 			{
-				return Extensible.GetExtensionObject(ref extensionObject, createIfMissing);
+				return Extensible.GetExtensionObject(ref this.extensionObject, createIfMissing);
 			}
 		}
 

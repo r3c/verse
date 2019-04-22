@@ -36,9 +36,9 @@ namespace Verse.Schemas
 				new TreeEncoderDescriptor<RawProtobufWriterState, RawProtobufValue, TEntity>(encoderConverter, writer);
 		}
 
-		public IDecoder<TEntity> CreateDecoder()
+		public IDecoder<TEntity> CreateDecoder(Func<TEntity> constructor)
 		{
-			return this.decoderDescriptor.CreateDecoder(new RawProtobufReaderSession());
+			return this.decoderDescriptor.CreateDecoder(new RawProtobufReaderSession(), constructor);
 		}
 
 		public IEncoder<TEntity> CreateEncoder()

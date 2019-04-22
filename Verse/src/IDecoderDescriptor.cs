@@ -17,48 +17,73 @@ namespace Verse
 		/// method can be used to describe recursive schemas.
 		/// </summary>
 		/// <typeparam name="TElement">Element type</typeparam>
-		/// <param name="converter">Elements setter to current entity</param>
+		/// <param name="constructor">Element constructor</param>
+		/// <param name="setter">Elements setter to current entity</param>
 		/// <param name="descriptor">Existing decoder descriptor</param>
 		/// <returns>Element decoder descriptor</returns>
-		IDecoderDescriptor<TElement> IsArray<TElement>(Func<IEnumerable<TElement>, TEntity> converter, IDecoderDescriptor<TElement> descriptor);
+		IDecoderDescriptor<TElement> HasElements<TElement>(Func<TElement> constructor,
+			Setter<TEntity, IEnumerable<TElement>> setter,
+			IDecoderDescriptor<TElement> descriptor);
 
 		/// <summary>
 		/// Declare entity as a collection of elements. Resulting descriptor
 		/// defines how elements should be decoded.
 		/// </summary>
 		/// <typeparam name="TElement">Element type</typeparam>
-		/// <param name="converter">Elements setter to current entity</param>
+		/// <param name="constructor">Element constructor</param>
+		/// <param name="setter">Elements setter to current entity</param>
 		/// <returns>Element decoder descriptor</returns>
-		IDecoderDescriptor<TElement> IsArray<TElement>(Func<IEnumerable<TElement>, TEntity> converter);
+		IDecoderDescriptor<TElement> HasElements<TElement>(Func<TElement> constructor,
+			Setter<TEntity, IEnumerable<TElement>> setter);
 
 		/// <summary>
-		/// Declare entity as a complex object using a setter to assign its
-		/// value. Resulting field descriptor defines how its contents should
-		/// be decoded.
+		/// Declare new named field on current object entity and reuse existing
+		/// descriptor to define how it should be decoded. This method can be
+		/// used to describe recursive schemas.
 		/// </summary>
-		/// <param name="constructor">Object constructor</param>
-		/// <param name="converter">Object converter to current entity</param>
+		/// <typeparam name="TField">Field type</typeparam>
+		/// <param name="name">Field name</param>
+		/// <param name="constructor">Field constructor</param>
+		/// <param name="setter">Field setter to current entity</param>
+		/// <param name="descriptor">Existing decoder descriptor</param>
 		/// <returns>Object decoder field descriptor</returns>
-		IDecoderObjectDescriptor<TObject> IsObject<TObject>(Func<TObject> constructor, Func<TObject, TEntity> converter);
+		IDecoderDescriptor<TField> HasField<TField>(string name, Func<TField> constructor,
+			Setter<TEntity, TField> setter, IDecoderDescriptor<TField> descriptor);
 
 		/// <summary>
-		/// Declare entity as a complex object. Resulting field descriptor
-		/// defines how its contents should be decoded.
+		/// Declare new named field on current object entity. Resulting
+		/// descriptor defines how it should be decoded.
 		/// </summary>
-		/// <param name="constructor">Object constructor</param>
+		/// <typeparam name="TField">Field type</typeparam>
+		/// <param name="name">Field name</param>
+		/// <param name="constructor">Field constructor</param>
+		/// <param name="setter">Field setter to current entity</param>
 		/// <returns>Object decoder field descriptor</returns>
-		IDecoderObjectDescriptor<TEntity> IsObject(Func<TEntity> constructor);
+		IDecoderDescriptor<TField> HasField<TField>(string name, Func<TField> constructor,
+			Setter<TEntity, TField> setter);
 
 		/// <summary>
-		/// Declare entity as a value and use given converter to assign it.
+		/// Declare new named field on current object entity without creating a
+		/// dedicated instance for this field. This method can be used to
+		/// flatten complex hierarchies when mapping them.
 		/// </summary>
-		/// <param name="converter">Value to entity converter</param>
-		void IsValue<TValue>(Func<TValue, TEntity> converter);
+		/// <param name="name">Field name</param>
+		/// <returns>Current entity field descriptor</returns>
+		IDecoderDescriptor<TEntity> HasField(string name);
+
+		/// <summary>
+		/// Declare entity as a value and use given setter to assign it. Value
+		/// type must be natively compatible with current schema or have a
+		/// custom decoder declared.
+		/// </summary>
+		/// <typeparam name="TValue">Value type</typeparam>
+		/// <param name="setter">Value to entity converter</param>
+		void HasValue<TValue>(Setter<TEntity, TValue> setter);
 
 		/// <summary>
 		/// Declare entity as a value. Its type must be natively compatible
 		/// with current schema or have a custom decoder declared.
 		/// </summary>
-		void IsValue();
+		void HasValue();
 	}
 }

@@ -56,12 +56,13 @@ namespace Verse.Schemas.Protobuf
 
 	class ReaderSession : IReaderSession<ReaderState, ProtobufValue>
 	{
-		public BrowserMove<TElement> ReadToArray<TElement>(ReaderState state, ReaderCallback<ReaderState, ProtobufValue, TElement> callback)
+		public BrowserMove<TElement> ReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
+			ReaderCallback<ReaderState, ProtobufValue, TElement> callback)
 		{
 			throw new NotImplementedException();
 		}
 
-		public bool ReadToObject<TObject>(ReaderState state, ILookup<int, ReaderSetter<ReaderState, ProtobufValue, TObject>> fields, ref TObject target)
+		public bool ReadToObject<TObject>(ReaderState state, ILookup<int, ReaderCallback<ReaderState, ProtobufValue, TObject>> fields, ref TObject target)
 		{
 			var current = state.Stream.ReadByte();
 

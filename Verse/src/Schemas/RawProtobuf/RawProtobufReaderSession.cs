@@ -1,13 +1,14 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 using System.IO;
-using ProtoBuf;
 using Verse.DecoderDescriptors.Tree;
 
 namespace Verse.Schemas.RawProtobuf
 {
 	internal class RawProtobufReaderSession : IReaderSession<RawProtobufReaderState, RawProtobufValue>
 	{
-		public BrowserMove<TElement> ReadToArray<TElement>(RawProtobufReaderState state, ReaderCallback<RawProtobufReaderState, RawProtobufValue, TElement> callback)
+		public BrowserMove<TElement> ReadToArray<TElement>(RawProtobufReaderState state, Func<TElement> constructor,
+			ReaderCallback<RawProtobufReaderState, RawProtobufValue, TElement> callback)
 		{
 			var fieldIndex = state.FieldIndex;
 
@@ -18,7 +19,11 @@ namespace Verse.Schemas.RawProtobuf
 
 				// Read field and continue enumeration if we're still reading elements sharing the same field index
 				if (fieldIndex == state.FieldIndex)
-					return callback(this, state, out element) ? BrowserState.Continue : BrowserState.Failure;
+				{
+					element = constructor();
+
+					return callback(this, state, ref element) ? BrowserState.Continue : BrowserState.Failure;
+				}
 
 				// Different field index (or end of stream) was met, stop enumeration
 				element = default;
@@ -28,7 +33,7 @@ namespace Verse.Schemas.RawProtobuf
 		}
 
 		public bool ReadToObject<TObject>(RawProtobufReaderState state,
-			ILookup<int, ReaderSetter<RawProtobufReaderState, RawProtobufValue, TObject>> fields, ref TObject target)
+			ILookup<int, ReaderCallback<RawProtobufReaderState, RawProtobufValue, TObject>> fields, ref TObject target)
 		{
 			if (!state.ObjectBegin(out var subItem))
 			{

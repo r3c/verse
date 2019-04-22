@@ -37,7 +37,7 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new QueryStringSchema<T>();
 
-			schema.DecoderDescriptor.IsObject(() => default).HasField(name, (ref T t, T v) => t = v).IsValue();
+			schema.DecoderDescriptor.HasField(name, () => default, (ref T t, T v) => t = v).HasValue();
 
 			T value = QueryStringSchemaTester.Decode(schema, query);
 
@@ -54,7 +54,7 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new QueryStringSchema<T>();
 
-			schema.DecoderDescriptor.IsObject(() => default).HasField(name, (ref T t, T v) => t = v).IsValue();
+			schema.DecoderDescriptor.HasField(name, () => default, (ref T t, T v) => t = v).HasValue();
 
 			T value = QueryStringSchemaTester.Decode(schema, query);
 
@@ -68,7 +68,7 @@ namespace Verse.Test.Schemas
 		public void DecodeFail(string query)
 		{
 			var schema = new QueryStringSchema<string>();
-			var decoder = schema.CreateDecoder();
+			var decoder = schema.CreateDecoder(() => string.Empty);
 
 			using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(query)))
 			{
@@ -79,7 +79,7 @@ namespace Verse.Test.Schemas
 
 		private static T Decode<T>(ISchema<T> schema, string query)
 		{
-			var decoder = schema.CreateDecoder();
+			var decoder = schema.CreateDecoder(() => default);
 
 			using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(query)))
 			{

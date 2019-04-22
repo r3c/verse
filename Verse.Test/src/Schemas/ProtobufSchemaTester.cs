@@ -33,12 +33,13 @@ namespace Verse.Test.Schemas
 			var proto = File.ReadAllText(Path.Combine(TestContext.CurrentContext.TestDirectory, "res/Protobuf/Person.proto"));
 			var schema = new ProtobufSchema<Person>(new StringReader(proto), "Person");
 
-			var person = schema.DecoderDescriptor.IsObject(() => new Person());
-			person.HasField("email", (ref Person p, string v) => p.Email = v).IsValue();
-			person.HasField("id", (ref Person p, int v) => p.Id = v).IsValue();
-			person.HasField("name", (ref Person p, string v) => p.Name = v).IsValue();
+			schema.DecoderDescriptor.HasField("email", () => string.Empty, (ref Person p, string v) => p.Email = v)
+				.HasValue();
+			schema.DecoderDescriptor.HasField("id", () => 0, (ref Person p, int v) => p.Id = v).HasValue();
+			schema.DecoderDescriptor.HasField("name", () => string.Empty, (ref Person p, string v) => p.Name = v)
+				.HasValue();
 
-			var decoder = schema.CreateDecoder();
+			var decoder = schema.CreateDecoder(() => new Person());
 
 			using (var stream = new MemoryStream(new byte[] { 16, 17, 0, 0, 0 }))
 			{
