@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Verse.Schemas.JSON
 {
-	class ReaderState
+	internal class ReaderState
 	{
 		public int Current;
 
@@ -35,12 +35,12 @@ namespace Verse.Schemas.JSON
 
 			if (previous < 0)
 			{
-				character = default (char);
+				character = default;
 
 				return false;
 			}
 
-			if (previous != (int)'\\')
+			if (previous != '\\')
 			{
 				character = (char)previous;
 
@@ -54,49 +54,49 @@ namespace Verse.Schemas.JSON
 			switch (previous)
 			{
 				case -1:
-					character = default (char);
+					character = default;
 
 					return false;
 
-				case (int)'"':
+				case '"':
 					character = '"';
 
 					return true;
 
-				case (int)'\\':
+				case '\\':
 					character = '\\';
 
 					return true;
 
-				case (int)'b':
+				case 'b':
 					character = '\b';
 
 					return true;
 
-				case (int)'f':
+				case 'f':
 					character = '\f';
 
 					return true;
 
-				case (int)'n':
+				case 'n':
 					character = '\n';
 
 					return true;
 
-				case (int)'r':
+				case 'r':
 					character = '\r';
 
 					return true;
 
-				case (int)'t':
+				case 't':
 					character = '\t';
 
 					return true;
 
-				case (int)'u':
+				case 'u':
 					var value = 0;
 
-					for (int i = 0; i < 4; ++i)
+					for (var i = 0; i < 4; ++i)
 					{
 						previous = this.Current;
 
@@ -104,17 +104,17 @@ namespace Verse.Schemas.JSON
 
 					    int nibble;
 
-					    if (previous >= (int)'0' && previous <= (int)'9')
-							nibble = previous - (int)'0';
-						else if (previous >= (int)'A' && previous <= (int)'F')
-							nibble = previous - (int)'A' + 10;
-						else if (previous >= (int)'a' && previous <= (int)'f')
-							nibble = previous - (int)'a' + 10;
+					    if (previous >= '0' && previous <= '9')
+							nibble = previous - '0';
+						else if (previous >= 'A' && previous <= 'F')
+							nibble = previous - 'A' + 10;
+						else if (previous >= 'a' && previous <= 'f')
+							nibble = previous - 'a' + 10;
 						else
 						{
 							this.Error("unknown character in unicode escape sequence");
 
-							character = default (char);
+							character = default;
 
 							return false;
 						}
@@ -135,7 +135,7 @@ namespace Verse.Schemas.JSON
 
 		public bool PullExpected(char expected)
 		{
-			if (this.Current != (int)expected)
+			if (this.Current != expected)
 			{
 				this.Error("expected '" + expected + "'");
 
@@ -149,15 +149,8 @@ namespace Verse.Schemas.JSON
 
 		public void PullIgnored()
 		{
-		    while (true)
-			{
-				var current = this.Current;
-
-				if (current < 0 || current > (int)' ')
-					return;
-
-				this.Read();
-			}
+		    while (this.Current >= 0 && this.Current <= ' ')
+			    this.Read();
 		}
 
 		public void Read()

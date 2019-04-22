@@ -192,6 +192,31 @@ namespace Verse.Test.Schemas
 		}
 
 		[Test]
+		[TestCase(10)]
+		[TestCase(100)]
+		[TestCase(1000)]
+		public void DecodeValueFromMultipleInput(int count)
+		{
+			var schema = new JSONSchema<int>();
+
+			schema.DecoderDescriptor.HasValue();
+
+			var json = string.Join(" ", Enumerable.Range(0, count).Select(i => i.ToString()));
+
+			using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
+			{
+				using (var decoderStream = schema.CreateDecoder(() => 0).Open(stream))
+				{
+					for (var i = 0; i < count; ++i)
+					{
+						Assert.That(decoderStream.TryDecode(out var value), Is.True);
+						Assert.That(value, Is.EqualTo(i));
+					}
+				}
+			}
+		}
+
+		[Test]
 		[TestCase("false", false)]
 		[TestCase("true", true)]
 		[TestCase("27", 27.0)]

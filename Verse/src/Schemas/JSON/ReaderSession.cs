@@ -23,6 +23,8 @@ namespace Verse.Schemas.JSON
 		public BrowserMove<TElement> ReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
 			ReaderCallback<ReaderState, JSONValue, TElement> callback)
 		{
+			state.PullIgnored();
+
 			switch (state.Current)
 			{
 				case '[':
@@ -64,6 +66,8 @@ namespace Verse.Schemas.JSON
 		public bool ReadToObject<TObject>(ReaderState state,
 			ILookup<int, ReaderCallback<ReaderState, JSONValue, TObject>> fields, ref TObject target)
 		{
+			state.PullIgnored();
+
 			switch (state.Current)
 			{
 				case '[':
@@ -81,10 +85,12 @@ namespace Verse.Schemas.JSON
 
 		public bool ReadToValue(ReaderState state, out JSONValue value)
 		{
+			state.PullIgnored();
+
 			switch (state.Current)
 			{
 				case '"':
-					return this.ReadToValueFromString(state, out value);
+					return ReaderSession.ReadToValueFromString(state, out value);
 
 				case '-':
 				case '.':
@@ -163,11 +169,7 @@ namespace Verse.Schemas.JSON
 
 		public ReaderState Start(Stream stream, DecodeError error)
 		{
-			var state = new ReaderState(stream, this.encoding, error);
-
-			state.PullIgnored();
-
-			return state;
+			return new ReaderState(stream, this.encoding, error);
 		}
 
 		public void Stop(ReaderState state)
@@ -289,7 +291,7 @@ namespace Verse.Schemas.JSON
 		{
 			state.Read();
 
-			for (int index = 0;; ++index)
+			for (var index = 0;; ++index)
 			{
 				state.PullIgnored();
 
@@ -389,7 +391,7 @@ namespace Verse.Schemas.JSON
 		{
 			unchecked
 			{
-				const ulong MantissaMax = long.MaxValue / 10;
+				const ulong mantissaMax = long.MaxValue / 10;
 
 				var numberMantissa = 0UL;
 				var numberPower = 0;
@@ -414,7 +416,7 @@ namespace Verse.Schemas.JSON
 				// Read integral part
 				for (; state.Current >= (int)'0' && state.Current <= (int)'9'; state.Read())
 				{
-					if (numberMantissa > MantissaMax)
+					if (numberMantissa > mantissaMax)
 					{
 						++numberPower;
 
@@ -431,7 +433,7 @@ namespace Verse.Schemas.JSON
 
 					for (; state.Current >= (int)'0' && state.Current <= (int)'9'; state.Read())
 					{
-						if (numberMantissa > MantissaMax)
+						if (numberMantissa > mantissaMax)
 							continue;
 
 						numberMantissa = numberMantissa * 10 + (ulong)(state.Current - '0');
@@ -490,7 +492,7 @@ namespace Verse.Schemas.JSON
 			}
 		}
 
-		private bool ReadToValueFromString(ReaderState state, out JSONValue value)
+		private static bool ReadToValueFromString(ReaderState state, out JSONValue value)
 		{
 			state.Read();
 
