@@ -6,7 +6,7 @@ using NUnit.Framework;
 
 namespace Verse.Test.Schemas
 {
-	public abstract class BaseSchemaTester
+	public abstract class SchemaTester
 	{
 		[Test]
 		public void RoundTripFieldFlatten()
@@ -17,7 +17,7 @@ namespace Verse.Test.Schemas
 				(ref int target, int source) => target = source).HasValue();
 			schema.EncoderDescriptor.HasField("virtual").HasField("value", source => source).HasValue();
 
-			BaseSchemaTester.AssertRoundTrip(schema.CreateDecoder(() => 0), schema.CreateEncoder(), 17);
+			SchemaTester.AssertRoundTrip(schema.CreateDecoder(() => 0), schema.CreateEncoder(), 17);
 		}
 
 		[Test]
@@ -27,7 +27,7 @@ namespace Verse.Test.Schemas
 			var decoder = Linker.CreateDecoder(schema);
 			var encoder = Linker.CreateEncoder(schema);
 
-			BaseSchemaTester.AssertRoundTrip(decoder, encoder, new NestedArray
+			SchemaTester.AssertRoundTrip(decoder, encoder, new NestedArray
 			{
 				children = new[]
 				{
@@ -71,9 +71,9 @@ namespace Verse.Test.Schemas
 			var decoder = Linker.CreateDecoder(schema);
 			var encoder = Linker.CreateEncoder(schema);
 
-			BaseSchemaTester.AssertRoundTrip(decoder, encoder, new MixedContainer
+			SchemaTester.AssertRoundTrip(decoder, encoder, new MixedContainer
 			{
-				floats = new float[] { 1.1f, 2.2f, 3.3f },
+				floats = new[] { 1.1f, 2.2f, 3.3f },
 				integer = 17,
 				option = SomeEnum.B,
 				pairs = new Dictionary<string, string>
@@ -92,7 +92,7 @@ namespace Verse.Test.Schemas
 			var decoder = Linker.CreateDecoder(schema);
 			var encoder = Linker.CreateEncoder(schema);
 
-			BaseSchemaTester.AssertRoundTrip(decoder, encoder, new NestedValue
+			SchemaTester.AssertRoundTrip(decoder, encoder, new NestedValue
 			{
 				child = new NestedValue
 				{
@@ -116,7 +116,7 @@ namespace Verse.Test.Schemas
 			var decoder = Linker.CreateDecoder(schema);
 			var encoder = Linker.CreateEncoder(schema);
 
-			BaseSchemaTester.AssertRoundTrip(decoder, encoder, instance);
+			SchemaTester.AssertRoundTrip(decoder, encoder, instance);
 		}
 
 		[Test]
@@ -127,8 +127,8 @@ namespace Verse.Test.Schemas
 			var decoder = Linker.CreateDecoder(schema);
 			var encoder = Linker.CreateEncoder(schema);
 
-			BaseSchemaTester.AssertRoundTrip(decoder, encoder, null);
-			BaseSchemaTester.AssertRoundTrip(decoder, encoder, 42);
+			SchemaTester.AssertRoundTrip(decoder, encoder, null);
+			SchemaTester.AssertRoundTrip(decoder, encoder, 42);
 		}
 
 		protected static void AssertRoundTrip<T>(IDecoder<T> decoder, IEncoder<T> encoder, T instance)

@@ -11,7 +11,7 @@ using Verse.Schemas.JSON;
 namespace Verse.Test.Schemas
 {
 	[TestFixture]
-	public class JSONSchemaTester : BaseSchemaTester
+	public class JSONSchemaTester : SchemaTester
 	{
 		[Test]
 		[TestCase(false, "{\"value1\" : [ { \"value2\" : 123 } ]}", new[] {123d})]
@@ -454,7 +454,7 @@ namespace Verse.Test.Schemas
 			schema.SetDecoderConverter(v => Guid.Parse(v.String));
 			schema.SetEncoderConverter<Guid>(g => JSONValue.FromString(g.ToString()));
 
-			BaseSchemaTester.AssertRoundTrip(Linker.CreateDecoder(schema), Linker.CreateEncoder(schema),
+			SchemaTester.AssertRoundTrip(Linker.CreateDecoder(schema), Linker.CreateEncoder(schema),
 				new GuidContainer
 				{
 					guid = Guid.NewGuid()
