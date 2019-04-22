@@ -9,45 +9,26 @@ namespace Verse.Tools
 {
 	internal static class Generator
 	{
-		private static readonly OpCode[] OpCodeLdArgs =
-			{OpCodes.Ldarg_0, OpCodes.Ldarg_1, OpCodes.Ldarg_2, OpCodes.Ldarg_3};
-
-		private static readonly Type[] Functions =
-			{typeof(Func<>), typeof(Func<,>), typeof(Func<,,>), typeof(Func<,,,>), typeof(Func<,,,,>)};
-
-		public static Func<T> CreateConstructor<T>()
+		/// <summary>
+		/// Create parameterless constructor function for given entity type.
+		/// </summary>
+		/// <typeparam name="TEntity">Entity type</typeparam>
+		/// <returns>Constructor function</returns>
+		public static Func<TEntity> CreateConstructor<TEntity>(BindingFlags bindings)
 		{
-			var constructor = typeof(T).GetConstructor(
-				BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, Type.DefaultBinder,
-				Type.EmptyTypes, Array.Empty<ParameterModifier>());
+			var constructor = typeof(TEntity).GetConstructor(bindings, Type.DefaultBinder, Type.EmptyTypes,
+				Array.Empty<ParameterModifier>());
 
 			if (constructor == null)
 				return () => default;
 
-			var parameters = constructor.GetParameters();
-
-			if (parameters.Length >= Generator.Functions.Length)
-				throw new ArgumentOutOfRangeException(nameof(constructor),
-					$"can't generate constructor with more than {Generator.Functions.Length} arguments");
-
-			var method = new DynamicMethod(string.Empty, constructor.DeclaringType,
-				Array.ConvertAll(parameters, (p) => p.ParameterType), constructor.Module, true);
+			var method = new DynamicMethod(string.Empty, typeof(TEntity), Type.EmptyTypes, constructor.Module, true);
 			var generator = method.GetILGenerator();
-			var index = 0;
-
-			foreach (var parameter in parameters)
-				Generator.LoadParameter(generator, parameter.ParameterType, index++);
 
 			generator.Emit(OpCodes.Newobj, constructor);
 			generator.Emit(OpCodes.Ret);
 
-			var arguments = new[] {constructor.DeclaringType}
-				.Concat(parameters.Select(p => p.ParameterType))
-				.ToArray();
-
-			var type = Generator.Functions[parameters.Length].MakeGenericType(arguments);
-
-			return (Func<T>) method.CreateDelegate(type);
+			return (Func<TEntity>) method.CreateDelegate(typeof(Func<TEntity>));
 		}
 
 		/// <summary>
@@ -115,19 +96,24 @@ namespace Verse.Tools
 		/// <Summary>
 		/// Create field getter delegate for given runtime field.
 		/// </Summary>
-		public static object CreateFieldGetter(FieldInfo field)
+		public static Func<TEntity, TField> CreateFieldGetter<TEntity, TField>(FieldInfo field)
 		{
+			if (field.DeclaringType != typeof(TEntity))
+				throw new ArgumentException($"field declaring type is not {typeof(TEntity)}", nameof(field));
+
+			if (field.FieldType != typeof(TField))
+				throw new ArgumentException($"field type is not {typeof(TField)}", nameof(field));
+
 			var parentType = field.DeclaringType;
-			var method = new DynamicMethod(string.Empty, field.FieldType, new[] {parentType}, field.Module, true);
+			var parameterTypes = new[] {parentType};
+			var method = new DynamicMethod(string.Empty, field.FieldType, parameterTypes, field.Module, true);
 			var generator = method.GetILGenerator();
 
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldfld, field);
 			generator.Emit(OpCodes.Ret);
 
-			var methodType = typeof(Func<,>).MakeGenericType(parentType, field.FieldType);
-
-			return method.CreateDelegate(methodType);
+			return (Func<TEntity, TField>) method.CreateDelegate(typeof(Func<TEntity, TField>));
 		}
 
 		/// <Summary>
@@ -136,8 +122,8 @@ namespace Verse.Tools
 		public static object CreateFieldSetter(FieldInfo field)
 		{
 			var parentType = field.DeclaringType;
-			var method = new DynamicMethod(string.Empty, null, new[] {parentType.MakeByRefType(), field.FieldType},
-				field.Module, true);
+			var parameterTypes = new[] {parentType.MakeByRefType(), field.FieldType};
+			var method = new DynamicMethod(string.Empty, null, parameterTypes, field.Module, true);
 			var generator = method.GetILGenerator();
 
 			generator.Emit(OpCodes.Ldarg_0);
@@ -196,16 +182,6 @@ namespace Verse.Tools
 			var methodType = typeof(Setter<,>).MakeGenericType(parentType, property.PropertyType);
 
 			return method.CreateDelegate(methodType);
-		}
-
-		private static void LoadParameter(ILGenerator generator, Type type, int index)
-		{
-			if (type.IsByRef)
-				generator.Emit(index < 256 ? OpCodes.Ldarga_S : OpCodes.Ldarga, index);
-			else if (index < Generator.OpCodeLdArgs.Length)
-				generator.Emit(Generator.OpCodeLdArgs[index]);
-			else
-				generator.Emit(index < 256 ? OpCodes.Ldarg_S : OpCodes.Ldarg, index);
 		}
 	}
 }

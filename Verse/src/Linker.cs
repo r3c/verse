@@ -26,7 +26,7 @@ namespace Verse
 			if (!Linker.LinkDecoder(schema.DecoderDescriptor, bindings, new Dictionary<Type, object>()))
 				throw new ArgumentException($"can't link decoder for type '{typeof(TEntity)}'", nameof(schema));
 
-			return schema.CreateDecoder(Generator.CreateConstructor<TEntity>());
+			return schema.CreateDecoder(Generator.CreateConstructor<TEntity>(bindings));
 		}
 
 		public static IDecoder<TEntity> CreateDecoder<TEntity>(ISchema<TEntity> schema)
@@ -62,7 +62,7 @@ namespace Verse
 		}
 
 		private static bool LinkDecoder<T>(IDecoderDescriptor<T> descriptor, BindingFlags bindings,
-			Dictionary<Type, object> parents)
+			IDictionary<Type, object> parents)
 		{
 			var type = typeof(T);
 
@@ -152,7 +152,7 @@ namespace Verse
 			Type type, object setter, IDictionary<Type, object> parents)
 		{
 			var constructor = MethodResolver
-				.Create<Func<Func<object>>>(() => Generator.CreateConstructor<object>())
+				.Create<Func<Func<object>>>(() => Generator.CreateConstructor<object>(bindings))
 				.SetGenericArguments(type)
 				.Invoke(null);
 
@@ -186,7 +186,7 @@ namespace Verse
 			Type type, string name, object setter, IDictionary<Type, object> parents)
 		{
 			var constructor = MethodResolver
-				.Create<Func<Func<object>>>(() => Generator.CreateConstructor<object>())
+				.Create<Func<Func<object>>>(() => Generator.CreateConstructor<object>(bindings))
 				.SetGenericArguments(type)
 				.Invoke(null);
 
@@ -218,19 +218,19 @@ namespace Verse
 		}
 
 		private static bool LinkEncoder<T>(IEncoderDescriptor<T> descriptor, BindingFlags bindings,
-			Dictionary<Type, object> parents)
+			IDictionary<Type, object> parents)
 		{
-			var type = typeof(T);
+			var entityType = typeof(T);
 
-			parents[type] = descriptor;
+			parents[entityType] = descriptor;
 
 			if (Linker.TryLinkEncoderAsValue(descriptor))
 				return true;
 
 			// Bind descriptor as an array of target type is also array
-			if (type.IsArray)
+			if (entityType.IsArray)
 			{
-				var element = type.GetElementType();
+				var element = entityType.GetElementType();
 				var getter = MethodResolver
 					.Create<Func<Func<object, object>>>(() => Linker.CreateIdentity<object>())
 					.SetGenericArguments(typeof(IEnumerable<>).MakeGenericType(element))
@@ -240,7 +240,7 @@ namespace Verse
 			}
 
 			// Try to bind descriptor as an array if target type IEnumerable<>
-			foreach (var interfaceType in type.GetInterfaces())
+			foreach (var interfaceType in entityType.GetInterfaces())
 			{
 				// Make sure that interface is IEnumerable<T> and store typeof(T)
 				if (!TypeResolver.Create(interfaceType).HasSameDefinitionThan<IEnumerable<object>>(out var arguments))
@@ -256,7 +256,7 @@ namespace Verse
 			}
 
 			// Bind readable and writable instance properties
-			foreach (var property in type.GetProperties(bindings))
+			foreach (var property in entityType.GetProperties(bindings))
 			{
 				if (property.GetGetMethod() == null || property.GetSetMethod() == null ||
 				    property.Attributes.HasFlag(PropertyAttributes.SpecialName))
@@ -270,12 +270,15 @@ namespace Verse
 			}
 
 			// Bind public instance fields
-			foreach (var field in type.GetFields(bindings))
+			foreach (var field in entityType.GetFields(bindings))
 			{
 				if (field.Attributes.HasFlag(FieldAttributes.SpecialName))
 					continue;
 
-				var getter = Generator.CreateFieldGetter(field);
+				var getter = MethodResolver
+					.Create<Func<FieldInfo, Func<object, object>>>(f => Generator.CreateFieldGetter<object, object>(f))
+					.SetGenericArguments(entityType, field.FieldType)
+					.Invoke(null, field);
 
 				if (!Linker.LinkEncoderAsObject(descriptor, bindings, field.FieldType, field.Name, getter, parents))
 					return false;
