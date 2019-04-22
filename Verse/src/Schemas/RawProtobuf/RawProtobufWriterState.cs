@@ -36,6 +36,12 @@ namespace Verse.Schemas.RawProtobuf
 		    this.error((int)(this.parentOffset + localPosition), message);
 		}
 
+		public void Flush()
+		{
+			foreach (var instance in this.subObjectInstances)
+				instance.Writer.Close();
+		}
+
 		public void Key(string key)
 		{
 			this.fieldIndex = int.Parse(key, CultureInfo.InvariantCulture);

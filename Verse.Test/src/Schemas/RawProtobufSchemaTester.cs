@@ -348,10 +348,12 @@ namespace Verse.Test.Schemas
 
 				stream.Seek(0, SeekOrigin.Begin);
 
-				Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
-				Assert.IsTrue(decoderStream.Decode(out var output));
+				using (var decoderStream = decoder.Open(stream))
+				{
+					Assert.IsTrue(decoderStream.TryDecode(out var output));
 
-				return output;
+					return output;
+				}
 			}
 		}
 
@@ -364,8 +366,8 @@ namespace Verse.Test.Schemas
 		{
 			using (var stream = new MemoryStream())
 			{
-				Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
-				Assert.IsTrue(encoderStream.Encode(input));
+				using (var encoderStream = encoder.Open(stream))
+					encoderStream.Encode(input);
 
 				stream.Seek(0, SeekOrigin.Begin);
 

@@ -3,9 +3,9 @@ using System.IO;
 
 namespace Verse.EncoderDescriptors.Tree
 {
-	interface IWriterSession<TState, TNative>
+	internal interface IWriterSession<TState, TNative>
 	{
-		bool Start(Stream stream, EncodeError error, out TState state);
+		TState Start(Stream stream, EncodeError error);
 
 		void Stop(TState state);
 

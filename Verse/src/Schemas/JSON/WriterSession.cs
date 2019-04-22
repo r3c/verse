@@ -5,7 +5,7 @@ using Verse.EncoderDescriptors.Tree;
 
 namespace Verse.Schemas.JSON
 {
-	class WriterSession : IWriterSession<WriterState, JSONValue>
+	internal class WriterSession : IWriterSession<WriterState, JSONValue>
 	{
 		private readonly Encoding encoding;
 
@@ -17,11 +17,9 @@ namespace Verse.Schemas.JSON
 			this.omitNull = omitNull;
 		}
 
-		public bool Start(Stream stream, EncodeError error, out WriterState state)
+		public WriterState Start(Stream stream, EncodeError error)
 		{
-			state = new WriterState(stream, this.encoding, this.omitNull);
-
-			return true;
+			return new WriterState(stream, this.encoding, this.omitNull);
 		}
 
 		public void Stop(WriterState state)

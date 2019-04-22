@@ -39,7 +39,7 @@ namespace Verse.Test.Schemas
 
 			schema.DecoderDescriptor.HasField(name, () => default, (ref T t, T v) => t = v).HasValue();
 
-			T value = QueryStringSchemaTester.Decode(schema, query);
+			var value = QueryStringSchemaTester.Decode(schema, query);
 
 			Assert.AreEqual(expected, value);
 		}
@@ -56,7 +56,7 @@ namespace Verse.Test.Schemas
 
 			schema.DecoderDescriptor.HasField(name, () => default, (ref T t, T v) => t = v).HasValue();
 
-			T value = QueryStringSchemaTester.Decode(schema, query);
+			var value = QueryStringSchemaTester.Decode(schema, query);
 
 			Assert.AreEqual(expected, value);
 		}
@@ -72,8 +72,8 @@ namespace Verse.Test.Schemas
 
 			using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(query)))
 			{
-				Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
-				Assert.IsFalse(decoderStream.Decode(out _));
+				using (var decoderStream = decoder.Open(stream))
+					Assert.IsFalse(decoderStream.TryDecode(out _));
 			}
 		}
 
@@ -83,10 +83,12 @@ namespace Verse.Test.Schemas
 
 			using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(query)))
 			{
-				Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
-				Assert.IsTrue(decoderStream.Decode(out var value));
+				using (var decoderStream = decoder.Open(stream))
+				{
+					Assert.IsTrue(decoderStream.TryDecode(out var value));
 
-				return value;
+					return value;
+				}
 			}
 		}
 	}

@@ -74,11 +74,9 @@ namespace Verse.Schemas.RawProtobuf
 			return state.TryReadValue(out value);
 		}
 
-		public bool Start(Stream stream, DecodeError error, out RawProtobufReaderState state)
+		public RawProtobufReaderState Start(Stream stream, DecodeError error)
 		{
-			state = new RawProtobufReaderState(stream, error);
-
-			return true;
+			return new RawProtobufReaderState(stream, error);
 		}
 
 		public void Stop(RawProtobufReaderState state)

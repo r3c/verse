@@ -20,19 +20,12 @@ namespace Verse.DecoderDescriptors.Tree
             this.session = session;
         }
 
-        public bool TryOpen(Stream input, out IDecoderStream<TEntity> decoderStream)
+        public IDecoderStream<TEntity> Open(Stream input)
         {
-            if (!this.session.Start(input, (p, m) => this.Error?.Invoke(p, m), out var state))
-            {
-                decoderStream = default;
+            var state = this.session.Start(input, (p, m) => this.Error?.Invoke(p, m));
 
-                return false;
-            }
-
-            decoderStream =
+            return
                 new TreeDecoderStream<TState, TNative, TEntity>(this.session, this.constructor, this.callback, state);
-
-            return true;
         }
     }
 }

@@ -2,7 +2,7 @@
 
 namespace Verse.EncoderDescriptors.Tree
 {
-    class TreeEncoder<TState, TNative, TEntity> : IEncoder<TEntity>
+    internal class TreeEncoder<TState, TNative, TEntity> : IEncoder<TEntity>
     {
         public event EncodeError Error;
 
@@ -16,18 +16,11 @@ namespace Verse.EncoderDescriptors.Tree
             this.session = session;
         }
 
-        public bool TryOpen(Stream output, out IEncoderStream<TEntity> encoderStream)
+        public IEncoderStream<TEntity> Open(Stream output)
         {
-            if (!this.session.Start(output, (p, m) => this.Error?.Invoke(p, m), out var state))
-            {
-                encoderStream = default;
+            var state = this.session.Start(output, (p, m) => this.Error?.Invoke(p, m));
 
-                return false;
-            }
-
-            encoderStream = new TreeEncoderStream<TState, TNative, TEntity>(this.session, this.callback, state);
-
-            return true;
+            return new TreeEncoderStream<TState, TNative, TEntity>(this.session, this.callback, state);
         }
     }
 }

@@ -6,7 +6,7 @@ using Verse.Schemas.Protobuf.Definition;
 
 namespace Verse.Schemas.Protobuf
 {
-	static class ReaderSessionHelper
+	internal static class ReaderSessionHelper
 	{
 		public static uint ReadInt32(ReaderState state)
 		{
@@ -282,11 +282,9 @@ namespace Verse.Schemas.Protobuf
 			throw new NotImplementedException();
 		}
 
-		public bool Start(Stream stream, DecodeError error, out ReaderState state)
+		public ReaderState Start(Stream stream, DecodeError error)
         {
-            state = new ReaderState(stream, error);
-
-            return true;
+            return new ReaderState(stream, error);
         }
 
         public void Stop(ReaderState state)

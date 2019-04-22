@@ -6,15 +6,14 @@ namespace Verse.Schemas.RawProtobuf
 {
 	internal class RawProtobufWriterSession : IWriterSession<RawProtobufWriterState, RawProtobufValue>
 	{
-		public bool Start(Stream stream, EncodeError error, out RawProtobufWriterState state)
+		public RawProtobufWriterState Start(Stream stream, EncodeError error)
 		{
-			state = new RawProtobufWriterState(stream, error);
-
-			return true;
+			return new RawProtobufWriterState(stream, error);
 		}
 
 		public void Stop(RawProtobufWriterState state)
 		{
+			state.Flush();
 		}
 
 		public void WriteArray<TEntity>(RawProtobufWriterState state, IEnumerable<TEntity> elements, WriterCallback<RawProtobufWriterState, RawProtobufValue, TEntity> writer)

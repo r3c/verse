@@ -4,12 +4,12 @@ Verse TODO list
 TODO
 ----
 
-- [ ] Upgrade public API to multi-entity & explicit object mode
-  - [ ] IDecoderStream & IEncoderStream should be IDisposable and flush at dispose
-  - [ ] Rename IDecoder.TryOpen to IDecoder.Open
-  - [ ] Rename IEncoder.TryOpen to IEncoder.Open
-  - [ ] Rename IDecoderStream.Decode to IDecoderStream.TryDecode
-  - [ ] Return void from IEncoderStream.Encode
+- [ ] Upgrade public API to multi-entity
+  - [x] IDecoderStream & IEncoderStream should be IDisposable and flush at dispose
+  - [x] Rename IDecoder.TryOpen to IDecoder.Open
+  - [x] Rename IEncoder.TryOpen to IEncoder.Open
+  - [x] Rename IDecoderStream.Decode to IDecoderStream.TryDecode
+  - [x] Return void from IEncoderStream.Encode
   - [ ] Allow decoding converters to return false
 - [ ] Implement "ignore case" option for name-based schemas
   - [ ] Support option in NameLookup

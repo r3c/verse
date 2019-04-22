@@ -146,10 +146,12 @@ namespace Verse.Test
 		{
 			using (var stream = new MemoryStream(encoded))
 			{
-				Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
-				Assert.IsTrue(decoderStream.Decode(out var decoded));
+				using (var decoderStream = decoder.Open(stream))
+				{
+					Assert.IsTrue(decoderStream.TryDecode(out var decoded));
 
-				return decoded;
+					return decoded;
+				}
 			}
 		}
 
@@ -157,8 +159,8 @@ namespace Verse.Test
 		{
 			using (var stream = new MemoryStream())
 			{
-				Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
-				Assert.IsTrue(encoderStream.Encode(decoded));
+				using (var encoderStream = encoder.Open(stream))
+					encoderStream.Encode(decoded);
 
 				return stream.ToArray();
 			}

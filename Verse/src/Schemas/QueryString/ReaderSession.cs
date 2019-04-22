@@ -6,7 +6,7 @@ using Verse.Lookups;
 
 namespace Verse.Schemas.QueryString
 {
-	class ReaderSession : IReaderSession<ReaderState, string>
+	internal class ReaderSession : IReaderSession<ReaderState, string>
 	{
 		private readonly Encoding encoding;
 
@@ -127,27 +127,14 @@ namespace Verse.Schemas.QueryString
 			}
 		}
 
-		public bool Start(Stream stream, DecodeError error, out ReaderState state)
+		public ReaderState Start(Stream stream, DecodeError error)
 		{
-			state = new ReaderState(stream, this.encoding, error);
+			var state = new ReaderState(stream, this.encoding, error);
 
-			if (state.Current < 0)
-			{
-				state.Error("empty input stream");
+			if (state.Current == '?')
+				state.Pull();
 
-				return false;
-			}
-
-			if (state.Current != '?')
-			{
-				state.Error("query string must start with a '?' character");
-
-				return false;
-			}
-
-			state.Pull();
-
-			return true;
+			return state;
 		}
 
 		public void Stop(ReaderState context)

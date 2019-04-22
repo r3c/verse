@@ -43,10 +43,11 @@ namespace Verse.Test.Schemas
 
 			using (var stream = new MemoryStream(new byte[] { 16, 17, 0, 0, 0 }))
 			{
-				Assert.True(decoder.TryOpen(stream, out var decoderStream));
-				Assert.True(decoderStream.Decode(out var entity));
-
-				Assert.AreEqual(17, entity.Id);
+				using (var decoderStream = decoder.Open(stream))
+				{
+					Assert.True(decoderStream.TryDecode(out var entity));
+					Assert.AreEqual(17, entity.Id);
+				}
 			}
 		}	
 	}

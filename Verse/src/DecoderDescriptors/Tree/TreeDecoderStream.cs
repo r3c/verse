@@ -21,18 +21,16 @@ namespace Verse.DecoderDescriptors.Tree
 			this.state = state;
 		}
 
-		public bool Decode(out TEntity entity)
+		public void Dispose()
 		{
-			try
-			{
-				entity = this.constructor();
+			this.session.Stop(this.state);
+		}
 
-				return this.callback(this.session, this.state, ref entity);
-			}
-			finally
-			{
-				this.session.Stop(this.state);
-			}
+		public bool TryDecode(out TEntity entity)
+		{
+			entity = this.constructor();
+
+			return this.callback(this.session, this.state, ref entity);
 		}
 	}
 }

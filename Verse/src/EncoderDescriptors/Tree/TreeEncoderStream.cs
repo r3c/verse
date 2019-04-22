@@ -1,7 +1,7 @@
 
 namespace Verse.EncoderDescriptors.Tree
 {
-	class TreeEncoderStream<TState, TNative, TEntity> : IEncoderStream<TEntity>
+	internal class TreeEncoderStream<TState, TNative, TEntity> : IEncoderStream<TEntity>
 	{
 		private readonly IWriterSession<TState, TNative> session;
 
@@ -16,18 +16,14 @@ namespace Verse.EncoderDescriptors.Tree
 		    this.state = state;
 		}
 
-		public bool Encode(TEntity input)
+		public void Dispose()
 		{
-			try
-			{
-				this.callback(this.session, this.state, input);
-			}
-			finally
-			{
-				this.session.Stop(this.state);
-			}
+			this.session.Stop(this.state);
+		}
 
-			return true;
+		public void Encode(TEntity input)
+		{
+			this.callback(this.session, this.state, input);
 		}
 	}
 }

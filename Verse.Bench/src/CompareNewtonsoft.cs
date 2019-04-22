@@ -100,19 +100,19 @@ namespace Verse.Bench
 
 			for (int i = count; i-- > 0;)
 			{
-				using (MemoryStream stream = new MemoryStream(buffer))
+				using (var stream = new MemoryStream(buffer))
 				{
-                    Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
-					Assert.IsTrue(decoderStream.Decode(out instance));
+					using (var decoderStream = decoder.Open(stream))
+						Assert.IsTrue(decoderStream.TryDecode(out instance));
 				}
 			}
 
 			timeVerse = watch.Elapsed;
 
-			using (MemoryStream stream = new MemoryStream(buffer))
+			using (var stream = new MemoryStream(buffer))
 			{
-                Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
-				Assert.IsTrue(decoderStream.Decode(out instance));
+				using (var decoderStream = decoder.Open(stream))
+					Assert.IsTrue(decoderStream.TryDecode(out instance));
 			}
 
 			Assert.AreEqual(instance, reference);
@@ -222,20 +222,21 @@ namespace Verse.Bench
 
 			for (int i = count; i-- > 0;)
 			{
-			    using (MemoryStream stream = new MemoryStream())
+			    using (var stream = new MemoryStream())
 			    {
-                    Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
-			        Assert.IsTrue(encoderStream.Encode(instance));
+				    using (var encoderStream = encoder.Open(stream))
+						encoderStream.Encode(instance);
 			    }
 			}
 
 			timeVerse = watch.Elapsed;
 
-			using (MemoryStream stream = new MemoryStream())
+			using (var stream = new MemoryStream())
 			{
-			    Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
-			    Assert.IsTrue(encoderStream.Encode(instance));
-                Assert.AreEqual(expected, Encoding.UTF8.GetString(stream.ToArray()));
+				using (var encoderStream = encoder.Open(stream))
+					encoderStream.Encode(instance);
+
+				Assert.AreEqual(expected, Encoding.UTF8.GetString(stream.ToArray()));
 			}
 
 			try

@@ -161,19 +161,13 @@ namespace Verse.Schemas.JSON
 			}
 		}
 
-		public bool Start(Stream stream, DecodeError error, out ReaderState state)
+		public ReaderState Start(Stream stream, DecodeError error)
 		{
-			state = new ReaderState(stream, this.encoding, error);
+			var state = new ReaderState(stream, this.encoding, error);
+
 			state.PullIgnored();
 
-			if (state.Current < 0)
-			{
-				state.Error("empty input stream");
-
-				return false;
-			}
-
-			return true;
+			return state;
 		}
 
 		public void Stop(ReaderState state)

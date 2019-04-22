@@ -139,16 +139,16 @@ namespace Verse.Test.Schemas
 
 			using (var stream = new MemoryStream())
 			{
-				Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
-				Assert.IsTrue(encoderStream.Encode(instance));
+				using (var encoderStream = encoder.Open(stream))
+					encoderStream.Encode(instance);
 
 				encoded1 = stream.ToArray();
 			}
 
 			using (var stream = new MemoryStream(encoded1))
 			{
-				Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
-				Assert.IsTrue(decoderStream.Decode(out decoded));
+				using (var decoderStream = decoder.Open(stream))
+					Assert.IsTrue(decoderStream.TryDecode(out decoded));
 			}
 
 			var comparisonResult = new CompareLogic().Compare(instance, decoded);
@@ -157,8 +157,8 @@ namespace Verse.Test.Schemas
 
 			using (var stream = new MemoryStream())
 			{
-				Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
-				Assert.IsTrue(encoderStream.Encode(decoded));
+				using (var encoderStream = encoder.Open(stream))
+					encoderStream.Encode(decoded);
 
 				encoded2 = stream.ToArray();
 			}

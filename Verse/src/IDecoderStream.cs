@@ -1,3 +1,5 @@
+using System;
+
 namespace Verse
 {
 	/// <summary>
@@ -5,13 +7,13 @@ namespace Verse
 	/// format depending on implementation.
 	/// </summary>
 	/// <typeparam name="TEntity">Entity type</typeparam>
-	public interface IDecoderStream<TEntity>
+	public interface IDecoderStream<TEntity> : IDisposable
 	{
 		/// <summary>
 		/// Read entity from input stream.
 		/// </summary>
 		/// <param name="entity">Output entity</param>
 		/// <returns>True if decoding succeeded, false otherwise</returns>
-		bool Decode(out TEntity entity);
+		bool TryDecode(out TEntity entity);
 	}
 }

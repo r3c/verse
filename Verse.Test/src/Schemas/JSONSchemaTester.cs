@@ -81,8 +81,9 @@ namespace Verse.Test.Schemas
 
 			using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
 			{
-				Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
-				Assert.IsFalse(decoderStream.Decode(out var value));
+				using (var decoderStream = decoder.Open(stream))
+					Assert.IsFalse(decoderStream.TryDecode(out _));
+
 				Assert.AreEqual(expected, position);
 			}
 		}
@@ -152,12 +153,14 @@ namespace Verse.Test.Schemas
 			using (var stream =
 				new MemoryStream(Encoding.UTF8.GetBytes("{\"f\": {\"f\": {\"v\": 42}, \"v\": 17}, \"v\": 3}")))
 			{
-				Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
-				Assert.IsTrue(decoderStream.Decode(out var value));
+				using (var decoderStream = decoder.Open(stream))
+				{
+					Assert.IsTrue(decoderStream.TryDecode(out var value));
 
-				Assert.AreEqual(42, value.field.field.value);
-				Assert.AreEqual(17, value.field.value);
-				Assert.AreEqual(3, value.value);
+					Assert.AreEqual(42, value.field.field.value);
+					Assert.AreEqual(17, value.field.value);
+					Assert.AreEqual(3, value.value);
+				}
 			}
 		}
 
@@ -444,13 +447,15 @@ namespace Verse.Test.Schemas
 
 			using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
 			{
-				Assert.IsTrue(decoder.TryOpen(stream, out var decoderStream));
-				Assert.IsTrue(decoderStream.Decode(out var value));
+				using (var decoderStream = decoder.Open(stream))
+				{
+					Assert.IsTrue(decoderStream.TryDecode(out var value));
 
-				var compare = new CompareLogic();
-				var result = compare.Compare(expected, value);
+					var compare = new CompareLogic();
+					var result = compare.Compare(expected, value);
 
-				Assert.That(result.AreEqual, Is.True, result.DifferencesString);
+					Assert.That(result.AreEqual, Is.True, result.DifferencesString);
+				}
 			}
 		}
 
@@ -460,8 +465,8 @@ namespace Verse.Test.Schemas
 
 			using (var stream = new MemoryStream())
 			{
-				Assert.IsTrue(encoder.TryOpen(stream, out var encoderStream));
-				Assert.IsTrue(encoderStream.Encode(value));
+				using (var encoderStream = encoder.Open(stream))
+					encoderStream.Encode(value);
 
 				Assert.That(Encoding.UTF8.GetString(stream.ToArray()), Is.EqualTo(expected));
 			}

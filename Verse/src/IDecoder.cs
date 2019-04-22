@@ -18,8 +18,7 @@ namespace Verse
         /// Open read-enabled stream for decoding entities out of it.
         /// </summary>
         /// <param name="input">Input stream</param>
-        /// <param name="decoderStream">Decoder stream instance</param>
-        /// <returns>True if stream was successfully open for reading, false otherwise</returns>
-        bool TryOpen(Stream input, out IDecoderStream<TEntity> decoderStream);
+        /// <returns>Decoder stream instance</returns>
+        IDecoderStream<TEntity> Open(Stream input);
     }
 }

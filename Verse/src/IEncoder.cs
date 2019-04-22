@@ -7,7 +7,7 @@ namespace Verse
     /// serialization format depending on implementation.
     /// </summary>
     /// <typeparam name="TEntity">Entity type</typeparam>
-    public interface IEncoder<TEntity>
+    public interface IEncoder<in TEntity>
     {
         /// <summary>
         /// Encoding error event.
@@ -18,8 +18,7 @@ namespace Verse
         /// Open write-enabled stream for encoding entities to it.
         /// </summary>
         /// <param name="output">Output stream</param>
-        /// <param name="encoderStream">Encoder stream instance</param>
-        /// <returns>True if stream was successfully open for writing, false otherwise</returns>
-        bool TryOpen(Stream output, out IEncoderStream<TEntity> encoderStream);
+        /// <returns>Encoder stream instance</returns>
+        IEncoderStream<TEntity> Open(Stream output);
     }
 }
