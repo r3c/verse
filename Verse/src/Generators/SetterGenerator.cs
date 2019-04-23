@@ -17,22 +17,18 @@ namespace Verse.Generators
 		{
 			var parameters = constructor.GetParameters();
 
-			if (parameters.Length != 1)
-				throw new ArgumentException("constructor doesn't take one argument", nameof(constructor));
-
-			var entityType = constructor.DeclaringType;
-
-			if (entityType != typeof(TEntity))
+			if (constructor.DeclaringType != typeof(TEntity))
 				throw new ArgumentException($"constructor parent type is not {typeof(TEntity)}",
 					nameof(constructor));
 
-			var parameterType = parameters[0].ParameterType;
+			if (parameters.Length != 1)
+				throw new ArgumentException("constructor doesn't take one argument", nameof(constructor));
 
-			if (parameterType != typeof(TParameter))
+			if (parameters[0].ParameterType != typeof(TParameter))
 				throw new ArgumentException($"constructor argument type is not {typeof(TParameter)}",
 					nameof(constructor));
 
-			var parameterTypes = new[] {entityType.MakeByRefType(), parameterType};
+			var parameterTypes = new[] {typeof(TEntity).MakeByRefType(), typeof(TParameter)};
 			var method = new DynamicMethod(string.Empty, null, parameterTypes, constructor.Module, true);
 			var generator = method.GetILGenerator();
 
@@ -42,9 +38,7 @@ namespace Verse.Generators
 			generator.Emit(OpCodes.Stind_Ref);
 			generator.Emit(OpCodes.Ret);
 
-			var type = typeof(Setter<,>).MakeGenericType(entityType, parameterType);
-
-			return (Setter<TEntity, TParameter>) method.CreateDelegate(type);
+			return (Setter<TEntity, TParameter>) method.CreateDelegate(typeof(Setter<TEntity, TParameter>));
 		}
 
 		/// <summary>
@@ -54,21 +48,19 @@ namespace Verse.Generators
 		/// <returns>Setter callback</returns>
 		public static Setter<TElement[], IEnumerable<TElement>> CreateFromEnumerable<TElement>()
 		{
-			var converter = MethodResolver.Create<Func<IEnumerable<TElement>, TElement[]>>(e => e.ToArray());
+			var arrayConverter = MethodResolver.Create<Func<IEnumerable<TElement>, TElement[]>>(e => e.ToArray());
 			var parameterTypes = new[] {typeof(TElement[]).MakeByRefType(), typeof(IEnumerable<TElement>)};
-
 			var method = new DynamicMethod(string.Empty, null, parameterTypes, typeof(TElement).Module, true);
 			var generator = method.GetILGenerator();
 
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldarg_1);
-			generator.Emit(OpCodes.Call, converter.Method);
+			generator.Emit(OpCodes.Call, arrayConverter.Method);
 			generator.Emit(OpCodes.Stind_Ref);
 			generator.Emit(OpCodes.Ret);
 
-			var type = typeof(Setter<TElement[], IEnumerable<TElement>>);
-
-			return (Setter<TElement[], IEnumerable<TElement>>) method.CreateDelegate(type);
+			return (Setter<TElement[], IEnumerable<TElement>>) method.CreateDelegate(
+				typeof(Setter<TElement[], IEnumerable<TElement>>));
 		}
 
 		/// <Summary>
