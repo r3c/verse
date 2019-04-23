@@ -26,8 +26,8 @@ namespace Verse.Schemas
 			var bindings = Parser.Parse(proto).Resolve(messageName);
 			var decoderConverter = new DecoderConverter();
 			var encoderConverter = new EncoderConverter();
-			var reader = new Reader<TEntity>(bindings, configuration.RejectUnknown);
-			var writer = new Writer<TEntity>(bindings);
+			var reader = new ProtobufReaderDefinition<TEntity>(bindings, configuration.RejectUnknown);
+			var writer = new ProtobufWriterDefinition<TEntity>(bindings);
 
 			this.decoderConverter = decoderConverter;
 			this.decoderDescriptor =
@@ -45,12 +45,12 @@ namespace Verse.Schemas
 
 		public IDecoder<TEntity> CreateDecoder(Func<TEntity> constructor)
 		{
-			return this.decoderDescriptor.CreateDecoder(new ReaderSession(), constructor);
+			return this.decoderDescriptor.CreateDecoder(new Reader(), constructor);
 		}
 
 		public IEncoder<TEntity> CreateEncoder()
 		{
-			return this.encoderDescriptor.CreateEncoder(new WriterSession());
+			return this.encoderDescriptor.CreateEncoder(new Writer());
 		}
 
 		public void SetDecoderConverter<TValue>(Converter<ProtobufValue, TValue> converter)

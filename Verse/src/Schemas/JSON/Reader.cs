@@ -7,13 +7,13 @@ using Verse.Lookups;
 
 namespace Verse.Schemas.JSON
 {
-	internal class ReaderSession : IReaderSession<ReaderState, JSONValue>
+	internal class Reader : IReader<ReaderState, JSONValue>
 	{
 		private readonly bool acceptObjectAsArray;
 		private readonly bool acceptValueAsArray;
 		private readonly Encoding encoding;
 
-		public ReaderSession(Encoding encoding, bool acceptObjectAsArray, bool acceptValueAsArray)
+		public Reader(Encoding encoding, bool acceptObjectAsArray, bool acceptValueAsArray)
 		{
 			this.acceptObjectAsArray = acceptObjectAsArray;
 			this.acceptValueAsArray = acceptValueAsArray;
@@ -90,7 +90,7 @@ namespace Verse.Schemas.JSON
 			switch (state.Current)
 			{
 				case '"':
-					return ReaderSession.ReadToValueFromString(state, out value);
+					return Reader.ReadToValueFromString(state, out value);
 
 				case '-':
 				case '.':
@@ -104,7 +104,7 @@ namespace Verse.Schemas.JSON
 				case '7':
 				case '8':
 				case '9':
-					return ReaderSession.ReadToValueFromNumber(state, out value);
+					return Reader.ReadToValueFromNumber(state, out value);
 
 				case 'f':
 					state.Read();
@@ -554,7 +554,7 @@ namespace Verse.Schemas.JSON
 				case '7':
 				case '8':
 				case '9':
-					return ReaderSession.ReadToValueFromNumber(state, out _);
+					return Reader.ReadToValueFromNumber(state, out _);
 
 				case 'f':
 					state.Read();

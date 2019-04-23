@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Verse.DecoderDescriptors.Tree
 {
-	internal interface IReaderSession<TState, TNative>
+	internal interface IReader<TState, TNative>
 	{
 		BrowserMove<TElement> ReadToArray<TElement>(TState state, Func<TElement> constructor,
 			ReaderCallback<TState, TNative, TElement> callback);

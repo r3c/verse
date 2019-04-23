@@ -35,7 +35,7 @@ namespace Verse.Schemas
 		/// <inheritdoc/>
 		public IDecoder<TEntity> CreateDecoder(Func<TEntity> constructor)
 		{
-			return this.decoderDescriptor.CreateDecoder(new ReaderSession(this.encoding), constructor);
+			return this.decoderDescriptor.CreateDecoder(new Reader(this.encoding), constructor);
 		}
 
 		/// <inheritdoc/>

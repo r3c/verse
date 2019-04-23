@@ -4,7 +4,7 @@ using Verse.EncoderDescriptors.Tree;
 
 namespace Verse.Schemas.RawProtobuf
 {
-	internal class RawProtobufWriterSession : IWriterSession<RawProtobufWriterState, RawProtobufValue>
+	internal class RawProtobufWriter : IWriter<RawProtobufWriterState, RawProtobufValue>
 	{
 		public RawProtobufWriterState Start(Stream stream, ErrorEvent error)
 		{
@@ -16,13 +16,15 @@ namespace Verse.Schemas.RawProtobuf
 			state.Flush();
 		}
 
-		public void WriteArray<TEntity>(RawProtobufWriterState state, IEnumerable<TEntity> elements, WriterCallback<RawProtobufWriterState, RawProtobufValue, TEntity> writer)
+		public void WriteAsArray<TEntity>(RawProtobufWriterState state, IEnumerable<TEntity> elements,
+			WriterCallback<RawProtobufWriterState, RawProtobufValue, TEntity> writer)
 		{
 			foreach (var element in elements)
 				writer(this, state, element);
 		}
 
-		public void WriteObject<TEntity>(RawProtobufWriterState state, TEntity source, IReadOnlyDictionary<string, WriterCallback<RawProtobufWriterState, RawProtobufValue, TEntity>> fields)
+		public void WriteAsObject<TEntity>(RawProtobufWriterState state, TEntity source,
+			IReadOnlyDictionary<string, WriterCallback<RawProtobufWriterState, RawProtobufValue, TEntity>> fields)
 		{
 			state.ObjectBegin();
 
@@ -39,7 +41,7 @@ namespace Verse.Schemas.RawProtobuf
 			state.ObjectEnd();
 		}
 
-		public void WriteValue(RawProtobufWriterState state, RawProtobufValue value)
+		public void WriteAsValue(RawProtobufWriterState state, RawProtobufValue value)
 		{
 			if (!state.Value(value))
 				state.Error("failed to write value");

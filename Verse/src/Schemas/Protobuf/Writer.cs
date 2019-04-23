@@ -1,37 +1,37 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using Verse.EncoderDescriptors.Tree;
-using Verse.Schemas.Protobuf.Definition;
 
 namespace Verse.Schemas.Protobuf
 {
-	internal class Writer<TEntity> : WriterDefinition<WriterState, ProtobufValue, TEntity>
+	internal class Writer : IWriter<WriterState, ProtobufValue>
 	{
-		private readonly ProtoBinding[] fields;
-
-		public Writer(ProtoBinding[] fields)
+		public WriterState Start(Stream stream, ErrorEvent error)
 		{
-			this.fields = fields;
+			throw new NotImplementedException();
 		}
 
-		public override WriterDefinition<WriterState, ProtobufValue, TOther> Create<TOther>()
+		public void Stop(WriterState state)
 		{
-			return new Writer<TOther>(this.fields);
+			throw new NotImplementedException();
 		}
 
-		protected bool TryLookup<TOther>(string name, out int index, out WriterDefinition<WriterState, ProtobufValue, TOther> writer)
+		public void WriteAsArray<TEntity>(WriterState state, IEnumerable<TEntity> elements,
+			WriterCallback<WriterState, ProtobufValue, TEntity> writer)
 		{
-			index = Array.FindIndex(this.fields, binding => binding.Name == name);
+			throw new NotImplementedException();
+		}
 
-			if (index < 0)
-			{
-				writer = null;
+		public void WriteAsObject<TEntity>(WriterState state, TEntity entity,
+			IReadOnlyDictionary<string, WriterCallback<WriterState, ProtobufValue, TEntity>> fields)
+		{
+			throw new NotImplementedException();
+		}
 
-				return false;
-			}
-
-			writer = new Writer<TOther>(this.fields[index].Fields);
-
-			return true;
+		public void WriteAsValue(WriterState state, ProtobufValue value)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

@@ -3,13 +3,13 @@ namespace Verse.EncoderDescriptors.Tree
 {
 	internal class TreeEncoderStream<TState, TNative, TEntity> : IEncoderStream<TEntity>
 	{
-		private readonly IWriterSession<TState, TNative> session;
+		private readonly IWriter<TState, TNative> session;
 
 	    private readonly TState state;
 
 		private readonly WriterCallback<TState, TNative, TEntity> callback;
 
-		public TreeEncoderStream(IWriterSession<TState, TNative> session, WriterCallback<TState, TNative, TEntity> callback, TState state)
+		public TreeEncoderStream(IWriter<TState, TNative> session, WriterCallback<TState, TNative, TEntity> callback, TState state)
 		{
 			this.callback = callback;
 			this.session = session;

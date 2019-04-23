@@ -6,11 +6,11 @@ using Verse.Lookups;
 
 namespace Verse.Schemas.QueryString
 {
-	internal class ReaderSession : IReaderSession<ReaderState, string>
+	internal class Reader : IReader<ReaderState, string>
 	{
 		private readonly Encoding encoding;
 
-		public ReaderSession(Encoding encoding)
+		public Reader(Encoding encoding)
 		{
 			this.encoding = encoding;
 		}
@@ -113,7 +113,7 @@ namespace Verse.Schemas.QueryString
 						ref dummy);
 
 				case QueryStringLocation.ValueBegin:
-					return ReaderSession.ReadValue(state, out value);
+					return Reader.ReadValue(state, out value);
 
 				case QueryStringLocation.ValueEnd:
 					value = string.Empty;

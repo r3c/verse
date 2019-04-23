@@ -19,7 +19,7 @@ namespace Verse.EncoderDescriptors
 			this.fields = new Dictionary<string, WriterCallback<TState, TNative, TEntity>>();
 		}
 
-		public IEncoder<TEntity> CreateEncoder(IWriterSession<TState, TNative> session)
+		public IEncoder<TEntity> CreateEncoder(IWriter<TState, TNative> session)
 		{
 			return new TreeEncoder<TState, TNative, TEntity>(session, this.definition.Callback);
 		}
@@ -72,7 +72,7 @@ namespace Verse.EncoderDescriptors
 
 			TreeEncoderDescriptor<TState, TNative, TEntity>.BindValue(this.definition, e => native(converter(e)));
 
-			this.definition.Callback = (session, state, entity) => session.WriteValue(state, native(converter(entity)));
+			this.definition.Callback = (session, state, entity) => session.WriteAsValue(state, native(converter(entity)));
 		}
 
 		public void HasValue()
@@ -89,7 +89,7 @@ namespace Verse.EncoderDescriptors
 			var elementDefinition = elementDescriptor.definition;
 
 			parent.Callback = (session, state, entity) =>
-				session.WriteArray(state, getter(entity), elementDefinition.Callback);
+				session.WriteAsArray(state, getter(entity), elementDefinition.Callback);
 
 			return elementDescriptor;
 		}
@@ -102,7 +102,7 @@ namespace Verse.EncoderDescriptors
 			if (parentFields.ContainsKey(name))
 				throw new InvalidOperationException($"field '{name}' was declared twice on same descriptor");
 
-			parentDefinition.Callback = (session, state, entity) => session.WriteObject(state, entity, parentFields);
+			parentDefinition.Callback = (session, state, entity) => session.WriteAsObject(state, entity, parentFields);
 
 			var fieldDefinition = fieldDescriptor.definition;
 
@@ -114,7 +114,7 @@ namespace Verse.EncoderDescriptors
 		private static void BindValue(WriterDefinition<TState, TNative, TEntity> parent,
 			Converter<TEntity, TNative> converter)
 		{
-			parent.Callback = (session, state, entity) => session.WriteValue(state, converter(entity));
+			parent.Callback = (session, state, entity) => session.WriteAsValue(state, converter(entity));
 		}
 	}
 }

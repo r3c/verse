@@ -8,9 +8,9 @@ namespace Verse.EncoderDescriptors.Tree
 
         private readonly WriterCallback<TState, TNative, TEntity> callback;
 
-        private readonly IWriterSession<TState, TNative> session;
+        private readonly IWriter<TState, TNative> session;
 
-        public TreeEncoder(IWriterSession<TState, TNative> session, WriterCallback<TState, TNative, TEntity> callback)
+        public TreeEncoder(IWriter<TState, TNative> session, WriterCallback<TState, TNative, TEntity> callback)
         {
             this.callback = callback;
             this.session = session;

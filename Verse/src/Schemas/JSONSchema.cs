@@ -58,7 +58,7 @@ namespace Verse.Schemas
 		public IDecoder<TEntity> CreateDecoder(Func<TEntity> constructor)
 		{
 			var configuration = this.configuration;
-			var session = new ReaderSession(configuration.Encoding ?? new UTF8Encoding(false),
+			var session = new Reader(configuration.Encoding ?? new UTF8Encoding(false),
 				configuration.AcceptObjectAsArray, configuration.AcceptValueAsArray);
 
 			return this.decoderDescriptor.CreateDecoder(session, constructor);
@@ -68,7 +68,7 @@ namespace Verse.Schemas
 		public IEncoder<TEntity> CreateEncoder()
 		{
 			var encoding = this.configuration.Encoding ?? new UTF8Encoding(false);
-			var session = new WriterSession(encoding, this.configuration.OmitNull);
+			var session = new Writer(encoding, this.configuration.OmitNull);
 
 			return this.encoderDescriptor.CreateEncoder(session);
 		}

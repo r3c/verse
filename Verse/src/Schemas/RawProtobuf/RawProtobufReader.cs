@@ -5,7 +5,7 @@ using Verse.DecoderDescriptors.Tree;
 
 namespace Verse.Schemas.RawProtobuf
 {
-	internal class RawProtobufReaderSession : IReaderSession<RawProtobufReaderState, RawProtobufValue>
+	internal class RawProtobufReader : IReader<RawProtobufReaderState, RawProtobufValue>
 	{
 		public BrowserMove<TElement> ReadToArray<TElement>(RawProtobufReaderState state, Func<TElement> constructor,
 			ReaderCallback<RawProtobufReaderState, RawProtobufValue, TElement> callback)
@@ -37,7 +37,7 @@ namespace Verse.Schemas.RawProtobuf
 		{
 			if (!state.ObjectBegin(out var subItem))
 			{
-				RawProtobufReaderSession.Skip(state);
+				RawProtobufReader.Skip(state);
 
 				return true;
 			}
@@ -64,7 +64,7 @@ namespace Verse.Schemas.RawProtobuf
 				else
 					field = field.Follow((char) ('0' + state.FieldIndex));
 
-				if (!(field.HasValue ? field.Value(this, state, ref target) : RawProtobufReaderSession.Skip(state)))
+				if (!(field.HasValue ? field.Value(this, state, ref target) : RawProtobufReader.Skip(state)))
 					return false;
 			}
 		}

@@ -11,9 +11,9 @@ namespace Verse.DecoderDescriptors.Tree
 
         private readonly Func<TEntity> constructor;
 
-        private readonly IReaderSession<TState, TNative> session;
+        private readonly IReader<TState, TNative> session;
 
-        public TreeDecoder(IReaderSession<TState, TNative> session, Func<TEntity> constructor, ReaderCallback<TState, TNative, TEntity> callback)
+        public TreeDecoder(IReader<TState, TNative> session, Func<TEntity> constructor, ReaderCallback<TState, TNative, TEntity> callback)
         {
             this.callback = callback;
             this.constructor = constructor;

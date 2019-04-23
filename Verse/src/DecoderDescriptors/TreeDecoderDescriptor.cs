@@ -20,7 +20,7 @@ namespace Verse.DecoderDescriptors
 			this.fields = new NameLookup<ReaderCallback<TState, TNative, TEntity>>();
 		}
 
-		public IDecoder<TEntity> CreateDecoder(IReaderSession<TState, TNative> session, Func<TEntity> constructor)
+		public IDecoder<TEntity> CreateDecoder(IReader<TState, TNative> session, Func<TEntity> constructor)
 		{
 			return new TreeDecoder<TState, TNative, TEntity>(session, constructor, this.definition.Callback);
 		}
@@ -52,13 +52,13 @@ namespace Verse.DecoderDescriptors
 			var parentFields = this.fields;
 
 			var success = parentFields.ConnectTo(name,
-				(IReaderSession<TState, TNative> session, TState state, ref TEntity entity) =>
+				(IReader<TState, TNative> session, TState state, ref TEntity entity) =>
 					fieldDefinition.Callback(session, state, ref entity));
 
 			if (!success)
 				throw new InvalidOperationException($"field '{name}' was declared twice on same descriptor");
 
-			this.definition.Callback = (IReaderSession<TState, TNative> session, TState state, ref TEntity target) =>
+			this.definition.Callback = (IReader<TState, TNative> session, TState state, ref TEntity target) =>
 				session.ReadToObject(state, parentFields, ref target);
 
 			return fieldDescriptor;
@@ -88,7 +88,7 @@ namespace Verse.DecoderDescriptors
 		{
 			var native = this.converter.Get<TValue>();
 
-			this.definition.Callback = (IReaderSession<TState, TNative> session, TState state, ref TEntity entity) =>
+			this.definition.Callback = (IReader<TState, TNative> session, TState state, ref TEntity entity) =>
 			{
 				if (!session.ReadToValue(state, out var value))
 				{
@@ -109,7 +109,7 @@ namespace Verse.DecoderDescriptors
 			var converter = this.converter.Get<TEntity>();
 
 			// FIXME: close duplicate of previous method
-			this.definition.Callback = (IReaderSession<TState, TNative> session, TState state, ref TEntity entity) =>
+			this.definition.Callback = (IReader<TState, TNative> session, TState state, ref TEntity entity) =>
 			{
 				if (!session.ReadToValue(state, out var value))
 				{
@@ -132,7 +132,7 @@ namespace Verse.DecoderDescriptors
 		{
 			var elementDefinition = elementDescriptor.definition;
 
-			parentDefinition.Callback = (IReaderSession<TState, TNative> session, TState state, ref TEntity entity) =>
+			parentDefinition.Callback = (IReader<TState, TNative> session, TState state, ref TEntity entity) =>
 			{
 				using (var browser =
 					new Browser<TElement>(session.ReadToArray(state, constructor, elementDefinition.Callback)))
@@ -153,7 +153,7 @@ namespace Verse.DecoderDescriptors
 		{
 			var fieldDefinition = fieldDescriptor.definition;
 			var success = parentFields.ConnectTo(name,
-				(IReaderSession<TState, TNative> session, TState state, ref TEntity entity) =>
+				(IReader<TState, TNative> session, TState state, ref TEntity entity) =>
 				{
 					var field = constructor();
 
@@ -168,7 +168,7 @@ namespace Verse.DecoderDescriptors
 			if (!success)
 				throw new InvalidOperationException($"field '{name}' was declared twice on same descriptor");
 
-			parentDefinition.Callback = (IReaderSession<TState, TNative> session, TState state, ref TEntity target) =>
+			parentDefinition.Callback = (IReader<TState, TNative> session, TState state, ref TEntity target) =>
 				session.ReadToObject(state, parentFields, ref target);
 
 			return fieldDescriptor;

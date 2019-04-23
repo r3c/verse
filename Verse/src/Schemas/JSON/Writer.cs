@@ -5,13 +5,13 @@ using Verse.EncoderDescriptors.Tree;
 
 namespace Verse.Schemas.JSON
 {
-	internal class WriterSession : IWriterSession<WriterState, JSONValue>
+	internal class Writer : IWriter<WriterState, JSONValue>
 	{
 		private readonly Encoding encoding;
 
 		private readonly bool omitNull;
 
-		public WriterSession(Encoding encoding, bool omitNull)
+		public Writer(Encoding encoding, bool omitNull)
 		{
 			this.encoding = encoding;
 			this.omitNull = omitNull;
@@ -27,10 +27,11 @@ namespace Verse.Schemas.JSON
 			state.Flush();
 		}
 
-		public void WriteArray<TElement>(WriterState state, IEnumerable<TElement> elements, WriterCallback<WriterState, JSONValue, TElement> writer)
+		public void WriteAsArray<TElement>(WriterState state, IEnumerable<TElement> elements,
+			WriterCallback<WriterState, JSONValue, TElement> writer)
 		{
 			if (elements == null)
-				this.WriteValue(state, JSONValue.Void);
+				this.WriteAsValue(state, JSONValue.Void);
 			else
 			{
 				state.ArrayBegin();
@@ -42,10 +43,11 @@ namespace Verse.Schemas.JSON
 			}
 		}
 
-		public void WriteObject<TObject>(WriterState state, TObject parent, IReadOnlyDictionary<string, WriterCallback<WriterState, JSONValue, TObject>> fields)
+		public void WriteAsObject<TObject>(WriterState state, TObject parent,
+			IReadOnlyDictionary<string, WriterCallback<WriterState, JSONValue, TObject>> fields)
 		{
 			if (parent == null)
-				this.WriteValue(state, JSONValue.Void);
+				this.WriteAsValue(state, JSONValue.Void);
 			else
 			{
 				state.ObjectBegin();
@@ -60,7 +62,7 @@ namespace Verse.Schemas.JSON
 			}
 		}
 
-		public void WriteValue(WriterState state, JSONValue value)
+		public void WriteAsValue(WriterState state, JSONValue value)
 		{
 			state.Value(value);
 		}

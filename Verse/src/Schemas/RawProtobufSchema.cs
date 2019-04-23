@@ -38,12 +38,12 @@ namespace Verse.Schemas
 
 		public IDecoder<TEntity> CreateDecoder(Func<TEntity> constructor)
 		{
-			return this.decoderDescriptor.CreateDecoder(new RawProtobufReaderSession(), constructor);
+			return this.decoderDescriptor.CreateDecoder(new RawProtobufReader(), constructor);
 		}
 
 		public IEncoder<TEntity> CreateEncoder()
 		{
-			return this.encoderDescriptor.CreateEncoder(new RawProtobufWriterSession());
+			return this.encoderDescriptor.CreateEncoder(new RawProtobufWriter());
 		}
 
 		public void SetDecoderConverter<TValue>(Converter<RawProtobufValue, TValue> converter)
