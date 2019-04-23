@@ -4,11 +4,11 @@ namespace Verse.Schemas.Protobuf
 {
     internal class WriterState
     {
-        public readonly EncodeError Error;
+        public readonly ErrorEvent Error;
 
         public readonly Stream Stream;        
 
-        public WriterState(Stream stream, EncodeError error)
+        public WriterState(Stream stream, ErrorEvent error)
         {
             this.Error = error;
             this.Stream = stream;

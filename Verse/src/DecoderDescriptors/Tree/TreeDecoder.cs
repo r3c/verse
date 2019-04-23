@@ -5,7 +5,7 @@ namespace Verse.DecoderDescriptors.Tree
 {
     internal class TreeDecoder<TState, TNative, TEntity> : IDecoder<TEntity>
     {
-        public event DecodeError Error;
+        public event ErrorEvent Error;
 
         private readonly ReaderCallback<TState, TNative, TEntity> callback;
 

@@ -7,7 +7,7 @@ namespace Verse.Schemas.Protobuf
 {
 	internal class WriterSession : IWriterSession<WriterState, ProtobufValue>
 	{
-		public WriterState Start(Stream stream, EncodeError error)
+		public WriterState Start(Stream stream, ErrorEvent error)
 		{
 			throw new NotImplementedException();
 		}

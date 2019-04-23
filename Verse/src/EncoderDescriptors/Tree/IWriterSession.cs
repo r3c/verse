@@ -5,7 +5,7 @@ namespace Verse.EncoderDescriptors.Tree
 {
 	internal interface IWriterSession<TState, TNative>
 	{
-		TState Start(Stream stream, EncodeError error);
+		TState Start(Stream stream, ErrorEvent error);
 
 		void Stop(TState state);
 

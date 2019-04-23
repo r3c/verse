@@ -167,7 +167,7 @@ namespace Verse.Schemas.JSON
 			}
 		}
 
-		public ReaderState Start(Stream stream, DecodeError error)
+		public ReaderState Start(Stream stream, ErrorEvent error)
 		{
 			return new ReaderState(stream, this.encoding, error);
 		}

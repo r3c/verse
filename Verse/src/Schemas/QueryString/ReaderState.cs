@@ -11,13 +11,13 @@ namespace Verse.Schemas.QueryString
 
 		public QueryStringLocation Location;
 
-		private readonly DecodeError error;
+		private readonly ErrorEvent error;
 
 		private int position;
 
 		private readonly StreamReader reader;
 
-		public ReaderState(Stream stream, Encoding encoding, DecodeError error)
+		public ReaderState(Stream stream, Encoding encoding, ErrorEvent error)
 		{
 			this.Current = 0;
 			this.Encoding = encoding;

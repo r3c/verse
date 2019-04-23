@@ -12,7 +12,7 @@ namespace Verse
         /// <summary>
         /// Decoding error event.
         /// </summary>
-        event DecodeError Error;
+        event ErrorEvent Error;
 
         /// <summary>
         /// Open read-enabled stream for decoding entities out of it.

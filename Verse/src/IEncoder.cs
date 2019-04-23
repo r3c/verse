@@ -12,7 +12,7 @@ namespace Verse
         /// <summary>
         /// Encoding error event.
         /// </summary>
-        event EncodeError Error;
+        event ErrorEvent Error;
 
         /// <summary>
         /// Open write-enabled stream for encoding entities to it.

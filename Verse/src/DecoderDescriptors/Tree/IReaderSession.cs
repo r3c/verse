@@ -13,7 +13,7 @@ namespace Verse.DecoderDescriptors.Tree
 
 		bool ReadToValue(TState state, out TNative value);
 
-		TState Start(Stream stream, DecodeError error);
+		TState Start(Stream stream, ErrorEvent error);
 
 		void Stop(TState state);
 	}

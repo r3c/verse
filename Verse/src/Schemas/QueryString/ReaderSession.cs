@@ -127,7 +127,7 @@ namespace Verse.Schemas.QueryString
 			}
 		}
 
-		public ReaderState Start(Stream stream, DecodeError error)
+		public ReaderState Start(Stream stream, ErrorEvent error)
 		{
 			var state = new ReaderState(stream, this.encoding, error);
 

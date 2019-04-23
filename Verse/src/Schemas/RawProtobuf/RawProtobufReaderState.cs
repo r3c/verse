@@ -8,13 +8,13 @@ namespace Verse.Schemas.RawProtobuf
 	{
 		public int FieldIndex;
 
-		private readonly DecodeError error;
+		private readonly ErrorEvent error;
 
 		private WireType? fieldType;
 
 		private readonly ProtoReader reader;
 
-		public RawProtobufReaderState(Stream stream, DecodeError error)
+		public RawProtobufReaderState(Stream stream, ErrorEvent error)
 		{
 			this.error = error;
 

@@ -9,9 +9,9 @@ namespace Verse.Schemas.Protobuf
 
         public ProtobufValue Value;
 
-        private readonly DecodeError error;
+        private readonly ErrorEvent error;
 
-        public ReaderState(Stream stream, DecodeError error)
+        public ReaderState(Stream stream, ErrorEvent error)
         {
             this.error = error;
             this.Stream = stream;

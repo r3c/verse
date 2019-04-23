@@ -6,7 +6,7 @@ namespace Verse.Schemas.RawProtobuf
 {
 	internal class RawProtobufWriterSession : IWriterSession<RawProtobufWriterState, RawProtobufValue>
 	{
-		public RawProtobufWriterState Start(Stream stream, EncodeError error)
+		public RawProtobufWriterState Start(Stream stream, ErrorEvent error)
 		{
 			return new RawProtobufWriterState(stream, error);
 		}

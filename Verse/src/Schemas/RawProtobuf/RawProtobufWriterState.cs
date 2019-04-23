@@ -7,7 +7,7 @@ namespace Verse.Schemas.RawProtobuf
 {
 	internal class RawProtobufWriterState
 	{
-		private readonly EncodeError error;
+		private readonly ErrorEvent error;
 
 		private int fieldIndex;
 
@@ -17,7 +17,7 @@ namespace Verse.Schemas.RawProtobuf
 
 		private readonly Stack<SubObjectInstance> subObjectInstances;
 
-		public RawProtobufWriterState(Stream stream, EncodeError error)
+		public RawProtobufWriterState(Stream stream, ErrorEvent error)
 		{
 			this.error = error;
 

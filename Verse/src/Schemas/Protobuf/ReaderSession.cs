@@ -278,7 +278,7 @@ namespace Verse.Schemas.Protobuf
 			throw new NotImplementedException();
 		}
 
-		public ReaderState Start(Stream stream, DecodeError error)
+		public ReaderState Start(Stream stream, ErrorEvent error)
         {
             return new ReaderState(stream, error);
         }
