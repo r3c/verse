@@ -335,20 +335,25 @@ namespace Verse.Test.Schemas
 		}
 
 		[Test]
-		[TestCase(false,
-			"{\"firstnull\":null,\"value\":\"test\",\"secondnull\":null,\"item\":{\"values\":[null,\"val1\",null,\"val2\",null]},\"lastnull\":null}")]
-		[TestCase(true, "{\"value\":\"test\",\"item\":{\"values\":[\"val1\",\"val2\"]}}")]
-		public void EncodeEntityOmitNull(bool omitNull, string expected)
+		[TestCase(false, false, false, false, "{\"array\":[1,2],\"object\":{\"f\":3},\"value\":4}")]
+		[TestCase(false, true, false, false, "{\"array\":null,\"object\":{\"f\":3},\"value\":4}")]
+		[TestCase(false, false, true, false, "{\"array\":[1,2],\"object\":null,\"value\":4}")]
+		[TestCase(false, false, false, true, "{\"array\":[1,2],\"object\":{\"f\":3},\"value\":null}")]
+		[TestCase(true, false, false, false, "{\"array\":[1,2],\"object\":{\"f\":3},\"value\":4}")]
+		[TestCase(true, true, false, false, "{\"object\":{\"f\":3},\"value\":4}")]
+		[TestCase(true, false, true, false, "{\"array\":[1,2],\"value\":4}")]
+		[TestCase(true, false, false, true, "{\"array\":[1,2],\"object\":{\"f\":3}}")]
+		public void EncodeEntityOmitNull(bool omitNull, bool nullArray, bool nullObject, bool nullValue, string expected)
 		{
 			var schema = new JSONSchema<string>(new JSONConfiguration {OmitNull = omitNull});
 			var descriptor = schema.EncoderDescriptor;
 
-			descriptor.HasField("firstnull", s => JSONValue.Void).HasValue();
-			descriptor.HasField("value", v => v).HasValue();
-			descriptor.HasField("secondnull", s => JSONValue.Void).HasValue();
-			descriptor.HasField("item", v => v).HasField("values", v => v)
-				.HasElements(v => new[] {null, "val1", null, "val2", null}).HasValue();
-			descriptor.HasField("lastnull", s => JSONValue.Void).HasValue();
+			schema.SetEncoderConverter((int? value) =>
+				value.HasValue ? JSONValue.FromNumber(value.Value) : JSONValue.Void);
+
+			descriptor.HasField("array", s => s).HasElements(s => nullArray ? null : new[] {1, 2}).HasValue();
+			descriptor.HasField("object", s => nullObject ? null : s).HasField("f", s => s).HasValue(v => 3);
+			descriptor.HasField("value", s => s).HasValue(s => nullValue ? (int?) null : 4);
 
 			JSONSchemaTester.AssertEncodeAndEqual(schema, "test", expected);
 		}
