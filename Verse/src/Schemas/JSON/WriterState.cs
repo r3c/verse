@@ -10,8 +10,6 @@ namespace Verse.Schemas.JSON
 
 		private readonly bool omitNull;
 
-		private int position;
-
 		private bool needComma;
 
 		private readonly StreamWriter writer;
@@ -26,7 +24,6 @@ namespace Verse.Schemas.JSON
 			this.currentKey = null;
 			this.needComma = false;
 			this.omitNull = omitNull;
-			this.position = 0;
 			this.writer = new StreamWriter(stream, encoding);
 		}
 
