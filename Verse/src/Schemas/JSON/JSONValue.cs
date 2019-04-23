@@ -58,10 +58,7 @@ namespace Verse.Schemas.JSON
 		/// <returns>JSON string value</returns>
 		public static JSONValue FromString(string value)
 		{
-			if (value == null)
-				return JSONValue.Void;
-
-			return new JSONValue(JSONType.String, default, default, value);
+			return value == null ? JSONValue.Void : new JSONValue(JSONType.String, default, default, value);
 		}
 
 		private JSONValue(JSONType type, bool boolean, double number, string str)

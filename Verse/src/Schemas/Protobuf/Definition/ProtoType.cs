@@ -1,7 +1,7 @@
 ﻿
 namespace Verse.Schemas.Protobuf.Definition
 {
-    enum ProtoType
+    internal enum ProtoType
     {
         Undefined,
         Boolean,

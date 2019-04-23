@@ -1,11 +1,10 @@
-﻿using System;
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.Text;
 
 namespace Verse.Schemas.Protobuf.Definition
 {
-    class Lexer
+    internal class Lexer
     {
         public Lexem Current => this.current;
 
@@ -139,8 +138,8 @@ namespace Verse.Schemas.Protobuf.Definition
 
                         if (this.pending == 'X' || this.pending == 'x')
                         {
-                            int hex1 = this.reader.Read();
-                            int hex2 = this.reader.Read();
+                            var hex1 = this.reader.Read();
+                            var hex2 = this.reader.Read();
 
                             this.position += 2;
 
@@ -156,9 +155,9 @@ namespace Verse.Schemas.Protobuf.Definition
                         }
                         else if (this.pending == '0')
                         {
-                            int oct1 = this.reader.Read();
-                            int oct2 = this.reader.Read();
-                            int oct3 = this.reader.Read();
+                            var oct1 = this.reader.Read();
+                            var oct2 = this.reader.Read();
+                            var oct3 = this.reader.Read();
 
                             this.position += 3;
 

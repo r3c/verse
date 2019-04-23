@@ -7,7 +7,7 @@ using Verse.Schemas.RawProtobuf;
 
 namespace Verse.Schemas
 {
-	public class RawProtobufSchema<TEntity> : ISchema<TEntity>
+	public sealed class RawProtobufSchema<TEntity> : ISchema<TEntity>
 	{
 		public IDecoderDescriptor<TEntity> DecoderDescriptor => this.decoderDescriptor;
 

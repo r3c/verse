@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Verse.Schemas.Protobuf.Definition
 {
-    struct ProtoEntity
+    internal struct ProtoEntity
     {
         public readonly ProtoContainer Container;
 
@@ -40,7 +40,7 @@ namespace Verse.Schemas.Protobuf.Definition
         {
             var bindings = new ProtoBinding[0];
 
-            foreach (ProtoField field in entity.Fields)
+            foreach (var field in entity.Fields)
             {
                 if (bindings.Length <= field.Number)
                     Array.Resize(ref bindings, field.Number + 1);
@@ -62,9 +62,9 @@ namespace Verse.Schemas.Protobuf.Definition
                 var found = true;
                 var match = new List<ProtoEntity>(stack);
 
-                foreach (string name in field.Reference.Names)
+                foreach (var name in field.Reference.Names)
                 {
-                    int index = entity.Entities.FindIndex(e => e.Name == name);
+                    var index = entity.Entities.FindIndex(e => e.Name == name);
 
                     if (index < 0)
                     {

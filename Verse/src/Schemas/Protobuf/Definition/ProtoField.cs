@@ -1,7 +1,7 @@
 ﻿
 namespace Verse.Schemas.Protobuf.Definition
 {
-    struct ProtoField
+    internal struct ProtoField
     {
         public readonly string Name;
 

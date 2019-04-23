@@ -1,7 +1,7 @@
 
 namespace Verse.Schemas.QueryString
 {
-	static class QueryStringCharacter
+	internal static class QueryStringCharacter
 	{
 		private static readonly int[] hexadecimals = new int[128];
 

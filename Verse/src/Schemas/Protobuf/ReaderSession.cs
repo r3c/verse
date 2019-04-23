@@ -10,9 +10,7 @@ namespace Verse.Schemas.Protobuf
 	{
 		public static uint ReadInt32(ReaderState state)
 		{
-			uint u32;
-
-			u32 = (uint)state.Stream.ReadByte();
+			var u32 = (uint)state.Stream.ReadByte();
 			u32 += (uint)state.Stream.ReadByte() << 8;
 			u32 += (uint)state.Stream.ReadByte() << 16;
 			u32 += (uint)state.Stream.ReadByte() << 24;
@@ -22,9 +20,7 @@ namespace Verse.Schemas.Protobuf
 
 		public static ulong ReadInt64(ReaderState state)
 		{
-			ulong u64;
-
-			u64 = (ulong)state.Stream.ReadByte();
+			var u64 = (ulong)state.Stream.ReadByte();
 			u64 += (ulong)state.Stream.ReadByte() << 8;
 			u64 += (ulong)state.Stream.ReadByte() << 16;
 			u64 += (ulong)state.Stream.ReadByte() << 24;
@@ -54,7 +50,7 @@ namespace Verse.Schemas.Protobuf
 		}
 	}
 
-	class ReaderSession : IReaderSession<ReaderState, ProtobufValue>
+	internal class ReaderSession : IReaderSession<ReaderState, ProtobufValue>
 	{
 		public BrowserMove<TElement> ReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
 			ReaderCallback<ReaderState, ProtobufValue, TElement> callback)

@@ -1,7 +1,7 @@
 ﻿
 namespace Verse.Schemas.Protobuf.Definition
 {
-    enum ProtoContainer
+    internal enum ProtoContainer
     {
         Enum,
         Message,

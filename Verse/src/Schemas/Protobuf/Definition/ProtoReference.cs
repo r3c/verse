@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Verse.Schemas.Protobuf.Definition
 {
-    struct ProtoReference
+    internal struct ProtoReference
     {
         public readonly string[] Names;
 

@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Verse.Schemas.Protobuf.Definition
 {
-    struct ProtoBinding
+    internal struct ProtoBinding
     {
     	private static readonly ProtoBinding[] EmptyBindings = new ProtoBinding[0];
 

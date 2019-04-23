@@ -1,7 +1,6 @@
-﻿
-namespace Verse.Schemas.Protobuf
+﻿namespace Verse.Schemas.Protobuf
 {
-	enum WireType : byte
+	internal enum WireType : byte
 	{
 		VarInt = 0,
 		Fixed64 = 1,

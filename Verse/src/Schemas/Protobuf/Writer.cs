@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using Verse.EncoderDescriptors.Tree;
 using Verse.Schemas.Protobuf.Definition;
 
 namespace Verse.Schemas.Protobuf
 {
-	class Writer<TEntity> : WriterDefinition<WriterState, ProtobufValue, TEntity>
+	internal class Writer<TEntity> : WriterDefinition<WriterState, ProtobufValue, TEntity>
 	{
 		private readonly ProtoBinding[] fields;
 

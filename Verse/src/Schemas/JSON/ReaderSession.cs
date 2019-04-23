@@ -530,12 +530,12 @@ namespace Verse.Schemas.JSON
 
 					while (state.Current != '"')
 					{
-						if (!state.PullCharacter(out var character))
-						{
-							state.Error("invalid character in string value");
+						if (state.PullCharacter(out _))
+							continue;
 
-							return false;
-						}
+						state.Error("invalid character in string value");
+
+						return false;
 					}
 
 					state.Read();

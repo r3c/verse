@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace Verse.Resolvers
 {
-	readonly struct MethodResolver
+	internal readonly struct MethodResolver
 	{
 		public readonly MethodInfo Method;
 

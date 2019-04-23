@@ -1,7 +1,7 @@
 ﻿
 namespace Verse.Schemas.Protobuf.Definition
 {
-    enum LexemType
+    internal enum LexemType
     {
         Unknown,
         BraceBegin,

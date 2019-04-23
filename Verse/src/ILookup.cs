@@ -1,6 +1,6 @@
 namespace Verse
 {
-	internal interface ILookup<in TKey, TValue>
+	internal interface ILookup<in TKey, out TValue>
 	{
 		bool HasValue { get; }
 

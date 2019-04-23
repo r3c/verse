@@ -4,7 +4,7 @@ using ProtoBuf.Meta;
 
 namespace Verse.Schemas.RawProtobuf
 {
-	struct SubObjectInstance
+	internal struct SubObjectInstance
 	{
 		public readonly int Index;
 

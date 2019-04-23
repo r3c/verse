@@ -5,7 +5,7 @@ using Verse.EncoderDescriptors.Tree;
 
 namespace Verse.Schemas.JSON
 {
-	class EncoderConverter : IEncoderConverter<JSONValue>
+	internal class EncoderConverter : IEncoderConverter<JSONValue>
 	{
 		private readonly Dictionary<Type, object> converters = new Dictionary<Type, object>
 		{

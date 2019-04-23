@@ -21,7 +21,7 @@ namespace Verse.Schemas.Protobuf.Definition
     /// Not implemented:
     /// - groups
     /// </summary>
-    static class Parser
+    internal static class Parser
     {
         public static ProtoEntity Parse(TextReader proto)
         {
@@ -46,8 +46,6 @@ namespace Verse.Schemas.Protobuf.Definition
 
         private static ProtobufValue ParseConstant(Lexer lexer)
         {
-            ProtobufValue value;
-
             switch (lexer.Current.Type)
             {
                 case LexemType.Minus:
@@ -73,6 +71,8 @@ namespace Verse.Schemas.Protobuf.Definition
                     return new ProtobufValue(Parser.ParseValue(lexer, LexemType.String, string.Empty));
 
                 case LexemType.Symbol:
+                    ProtobufValue value;
+
                     if (lexer.Current.Value == "false")
                         value = default; // FIXME: new ProtobufValue(false);
                     else if (lexer.Current.Value == "true")

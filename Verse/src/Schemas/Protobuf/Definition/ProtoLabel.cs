@@ -1,7 +1,7 @@
 ﻿
 namespace Verse.Schemas.Protobuf.Definition
 {
-    struct ProtoLabel
+    internal struct ProtoLabel
     {
         public readonly string Name;
 

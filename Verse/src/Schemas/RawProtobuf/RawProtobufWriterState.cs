@@ -118,7 +118,7 @@ namespace Verse.Schemas.RawProtobuf
 			{
 			    var destWriter = this.subObjectInstances.Peek().Writer;
 
-				ProtoWriter.WriteFieldHeader(subObjectInstance.Index, ProtoBuf.WireType.String, destWriter);
+				ProtoWriter.WriteFieldHeader(subObjectInstance.Index, WireType.String, destWriter);
 				ProtoWriter.WriteBytes(subObjectInstance.Stream.ToArray(), destWriter);
 			}
 		}

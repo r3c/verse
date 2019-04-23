@@ -12,7 +12,7 @@ namespace Verse.Schemas
 	/// Schema implementation using JSON format.
 	/// </summary>
 	/// <typeparam name="TEntity">Entity type</typeparam>
-	public class JSONSchema<TEntity> : ISchema<TEntity>
+	public sealed class JSONSchema<TEntity> : ISchema<TEntity>
 	{
 		/// <inheritdoc/>
 		public IDecoderDescriptor<TEntity> DecoderDescriptor => this.decoderDescriptor;

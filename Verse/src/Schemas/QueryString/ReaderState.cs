@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Verse.Schemas.QueryString
 {
-	class ReaderState
+	internal class ReaderState
 	{
 		public int Current;
 

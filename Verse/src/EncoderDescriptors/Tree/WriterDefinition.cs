@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-
+﻿
 namespace Verse.EncoderDescriptors.Tree
 {
-	class WriterDefinition<TState, TNative, TEntity>
+	internal class WriterDefinition<TState, TNative, TEntity>
 	{
 		public WriterCallback<TState, TNative, TEntity> Callback = (session, state, entity) => session.WriteValue(state, default);
 

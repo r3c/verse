@@ -2,7 +2,7 @@
 
 namespace Verse.Schemas.Protobuf
 {
-    class WriterState
+    internal class WriterState
     {
         public readonly EncodeError Error;
 

@@ -16,13 +16,11 @@ namespace Verse.Bench
 		[Test]
 		public void DecodeFlatStructure()
 		{
-			IDecoder<MyFlatStructure> decoder;
-			string source;
+			var decoder = Linker.CreateDecoder(new JSONSchema<MyFlatStructure>());
+			var source =
+				"{\"lorem\":0,\"ipsum\":65464658634633,\"sit\":1.1,\"amet\":\"Hello, World!\",\"consectetur\":255,\"adipiscing\":64,\"elit\":\"z\",\"sed\":53.25,\"pulvinar\":\"I sense a soul in search of answers\",\"fermentum\":6553,\"hendrerit\":-32768}";
 
-			decoder = Linker.CreateDecoder(new JSONSchema<MyFlatStructure>());
-			source = "{\"lorem\":0,\"ipsum\":65464658634633,\"sit\":1.1,\"amet\":\"Hello, World!\",\"consectetur\":255,\"adipiscing\":64,\"elit\":\"z\",\"sed\":53.25,\"pulvinar\":\"I sense a soul in search of answers\",\"fermentum\":6553,\"hendrerit\":-32768}";
-
-			this.BenchDecode(decoder, source, 10000);
+			CompareNewtonsoft.BenchDecode(decoder, source, 10000);
 		}
 
 		[Test]
@@ -32,19 +30,14 @@ namespace Verse.Bench
 		[TestCase(100000, 1)]
 		public void DecodeLargeArray(int length, int count)
 		{
-			StringBuilder builder;
-			IDecoder<long[]> decoder;
-			Random random;
-			ISchema<long[]> schema;
-
-			builder = new StringBuilder();
-			random = new Random();
+			var builder = new StringBuilder();
+			var random = new Random();
 
 			builder.Append("[");
 
 			if (length > 0)
 			{
-				for (int i = 0; true;)
+				for (var i = 0; true;)
 				{
 					builder.Append(random.Next().ToString(CultureInfo.InvariantCulture));
 
@@ -57,48 +50,45 @@ namespace Verse.Bench
 
 			builder.Append("]");
 
-			schema = new JSONSchema<long[]>();
+			var schema = new JSONSchema<long[]>();
+
 			schema.DecoderDescriptor.HasElements(() => 0,
 				(ref long[] target, IEnumerable<long> elements) => target = elements.ToArray()).HasValue();
-			decoder = schema.CreateDecoder(Array.Empty<long>);
 
-			this.BenchDecode(decoder, builder.ToString(), count);
+			var decoder = schema.CreateDecoder(Array.Empty<long>);
+
+			CompareNewtonsoft.BenchDecode(decoder, builder.ToString(), count);
 		}
 
 		[Test]
 		public void DecodeNestedArray()
 		{
-			IDecoder<MyNestedArray> decoder;
-			string source;
+			var decoder = Linker.CreateDecoder(new JSONSchema<MyNestedArray>());
+			var source =
+				"{\"children\":[{\"children\":[],\"value\":\"a\"},{\"children\":[{\"children\":[],\"value\":\"b\"},{\"children\":[],\"value\":\"c\"}],\"value\":\"d\"},{\"children\":[],\"value\":\"e\"}],\"value\":\"f\"}";
 
-			decoder = Linker.CreateDecoder(new JSONSchema<MyNestedArray>());
-			source = "{\"children\":[{\"children\":[],\"value\":\"a\"},{\"children\":[{\"children\":[],\"value\":\"b\"},{\"children\":[],\"value\":\"c\"}],\"value\":\"d\"},{\"children\":[],\"value\":\"e\"}],\"value\":\"f\"}";
-
-			this.BenchDecode(decoder, source, 10000);
+			CompareNewtonsoft.BenchDecode(decoder, source, 10000);
 		}
 
-		private void BenchDecode<T>(IDecoder<T> decoder, string source, int count)
+		private static void BenchDecode<T>(IDecoder<T> decoder, string source, int count)
 		{
-			byte[] buffer;
 			T instance;
-			T reference;
 			TimeSpan timeNewton;
 			TimeSpan timeVerse;
-			Stopwatch watch;
 
-			reference = JsonConvert.DeserializeObject<T>(source);
-			buffer = Encoding.UTF8.GetBytes(source);
+			var reference = JsonConvert.DeserializeObject<T>(source);
+			var buffer = Encoding.UTF8.GetBytes(source);
 
-			watch = Stopwatch.StartNew();
+			var watch = Stopwatch.StartNew();
 
-			for (int i = count; i-- > 0;)
+			for (var i = count; i-- > 0;)
 				Assert.NotNull(JsonConvert.DeserializeObject<T>(source));
 
 			timeNewton = watch.Elapsed;
 
 			watch = Stopwatch.StartNew();
 
-			for (int i = count; i-- > 0;)
+			for (var i = count; i-- > 0;)
 			{
 				using (var stream = new MemoryStream(buffer))
 				{
@@ -134,12 +124,8 @@ namespace Verse.Bench
 		[Test]
 		public void EncodeFlatStructure()
 		{
-			IEncoder<MyFlatStructure> encoder;
-			MyFlatStructure instance;
-
-			encoder = Linker.CreateEncoder(new JSONSchema<MyFlatStructure>());
-
-			instance = new MyFlatStructure
+			var encoder = Linker.CreateEncoder(new JSONSchema<MyFlatStructure>());
+			var instance = new MyFlatStructure
 			{
 				adipiscing = 64,
 				amet = "Hello, World!",
@@ -154,18 +140,14 @@ namespace Verse.Bench
 				sit = 1.1
 			};
 
-			this.BenchEncode(encoder, instance, 10000);
+			CompareNewtonsoft.BenchEncode(encoder, instance, 10000);
 		}
 
 		[Test]
 		public void EncodeNestedArray()
 		{
-			IEncoder<MyNestedArray> encoder;
-			MyNestedArray instance;
-
-			encoder = Linker.CreateEncoder(new JSONSchema<MyNestedArray>());
-
-			instance = new MyNestedArray
+			var encoder = Linker.CreateEncoder(new JSONSchema<MyNestedArray>());
+			var instance = new MyNestedArray
 			{
 				children = new[]
 				{
@@ -200,27 +182,24 @@ namespace Verse.Bench
 				value = "f"
 			};
 
-			this.BenchEncode(encoder, instance, 10000);
+			CompareNewtonsoft.BenchEncode(encoder, instance, 10000);
 		}
 
-		private void BenchEncode<T>(IEncoder<T> encoder, T instance, int count)
+		private static void BenchEncode<T>(IEncoder<T> encoder, T instance, int count)
 		{
-			string expected;
 			TimeSpan timeNewton;
 			TimeSpan timeVerse;
-			Stopwatch watch;
 
-			expected = JsonConvert.SerializeObject(instance);
-			watch = Stopwatch.StartNew();
+			var expected = JsonConvert.SerializeObject(instance);
+			var watch = Stopwatch.StartNew();
 
-			for (int i = count; i-- > 0;)
+			for (var i = count; i-- > 0;)
 				JsonConvert.SerializeObject(instance);
 
 			timeNewton = watch.Elapsed;
-
 			watch = Stopwatch.StartNew();
 
-			for (int i = count; i-- > 0;)
+			for (var i = count; i-- > 0;)
 			{
 			    using (var stream = new MemoryStream())
 			    {
@@ -305,7 +284,7 @@ namespace Verse.Bench
 				if (this.children.Length != other.children.Length)
 					return false;
 
-				for (int i = 0; i < this.children.Length; ++i)
+				for (var i = 0; i < this.children.Length; ++i)
 				{
 					if (!this.children[i].Equals(other.children[i]))
 						return false;

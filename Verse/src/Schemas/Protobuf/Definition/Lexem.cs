@@ -2,7 +2,7 @@
 
 namespace Verse.Schemas.Protobuf.Definition
 {
-    struct Lexem : IEquatable<Lexem>
+    internal struct Lexem : IEquatable<Lexem>
     {
         public static readonly Lexem Enum = new Lexem(LexemType.Symbol, "enum");
 

@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace Verse.Resolvers
 {
-	readonly struct TypeResolver
+	internal readonly struct TypeResolver
 	{
 		public readonly Type Type;
 
@@ -21,8 +21,8 @@ namespace Verse.Resolvers
 		/// <Summary>
 		/// Check whether type is a generic type with same type definition than
 		/// type argument `TGeneric` and return its type arguments, e.g. when
-		/// called with `IEnumerable<object>` as `TGeneric` check that type is
-		/// `IEnumerable<U>` and returns `{ typeof(U) }` as `arguments`.
+		/// called with `IEnumerable&lt;object&gt;` as `TGeneric` check that type is
+		/// `IEnumerable&lt;U&gt;` and returns `{ typeof(U) }` as `arguments`.
 		/// </Summary>
 		public bool HasSameDefinitionThan<TGeneric>(out Type[] arguments)
 		{

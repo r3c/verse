@@ -5,7 +5,7 @@ using Verse.DecoderDescriptors.Tree;
 
 namespace Verse.Schemas.JSON
 {
-	class DecoderConverter : IDecoderConverter<JSONValue>
+	internal class DecoderConverter : IDecoderConverter<JSONValue>
 	{
 		private readonly Dictionary<Type, object> converters = new Dictionary<Type, object>
 		{
@@ -47,7 +47,7 @@ namespace Verse.Schemas.JSON
 					return value.Boolean;
 
 				case JSONType.Number:
-					return value.Number != 0;
+					return Math.Abs(value.Number) >= double.Epsilon;
 
 				case JSONType.String:
 					return !string.IsNullOrEmpty(value.String);
@@ -66,7 +66,7 @@ namespace Verse.Schemas.JSON
 
 				case JSONType.Number:
 					// ReSharper disable once CompareOfFloatsByEqualityOperator
-					return value.Number != 0 ? '1' : '\0';
+					return Math.Abs(value.Number) >= double.Epsilon ? '1' : '\0';
 
 				case JSONType.String:
 					return value.String.Length > 0 ? value.String[0] : '\0';

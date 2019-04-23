@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Verse.Schemas.Protobuf
 {
-    class ReaderState
+    internal class ReaderState
     {
         public readonly Stream Stream;
 
