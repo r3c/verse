@@ -505,7 +505,7 @@ namespace Verse.Test.Schemas
 
 		protected override ISchema<T> CreateSchema<T>()
 		{
-			return new JSONSchema<T>();
+			return new JSONSchema<T>(new JSONConfiguration() { OmitNull = true });
 		}
 
 		private static void AssertDecodeAndEqual<T>(ISchema<T> schema, Func<T> constructor, string json, T expected)
