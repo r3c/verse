@@ -59,7 +59,7 @@ namespace Verse.Schemas
 		{
 			var configuration = this.configuration;
 			var session = new Reader(configuration.Encoding ?? new UTF8Encoding(false),
-				configuration.AcceptObjectAsArray, configuration.AcceptValueAsArray);
+				configuration.ReadObjectValuesAsArray, configuration.ReadScalarAsOneElementArray);
 
 			return this.decoderDescriptor.CreateDecoder(session, constructor);
 		}
