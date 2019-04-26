@@ -77,8 +77,6 @@ namespace Verse.Schemas.JSON
 					return this.ReadToObjectFromObject(state, fields, ref target);
 
 				default:
-					target = default;
-
 					return this.Skip(state);
 			}
 		}
