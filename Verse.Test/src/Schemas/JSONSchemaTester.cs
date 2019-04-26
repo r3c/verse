@@ -34,6 +34,43 @@ namespace Verse.Test.Schemas
 		}
 
 		[Test]
+		[TestCase("{\"value1\" : { \"value2\" : 123 } }", "123")]
+		[TestCase("{\"value1\" : { \"value2\" : null } }", "null")]
+		[TestCase("{\"value1\" : null }", "null")]
+		public void DecodeNullField(string json, string expected)
+		{
+			var schema = new JSONSchema<string>();
+
+			schema.SetDecoderConverter((v) =>
+			{
+				switch (v.Type)
+				{
+					case JSONType.Boolean:
+						return v.Boolean.ToString();
+					case JSONType.Number:
+						return v.Number.ToString();
+					case JSONType.String:
+						return v.String;
+					case JSONType.Void:
+						return "null";
+				}
+				return null;
+			});
+
+			schema.DecoderDescriptor
+				.HasField("value1", () => "null", (ref string e, string v) => e = v)
+				.HasField("value2", () => "null", (ref string e, string v) => e = v)
+				.HasValue();
+
+			var parser = schema.CreateDecoder(() => default);
+			string result = default;
+
+			var decoderStream = parser.Open(new MemoryStream(Encoding.UTF8.GetBytes(json)));
+			Assert.IsTrue(decoderStream.TryDecode(out result));
+			Assert.AreEqual(expected, result);
+		}
+
+		[Test]
 		[TestCase(false, "{\"key1\": 27.5, \"key2\": 19}", new double[0])]
 		[TestCase(true, "{\"key1\": 27.5, \"key2\": 19}", new[] {27.5, 19})]
 		public void DecodeValueAsArray(bool acceptAsArray, string json, double[] expected)
