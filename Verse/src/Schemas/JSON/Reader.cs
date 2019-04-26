@@ -9,14 +9,14 @@ namespace Verse.Schemas.JSON
 {
 	internal class Reader : IReader<ReaderState, JSONValue>
 	{
-		private readonly bool acceptObjectAsArray;
-		private readonly bool acceptValueAsArray;
+		private readonly bool readObjectValuesAsArray;
+		private readonly bool readScalarAsOneElementArray;
 		private readonly Encoding encoding;
 
-		public Reader(Encoding encoding, bool acceptObjectAsArray, bool acceptValueAsArray)
+		public Reader(Encoding encoding, bool readObjectValuesAsArray, bool readScalarAsOneElementArray)
 		{
-			this.acceptObjectAsArray = acceptObjectAsArray;
-			this.acceptValueAsArray = acceptValueAsArray;
+			this.readObjectValuesAsArray = readObjectValuesAsArray;
+			this.readScalarAsOneElementArray = readScalarAsOneElementArray;
 			this.encoding = encoding;
 		}
 
@@ -31,14 +31,14 @@ namespace Verse.Schemas.JSON
 					return this.ReadToArrayFromArray(state, constructor, callback);
 
 				case '{':
-					if (this.acceptObjectAsArray)
-						return this.ReadToArrayFromObject(state, constructor, callback);
+					if (this.readObjectValuesAsArray)
+						return this.ReadToArrayFromObjectValues(state, constructor, callback);
 
 					goto default;
 
 				default:
 					// Accept any scalar value as an array of one element
-					if (this.acceptValueAsArray)
+					if (this.readScalarAsOneElementArray)
 					{
 						return (int index, out TElement current) =>
 						{
@@ -212,7 +212,7 @@ namespace Verse.Schemas.JSON
 			};
 		}
 
-		private BrowserMove<TElement> ReadToArrayFromObject<TElement>(ReaderState state, Func<TElement> constructor,
+		private BrowserMove<TElement> ReadToArrayFromObjectValues<TElement>(ReaderState state, Func<TElement> constructor,
 			ReaderCallback<ReaderState, JSONValue, TElement> callback)
 		{
 			state.Read();

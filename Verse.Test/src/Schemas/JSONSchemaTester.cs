@@ -22,12 +22,33 @@ namespace Verse.Test.Schemas
 		[TestCase(true, "{\"value1\" : { \"value2\" : 123 } }", new[] {123d})]
 		public void DecodeObjectAsArray(bool acceptAsArray, string json, double[] expected)
 		{
-			var schema = new JSONSchema<double[]>(new JSONConfiguration {AcceptValueAsArray = acceptAsArray});
+			var schema = new JSONSchema<double[]>(new JSONConfiguration { ReadScalarAsOneElementArray = acceptAsArray});
 
 			schema.DecoderDescriptor
 				.HasField("value1", () => default, (ref double[] entity, double[] value) => entity = value)
 				.HasElements(() => 0d, (ref double[] t, IEnumerable<double> e) => t = e.ToArray())
 				.HasField("value2", () => default, (ref double entity, double value) => entity = value)
+				.HasValue();
+
+			JSONSchemaTester.AssertDecodeAndEqual(schema, Array.Empty<double>, json, expected);
+		}
+
+		[Test]
+		[TestCase(true, "{\"value1\" : [ { \"value21\" : 123, \"value22\" : 321 } ]}", new[] { 444d })]
+		[TestCase(true, "{\"value1\" : { \"value21\" : 123, \"value22\" : 321 } }", new[] { 444d })]
+		[TestCase(false, "{\"value1\" : { \"value21\" : 123, \"value22\" : 321 } }", new double[0])]
+		public void DecodeObjectAsArray2(bool acceptAsArray, string json, double[] expected)
+		{
+			var schema = new JSONSchema<double[]>(new JSONConfiguration { ReadScalarAsOneElementArray = acceptAsArray });
+
+			var arrayDesc = schema.DecoderDescriptor
+				.HasField("value1", () => default, (ref double[] entity, double[] value) => entity = value)
+				.HasElements(() => 0d, (ref double[] t, IEnumerable<double> e) => t = e.ToArray());
+			arrayDesc
+				.HasField("value21", () => default, (ref double entity, double value) => entity += value)
+				.HasValue();
+			arrayDesc
+				.HasField("value22", () => default, (ref double entity, double value) => entity += value)
 				.HasValue();
 
 			JSONSchemaTester.AssertDecodeAndEqual(schema, Array.Empty<double>, json, expected);
@@ -75,7 +96,7 @@ namespace Verse.Test.Schemas
 		[TestCase(true, "{\"key1\": 27.5, \"key2\": 19}", new[] {27.5, 19})]
 		public void DecodeValueAsArray(bool acceptAsArray, string json, double[] expected)
 		{
-			var schema = new JSONSchema<double[]>(new JSONConfiguration {AcceptObjectAsArray = acceptAsArray});
+			var schema = new JSONSchema<double[]>(new JSONConfiguration { ReadObjectValuesAsArray = acceptAsArray});
 
 			schema.DecoderDescriptor.HasElements(() => 0d, (ref double[] t, IEnumerable<double> e) => t = e.ToArray())
 				.HasValue();
@@ -205,9 +226,9 @@ namespace Verse.Test.Schemas
 		[TestCase(false, "19", 0)]
 		[TestCase(true, "19", 19)]
 		[TestCase(true, "\"test\"", "test")]
-		public void DecodeValueAsArray<T>(bool acceptValueAsArray, string json, T expected)
+		public void DecodeObjectAsArray<T>(bool acceptObjectAsArray, string json, T expected)
 		{
-			var schema = new JSONSchema<T>(new JSONConfiguration {AcceptValueAsArray = acceptValueAsArray});
+			var schema = new JSONSchema<T>(new JSONConfiguration { ReadScalarAsOneElementArray = acceptObjectAsArray});
 
 			schema.DecoderDescriptor.HasElements(() => default,
 				(ref T target, IEnumerable<T> elements) => target = elements.FirstOrDefault()).HasValue();
