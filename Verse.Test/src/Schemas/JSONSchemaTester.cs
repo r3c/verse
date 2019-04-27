@@ -14,44 +14,23 @@ namespace Verse.Test.Schemas
 	public class JSONSchemaTester : SchemaTester
 	{
 		[Test]
-		[TestCase(false, "{\"value1\" : [ { \"value2\" : 123 } ]}", new[] {123d})]
-		[TestCase(true, "{\"value1\" : [ { \"value2\" : 123 } ]}", new[] {123d})]
-		[TestCase(false, "{\"value1\" : [ { \"value2\" : 123 }, { \"value2\" : 124 } ]}", new[] {123d, 124d})]
-		[TestCase(true, "{\"value1\" : [ { \"value2\" : 123 }, { \"value2\" : 124 } ]}", new[] {123d, 124d})]
-		[TestCase(false, "{\"value1\" : { \"value2\" : 123 } }", new double[0])]
-		[TestCase(true, "{\"value1\" : { \"value2\" : 123 } }", new[] {123d})]
-		public void DecodeObjectAsArray(bool acceptAsArray, string json, double[] expected)
+		[TestCase(false, "{\"parent\" : [ { \"child\" : 123 } ]}", new[] {123})]
+		[TestCase(true, "{\"parent\" : [ { \"child\" : 123 } ]}", new[] {123})]
+		[TestCase(false, "{\"parent\" : [ { \"child\" : 123 }, { \"child\" : 124 } ]}", new[] {123, 124})]
+		[TestCase(true, "{\"parent\" : [ { \"child\" : 123 }, { \"child\" : 124 } ]}", new[] {123, 124})]
+		[TestCase(false, "{\"parent\" : { \"child\" : 123 } }", new int[0])]
+		[TestCase(true, "{\"parent\" : { \"child\" : 123 } }", new[] {123})]
+		public void DecodeObjectAsArray(bool scalarAsArray, string json, int[] expected)
 		{
-			var schema = new JSONSchema<double[]>(new JSONConfiguration { ReadScalarAsOneElementArray = acceptAsArray});
+			var schema = new JSONSchema<int[]>(new JSONConfiguration {ReadScalarAsOneElementArray = scalarAsArray});
 
 			schema.DecoderDescriptor
-				.HasField("value1", () => default, (ref double[] entity, double[] value) => entity = value)
-				.HasElements(() => 0d, (ref double[] t, IEnumerable<double> e) => t = e.ToArray())
-				.HasField("value2", () => default, (ref double entity, double value) => entity = value)
+				.HasField("parent", () => default, (ref int[] entity, int[] value) => entity = value)
+				.HasElements(() => 0, (ref int[] t, IEnumerable<int> e) => t = e.ToArray())
+				.HasField("child", () => default, (ref int entity, int value) => entity = value)
 				.HasValue();
 
-			JSONSchemaTester.AssertDecodeAndEqual(schema, Array.Empty<double>, json, expected);
-		}
-
-		[Test]
-		[TestCase(true, "{\"value1\" : [ { \"value21\" : 123, \"value22\" : 321 } ]}", new[] { 444d })]
-		[TestCase(true, "{\"value1\" : { \"value21\" : 123, \"value22\" : 321 } }", new[] { 444d })]
-		[TestCase(false, "{\"value1\" : { \"value21\" : 123, \"value22\" : 321 } }", new double[0])]
-		public void DecodeObjectAsArray2(bool acceptAsArray, string json, double[] expected)
-		{
-			var schema = new JSONSchema<double[]>(new JSONConfiguration { ReadScalarAsOneElementArray = acceptAsArray });
-
-			var arrayDesc = schema.DecoderDescriptor
-				.HasField("value1", () => default, (ref double[] entity, double[] value) => entity = value)
-				.HasElements(() => 0d, (ref double[] t, IEnumerable<double> e) => t = e.ToArray());
-			arrayDesc
-				.HasField("value21", () => default, (ref double entity, double value) => entity += value)
-				.HasValue();
-			arrayDesc
-				.HasField("value22", () => default, (ref double entity, double value) => entity += value)
-				.HasValue();
-
-			JSONSchemaTester.AssertDecodeAndEqual(schema, Array.Empty<double>, json, expected);
+			JSONSchemaTester.AssertDecodeAndEqual(schema, Array.Empty<int>, json, expected);
 		}
 
 		[Test]
