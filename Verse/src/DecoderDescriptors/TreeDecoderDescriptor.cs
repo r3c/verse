@@ -20,9 +20,9 @@ namespace Verse.DecoderDescriptors
 			this.fields = new NameLookup<ReaderCallback<TState, TNative, TEntity>>();
 		}
 
-		public IDecoder<TEntity> CreateDecoder(IReader<TState, TNative> session, Func<TEntity> constructor)
+		public IDecoder<TEntity> CreateDecoder(IReader<TState, TNative> reader, Func<TEntity> constructor)
 		{
-			return new TreeDecoder<TState, TNative, TEntity>(session, constructor, this.definition.Callback);
+			return new TreeDecoder<TState, TNative, TEntity>(reader, constructor, this.definition.Callback);
 		}
 
 		public IDecoderDescriptor<TField> HasField<TField>(string name, Func<TField> constructor,
@@ -52,14 +52,14 @@ namespace Verse.DecoderDescriptors
 			var parentFields = this.fields;
 
 			var success = parentFields.ConnectTo(name,
-				(IReader<TState, TNative> session, TState state, ref TEntity entity) =>
-					fieldDefinition.Callback(session, state, ref entity));
+				(IReader<TState, TNative> reader, TState state, ref TEntity entity) =>
+					fieldDefinition.Callback(reader, state, ref entity));
 
 			if (!success)
 				throw new InvalidOperationException($"field '{name}' was declared twice on same descriptor");
 
-			this.definition.Callback = (IReader<TState, TNative> session, TState state, ref TEntity target) =>
-				session.ReadToObject(state, parentFields, ref target);
+			this.definition.Callback = (IReader<TState, TNative> reader, TState state, ref TEntity target) =>
+				reader.ReadToObject(state, parentFields, ref target);
 
 			return fieldDescriptor;
 		}
@@ -88,9 +88,9 @@ namespace Verse.DecoderDescriptors
 		{
 			var native = this.converter.Get<TValue>();
 
-			this.definition.Callback = (IReader<TState, TNative> session, TState state, ref TEntity entity) =>
+			this.definition.Callback = (IReader<TState, TNative> reader, TState state, ref TEntity entity) =>
 			{
-				if (!session.ReadToValue(state, out var value))
+				if (!reader.ReadToValue(state, out var value))
 				{
 					entity = default;
 
@@ -109,9 +109,9 @@ namespace Verse.DecoderDescriptors
 			var converter = this.converter.Get<TEntity>();
 
 			// FIXME: close duplicate of previous method
-			this.definition.Callback = (IReader<TState, TNative> session, TState state, ref TEntity entity) =>
+			this.definition.Callback = (IReader<TState, TNative> reader, TState state, ref TEntity entity) =>
 			{
-				if (!session.ReadToValue(state, out var value))
+				if (!reader.ReadToValue(state, out var value))
 				{
 					entity = default;
 
@@ -132,10 +132,10 @@ namespace Verse.DecoderDescriptors
 		{
 			var elementDefinition = elementDescriptor.definition;
 
-			parentDefinition.Callback = (IReader<TState, TNative> session, TState state, ref TEntity entity) =>
+			parentDefinition.Callback = (IReader<TState, TNative> reader, TState state, ref TEntity entity) =>
 			{
 				using (var browser =
-					new Browser<TElement>(session.ReadToArray(state, constructor, elementDefinition.Callback)))
+					new Browser<TElement>(reader.ReadToArray(state, constructor, elementDefinition.Callback)))
 				{
 					setter(ref entity, browser);
 
@@ -153,11 +153,11 @@ namespace Verse.DecoderDescriptors
 		{
 			var fieldDefinition = fieldDescriptor.definition;
 			var success = parentFields.ConnectTo(name,
-				(IReader<TState, TNative> session, TState state, ref TEntity entity) =>
+				(IReader<TState, TNative> reader, TState state, ref TEntity entity) =>
 				{
 					var field = constructor();
 
-					if (!fieldDefinition.Callback(session, state, ref field))
+					if (!fieldDefinition.Callback(reader, state, ref field))
 						return false;
 
 					setter(ref entity, field);
@@ -168,8 +168,8 @@ namespace Verse.DecoderDescriptors
 			if (!success)
 				throw new InvalidOperationException($"field '{name}' was declared twice on same descriptor");
 
-			parentDefinition.Callback = (IReader<TState, TNative> session, TState state, ref TEntity target) =>
-				session.ReadToObject(state, parentFields, ref target);
+			parentDefinition.Callback = (IReader<TState, TNative> reader, TState state, ref TEntity target) =>
+				reader.ReadToObject(state, parentFields, ref target);
 
 			return fieldDescriptor;
 		}

@@ -8,19 +8,19 @@ namespace Verse.EncoderDescriptors.Tree
 
         private readonly WriterCallback<TState, TNative, TEntity> callback;
 
-        private readonly IWriter<TState, TNative> session;
+        private readonly IWriter<TState, TNative> reader;
 
-        public TreeEncoder(IWriter<TState, TNative> session, WriterCallback<TState, TNative, TEntity> callback)
+        public TreeEncoder(IWriter<TState, TNative> reader, WriterCallback<TState, TNative, TEntity> callback)
         {
             this.callback = callback;
-            this.session = session;
+            this.reader = reader;
         }
 
         public IEncoderStream<TEntity> Open(Stream output)
         {
-            var state = this.session.Start(output, (p, m) => this.Error?.Invoke(p, m));
+            var state = this.reader.Start(output, (p, m) => this.Error?.Invoke(p, m));
 
-            return new TreeEncoderStream<TState, TNative, TEntity>(this.session, this.callback, state);
+            return new TreeEncoderStream<TState, TNative, TEntity>(this.reader, this.callback, state);
         }
     }
 }

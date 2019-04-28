@@ -19,9 +19,9 @@ namespace Verse.EncoderDescriptors
 			this.fields = new Dictionary<string, WriterCallback<TState, TNative, TEntity>>();
 		}
 
-		public IEncoder<TEntity> CreateEncoder(IWriter<TState, TNative> session)
+		public IEncoder<TEntity> CreateEncoder(IWriter<TState, TNative> reader)
 		{
-			return new TreeEncoder<TState, TNative, TEntity>(session, this.definition.Callback);
+			return new TreeEncoder<TState, TNative, TEntity>(reader, this.definition.Callback);
 		}
 
 		public IEncoderDescriptor<TField> HasField<TField>(string name, Func<TEntity, TField> getter,
@@ -72,7 +72,7 @@ namespace Verse.EncoderDescriptors
 
 			TreeEncoderDescriptor<TState, TNative, TEntity>.BindValue(this.definition, e => native(converter(e)));
 
-			this.definition.Callback = (session, state, entity) => session.WriteAsValue(state, native(converter(entity)));
+			this.definition.Callback = (reader, state, entity) => reader.WriteAsValue(state, native(converter(entity)));
 		}
 
 		public void HasValue()
@@ -88,8 +88,8 @@ namespace Verse.EncoderDescriptors
 		{
 			var elementDefinition = elementDescriptor.definition;
 
-			parent.Callback = (session, state, entity) =>
-				session.WriteAsArray(state, getter(entity), elementDefinition.Callback);
+			parent.Callback = (reader, state, entity) =>
+				reader.WriteAsArray(state, getter(entity), elementDefinition.Callback);
 
 			return elementDescriptor;
 		}
@@ -102,11 +102,11 @@ namespace Verse.EncoderDescriptors
 			if (parentFields.ContainsKey(name))
 				throw new InvalidOperationException($"field '{name}' was declared twice on same descriptor");
 
-			parentDefinition.Callback = (session, state, entity) => session.WriteAsObject(state, entity, parentFields);
+			parentDefinition.Callback = (reader, state, entity) => reader.WriteAsObject(state, entity, parentFields);
 
 			var fieldDefinition = fieldDescriptor.definition;
 
-			parentFields[name] = (session, state, entity) => fieldDefinition.Callback(session, state, getter(entity));
+			parentFields[name] = (reader, state, entity) => fieldDefinition.Callback(reader, state, getter(entity));
 
 			return fieldDescriptor;
 		}
@@ -114,7 +114,7 @@ namespace Verse.EncoderDescriptors
 		private static void BindValue(WriterDefinition<TState, TNative, TEntity> parent,
 			Converter<TEntity, TNative> converter)
 		{
-			parent.Callback = (session, state, entity) => session.WriteAsValue(state, converter(entity));
+			parent.Callback = (reader, state, entity) => reader.WriteAsValue(state, converter(entity));
 		}
 	}
 }

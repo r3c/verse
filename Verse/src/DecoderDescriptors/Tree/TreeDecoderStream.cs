@@ -8,28 +8,29 @@ namespace Verse.DecoderDescriptors.Tree
 
 		private readonly Func<TEntity> constructor;
 
-		private readonly IReader<TState, TNative> session;
+		private readonly IReader<TState, TNative> reader;
 
 		private readonly TState state;
 
-		public TreeDecoderStream(IReader<TState, TNative> session, Func<TEntity> constructor, ReaderCallback<TState, TNative, TEntity> callback, TState state)
+		public TreeDecoderStream(IReader<TState, TNative> reader, Func<TEntity> constructor,
+			ReaderCallback<TState, TNative, TEntity> callback, TState state)
 		{
 			this.callback = callback;
 			this.constructor = constructor;
-			this.session = session;
+			this.reader = reader;
 			this.state = state;
 		}
 
 		public void Dispose()
 		{
-			this.session.Stop(this.state);
+			this.reader.Stop(this.state);
 		}
 
 		public bool TryDecode(out TEntity entity)
 		{
 			entity = this.constructor();
 
-			return this.callback(this.session, this.state, ref entity);
+			return this.callback(this.reader, this.state, ref entity);
 		}
 	}
 }

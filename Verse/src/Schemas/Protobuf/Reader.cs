@@ -6,7 +6,7 @@ using Verse.Schemas.Protobuf.Definition;
 
 namespace Verse.Schemas.Protobuf
 {
-	internal static class ReaderSessionHelper
+	internal static class ReaderHelper
 	{
 		public static uint ReadInt32(ReaderState state)
 		{
@@ -94,7 +94,7 @@ namespace Verse.Schemas.Protobuf
 			switch (wire)
 			{
 				case WireType.Fixed32:
-					var u32 = ReaderSessionHelper.ReadInt32(state);
+					var u32 = ReaderHelper.ReadInt32(state);
 
 					switch (field.Type)
 					{
@@ -128,7 +128,7 @@ namespace Verse.Schemas.Protobuf
 					break;
 
 				case WireType.Fixed64:
-					var u64 = ReaderSessionHelper.ReadInt64(state);
+					var u64 = ReaderHelper.ReadInt64(state);
 
 					switch (field.Type)
 					{
@@ -188,7 +188,7 @@ namespace Verse.Schemas.Protobuf
 							throw new NotImplementedException();
 
 						case ProtoType.String:
-							var length = ReaderSessionHelper.ReadVarInt(state);
+							var length = ReaderHelper.ReadVarInt(state);
 /*
 							if (length > this.maximumLength)
 							{
@@ -218,7 +218,7 @@ namespace Verse.Schemas.Protobuf
 					return false;
 
 				case WireType.VarInt:
-					var varint = ReaderSessionHelper.ReadVarInt(state);
+					var varint = ReaderHelper.ReadVarInt(state);
 
 					switch (field.Type)
 					{
