@@ -11,7 +11,7 @@ namespace Verse.DecoderDescriptors
 
 		private readonly ReaderDefinition<TState, TNative, TEntity> definition;
 
-		private readonly NameLookup<ReaderCallback<TState, TNative, TEntity>> fields;
+		private readonly ILookup<int, ReaderCallback<TState, TNative, TEntity>> fields;
 
 		public TreeDecoderDescriptor(IDecoderConverter<TNative> converter, ReaderDefinition<TState, TNative, TEntity> definition)
 		{
@@ -148,7 +148,7 @@ namespace Verse.DecoderDescriptors
 
 		private static TreeDecoderDescriptor<TState, TNative, TField> BindField<TField>(
 			ReaderDefinition<TState, TNative, TEntity> parentDefinition, string name,
-			NameLookup<ReaderCallback<TState, TNative, TEntity>> parentFields, Func<TField> constructor,
+			ILookup<int, ReaderCallback<TState, TNative, TEntity>> parentFields, Func<TField> constructor,
 			Setter<TEntity, TField> setter, TreeDecoderDescriptor<TState, TNative, TField> fieldDescriptor)
 		{
 			var fieldDefinition = fieldDescriptor.definition;
