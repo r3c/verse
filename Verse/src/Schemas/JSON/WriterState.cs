@@ -14,7 +14,7 @@ namespace Verse.Schemas.JSON
 
 		private readonly StreamWriter writer;
 
-		private static readonly char[][] Ascii = new char[128][];
+		private static readonly string[] Ascii = new string[128];
 
 		private static readonly char[] Hexa =
 			{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
@@ -30,19 +30,18 @@ namespace Verse.Schemas.JSON
 		static WriterState()
 		{
 			for (var i = 0; i < 32; ++i)
-				WriterState.Ascii[i] = new[]
-					{'\\', 'u', '0', '0', WriterState.Hexa[(i >> 4) & 0xF], WriterState.Hexa[(i >> 0) & 0xF]};
+				WriterState.Ascii[i] = "\\u00" + WriterState.Hexa[(i >> 4) & 0xF] + WriterState.Hexa[(i >> 0) & 0xF];
 
 			for (var i = 32; i < 128; ++i)
-				WriterState.Ascii[i] = new[] {(char) i};
+				WriterState.Ascii[i] = new string((char) i, 1);
 
-			WriterState.Ascii['\b'] = new[] {'\\', 'b'};
-			WriterState.Ascii['\f'] = new[] {'\\', 'f'};
-			WriterState.Ascii['\n'] = new[] {'\\', 'n'};
-			WriterState.Ascii['\r'] = new[] {'\\', 'r'};
-			WriterState.Ascii['\t'] = new[] {'\\', 't'};
-			WriterState.Ascii['\\'] = new[] {'\\', '\\'};
-			WriterState.Ascii['"'] = new[] {'\\', '\"'};
+			WriterState.Ascii['\b'] = "\\b";
+			WriterState.Ascii['\f'] = "\\f";
+			WriterState.Ascii['\n'] = "\\n";
+			WriterState.Ascii['\r'] = "\\r";
+			WriterState.Ascii['\t'] = "\\t";
+			WriterState.Ascii['\\'] = "\\\\";
+			WriterState.Ascii['"'] = "\\\"";
 		}
 
 		public void ArrayBegin()

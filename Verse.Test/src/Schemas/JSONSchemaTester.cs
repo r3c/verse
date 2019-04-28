@@ -459,6 +459,16 @@ namespace Verse.Test.Schemas
 		}
 
 		[Test]
+		public void EncodeValueWithSpecialCharacters()
+		{
+			var schema = new JSONSchema<string>();
+
+			schema.EncoderDescriptor.HasValue(v => v);
+
+			JSONSchemaTester.AssertEncodeAndEqual(schema, "\f\n\r\t\x99", "\"\\f\\n\\r\\t\\u0099\"");
+		}
+
+		[Test]
 		[TestCase(false, "false")]
 		[TestCase(true, "true")]
 		[TestCase(3, "3")]
