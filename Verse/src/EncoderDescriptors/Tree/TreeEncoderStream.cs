@@ -25,6 +25,7 @@ namespace Verse.EncoderDescriptors.Tree
 		public void Encode(TEntity input)
 		{
 			this.callback(this.reader, this.state, input);
+			this.reader.Flush(this.state);
 		}
 	}
 }

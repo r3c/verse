@@ -88,7 +88,7 @@ namespace Verse
 
 			parents[entityType] = descriptor;
 
-			if (Linker.TryLinkDecoderAsValue(descriptor, adapter, converters))
+			if (Linker.TryLinkDecoderAsRegularValue(descriptor, adapter, converters))
 				return true;
 
 			// Bind descriptor as an array of target type is also array
@@ -207,14 +207,12 @@ namespace Verse
 				.SetGenericArguments(type)
 				.Invoke(descriptor, constructor, setter);
 
-			var result = MethodResolver
+			return (bool) MethodResolver
 				.Create<Func<IDecoderDescriptor<TNative, object>, IDecoderAdapter<TNative>,
 					IReadOnlyDictionary<Type, object>, BindingFlags, Dictionary<Type, object>, bool>>(
 					(d, a, c, b, p) => Linker.LinkDecoder(d, a, c, b, p))
 				.SetGenericArguments(typeof(TNative), type)
 				.Invoke(null, itemDescriptor, adapter, converters, bindings, parents);
-
-			return result is bool success && success;
 		}
 
 		private static bool LinkDecoderAsObject<TNative, TEntity>(IDecoderDescriptor<TNative, TEntity> descriptor,
@@ -245,14 +243,12 @@ namespace Verse
 				.SetGenericArguments(type)
 				.Invoke(descriptor, name, constructor, setter);
 
-			var result = MethodResolver
+			return (bool) MethodResolver
 				.Create<Func<IDecoderDescriptor<TNative, object>, IDecoderAdapter<TNative>,
 					IReadOnlyDictionary<Type, object>, BindingFlags, Dictionary<Type, object>, bool>>(
 					(d, a, c, f, p) => Linker.LinkDecoder(d, a, c, f, p))
 				.SetGenericArguments(typeof(TNative), type)
 				.Invoke(null, fieldDescriptor, adapter, converters, bindings, parents);
-
-			return result is bool success && success;
 		}
 
 		private static bool LinkEncoder<TNative, TEntity>(IEncoderDescriptor<TNative, TEntity> descriptor,
@@ -263,7 +259,7 @@ namespace Verse
 
 			parents[entityType] = descriptor;
 
-			if (Linker.TryLinkEncoderAsValue(descriptor, adapter, converters))
+			if (Linker.TryLinkEncoderAsRegularValue(descriptor, adapter, converters))
 				return true;
 
 			// Bind descriptor as an array of target type is also array
@@ -356,14 +352,12 @@ namespace Verse
 				.SetGenericArguments(type)
 				.Invoke(descriptor, getter);
 
-			var result = MethodResolver
+			return (bool) MethodResolver
 				.Create<Func<IEncoderDescriptor<TNative, object>, IEncoderAdapter<TNative>,
 					IReadOnlyDictionary<Type, object>, BindingFlags, Dictionary<Type, object>, bool>>(
 					(d, a, c, b, p) => Linker.LinkEncoder(d, a, c, b, p))
 				.SetGenericArguments(typeof(TNative), type)
 				.Invoke(null, itemDescriptor, adapter, converters, bindings, parents);
-
-			return result is bool success && success;
 		}
 
 		private static bool LinkEncoderAsObject<TNative, TEntity>(IEncoderDescriptor<TNative, TEntity> descriptor,
@@ -389,44 +383,120 @@ namespace Verse
 				.SetGenericArguments(type)
 				.Invoke(descriptor, name, getter);
 
-			var result = MethodResolver
+			return (bool) MethodResolver
 				.Create<Func<IEncoderDescriptor<TNative, object>, IEncoderAdapter<TNative>,
 					IReadOnlyDictionary<Type, object>, BindingFlags, Dictionary<Type, object>, bool>>((d, a, c, b, p) =>
 					Linker.LinkEncoder(d, a, c, b, p))
 				.SetGenericArguments(typeof(TNative), type)
 				.Invoke(null, fieldDescriptor, adapter, converters, bindings, parents);
-
-			return result is bool success && success;
 		}
 
-		private static bool TryLinkDecoderAsValue<TNative, TEntity>(IDecoderDescriptor<TNative, TEntity> descriptor,
-			IDecoderAdapter<TNative> adapter, IReadOnlyDictionary<Type, object> converters)
+		private static bool TryGetDecoderConverter<TNative, TEntity>(IDecoderAdapter<TNative> adapter,
+			IReadOnlyDictionary<Type, object> converters, out Setter<TEntity, TNative> converter)
 		{
-			Setter<TEntity, TNative> converter;
-
 			if (converters.TryGetValue(typeof(TEntity), out var untyped))
 				converter = (Setter<TEntity, TNative>) untyped;
 			else if (!AdapterResolver.TryGetDecoderConverter(adapter, out converter))
 				return false;
 
-			descriptor.HasValue(converter);
-
 			return true;
 		}
 
-		private static bool TryLinkEncoderAsValue<TValue, TEntity>(IEncoderDescriptor<TValue, TEntity> descriptor,
-			IEncoderAdapter<TValue> adapter, IReadOnlyDictionary<Type, object> converters)
+		private static bool TryGetEncoderConverter<TValue, TEntity>(IEncoderAdapter<TValue> adapter,
+			IReadOnlyDictionary<Type, object> converters, out Func<TEntity, TValue> converter)
 		{
-			Func<TEntity, TValue> converter;
-
 			if (converters.TryGetValue(typeof(TEntity), out var untyped))
 				converter = (Func<TEntity, TValue>) untyped;
 			else if (!AdapterResolver.TryGetEncoderConverter(adapter, out converter))
 				return false;
 
-			descriptor.HasValue(converter);
+			return true;
+		}
+
+		private static bool TryLinkDecoderAsNullableValue<TValue, TEntity>(
+			IDecoderDescriptor<TValue, TEntity?> descriptor, IDecoderAdapter<TValue> adapter,
+			IReadOnlyDictionary<Type, object> converters) where TEntity : struct
+		{
+			if (!Linker.TryGetDecoderConverter<TValue, TEntity>(adapter, converters, out var converter))
+				return false;
+
+			descriptor.HasValue((ref TEntity? target, TValue source) =>
+			{
+				// Assume that default TValue is equivalent to null entity
+				if (EqualityComparer<TValue>.Default.Equals(source, default))
+					target = default;
+
+				// Otherwise use underlying converter to retreive non-null entity
+				else
+				{
+					var entity = target.GetValueOrDefault();
+
+					converter(ref entity, source);
+
+					target = entity;
+				}
+			});
 
 			return true;
+		}
+
+		private static bool TryLinkDecoderAsRegularValue<TValue, TEntity>(
+			IDecoderDescriptor<TValue, TEntity> descriptor, IDecoderAdapter<TValue> adapter,
+			IReadOnlyDictionary<Type, object> converters)
+		{
+			// Try linking using provided entity type directly
+			if (Linker.TryGetDecoderConverter<TValue, TEntity>(adapter, converters, out var converter))
+			{
+				descriptor.HasValue(converter);
+
+				return true;
+			}
+
+			// Try linking using using underlying type if entity is nullable
+			if (!TypeResolver.Create(typeof(TEntity)).HasSameDefinitionThan<int?>(out var arguments))
+				return false;
+
+			return (bool) MethodResolver
+				.Create<Func<IDecoderDescriptor<object, int?>, IDecoderAdapter<object>,
+					IReadOnlyDictionary<Type, object>, bool>>((d, a, c) =>
+					Linker.TryLinkDecoderAsNullableValue(d, a, c))
+				.SetGenericArguments(typeof(TValue), arguments[0])
+				.Invoke(null, descriptor, adapter, converters);
+		}
+
+		private static bool TryLinkEncoderAsNullableValue<TValue, TEntity>(
+			IEncoderDescriptor<TValue, TEntity?> descriptor, IEncoderAdapter<TValue> adapter,
+			IReadOnlyDictionary<Type, object> converters) where TEntity : struct
+		{
+			if (!Linker.TryGetEncoderConverter<TValue, TEntity>(adapter, converters, out var converter))
+				return false;
+
+			descriptor.HasValue(source => source.HasValue ? converter(source.Value) : default);
+
+			return true;
+		}
+
+		private static bool TryLinkEncoderAsRegularValue<TValue, TEntity>(IEncoderDescriptor<TValue, TEntity> descriptor,
+			IEncoderAdapter<TValue> adapter, IReadOnlyDictionary<Type, object> converters)
+		{
+			// Try linking using provided entity type directly
+			if (Linker.TryGetEncoderConverter<TValue, TEntity>(adapter, converters, out var converter))
+			{
+				descriptor.HasValue(converter);
+
+				return true;
+			}
+
+			// Try linking using using underlying type if entity is nullable
+			if (!TypeResolver.Create(typeof(TEntity)).HasSameDefinitionThan<int?>(out var arguments))
+				return false;
+
+			return (bool) MethodResolver
+				.Create<Func<IEncoderDescriptor<object, int?>, IEncoderAdapter<object>,
+					IReadOnlyDictionary<Type, object>, bool>>((d, a, c) =>
+					Linker.TryLinkEncoderAsNullableValue(d, a, c))
+				.SetGenericArguments(typeof(TValue), arguments[0])
+				.Invoke(null, descriptor, adapter, converters);
 		}
 	}
 }

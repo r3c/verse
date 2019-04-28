@@ -13,6 +13,11 @@ namespace Verse.Schemas.RawProtobuf
 			this.noZigZagEncoding = noZigZagEncoding;
 		}
 
+		public void Flush(WriterState state)
+		{
+			state.Flush();
+		}
+
 		public WriterState Start(Stream stream, ErrorEvent error)
 		{
 			return new WriterState(stream, error, this.noZigZagEncoding);
@@ -20,7 +25,6 @@ namespace Verse.Schemas.RawProtobuf
 
 		public void Stop(WriterState state)
 		{
-			state.Flush();
 		}
 
 		public void WriteAsArray<TEntity>(WriterState state, IEnumerable<TEntity> elements,

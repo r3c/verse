@@ -7,6 +7,11 @@ namespace Verse.Schemas.Protobuf
 {
 	internal class Writer : IWriter<WriterState, ProtobufValue>
 	{
+		public void Flush(WriterState state)
+		{
+			throw new NotImplementedException();
+		}
+
 		public WriterState Start(Stream stream, ErrorEvent error)
 		{
 			throw new NotImplementedException();
