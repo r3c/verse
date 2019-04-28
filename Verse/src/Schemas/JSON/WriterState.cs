@@ -47,7 +47,7 @@ namespace Verse.Schemas.JSON
 
 		public void ArrayBegin()
 		{
-			this.WritePrefix();
+			this.Prefix();
 			this.writer.Write('[');
 
 			this.needComma = false;
@@ -72,7 +72,7 @@ namespace Verse.Schemas.JSON
 
 		public void ObjectBegin()
 		{
-			this.WritePrefix();
+			this.Prefix();
 			this.writer.Write('{');
 
 			this.needComma = false;
@@ -90,20 +90,20 @@ namespace Verse.Schemas.JSON
 			switch (value.Type)
 			{
 				case JSONType.Boolean:
-					this.WritePrefix();
+					this.Prefix();
 					this.writer.Write(value.Boolean ? "true" : "false");
 
 					break;
 
 				case JSONType.Number:
-					this.WritePrefix();
+					this.Prefix();
 					this.writer.Write(value.Number.ToString(CultureInfo.InvariantCulture));
 
 					break;
 
 				case JSONType.String:
-					this.WritePrefix();
-					this.WriteString(value.String);
+					this.Prefix();
+					WriterState.WriteString(this.writer, value.String);
 
 					break;
 
@@ -115,7 +115,7 @@ namespace Verse.Schemas.JSON
 						return;
 					}
 
-					this.WritePrefix();
+					this.Prefix();
 					this.writer.Write("null");
 
 					break;
@@ -124,40 +124,40 @@ namespace Verse.Schemas.JSON
 			this.needComma = true;
 		}
 
-		private void WritePrefix()
+		private void Prefix()
 		{
 			if (this.needComma)
 				this.writer.Write(',');
 
-			if (this.currentKey != null)
-			{
-				this.WriteString(this.currentKey);
+			if (this.currentKey == null)
+				return;
 
-				this.writer.Write(':');
-				this.currentKey = null;
-			}
+			WriterState.WriteString(this.writer, this.currentKey);
+
+			this.writer.Write(':');
+			this.currentKey = null;
 		}
 
-		private void WriteString(string value)
+		private static void WriteString(TextWriter writer, string value)
 		{
-			this.writer.Write('"');
+			writer.Write('"');
 
 			foreach (var c in value)
 			{
 				if (c < 128)
-					this.writer.Write(WriterState.Ascii[c]);
+					writer.Write(WriterState.Ascii[c]);
 				else
 				{
-					this.writer.Write('\\');
-					this.writer.Write('u');
-					this.writer.Write(WriterState.Hexa[(c >> 12) & 0xF]);
-					this.writer.Write(WriterState.Hexa[(c >> 8) & 0xF]);
-					this.writer.Write(WriterState.Hexa[(c >> 4) & 0xF]);
-					this.writer.Write(WriterState.Hexa[(c >> 0) & 0xF]);
+					writer.Write('\\');
+					writer.Write('u');
+					writer.Write(WriterState.Hexa[(c >> 12) & 0xF]);
+					writer.Write(WriterState.Hexa[(c >> 8) & 0xF]);
+					writer.Write(WriterState.Hexa[(c >> 4) & 0xF]);
+					writer.Write(WriterState.Hexa[(c >> 0) & 0xF]);
 				}
 			}
 
-			this.writer.Write('"');
+			writer.Write('"');
 		}
 	}
 }
