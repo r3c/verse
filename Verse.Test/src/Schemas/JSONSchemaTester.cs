@@ -434,22 +434,6 @@ namespace Verse.Test.Schemas
 		}
 
 		[Test]
-		[TestCase(false, "{\"values\":[{\"value\":null},{\"value\":\"test\"}]}")]
-		[TestCase(true, "{\"values\":[{},{\"value\":\"test\"}]}")]
-		public void EncodeArrayOfEntities(bool omitNull, string expected)
-		{
-			var schema = new JSONSchema<JSONValue>(new JSONConfiguration {OmitNull = omitNull});
-
-			schema.EncoderDescriptor
-				.HasField("values", v => v)
-				.HasElements(v => new[] {JSONValue.Void, v})
-				.HasField("value", v => v)
-				.HasValue(v => v);
-
-			JSONSchemaTester.AssertEncodeAndEqual(schema, JSONValue.FromString("test"), expected);
-		}
-
-		[Test]
 		[TestCase(new int[0], "[]")]
 		[TestCase(new[] {21}, "[21]")]
 		[TestCase(new[] {54, 90, -3, 34, 0, 49}, "[54,90,-3,34,0,49]")]
@@ -514,6 +498,20 @@ namespace Verse.Test.Schemas
 		}
 
 		[Test]
+		[TestCase(false, "{\"value\":null}")]
+		[TestCase(true, "{}")]
+		public void EncodeFieldWithOmitNull(bool omitNull, string expected)
+		{
+			var schema = new JSONSchema<string>(new JSONConfiguration {OmitNull = omitNull});
+
+			schema.EncoderDescriptor
+				.HasField("value", v => v)
+				.HasValue(v => JSONValue.Void);
+
+			JSONSchemaTester.AssertEncodeAndEqual(schema, "dummy", expected);
+		}
+
+		[Test]
 		public void EncodeRecursiveDescriptorDefinedAfterUse()
 		{
 			var schema = new JSONSchema<RecursiveEntity>();
@@ -573,8 +571,8 @@ namespace Verse.Test.Schemas
 
 		[Test]
 		[TestCase(false, "null")]
-		[TestCase(true, "")]
-		public void EncodeValueNull(bool omitNull, string expected)
+		[TestCase(true, "null")]
+		public void EncodeValueWithOmitNull(bool omitNull, string expected)
 		{
 			var schema = new JSONSchema<string>(new JSONConfiguration {OmitNull = omitNull});
 

@@ -122,8 +122,18 @@ namespace Verse.Test.Schemas
 		}
 
 		[Test]
-		[Ignore("Nullable types are not handled by linker yet.")]
-		public void RoundTripValueNullable()
+		public void RoundTripValueNullableField()
+		{
+			var schema = this.CreateSchema<Container<double?>>();
+			var decoder = Linker.CreateDecoder(schema);
+			var encoder = Linker.CreateEncoder(schema);
+
+			SchemaTester<TNative>.AssertRoundTrip(decoder, encoder, new Container<double?>());
+			SchemaTester<TNative>.AssertRoundTrip(decoder, encoder, new Container<double?> {Value = 42});
+		}
+
+		[Test]
+		public void RoundTripValueNullableValue()
 		{
 			var schema = this.CreateSchema<double?>();
 			var decoder = Linker.CreateDecoder(schema);
@@ -170,6 +180,11 @@ namespace Verse.Test.Schemas
 		}
 
 		protected abstract ISchema<TNative, TEntity> CreateSchema<TEntity>();
+
+		private struct Container<T>
+		{
+			public T Value;
+		}
 
 		private class MixedContainer
 		{

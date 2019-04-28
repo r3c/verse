@@ -5,6 +5,8 @@ namespace Verse.EncoderDescriptors.Tree
 {
 	internal interface IWriter<TState, TNative>
 	{
+		void Flush(TState state);
+
 		TState Start(Stream stream, ErrorEvent error);
 
 		void Stop(TState state);

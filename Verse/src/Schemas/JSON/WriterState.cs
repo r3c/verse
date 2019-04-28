@@ -9,11 +9,13 @@ namespace Verse.Schemas.JSON
 	{
 		private const char AsciiUpperBound = (char) 128;
 
-		private string currentKey;
+		private bool isEmpty;
 
-		private readonly bool omitNull;
+		private string nextKey;
 
 		private bool needComma;
+
+		private readonly bool omitNull;
 
 		private readonly StreamWriter writer;
 
@@ -24,7 +26,8 @@ namespace Verse.Schemas.JSON
 
 		public WriterState(Stream stream, Encoding encoding, bool omitNull)
 		{
-			this.currentKey = null;
+			this.isEmpty = true;
+			this.nextKey = null;
 			this.needComma = false;
 			this.omitNull = omitNull;
 			this.writer = new StreamWriter(stream, encoding, 1024, true);
@@ -49,9 +52,10 @@ namespace Verse.Schemas.JSON
 
 		public void ArrayBegin()
 		{
-			this.Prefix();
+			this.AppendPrefix();
 			this.writer.Write('[');
 
+			this.isEmpty = false;
 			this.needComma = false;
 		}
 
@@ -59,6 +63,7 @@ namespace Verse.Schemas.JSON
 		{
 			this.writer.Write(']');
 
+			this.isEmpty = false;
 			this.needComma = true;
 		}
 
@@ -67,16 +72,27 @@ namespace Verse.Schemas.JSON
 			this.writer.Dispose();
 		}
 
+		public void Flush()
+		{
+			if (this.isEmpty)
+				this.AppendNull();
+
+			this.isEmpty = true;
+			this.nextKey = null;
+			this.needComma = false;
+		}
+
 		public void Key(string key)
 		{
-			this.currentKey = key;
+			this.nextKey = key;
 		}
 
 		public void ObjectBegin()
 		{
-			this.Prefix();
+			this.AppendPrefix();
 			this.writer.Write('{');
 
+			this.isEmpty = false;
 			this.needComma = false;
 		}
 
@@ -84,6 +100,7 @@ namespace Verse.Schemas.JSON
 		{
 			this.writer.Write('}');
 
+			this.isEmpty = false;
 			this.needComma = true;
 		}
 
@@ -92,19 +109,19 @@ namespace Verse.Schemas.JSON
 			switch (value.Type)
 			{
 				case JSONType.Boolean:
-					this.Prefix();
+					this.AppendPrefix();
 					this.writer.Write(value.Boolean ? "true" : "false");
 
 					break;
 
 				case JSONType.Number:
-					this.Prefix();
+					this.AppendPrefix();
 					this.writer.Write(value.Number.ToString(CultureInfo.InvariantCulture));
 
 					break;
 
 				case JSONType.String:
-					this.Prefix();
+					this.AppendPrefix();
 					WriterState.WriteString(this.writer, value.String);
 
 					break;
@@ -112,32 +129,38 @@ namespace Verse.Schemas.JSON
 				default:
 					if (this.omitNull)
 					{
-						this.currentKey = null;
+						this.nextKey = null;
 
 						return;
 					}
 
-					this.Prefix();
-					this.writer.Write("null");
+					this.AppendPrefix();
+					this.AppendNull();
 
 					break;
 			}
 
+			this.isEmpty = false;
 			this.needComma = true;
 		}
 
-		private void Prefix()
+		private void AppendNull()
+		{
+			this.writer.Write("null");
+		}
+
+		private void AppendPrefix()
 		{
 			if (this.needComma)
 				this.writer.Write(',');
 
-			if (this.currentKey == null)
+			if (this.nextKey == null)
 				return;
 
-			WriterState.WriteString(this.writer, this.currentKey);
+			WriterState.WriteString(this.writer, this.nextKey);
 
 			this.writer.Write(':');
-			this.currentKey = null;
+			this.nextKey = null;
 		}
 
 		private static void WriteString(TextWriter writer, string value)

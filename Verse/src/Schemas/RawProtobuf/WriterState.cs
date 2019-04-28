@@ -29,8 +29,11 @@ namespace Verse.Schemas.RawProtobuf
 
 		public void Flush()
 		{
+			this.FieldIndex = 0;
+
 			this.buffer.Position = 0;
 			this.buffer.CopyTo(this.stream);
+			this.buffer.SetLength(0);
 		}
 
 		public void Key(string key)

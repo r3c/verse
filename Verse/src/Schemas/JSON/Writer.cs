@@ -17,6 +17,11 @@ namespace Verse.Schemas.JSON
 			this.omitNull = omitNull;
 		}
 
+		public void Flush(WriterState state)
+		{
+			state.Flush();
+		}
+
 		public WriterState Start(Stream stream, ErrorEvent error)
 		{
 			return new WriterState(stream, this.encoding, this.omitNull);
