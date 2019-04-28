@@ -1,9 +1,10 @@
+using System;
 using System.IO;
 using System.Text;
 
 namespace Verse.Schemas.JSON
 {
-	internal class ReaderState
+	internal class ReaderState : IDisposable
 	{
 		public int Current;
 
@@ -17,10 +18,15 @@ namespace Verse.Schemas.JSON
 		{
 			this.error = error;
 			this.position = 0;
-			this.reader = new StreamReader(stream, encoding);
+			this.reader = new StreamReader(stream, encoding, false, 1024, true);
 
 			this.Read();
 		}
+
+	    public void Dispose()
+	    {
+		    this.reader.Dispose();
+	    }
 
 		public void Error(string message)
 		{

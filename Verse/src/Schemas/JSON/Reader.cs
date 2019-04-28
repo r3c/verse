@@ -172,6 +172,7 @@ namespace Verse.Schemas.JSON
 
 		public void Stop(ReaderState state)
 		{
+			state.Dispose();
 		}
 
 		private BrowserMove<TElement> ReadToArrayFromArray<TElement>(ReaderState state, Func<TElement> constructor,

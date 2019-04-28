@@ -1,10 +1,11 @@
+using System;
 using System.Globalization;
 using System.IO;
 using System.Text;
 
 namespace Verse.Schemas.JSON
 {
-	internal class WriterState
+	internal class WriterState : IDisposable
 	{
 		private string currentKey;
 
@@ -24,7 +25,7 @@ namespace Verse.Schemas.JSON
 			this.currentKey = null;
 			this.needComma = false;
 			this.omitNull = omitNull;
-			this.writer = new StreamWriter(stream, encoding);
+			this.writer = new StreamWriter(stream, encoding, 1024, true);
 		}
 
 		static WriterState()
@@ -59,14 +60,14 @@ namespace Verse.Schemas.JSON
 			this.needComma = true;
 		}
 
+		public void Dispose()
+		{
+			this.writer.Dispose();
+		}
+
 		public void Key(string key)
 		{
 			this.currentKey = key;
-		}
-
-		public void Flush()
-		{
-			this.writer.Flush();
 		}
 
 		public void ObjectBegin()

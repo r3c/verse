@@ -24,7 +24,7 @@ namespace Verse.Schemas.JSON
 
 		public void Stop(WriterState state)
 		{
-			state.Flush();
+			state.Dispose();
 		}
 
 		public void WriteAsArray<TElement>(WriterState state, IEnumerable<TElement> elements,
