@@ -4,17 +4,13 @@ Verse TODO list
 TODO
 ----
 
-- [ ] Switch to type-safe descriptor API
-  - [ ] Remove parameterless `HasValue` method from descriptors
-  - [ ] Require `bool ValueDecoder(TNative, out TValue)` argument to `IDecoderDescriptor.HasValue`
-  - [ ] Require `bool ValueEncoder(TValue, out TNative)` argument to `IEncoderDescriptor.HasValue`
-  - [ ] Allow decoding converters to return false  
 - [ ] Move entity constructors at object definition instead of parent
   - [ ] Restore "IsObject<TObject>" and "IsObject" methods in descriptors
   - [ ] Bypass object construction on JSON "null" to ensure symmetric schema
 - [ ] Implement "ignore case" option for name-based schemas
   - [ ] Support option in NameLookup
 - [ ] Implement support for proto-based Protobuf schema
+- [ ] Restore consistent behavior for encoding/decoding objects as JSON "null"
 
 DONE
 ----
@@ -22,6 +18,10 @@ DONE
 - [x] Allow non-int key types on ILookup from descriptors
   - [x] Introduce TKey generic on reader definitions
   - [x] Implement mixed look-up to avoid string allocations when reading array indices as keys
+- [x] Switch to type-safe descriptor API
+  - [x] Remove parameterless `HasValue` method from descriptors
+  - [x] Require setter argument to `IDecoderDescriptor.HasValue`
+  - [x] Require getter argument to `IEncoderDescriptor.HasValue`
 - [x] Remove Protobuf dependency from RawProtobufSchema
   - [x] Read Protobuf without need for ProtoReader class nor related types
   - [x] Write Protobuf without need for ProtoWriter class nor related types
