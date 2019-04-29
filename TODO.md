@@ -12,6 +12,12 @@ TODO
 - [ ] Remove Protobuf dependency from RawProtobufSchema
   - [ ] Read Protobuf without need for ProtoReader class nor related types
   - [ ] Write Protobuf without need for ProtoWriter class nor related types
+- [ ] Allow non-int key types on ILookup from descriptors
+  - [ ] Switch ReaderDefinition to generic interface in TreeDecoderDescriptor?
+  - [ ] Implement mixed look-up to avoid string allocations when reading array indices as keys
+- [ ] Move entity constructors at object definition instead of parent
+  - [ ] Restore "IsObject<TObject>" and "IsObject" methods in descriptors
+  - [ ] Bypass object construction on JSON "null" to ensure symmetric schema
 - [ ] Implement "ignore case" option for name-based schemas
   - [ ] Support option in NameLookup
 - [ ] Implement support for proto-based Protobuf schema
