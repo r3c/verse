@@ -189,9 +189,9 @@ namespace Verse.Test
 
 		private class Visibility
 		{
-			public int isPublic;
-			protected int isProtected;
-			private int isPrivate;
+			public int isPublic = 0;
+			protected int isProtected = 0;
+			private int isPrivate = 0;
 
 			public override string ToString()
 			{
