@@ -17,26 +17,28 @@ namespace Verse.Schemas.RawProtobuf
 		public BrowserMove<TElement> ReadToArray<TElement>(RawProtobufReaderState state, Func<TElement> constructor,
 			ReaderCallback<RawProtobufReaderState, RawProtobufValue, TElement> callback)
 		{
-			var fieldIndex = state.FieldIndex;
+			var firstIndex = state.FieldIndex;
 
 			return (int index, out TElement element) =>
 			{
 				// Read next field header if required so we know whether it's still part of the same array or not
-				// FIXME: can remove state (undefined header) from here and read next header only if index > 0
-				state.ReadHeader();
-
-				// Read field and continue enumeration if we're still reading elements sharing the same field index
-				if (fieldIndex == state.FieldIndex)
+				if (index > 0)
 				{
-					element = constructor();
+					state.ReadHeader();
 
-					return callback(this, state, ref element) ? BrowserState.Continue : BrowserState.Failure;
+					// Different field index (or end of stream) was met, stop enumeration
+					if (firstIndex != state.FieldIndex)
+					{
+						element = default;
+
+						return BrowserState.Success;
+					}
 				}
 
-				// Different field index (or end of stream) was met, stop enumeration
-				element = default;
+				// Read field and continue enumeration if we're still reading elements sharing the same field index
+				element = constructor();
 
-				return BrowserState.Success;
+				return callback(this, state, ref element) ? BrowserState.Continue : BrowserState.Failure;
 			};
 		}
 

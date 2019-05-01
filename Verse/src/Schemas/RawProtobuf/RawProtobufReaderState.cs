@@ -65,15 +65,11 @@ namespace Verse.Schemas.RawProtobuf
 			else
 				backup = null;
 
-			this.ClearHeader();
-
 			return true;
 		}
 
 		public void ObjectEnd(int? backup)
 		{
-			this.ClearHeader();
-
 			if (this.position < this.boundary.GetValueOrDefault())
 				this.Error("sub-message was not read entirely");
 
@@ -82,9 +78,6 @@ namespace Verse.Schemas.RawProtobuf
 
 		public void ReadHeader()
 		{
-			if (this.fieldType.HasValue)
-				return;
-
 			if (this.boundary.HasValue && this.position >= this.boundary.Value)
 			{
 				this.FieldIndex = 0;
@@ -125,87 +118,7 @@ namespace Verse.Schemas.RawProtobuf
 
 		public bool TryReadValue(out RawProtobufValue value)
 		{
-			var fieldType = this.fieldType.GetValueOrDefault();
-
-			this.ClearHeader();
-
-			return this.TryReadValue(fieldType, out value);
-		}
-
-		public bool TrySkipValue()
-		{
-			var fieldType = this.fieldType.GetValueOrDefault();
-
-			this.ClearHeader();
-
-			switch (fieldType)
-			{
-				case RawProtobufWireType.Fixed32:
-					this.stream.ReadByte();
-					this.stream.ReadByte();
-					this.stream.ReadByte();
-					this.stream.ReadByte();
-					this.position += 4;
-
-					return true;
-
-				case RawProtobufWireType.Fixed64:
-					this.stream.ReadByte();
-					this.stream.ReadByte();
-					this.stream.ReadByte();
-					this.stream.ReadByte();
-					this.stream.ReadByte();
-					this.stream.ReadByte();
-					this.stream.ReadByte();
-					this.stream.ReadByte();
-					this.position += 8;
-
-					return true;
-
-				case RawProtobufWireType.String:
-					var length = (int) this.ReadVarInt();
-
-					if (length > RawProtobufReaderState.StringMaxLength)
-					{
-						this.Error($"string field exceeds maximum length of {RawProtobufReaderState.StringMaxLength}");
-
-						return false;
-					}
-
-					while (length-- > 0)
-					{
-						this.stream.ReadByte();
-						this.position += 1;
-					}
-
-					return true;
-
-				case RawProtobufWireType.VarInt:
-					this.ReadVarInt();
-
-					return true;
-
-				default:
-					this.Error($"unsupported wire type {fieldType}");
-
-					return false;
-			}
-		}
-
-		private void ClearHeader()
-		{
-			this.FieldIndex = 0;
-			this.fieldType = null;
-		}
-
-		private void Error(string message)
-		{
-			this.error(this.position, message);
-		}
-
-		private bool TryReadValue(RawProtobufWireType fieldType, out RawProtobufValue value)
-		{
-			switch (fieldType)
+			switch (this.fieldType.GetValueOrDefault())
 			{
 				case RawProtobufWireType.Fixed32:
 					var fixed32 = 0;
@@ -279,12 +192,73 @@ namespace Verse.Schemas.RawProtobuf
 					return true;
 
 				default:
-					this.Error($"unsupported wire type {fieldType}");
+					this.Error($"unsupported wire type {this.fieldType}");
 
 					value = default;
 
 					return false;
 			}
+		}
+
+		public bool TrySkipValue()
+		{
+			switch (this.fieldType.GetValueOrDefault())
+			{
+				case RawProtobufWireType.Fixed32:
+					this.stream.ReadByte();
+					this.stream.ReadByte();
+					this.stream.ReadByte();
+					this.stream.ReadByte();
+					this.position += 4;
+
+					return true;
+
+				case RawProtobufWireType.Fixed64:
+					this.stream.ReadByte();
+					this.stream.ReadByte();
+					this.stream.ReadByte();
+					this.stream.ReadByte();
+					this.stream.ReadByte();
+					this.stream.ReadByte();
+					this.stream.ReadByte();
+					this.stream.ReadByte();
+					this.position += 8;
+
+					return true;
+
+				case RawProtobufWireType.String:
+					var length = (int) this.ReadVarInt();
+
+					if (length > RawProtobufReaderState.StringMaxLength)
+					{
+						this.Error($"string field exceeds maximum length of {RawProtobufReaderState.StringMaxLength}");
+
+						return false;
+					}
+
+					while (length-- > 0)
+					{
+						this.stream.ReadByte();
+						this.position += 1;
+					}
+
+					return true;
+
+				case RawProtobufWireType.VarInt:
+					this.ReadVarInt();
+
+					return true;
+
+				default:
+					this.Error($"unsupported wire type {this.fieldType}");
+
+					return false;
+			}
+		}
+
+		private void Error(string message)
+		{
+			this.error(this.position, message);
 		}
 
 		private unsafe long ReadVarInt()
