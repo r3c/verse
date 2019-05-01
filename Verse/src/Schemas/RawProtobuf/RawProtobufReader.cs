@@ -7,6 +7,13 @@ namespace Verse.Schemas.RawProtobuf
 {
 	internal class RawProtobufReader : IReader<RawProtobufReaderState, RawProtobufValue>
 	{
+		private readonly bool noZigZagEncoding;
+
+		public RawProtobufReader(bool noZigZagEncoding)
+		{
+			this.noZigZagEncoding = noZigZagEncoding;
+		}
+
 		public BrowserMove<TElement> ReadToArray<TElement>(RawProtobufReaderState state, Func<TElement> constructor,
 			ReaderCallback<RawProtobufReaderState, RawProtobufValue, TElement> callback)
 		{
@@ -15,6 +22,7 @@ namespace Verse.Schemas.RawProtobuf
 			return (int index, out TElement element) =>
 			{
 				// Read next field header if required so we know whether it's still part of the same array or not
+				// FIXME: can remove state (undefined header) from here and read next header only if index > 0
 				state.ReadHeader();
 
 				// Read field and continue enumeration if we're still reading elements sharing the same field index
@@ -35,12 +43,8 @@ namespace Verse.Schemas.RawProtobuf
 		public bool ReadToObject<TObject>(RawProtobufReaderState state,
 			ILookup<int, ReaderCallback<RawProtobufReaderState, RawProtobufValue, TObject>> fields, ref TObject target)
 		{
-			if (!state.ObjectBegin(out var subItem))
-			{
-				RawProtobufReader.Skip(state);
-
-				return true;
-			}
+			if (!state.ObjectBegin(out var backup))
+				return state.TrySkipValue();
 
 			while (true)
 			{
@@ -49,7 +53,7 @@ namespace Verse.Schemas.RawProtobuf
 				// Stop reading complex object when no more field can be read
 				if (state.FieldIndex <= 0)
 				{
-					state.ObjectEnd(subItem);
+					state.ObjectEnd(backup);
 
 					return true;
 				}
@@ -64,7 +68,7 @@ namespace Verse.Schemas.RawProtobuf
 				else
 					field = field.Follow((char) ('0' + state.FieldIndex));
 
-				if (!(field.HasValue ? field.Value(this, state, ref target) : RawProtobufReader.Skip(state)))
+				if (!(field.HasValue ? field.Value(this, state, ref target) : state.TrySkipValue()))
 					return false;
 			}
 		}
@@ -76,18 +80,11 @@ namespace Verse.Schemas.RawProtobuf
 
 		public RawProtobufReaderState Start(Stream stream, ErrorEvent error)
 		{
-			return new RawProtobufReaderState(stream, error);
+			return new RawProtobufReaderState(stream, error, this.noZigZagEncoding);
 		}
 
 		public void Stop(RawProtobufReaderState state)
 		{
-		}
-
-		private static bool Skip(RawProtobufReaderState state)
-		{
-			state.SkipField();
-
-			return true;
 		}
 	}
 }

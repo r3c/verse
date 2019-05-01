@@ -10,7 +10,7 @@ TODO
   - [ ] Require `bool ValueEncoder(TValue, out TNative)` argument to `IEncoderDescriptor.HasValue`
   - [ ] Allow decoding converters to return false  
 - [ ] Remove Protobuf dependency from RawProtobufSchema
-  - [ ] Read Protobuf without need for ProtoReader class nor related types
+  - [x] Read Protobuf without need for ProtoReader class nor related types
   - [ ] Write Protobuf without need for ProtoWriter class nor related types
 - [ ] Allow non-int key types on ILookup from descriptors
   - [ ] Switch ReaderDefinition to generic interface in TreeDecoderDescriptor?

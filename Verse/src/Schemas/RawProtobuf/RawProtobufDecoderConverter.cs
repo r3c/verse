@@ -54,12 +54,12 @@ namespace Verse.Schemas.RawProtobuf
 		{
 			switch (value.Storage)
 			{
-				case RawProtobufStorage.Fixed32:
-				case RawProtobufStorage.Fixed64:
-				case RawProtobufStorage.Variant:
+				case RawProtobufWireType.Fixed32:
+				case RawProtobufWireType.Fixed64:
+				case RawProtobufWireType.VarInt:
 					return value.Number != 0;
 
-				case RawProtobufStorage.String:
+				case RawProtobufWireType.String:
 					return !string.IsNullOrEmpty(value.String);
 
 				default:
@@ -71,12 +71,12 @@ namespace Verse.Schemas.RawProtobuf
 		{
 			switch (value.Storage)
 			{
-				case RawProtobufStorage.Fixed32:
-				case RawProtobufStorage.Fixed64:
-				case RawProtobufStorage.Variant:
+				case RawProtobufWireType.Fixed32:
+				case RawProtobufWireType.Fixed64:
+				case RawProtobufWireType.VarInt:
 					return (char) value.Number;
 
-				case RawProtobufStorage.String:
+				case RawProtobufWireType.String:
 					return value.String.Length > 0 ? value.String[0] : default;
 
 				default:
@@ -88,16 +88,16 @@ namespace Verse.Schemas.RawProtobuf
 		{
 			switch (value.Storage)
 			{
-				case RawProtobufStorage.Fixed32:
+				case RawProtobufWireType.Fixed32:
 					return (decimal) *(float*) &value.Number;
 
-				case RawProtobufStorage.Fixed64:
+				case RawProtobufWireType.Fixed64:
 					return (decimal) *(double*) &value.Number;
 
-				case RawProtobufStorage.Variant:
+				case RawProtobufWireType.VarInt:
 					return value.Number;
 
-				case RawProtobufStorage.String:
+				case RawProtobufWireType.String:
 					return decimal.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
 						out var number)
 						? number
@@ -112,16 +112,16 @@ namespace Verse.Schemas.RawProtobuf
 		{
 			switch (value.Storage)
 			{
-				case RawProtobufStorage.Fixed32:
+				case RawProtobufWireType.Fixed32:
 					return *(float*) &value.Number;
 
-				case RawProtobufStorage.Fixed64:
+				case RawProtobufWireType.Fixed64:
 					return (float) *(double*) &value.Number;
 
-				case RawProtobufStorage.Variant:
+				case RawProtobufWireType.VarInt:
 					return value.Number;
 
-				case RawProtobufStorage.String:
+				case RawProtobufWireType.String:
 					return float.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
 						out var number)
 						? number
@@ -136,16 +136,16 @@ namespace Verse.Schemas.RawProtobuf
 		{
 			switch (value.Storage)
 			{
-				case RawProtobufStorage.Fixed32:
+				case RawProtobufWireType.Fixed32:
 					return *(float*) &value.Number;
 
-				case RawProtobufStorage.Fixed64:
+				case RawProtobufWireType.Fixed64:
 					return *(double*) &value.Number;
 
-				case RawProtobufStorage.Variant:
+				case RawProtobufWireType.VarInt:
 					return value.Number;
 
-				case RawProtobufStorage.String:
+				case RawProtobufWireType.String:
 					return double.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
 						out var number)
 						? number
@@ -160,12 +160,12 @@ namespace Verse.Schemas.RawProtobuf
 		{
 			switch (value.Storage)
 			{
-				case RawProtobufStorage.Fixed32:
-				case RawProtobufStorage.Fixed64:
-				case RawProtobufStorage.Variant:
+				case RawProtobufWireType.Fixed32:
+				case RawProtobufWireType.Fixed64:
+				case RawProtobufWireType.VarInt:
 					return (sbyte) value.Number;
 
-				case RawProtobufStorage.String:
+				case RawProtobufWireType.String:
 					return sbyte.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
 						out var number)
 						? number
@@ -180,12 +180,12 @@ namespace Verse.Schemas.RawProtobuf
 		{
 			switch (value.Storage)
 			{
-				case RawProtobufStorage.Fixed32:
-				case RawProtobufStorage.Fixed64:
-				case RawProtobufStorage.Variant:
+				case RawProtobufWireType.Fixed32:
+				case RawProtobufWireType.Fixed64:
+				case RawProtobufWireType.VarInt:
 					return (byte) value.Number;
 
-				case RawProtobufStorage.String:
+				case RawProtobufWireType.String:
 					return byte.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
 						out var number)
 						? number
@@ -200,12 +200,12 @@ namespace Verse.Schemas.RawProtobuf
 		{
 			switch (value.Storage)
 			{
-				case RawProtobufStorage.Fixed32:
-				case RawProtobufStorage.Fixed64:
-				case RawProtobufStorage.Variant:
+				case RawProtobufWireType.Fixed32:
+				case RawProtobufWireType.Fixed64:
+				case RawProtobufWireType.VarInt:
 					return (short) value.Number;
 
-				case RawProtobufStorage.String:
+				case RawProtobufWireType.String:
 					return short.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
 						out var number)
 						? number
@@ -220,12 +220,12 @@ namespace Verse.Schemas.RawProtobuf
 		{
 			switch (value.Storage)
 			{
-				case RawProtobufStorage.Fixed32:
-				case RawProtobufStorage.Fixed64:
-				case RawProtobufStorage.Variant:
+				case RawProtobufWireType.Fixed32:
+				case RawProtobufWireType.Fixed64:
+				case RawProtobufWireType.VarInt:
 					return (ushort) value.Number;
 
-				case RawProtobufStorage.String:
+				case RawProtobufWireType.String:
 					return ushort.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
 						out var number)
 						? number
@@ -240,12 +240,12 @@ namespace Verse.Schemas.RawProtobuf
 		{
 			switch (value.Storage)
 			{
-				case RawProtobufStorage.Fixed32:
-				case RawProtobufStorage.Fixed64:
-				case RawProtobufStorage.Variant:
+				case RawProtobufWireType.Fixed32:
+				case RawProtobufWireType.Fixed64:
+				case RawProtobufWireType.VarInt:
 					return (int) value.Number;
 
-				case RawProtobufStorage.String:
+				case RawProtobufWireType.String:
 					return int.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
 						out var number)
 						? number
@@ -260,12 +260,12 @@ namespace Verse.Schemas.RawProtobuf
 		{
 			switch (value.Storage)
 			{
-				case RawProtobufStorage.Fixed32:
-				case RawProtobufStorage.Fixed64:
-				case RawProtobufStorage.Variant:
+				case RawProtobufWireType.Fixed32:
+				case RawProtobufWireType.Fixed64:
+				case RawProtobufWireType.VarInt:
 					return (uint) value.Number;
 
-				case RawProtobufStorage.String:
+				case RawProtobufWireType.String:
 					return uint.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
 						out var number)
 						? number
@@ -280,12 +280,12 @@ namespace Verse.Schemas.RawProtobuf
 		{
 			switch (value.Storage)
 			{
-				case RawProtobufStorage.Fixed32:
-				case RawProtobufStorage.Fixed64:
-				case RawProtobufStorage.Variant:
+				case RawProtobufWireType.Fixed32:
+				case RawProtobufWireType.Fixed64:
+				case RawProtobufWireType.VarInt:
 					return value.Number;
 
-				case RawProtobufStorage.String:
+				case RawProtobufWireType.String:
 					return long.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
 						out var number)
 						? number
@@ -300,16 +300,16 @@ namespace Verse.Schemas.RawProtobuf
 		{
 			switch (value.Storage)
 			{
-				case RawProtobufStorage.Fixed32:
+				case RawProtobufWireType.Fixed32:
 					return *(uint*) value.Number;
 
-				case RawProtobufStorage.Fixed64:
+				case RawProtobufWireType.Fixed64:
 					return *(ulong*) value.Number;
 
-				case RawProtobufStorage.Variant:
+				case RawProtobufWireType.VarInt:
 					return (ulong) value.Number;
 
-				case RawProtobufStorage.String:
+				case RawProtobufWireType.String:
 					return ulong.TryParse(value.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
 						out var number)
 						? number
@@ -324,12 +324,12 @@ namespace Verse.Schemas.RawProtobuf
 		{
 			switch (value.Storage)
 			{
-				case RawProtobufStorage.Fixed32:
-				case RawProtobufStorage.Fixed64:
-				case RawProtobufStorage.Variant:
+				case RawProtobufWireType.Fixed32:
+				case RawProtobufWireType.Fixed64:
+				case RawProtobufWireType.VarInt:
 					return value.Number.ToString(CultureInfo.InvariantCulture);
 
-				case RawProtobufStorage.String:
+				case RawProtobufWireType.String:
 					return value.String;
 
 				default:

@@ -81,22 +81,22 @@ namespace Verse.Schemas.RawProtobuf
 
 			switch (value.Storage)
 			{
-				case RawProtobufStorage.Fixed32:
+				case RawProtobufWireType.Fixed32:
 					ProtoWriter.WriteFieldHeader(this.fieldIndex, WireType.Fixed32, writer);
 					ProtoWriter.WriteInt64(value.Number, writer);
 					break;
 
-				case RawProtobufStorage.Fixed64:
+				case RawProtobufWireType.Fixed64:
 					ProtoWriter.WriteFieldHeader(this.fieldIndex, WireType.Fixed64, writer);
 					ProtoWriter.WriteInt64(value.Number, writer);
 					break;
 
-				case RawProtobufStorage.String:
+				case RawProtobufWireType.String:
 					ProtoWriter.WriteFieldHeader(this.fieldIndex, WireType.String, writer);
 					ProtoWriter.WriteString(value.String, writer);
 					break;
 
-				case RawProtobufStorage.Variant:
+				case RawProtobufWireType.VarInt:
 					ProtoWriter.WriteFieldHeader(this.fieldIndex, WireType.Variant, writer);
 					ProtoWriter.WriteInt64(value.Number, writer);
 					break;

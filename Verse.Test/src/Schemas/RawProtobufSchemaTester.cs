@@ -7,6 +7,7 @@ using NUnit.Framework;
 using ProtoBuf;
 using Verse.Schemas;
 using Verse.Schemas.Protobuf;
+using Verse.Schemas.RawProtobuf;
 
 namespace Verse.Test.Schemas
 {
@@ -32,7 +33,7 @@ namespace Verse.Test.Schemas
 		[TestCase(RawProtobufSchemaTester.LongString, RawProtobufSchemaTester.LongString, RawProtobufSchemaTester.LongString)]
 		public void DecodeRepeatedScalarFromObject<T>(T a, T b, T c)
 		{
-			var schema = new RawProtobufSchema<List<T>>();
+			var schema = RawProtobufSchemaTester.CreateSchema<List<T>>();
 			var testFieldClass = new TestFieldClass<T> {Items = new List<T> {a, b, c}};
 
 			schema.DecoderDescriptor
@@ -57,7 +58,7 @@ namespace Verse.Test.Schemas
 		[TestCase(RawProtobufSchemaTester.LongString)]
 		public void DecodeScalarFromNestedObject<T>(T expectedValue)
 		{
-			var schema = new RawProtobufSchema<T>();
+			var schema = RawProtobufSchemaTester.CreateSchema<T>();
 			var testFieldClass = new TestFieldClass<T> {SubValue = new SubTestFieldClass<T> {Value = expectedValue}};
 
 			schema.DecoderDescriptor
@@ -83,7 +84,7 @@ namespace Verse.Test.Schemas
 		[TestCase(RawProtobufSchemaTester.LongString, ProtobufType.String)]
 		public void DecodeScalarFromObject<T>(T value, ProtobufType type)
 		{
-			var schema = new RawProtobufSchema<T>();
+			var schema = RawProtobufSchemaTester.CreateSchema<T>();
 			var testFieldClass = new TestFieldClass<T> {Value = value};
 
 			schema.DecoderDescriptor.HasField("_1", () => default, (ref T obj, T v) => obj = v).HasValue();
@@ -105,7 +106,7 @@ namespace Verse.Test.Schemas
 		public void DecodeScalarFromRepeatedObject<T>(T a, T b, T c)
 		{
 			T[] expectedValues = { a, b, c };
-			var schema = new RawProtobufSchema<TestFieldClass<TestFieldClass<T>>>();
+			var schema = RawProtobufSchemaTester.CreateSchema<TestFieldClass<TestFieldClass<T>>>();
 			var testFieldClass = new TestFieldClass<TestFieldClass<T>>();
 
 			foreach (var value in expectedValues)
@@ -163,7 +164,7 @@ namespace Verse.Test.Schemas
 		[Ignore("This feature is currently not supported")]
 		public void DecodeFromNestedFixedIndex(int? index0, int? index1, int expected)
 		{
-			var schema = new RawProtobufSchema<int>();
+			var schema = RawProtobufSchemaTester.CreateSchema<int>();
 			var testFieldClass = new TestFieldClass<TestFieldClass<SubTestFieldClass<int>>>
 			{
 				Items = new List<TestFieldClass<SubTestFieldClass<int>>>
@@ -232,7 +233,7 @@ namespace Verse.Test.Schemas
 		public void EncodeRepeatedScalarToObject<T>(T a, T b, T c)
 		{
 			var expectedItems = new[] { a, b, c };
-			var schema = new RawProtobufSchema<List<T>>();
+			var schema = RawProtobufSchemaTester.CreateSchema<List<T>>();
 
 			schema.EncoderDescriptor
 				.HasField("_2", v => v)
@@ -255,7 +256,7 @@ namespace Verse.Test.Schemas
 		[TestCase(RawProtobufSchemaTester.LongString)]
 		public void EncodeScalarToNestedObject<T>(T expectedValue)
 		{
-			var schema = new RawProtobufSchema<TestFieldClass<T>>();
+			var schema = RawProtobufSchemaTester.CreateSchema<TestFieldClass<T>>();
 			var testFieldClass = new TestFieldClass<T> {SubValue = new SubTestFieldClass<T> {Value = expectedValue}};
 
 			schema.EncoderDescriptor
@@ -281,7 +282,7 @@ namespace Verse.Test.Schemas
 		[TestCase(RawProtobufSchemaTester.LongString)]
 		public void EncodeScalarToObject<T>(T value)
 		{
-			var schema = new RawProtobufSchema<T>();
+			var schema = RawProtobufSchemaTester.CreateSchema<T>();
 
 			schema.EncoderDescriptor
 				.HasField("_1", v => v)
@@ -306,7 +307,7 @@ namespace Verse.Test.Schemas
 		public void EncodeScalarToRepeatedObject<T>(T a, T b, T c)
 		{
 			var fieldClass = new TestFieldClass<TestFieldClass<T>>();
-			var schema = new RawProtobufSchema<TestFieldClass<TestFieldClass<T>>>();
+			var schema = RawProtobufSchemaTester.CreateSchema<TestFieldClass<TestFieldClass<T>>>();
 			var expectedValues = new[] { a, b, c };
 
 			foreach (var value in expectedValues)
@@ -333,6 +334,11 @@ namespace Verse.Test.Schemas
 
 			for (var i = 0; i < expectedValues.Length; ++i)
 				Assert.AreEqual(expectedValues[i], decodedFieldClass.Items[i].SubValue.Value);
+		}
+
+		private static ISchema<TEntity> CreateSchema<TEntity>()
+		{
+			return new RawProtobufSchema<TEntity>(new RawProtobufConfiguration {NoZigZagEncoding = true});
 		}
 
 		private static T DecodeRoundTrip<T>(IDecoder<T> decoder, T input)

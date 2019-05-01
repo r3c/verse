@@ -11,67 +11,67 @@ namespace Verse.Schemas.RawProtobuf
 		{
 			{
 				typeof(bool),
-				new Converter<bool, RawProtobufValue>(v => new RawProtobufValue(v ? 1 : 0, RawProtobufStorage.Variant))
+				new Converter<bool, RawProtobufValue>(v => new RawProtobufValue(v ? 1 : 0, RawProtobufWireType.VarInt))
 			},
 			{
 				typeof(char),
 				new Converter<char, RawProtobufValue>(v =>
-					new RawProtobufValue(new string(v, 1), RawProtobufStorage.Variant))
+					new RawProtobufValue(new string(v, 1), RawProtobufWireType.VarInt))
 			},
 			{
 				typeof(decimal), new Converter<decimal, RawProtobufValue>(v =>
 				{
 					var number = (double) v;
 
-					return new RawProtobufValue(*(long*) &number, RawProtobufStorage.Fixed64);
+					return new RawProtobufValue(*(long*) &number, RawProtobufWireType.Fixed64);
 				})
 			},
 			{
 				typeof(float),
 				new Converter<float, RawProtobufValue>(
-					v => new RawProtobufValue(*(int*) &v, RawProtobufStorage.Fixed32))
+					v => new RawProtobufValue(*(int*) &v, RawProtobufWireType.Fixed32))
 			},
 			{
 				typeof(double),
 				new Converter<double, RawProtobufValue>(v =>
-					new RawProtobufValue(*(long*) &v, RawProtobufStorage.Fixed64))
+					new RawProtobufValue(*(long*) &v, RawProtobufWireType.Fixed64))
 			},
 			{
 				typeof(sbyte),
-				new Converter<sbyte, RawProtobufValue>(v => new RawProtobufValue(v, RawProtobufStorage.Variant))
+				new Converter<sbyte, RawProtobufValue>(v => new RawProtobufValue(v, RawProtobufWireType.VarInt))
 			},
 			{
 				typeof(byte),
-				new Converter<byte, RawProtobufValue>(v => new RawProtobufValue(v, RawProtobufStorage.Variant))
+				new Converter<byte, RawProtobufValue>(v => new RawProtobufValue(v, RawProtobufWireType.VarInt))
 			},
 			{
 				typeof(short),
-				new Converter<short, RawProtobufValue>(v => new RawProtobufValue(v, RawProtobufStorage.Variant))
+				new Converter<short, RawProtobufValue>(v => new RawProtobufValue(v, RawProtobufWireType.VarInt))
 			},
 			{
 				typeof(ushort),
-				new Converter<ushort, RawProtobufValue>(v => new RawProtobufValue(v, RawProtobufStorage.Variant))
+				new Converter<ushort, RawProtobufValue>(v => new RawProtobufValue(v, RawProtobufWireType.VarInt))
 			},
 			{
 				typeof(int),
-				new Converter<int, RawProtobufValue>(v => new RawProtobufValue(v, RawProtobufStorage.Variant))
+				new Converter<int, RawProtobufValue>(v => new RawProtobufValue(v, RawProtobufWireType.VarInt))
 			},
 			{
 				typeof(uint),
-				new Converter<uint, RawProtobufValue>(v => new RawProtobufValue(v, RawProtobufStorage.Variant))
+				new Converter<uint, RawProtobufValue>(v => new RawProtobufValue(v, RawProtobufWireType.VarInt))
 			},
 			{
 				typeof(long),
-				new Converter<long, RawProtobufValue>(v => new RawProtobufValue(v, RawProtobufStorage.Variant))
+				new Converter<long, RawProtobufValue>(v => new RawProtobufValue(v, RawProtobufWireType.VarInt))
 			},
 			{
 				typeof(ulong),
 				new Converter<ulong, RawProtobufValue>(
-					v => new RawProtobufValue(*(long*) v, RawProtobufStorage.Variant))
+					v => new RawProtobufValue(*(long*) v, RawProtobufWireType.VarInt))
 			},
 			{
 				typeof(string),
-				new Converter<string, RawProtobufValue>(v => new RawProtobufValue(v, RawProtobufStorage.String))
+				new Converter<string, RawProtobufValue>(v => new RawProtobufValue(v, RawProtobufWireType.String))
 			},
 			{typeof(RawProtobufValue), new Converter<RawProtobufValue, RawProtobufValue>(v => v)}
 		};
