@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Verse.DecoderDescriptors.Tree;
-using Verse.Lookups;
 
 namespace Verse.DecoderDescriptors
 {
@@ -11,13 +10,10 @@ namespace Verse.DecoderDescriptors
 
 		private readonly ReaderDefinition<TState, TNative, TEntity> definition;
 
-		private readonly ILookup<int, ReaderCallback<TState, TNative, TEntity>> fields;
-
 		public TreeDecoderDescriptor(IDecoderConverter<TNative> converter, ReaderDefinition<TState, TNative, TEntity> definition)
 		{
 			this.converter = converter;
 			this.definition = definition;
-			this.fields = new NameLookup<ReaderCallback<TState, TNative, TEntity>>();
 		}
 
 		public IDecoder<TEntity> CreateDecoder(IReader<TState, TNative> reader, Func<TEntity> constructor)
@@ -31,8 +27,8 @@ namespace Verse.DecoderDescriptors
 			if (!(descriptor is TreeDecoderDescriptor<TState, TNative, TField> ancestor))
 				throw new ArgumentOutOfRangeException(nameof(descriptor), "incompatible descriptor type");
 
-			return TreeDecoderDescriptor<TState, TNative, TEntity>.BindField(this.definition, name, this.fields,
-				constructor, setter, ancestor);
+			return TreeDecoderDescriptor<TState, TNative, TEntity>.BindField(this.definition, name, constructor, setter,
+				ancestor);
 		}
 
 		public IDecoderDescriptor<TField> HasField<TField>(string name, Func<TField> constructor,
@@ -41,15 +37,15 @@ namespace Verse.DecoderDescriptors
 			var fieldDefinition = this.definition.Create<TField>();
 			var fieldDescriptor = new TreeDecoderDescriptor<TState, TNative, TField>(this.converter, fieldDefinition);
 
-			return TreeDecoderDescriptor<TState, TNative, TEntity>.BindField(this.definition, name, this.fields,
-				constructor, setter, fieldDescriptor);
+			return TreeDecoderDescriptor<TState, TNative, TEntity>.BindField(this.definition, name, constructor, setter,
+				fieldDescriptor);
 		}
 
 		public IDecoderDescriptor<TEntity> HasField(string name)
 		{
 			var fieldDefinition = this.definition.Create<TEntity>();
 			var fieldDescriptor = new TreeDecoderDescriptor<TState, TNative, TEntity>(this.converter, fieldDefinition);
-			var parentFields = this.fields;
+			var parentFields = this.definition.Fields;
 
 			var success = parentFields.ConnectTo(name,
 				(IReader<TState, TNative> reader, TState state, ref TEntity entity) =>
@@ -147,11 +143,12 @@ namespace Verse.DecoderDescriptors
 		}
 
 		private static TreeDecoderDescriptor<TState, TNative, TField> BindField<TField>(
-			ReaderDefinition<TState, TNative, TEntity> parentDefinition, string name,
-			ILookup<int, ReaderCallback<TState, TNative, TEntity>> parentFields, Func<TField> constructor,
+			ReaderDefinition<TState, TNative, TEntity> parentDefinition, string name, Func<TField> constructor,
 			Setter<TEntity, TField> setter, TreeDecoderDescriptor<TState, TNative, TField> fieldDescriptor)
 		{
 			var fieldDefinition = fieldDescriptor.definition;
+			var parentFields = parentDefinition.Fields;
+
 			var success = parentFields.ConnectTo(name,
 				(IReader<TState, TNative> reader, TState state, ref TEntity entity) =>
 				{
