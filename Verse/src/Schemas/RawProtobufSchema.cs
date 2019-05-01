@@ -54,7 +54,7 @@ namespace Verse.Schemas
 
 		public IEncoder<TEntity> CreateEncoder()
 		{
-			return this.encoderDescriptor.CreateEncoder(new RawProtobufWriter());
+			return this.encoderDescriptor.CreateEncoder(new RawProtobufWriter(this.configuration.NoZigZagEncoding));
 		}
 
 		public void SetDecoderConverter<TValue>(Converter<RawProtobufValue, TValue> converter)

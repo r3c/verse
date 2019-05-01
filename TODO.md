@@ -9,9 +9,6 @@ TODO
   - [ ] Require `bool ValueDecoder(TNative, out TValue)` argument to `IDecoderDescriptor.HasValue`
   - [ ] Require `bool ValueEncoder(TValue, out TNative)` argument to `IEncoderDescriptor.HasValue`
   - [ ] Allow decoding converters to return false  
-- [ ] Remove Protobuf dependency from RawProtobufSchema
-  - [x] Read Protobuf without need for ProtoReader class nor related types
-  - [ ] Write Protobuf without need for ProtoWriter class nor related types
 - [ ] Allow non-int key types on ILookup from descriptors
   - [ ] Switch ReaderDefinition to generic interface in TreeDecoderDescriptor?
   - [ ] Implement mixed look-up to avoid string allocations when reading array indices as keys
@@ -25,6 +22,9 @@ TODO
 DONE
 ----
 
+- [x] Remove Protobuf dependency from RawProtobufSchema
+  - [x] Read Protobuf without need for ProtoReader class nor related types
+  - [x] Write Protobuf without need for ProtoWriter class nor related types
 - [x] Upgrade public API to multi-entity
   - [x] IDecoderStream & IEncoderStream should be IDisposable and flush at dispose
   - [x] Rename IDecoder.TryOpen to IDecoder.Open

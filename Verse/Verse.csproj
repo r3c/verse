@@ -27,10 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="protobuf-net" Version="2.0.0.668" />
-  </ItemGroup>
-
-  <ItemGroup>
     <!-- From: https://stackoverflow.com/questions/42810705/visual-studio-2017-new-csproj-internalsvisibleto -->
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
       <_Parameter1>$(MSBuildProjectName).Test</_Parameter1>

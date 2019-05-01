@@ -6,9 +6,16 @@ namespace Verse.Schemas.RawProtobuf
 {
 	internal class RawProtobufWriter : IWriter<RawProtobufWriterState, RawProtobufValue>
 	{
+		private readonly bool noZigZagEncoding;
+
+		public RawProtobufWriter(bool noZigZagEncoding)
+		{
+			this.noZigZagEncoding = noZigZagEncoding;
+		}
+
 		public RawProtobufWriterState Start(Stream stream, ErrorEvent error)
 		{
-			return new RawProtobufWriterState(stream, error);
+			return new RawProtobufWriterState(stream, error, this.noZigZagEncoding);
 		}
 
 		public void Stop(RawProtobufWriterState state)
@@ -20,13 +27,19 @@ namespace Verse.Schemas.RawProtobuf
 			WriterCallback<RawProtobufWriterState, RawProtobufValue, TEntity> writer)
 		{
 			foreach (var element in elements)
+			{
+				var fieldIndex = state.FieldIndex;
+
 				writer(this, state, element);
+
+				state.FieldIndex = fieldIndex;
+			}
 		}
 
 		public void WriteAsObject<TEntity>(RawProtobufWriterState state, TEntity source,
 			IReadOnlyDictionary<string, WriterCallback<RawProtobufWriterState, RawProtobufValue, TEntity>> fields)
 		{
-			state.ObjectBegin();
+			var marker = state.ObjectBegin();
 
 			foreach (var field in fields)
 			{
@@ -38,13 +51,12 @@ namespace Verse.Schemas.RawProtobuf
 				field.Value(this, state, source);
 			}
 
-			state.ObjectEnd();
+			state.ObjectEnd(marker);
 		}
 
 		public void WriteAsValue(RawProtobufWriterState state, RawProtobufValue value)
 		{
-			if (!state.Value(value))
-				state.Error("failed to write value");
+			state.Value(value);
 		}
 	}
 }

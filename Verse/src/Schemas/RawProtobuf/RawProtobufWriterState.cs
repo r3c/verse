@@ -1,126 +1,182 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using System.Globalization;
 using System.IO;
-using ProtoBuf;
+using System.Text;
 
 namespace Verse.Schemas.RawProtobuf
 {
 	internal class RawProtobufWriterState
 	{
+		public int FieldIndex;
+
+		private readonly MemoryStream buffer;
+
 		private readonly ErrorEvent error;
 
-		private int fieldIndex;
-
-		private long parentOffset;
+		private readonly bool noZigZagEncoding;
 
 		private readonly Stream stream;
 
-		private readonly Stack<SubObjectInstance> subObjectInstances;
-
-		public RawProtobufWriterState(Stream stream, ErrorEvent error)
+		public RawProtobufWriterState(Stream stream, ErrorEvent error, bool noZigZagEncoding)
 		{
+			this.FieldIndex = 0;
+
+			this.buffer = new MemoryStream();
 			this.error = error;
-
-			this.fieldIndex = 0;
-			this.parentOffset = 0;
+			this.noZigZagEncoding = noZigZagEncoding;
 			this.stream = stream;
-			this.subObjectInstances = new Stack<SubObjectInstance>();
-		}
-
-		public void Error(string message)
-		{
-		    var localPosition = this.subObjectInstances.Count > 0
-		        ? this.subObjectInstances.Peek().Stream.Position
-		        : 0;
-
-		    this.error((int)(this.parentOffset + localPosition), message);
 		}
 
 		public void Flush()
 		{
-			foreach (var instance in this.subObjectInstances)
-				instance.Writer.Close();
+			this.buffer.Position = 0;
+			this.buffer.CopyTo(this.stream);
 		}
 
 		public void Key(string key)
 		{
-			this.fieldIndex = int.Parse(key, CultureInfo.InvariantCulture);
+			if (!int.TryParse(key, NumberStyles.Integer, CultureInfo.InvariantCulture, out var fieldIndex))
+			{
+				this.Error($"invalid field name {key}");
+
+				// FIXME: should return false and stop serialization
+				return;
+			}
+
+			this.FieldIndex = fieldIndex;
 		}
 
-		public void ObjectBegin()
+		public long? ObjectBegin()
 		{
-		    if (this.subObjectInstances.Count > 0)
-				this.parentOffset += this.subObjectInstances.Peek().Stream.Position;
+			// If no field index is available it means we're writing top-level object that doesn't require a header
+			if (this.FieldIndex <= 0)
+				return null;
 
-			var subObjectInstance = new SubObjectInstance(this.fieldIndex);
+			this.WriteHeader(this.FieldIndex, RawProtobufWireType.String);
 
-			this.subObjectInstances.Push(subObjectInstance);
+			var marker = this.buffer.Position;
+
+			this.WriteVarInt(0); // Write 1-byte placeholder for object length
+
+			return marker;
 		}
 
-		public bool ObjectEnd()
+		public unsafe void ObjectEnd(long? marker)
 		{
-		    if (this.subObjectInstances.Count == 0)
-				return false;
+			// If marker has no value it means we were writing top-level object so there is no length to be updated
+			if (!marker.HasValue)
+				return;
 
-			var subObjectInstance = this.subObjectInstances.Pop();
+			var position = this.buffer.Position;
 
-			this.parentOffset -= subObjectInstance.Stream.Position;
-			this.fieldIndex = subObjectInstance.Index;
+			// Length of object in bytes (current position minus marker and 1-byte placeholder)
+			var length = position - marker.Value - 1;
 
-			this.CopyToParent(subObjectInstance);
+			// Number of bytes required to encode "length" as a varint
+			var bytes = (int) Math.Max(Math.Ceiling(Math.Log(length + 1, 128)), 1);
 
-			return true;
+			// If length requires more than 1 byte to be written we need to shift data to make room for it
+			if (bytes > 1)
+			{
+				this.buffer.Capacity = Math.Max((int) position + bytes - 1, this.buffer.Capacity);
+				this.buffer.SetLength(position + bytes - 1);
+
+				fixed (byte* cursor = &this.buffer.GetBuffer()[marker.Value + 1])
+				{
+					var source = cursor + length;
+					var target = cursor + length + bytes - 1;
+
+					for (var i = length; i-- > 0;)
+						*--target = *--source;
+				}
+			}
+
+			// Write length and restore original position in stream
+			this.buffer.Position = marker.Value;
+
+			this.WriteVarInt(length);
+
+			this.buffer.Position = position + bytes - 1;
 		}
 
-		public bool Value(RawProtobufValue value)
+		public void Value(RawProtobufValue value)
 		{
-		    if (this.subObjectInstances.Count == 0)
-				return false;
-
-			var writer = this.subObjectInstances.Peek().Writer;
+			this.WriteHeader(this.FieldIndex, value.Storage);
 
 			switch (value.Storage)
 			{
 				case RawProtobufWireType.Fixed32:
-					ProtoWriter.WriteFieldHeader(this.fieldIndex, WireType.Fixed32, writer);
-					ProtoWriter.WriteInt64(value.Number, writer);
+					this.buffer.WriteByte((byte)((value.Number >> 0) & 255));
+					this.buffer.WriteByte((byte)((value.Number >> 8) & 255));
+					this.buffer.WriteByte((byte)((value.Number >> 16) & 255));
+					this.buffer.WriteByte((byte)((value.Number >> 24) & 255));
+
 					break;
 
 				case RawProtobufWireType.Fixed64:
-					ProtoWriter.WriteFieldHeader(this.fieldIndex, WireType.Fixed64, writer);
-					ProtoWriter.WriteInt64(value.Number, writer);
+					this.buffer.WriteByte((byte)((value.Number >> 0) & 255));
+					this.buffer.WriteByte((byte)((value.Number >> 8) & 255));
+					this.buffer.WriteByte((byte)((value.Number >> 16) & 255));
+					this.buffer.WriteByte((byte)((value.Number >> 24) & 255));
+					this.buffer.WriteByte((byte)((value.Number >> 32) & 255));
+					this.buffer.WriteByte((byte)((value.Number >> 40) & 255));
+					this.buffer.WriteByte((byte)((value.Number >> 48) & 255));
+					this.buffer.WriteByte((byte)((value.Number >> 56) & 255));
+
 					break;
 
 				case RawProtobufWireType.String:
-					ProtoWriter.WriteFieldHeader(this.fieldIndex, WireType.String, writer);
-					ProtoWriter.WriteString(value.String, writer);
+					var buffer = Encoding.UTF8.GetBytes(value.String);
+
+					this.WriteVarInt(buffer.Length);
+
+					this.buffer.Write(buffer, 0, buffer.Length);
+
 					break;
 
 				case RawProtobufWireType.VarInt:
-					ProtoWriter.WriteFieldHeader(this.fieldIndex, WireType.Variant, writer);
-					ProtoWriter.WriteInt64(value.Number, writer);
+					// See: https://developers.google.com/protocol-buffers/docs/encoding
+					var number = this.noZigZagEncoding ? value.Number : (value.Number << 1) ^ (value.Number >> 31);
+
+					this.WriteVarInt(number);
+
 					break;
 			}
-
-			return true;
 		}
 
-		private void CopyToParent(SubObjectInstance subObjectInstance)
+		private void Error(string message)
 		{
-			subObjectInstance.Writer.Close();
-			subObjectInstance.Stream.Seek(0, SeekOrigin.Begin);
+			this.error((int) this.buffer.Position, message);
+		}
 
-			if (this.subObjectInstances.Count == 0)
-			{
-				subObjectInstance.Stream.CopyTo(this.stream);
-			}
-			else
-			{
-			    var destWriter = this.subObjectInstances.Peek().Writer;
+		private void WriteHeader(int fieldIndex, RawProtobufWireType fieldType)
+		{
+			// Write field type and first 4 bits of field index
+			var wireType = (int) fieldType & 7;
 
-				ProtoWriter.WriteFieldHeader(subObjectInstance.Index, WireType.String, destWriter);
-				ProtoWriter.WriteBytes(subObjectInstance.Stream.ToArray(), destWriter);
+			this.buffer.WriteByte((byte) (wireType | ((fieldIndex & 15) << 3) | (fieldIndex >= 16 ? 128 : 0)));
+
+			fieldIndex >>= 4;
+
+			// Write remaining part of field index if any
+			while (fieldIndex > 0)
+			{
+				this.buffer.WriteByte((byte) ((fieldIndex & 127) | (fieldIndex >= 128 ? 128 : 0)));
+
+				fieldIndex >>= 7;
 			}
+		}
+
+		private unsafe void WriteVarInt(long value)
+		{
+			var number = *(ulong*) &value;
+
+			do
+			{
+				this.buffer.WriteByte((byte) ((number & 127) | (number >= 128 ? 128u : 0u)));
+
+				number >>= 7;
+			} while (number > 0);
 		}
 	}
 }
