@@ -3,18 +3,18 @@ using System.IO;
 
 namespace Verse.DecoderDescriptors.Tree
 {
-    internal class TreeDecoder<TState, TNative, TEntity> : IDecoder<TEntity>
+    internal class TreeDecoder<TState, TNative, TKey, TEntity> : IDecoder<TEntity>
     {
         public event ErrorEvent Error;
 
-        private readonly ReaderCallback<TState, TNative, TEntity> callback;
+        private readonly ReaderCallback<TState, TNative, TKey, TEntity> callback;
 
         private readonly Func<TEntity> constructor;
 
-        private readonly IReader<TState, TNative> reader;
+        private readonly IReader<TState, TNative, TKey> reader;
 
-        public TreeDecoder(IReader<TState, TNative> reader, Func<TEntity> constructor,
-            ReaderCallback<TState, TNative, TEntity> callback)
+        public TreeDecoder(IReader<TState, TNative, TKey> reader, Func<TEntity> constructor,
+            ReaderCallback<TState, TNative, TKey, TEntity> callback)
         {
             this.callback = callback;
             this.constructor = constructor;
@@ -25,7 +25,8 @@ namespace Verse.DecoderDescriptors.Tree
         {
             var state = this.reader.Start(input, (p, m) => this.Error?.Invoke(p, m));
 
-            return new TreeDecoderStream<TState, TNative, TEntity>(this.reader, this.constructor, this.callback, state);
+            return new TreeDecoderStream<TState, TNative, TKey, TEntity>(this.reader, this.constructor, this.callback,
+                state);
         }
     }
 }

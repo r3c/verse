@@ -6,7 +6,7 @@ using Verse.Lookups;
 
 namespace Verse.Schemas.QueryString
 {
-	internal class Reader : IReader<ReaderState, string>
+	internal class Reader : IReader<ReaderState, string, char>
 	{
 		private readonly Encoding encoding;
 
@@ -16,7 +16,7 @@ namespace Verse.Schemas.QueryString
 		}
 
 		public BrowserMove<TElement> ReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
-			ReaderCallback<ReaderState, string, TElement> callback)
+			ReaderCallback<ReaderState, string, char, TElement> callback)
 		{
 			return (int index, out TElement element) =>
 			{
@@ -27,7 +27,7 @@ namespace Verse.Schemas.QueryString
 		}
 
 		public bool ReadToObject<TObject>(ReaderState state,
-			ILookup<int, ReaderCallback<ReaderState, string, TObject>> fields, ref TObject target)
+			ILookup<char, ReaderCallback<ReaderState, string, char, TObject>> lookup, ref TObject target)
 		{
 			if (state.Current == -1)
 				return true;
@@ -36,7 +36,7 @@ namespace Verse.Schemas.QueryString
 			{
 				// Parse field name
 				var empty = true;
-				var node = fields;
+				var node = lookup;
 
 				// FIXME: handle % encoding in field names
 				while (QueryStringCharacter.IsUnreserved(state.Current))
@@ -109,7 +109,7 @@ namespace Verse.Schemas.QueryString
 
 					value = default;
 
-					return this.ReadToObject(state, NameLookup<ReaderCallback<ReaderState, string, bool>>.Empty,
+					return this.ReadToObject(state, NameLookup<ReaderCallback<ReaderState, string, char, bool>>.Empty,
 						ref dummy);
 
 				case QueryStringLocation.ValueBegin:

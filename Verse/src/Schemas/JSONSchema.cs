@@ -1,9 +1,7 @@
 using System;
 using System.Text;
 using Verse.DecoderDescriptors;
-using Verse.DecoderDescriptors.Tree;
 using Verse.EncoderDescriptors;
-using Verse.EncoderDescriptors.Tree;
 using Verse.Schemas.JSON;
 
 namespace Verse.Schemas
@@ -26,7 +24,7 @@ namespace Verse.Schemas
 
 		private readonly DecoderConverter decoderConverter;
 
-		private readonly TreeDecoderDescriptor<ReaderState, JSONValue, TEntity> decoderDescriptor;
+		private readonly TreeDecoderDescriptor<ReaderState, JSONValue, char, TEntity> decoderDescriptor;
 
 		private readonly EncoderConverter encoderConverter;
 
@@ -38,13 +36,13 @@ namespace Verse.Schemas
 		/// <param name="configuration">Text encoding, ignore null...</param>
 		public JSONSchema(JSONConfiguration configuration)
 		{
-			var writerDefinition = new WriterDefinition<WriterState, JSONValue, TEntity>();
-			var readerDefinition = new ReaderDefinition<ReaderState, JSONValue, TEntity>();
+			var writerDefinition = new WriterDefinition<TEntity>();
+			var readerDefinition = new ReaderDefinition<TEntity>();
 
 			this.configuration = configuration;
 			this.decoderConverter = new DecoderConverter();
 			this.encoderConverter = new EncoderConverter();
-			this.decoderDescriptor = new TreeDecoderDescriptor<ReaderState, JSONValue, TEntity>(this.decoderConverter, readerDefinition);
+			this.decoderDescriptor = new TreeDecoderDescriptor<ReaderState, JSONValue, char, TEntity>(this.decoderConverter, readerDefinition);
 			this.encoderDescriptor = new TreeEncoderDescriptor<WriterState, JSONValue, TEntity>(this.encoderConverter, writerDefinition);
 		}
 

@@ -5,7 +5,7 @@ using Verse.DecoderDescriptors.Tree;
 
 namespace Verse.Schemas.RawProtobuf
 {
-	internal class RawProtobufReader : IReader<RawProtobufReaderState, RawProtobufValue>
+	internal class RawProtobufReader : IReader<RawProtobufReaderState, RawProtobufValue, char>
 	{
 		private readonly bool noZigZagEncoding;
 
@@ -15,7 +15,7 @@ namespace Verse.Schemas.RawProtobuf
 		}
 
 		public BrowserMove<TElement> ReadToArray<TElement>(RawProtobufReaderState state, Func<TElement> constructor,
-			ReaderCallback<RawProtobufReaderState, RawProtobufValue, TElement> callback)
+			ReaderCallback<RawProtobufReaderState, RawProtobufValue, char, TElement> callback)
 		{
 			var firstIndex = state.FieldIndex;
 
@@ -43,7 +43,8 @@ namespace Verse.Schemas.RawProtobuf
 		}
 
 		public bool ReadToObject<TObject>(RawProtobufReaderState state,
-			ILookup<int, ReaderCallback<RawProtobufReaderState, RawProtobufValue, TObject>> fields, ref TObject target)
+			ILookup<char, ReaderCallback<RawProtobufReaderState, RawProtobufValue, char, TObject>> lookup,
+			ref TObject target)
 		{
 			if (!state.ObjectBegin(out var backup))
 				return state.TrySkipValue();
@@ -60,7 +61,7 @@ namespace Verse.Schemas.RawProtobuf
 					return true;
 				}
 
-				var field = fields.Follow('_');
+				var field = lookup.Follow('_');
 
 				if (state.FieldIndex > 9)
 				{

@@ -50,15 +50,16 @@ namespace Verse.Schemas.Protobuf
 		}
 	}
 
-	internal class Reader : IReader<ReaderState, ProtobufValue>
+	internal class Reader : IReader<ReaderState, ProtobufValue, int>
 	{
 		public BrowserMove<TElement> ReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
-			ReaderCallback<ReaderState, ProtobufValue, TElement> callback)
+			ReaderCallback<ReaderState, ProtobufValue, int, TElement> callback)
 		{
 			throw new NotImplementedException();
 		}
 
-		public bool ReadToObject<TObject>(ReaderState state, ILookup<int, ReaderCallback<ReaderState, ProtobufValue, TObject>> fields, ref TObject target)
+		public bool ReadToObject<TObject>(ReaderState state,
+			ILookup<int, ReaderCallback<ReaderState, ProtobufValue, int, TObject>> lookup, ref TObject target)
 		{
 			var current = state.Stream.ReadByte();
 
@@ -67,7 +68,7 @@ namespace Verse.Schemas.Protobuf
 
 			// Read field number and wire type
 			var index = (current >> 3) & 15;
-			var wire = (WireType)(current & 7);
+			var wire = (WireType) (current & 7);
 
 			while ((current & 128) != 0)
 			{
@@ -76,7 +77,7 @@ namespace Verse.Schemas.Protobuf
 			}
 
 			// Decode value
-            ProtoBinding field;
+			ProtoBinding field;
 /*
 			if (index >= 0 && index < this.bindings.Length && this.bindings[index].Type != ProtoType.Undefined)
 				field = this.bindings[index];
@@ -89,7 +90,7 @@ namespace Verse.Schemas.Protobuf
 				return false;
 			}
 */
-            field = default;
+			field = default;
 
 			switch (wire)
 			{
@@ -106,13 +107,13 @@ namespace Verse.Schemas.Protobuf
 						case ProtoType.Float:
 							unsafe
 							{
-								state.Value = new ProtobufValue(*((float*)&u32));
+								state.Value = new ProtobufValue(*((float*) &u32));
 							}
 
 							break;
 
 						case ProtoType.SFixed32:
-							state.Value = new ProtobufValue((int)u32);
+							state.Value = new ProtobufValue((int) u32);
 
 							break;
 
@@ -135,7 +136,7 @@ namespace Verse.Schemas.Protobuf
 						case ProtoType.Double:
 							unsafe
 							{
-								state.Value = new ProtobufValue(*((double*)&u64));
+								state.Value = new ProtobufValue(*((double*) &u64));
 							}
 
 							break;
@@ -146,7 +147,7 @@ namespace Verse.Schemas.Protobuf
 							break;
 
 						case ProtoType.SFixed64:
-							state.Value = new ProtobufValue((long)u64);
+							state.Value = new ProtobufValue((long) u64);
 
 							break;
 
@@ -199,7 +200,7 @@ namespace Verse.Schemas.Protobuf
 */
 							var buffer = new byte[length];
 
-							if (state.Stream.Read(buffer, 0, (int)length) != (int)length)
+							if (state.Stream.Read(buffer, 0, (int) length) != (int) length)
 								return false;
 
 							state.Value = new ProtobufValue(Encoding.UTF8.GetString(buffer));
@@ -228,18 +229,18 @@ namespace Verse.Schemas.Protobuf
 							break;
 
 						case ProtoType.Int32:
-							state.Value = new ProtobufValue((int)varint);
+							state.Value = new ProtobufValue((int) varint);
 
 							break;
 
 						case ProtoType.Int64:
-							state.Value = new ProtobufValue((long)varint);
+							state.Value = new ProtobufValue((long) varint);
 
 							break;
 
 						case ProtoType.SInt32:
 						case ProtoType.SInt64:
-							state.Value = new ProtobufValue((-(long)(varint & 1)) ^ (long)(varint >> 1));
+							state.Value = new ProtobufValue((-(long) (varint & 1)) ^ (long) (varint >> 1));
 
 							break;
 
@@ -265,12 +266,13 @@ namespace Verse.Schemas.Protobuf
 
 					return false;
 			}
+
 /*
 			return this.fields[index] != null
 				? this.fields[index](state, ref entity)
 				: Reader<TObject>.Ignore(state);
 */
-            return false;
+			return false;
 		}
 
 		public bool ReadToValue(ReaderState state, out ProtobufValue value)

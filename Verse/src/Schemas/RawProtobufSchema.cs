@@ -1,8 +1,6 @@
 ﻿using System;
 using Verse.DecoderDescriptors;
-using Verse.DecoderDescriptors.Tree;
 using Verse.EncoderDescriptors;
-using Verse.EncoderDescriptors.Tree;
 using Verse.Schemas.RawProtobuf;
 
 namespace Verse.Schemas
@@ -23,7 +21,8 @@ namespace Verse.Schemas
 
 		private readonly RawProtobufDecoderConverter decoderConverter;
 
-		private readonly TreeDecoderDescriptor<RawProtobufReaderState, RawProtobufValue, TEntity> decoderDescriptor;
+		private readonly TreeDecoderDescriptor<RawProtobufReaderState, RawProtobufValue, char, TEntity>
+			decoderDescriptor;
 
 		private readonly RawProtobufEncoderConverter encoderConverter;
 
@@ -33,13 +32,13 @@ namespace Verse.Schemas
 		{
 			var decoderConverter = new RawProtobufDecoderConverter();
 			var encoderConverter = new RawProtobufEncoderConverter();
-			var readerDefinition = new ReaderDefinition<RawProtobufReaderState, RawProtobufValue, TEntity>();
-			var writerDefinition = new WriterDefinition<RawProtobufWriterState, RawProtobufValue, TEntity>();
+			var readerDefinition = new RawProtobufReaderDefinition<TEntity>();
+			var writerDefinition = new RawProtobufWriterDefinition<TEntity>();
 
 			this.configuration = configuration;
 			this.decoderConverter = decoderConverter;
 			this.decoderDescriptor =
-				new TreeDecoderDescriptor<RawProtobufReaderState, RawProtobufValue, TEntity>(decoderConverter,
+				new TreeDecoderDescriptor<RawProtobufReaderState, RawProtobufValue, char, TEntity>(decoderConverter,
 					readerDefinition);
 			this.encoderConverter = encoderConverter;
 			this.encoderDescriptor =

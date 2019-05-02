@@ -2,18 +2,18 @@
 
 namespace Verse.DecoderDescriptors.Tree
 {
-	internal class TreeDecoderStream<TState, TNative, TEntity> : IDecoderStream<TEntity>
+	internal class TreeDecoderStream<TState, TNative, TKey, TEntity> : IDecoderStream<TEntity>
 	{
-		private readonly ReaderCallback<TState, TNative, TEntity> callback;
+		private readonly ReaderCallback<TState, TNative, TKey, TEntity> callback;
 
 		private readonly Func<TEntity> constructor;
 
-		private readonly IReader<TState, TNative> reader;
+		private readonly IReader<TState, TNative, TKey> reader;
 
 		private readonly TState state;
 
-		public TreeDecoderStream(IReader<TState, TNative> reader, Func<TEntity> constructor,
-			ReaderCallback<TState, TNative, TEntity> callback, TState state)
+		public TreeDecoderStream(IReader<TState, TNative, TKey> reader, Func<TEntity> constructor,
+			ReaderCallback<TState, TNative, TKey, TEntity> callback, TState state)
 		{
 			this.callback = callback;
 			this.constructor = constructor;

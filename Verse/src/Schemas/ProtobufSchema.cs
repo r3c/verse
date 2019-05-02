@@ -21,7 +21,7 @@ namespace Verse.Schemas
 
 		private readonly DecoderConverter decoderConverter;
 
-		private readonly TreeDecoderDescriptor<ReaderState, ProtobufValue, TEntity> decoderDescriptor;
+		private readonly TreeDecoderDescriptor<ReaderState, ProtobufValue, int, TEntity> decoderDescriptor;
 
 		private readonly EncoderConverter encoderConverter;
 
@@ -37,7 +37,7 @@ namespace Verse.Schemas
 
 			this.decoderConverter = decoderConverter;
 			this.decoderDescriptor =
-				new TreeDecoderDescriptor<ReaderState, ProtobufValue, TEntity>(decoderConverter, reader);
+				new TreeDecoderDescriptor<ReaderState, ProtobufValue, int, TEntity>(decoderConverter, reader);
 
 			this.encoderConverter = encoderConverter;
 			this.encoderDescriptor =

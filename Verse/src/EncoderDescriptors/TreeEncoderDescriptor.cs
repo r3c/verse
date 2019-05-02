@@ -8,11 +8,11 @@ namespace Verse.EncoderDescriptors
 	{
 		private readonly IEncoderConverter<TNative> converter;
 
-		private readonly WriterDefinition<TState, TNative, TEntity> definition;
+		private readonly IWriterDefinition<TState, TNative, TEntity> definition;
 
 		private readonly Dictionary<string, WriterCallback<TState, TNative, TEntity>> fields;
 
-		public TreeEncoderDescriptor(IEncoderConverter<TNative> converter, WriterDefinition<TState, TNative, TEntity> definition)
+		public TreeEncoderDescriptor(IEncoderConverter<TNative> converter, IWriterDefinition<TState, TNative, TEntity> definition)
 		{
 			this.converter = converter;
 			this.definition = definition;
@@ -83,7 +83,7 @@ namespace Verse.EncoderDescriptors
 		}
 
 		private static IEncoderDescriptor<TElement> BindArray<TElement>(
-			WriterDefinition<TState, TNative, TEntity> parent, Func<TEntity, IEnumerable<TElement>> getter,
+			IWriterDefinition<TState, TNative, TEntity> parent, Func<TEntity, IEnumerable<TElement>> getter,
 			TreeEncoderDescriptor<TState, TNative, TElement> elementDescriptor)
 		{
 			var elementDefinition = elementDescriptor.definition;
@@ -95,7 +95,7 @@ namespace Verse.EncoderDescriptors
 		}
 
 		private static IEncoderDescriptor<TField> BindField<TField>(
-			WriterDefinition<TState, TNative, TEntity> parentDefinition,
+			IWriterDefinition<TState, TNative, TEntity> parentDefinition,
 			string name, Dictionary<string, WriterCallback<TState, TNative, TEntity>> parentFields,
 			Func<TEntity, TField> getter, TreeEncoderDescriptor<TState, TNative, TField> fieldDescriptor)
 		{
@@ -111,7 +111,7 @@ namespace Verse.EncoderDescriptors
 			return fieldDescriptor;
 		}
 
-		private static void BindValue(WriterDefinition<TState, TNative, TEntity> parent,
+		private static void BindValue(IWriterDefinition<TState, TNative, TEntity> parent,
 			Converter<TEntity, TNative> converter)
 		{
 			parent.Callback = (reader, state, entity) => reader.WriteAsValue(state, converter(entity));

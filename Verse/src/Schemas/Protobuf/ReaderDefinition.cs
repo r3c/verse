@@ -3,8 +3,12 @@ using Verse.Schemas.Protobuf.Definition;
 
 namespace Verse.Schemas.Protobuf
 {
-	internal class ProtobufReaderDefinition<TEntity> : ReaderDefinition<ReaderState, ProtobufValue, TEntity>
+	internal class ProtobufReaderDefinition<TEntity> : IReaderDefinition<ReaderState, ProtobufValue, int, TEntity>
 	{
+		public ReaderCallback<ReaderState, ProtobufValue, int, TEntity> Callback { get; set; }
+
+		public ILookup<int, ReaderCallback<ReaderState, ProtobufValue, int, TEntity>> Lookup { get; }
+
 		//private static readonly Reader<TEntity> emptyReader = new Reader<TEntity>(new ProtoBinding[0], false);
 
 		private readonly ProtoBinding[] bindings;
@@ -20,7 +24,7 @@ namespace Verse.Schemas.Protobuf
 			this.rejectUnknown = rejectUnknown;
 		}
 
-		public override ReaderDefinition<ReaderState, ProtobufValue, TOther> Create<TOther>()
+		public IReaderDefinition<ReaderState, ProtobufValue, int, TOther> Create<TOther>()
 		{
 			return new ProtobufReaderDefinition<TOther>(this.bindings, this.rejectUnknown);
 		}

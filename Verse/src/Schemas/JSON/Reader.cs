@@ -7,7 +7,7 @@ using Verse.Lookups;
 
 namespace Verse.Schemas.JSON
 {
-	internal class Reader : IReader<ReaderState, JSONValue>
+	internal class Reader : IReader<ReaderState, JSONValue, char>
 	{
 		private readonly bool readObjectValuesAsArray;
 		private readonly bool readScalarAsOneElementArray;
@@ -21,7 +21,7 @@ namespace Verse.Schemas.JSON
 		}
 
 		public BrowserMove<TElement> ReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
-			ReaderCallback<ReaderState, JSONValue, TElement> callback)
+			ReaderCallback<ReaderState, JSONValue, char, TElement> callback)
 		{
 			state.PullIgnored();
 
@@ -64,17 +64,17 @@ namespace Verse.Schemas.JSON
 		}
 
 		public bool ReadToObject<TObject>(ReaderState state,
-			ILookup<int, ReaderCallback<ReaderState, JSONValue, TObject>> fields, ref TObject target)
+			ILookup<char, ReaderCallback<ReaderState, JSONValue, char, TObject>> lookup, ref TObject target)
 		{
 			state.PullIgnored();
 
 			switch (state.Current)
 			{
 				case '[':
-					return this.ReadToObjectFromArray(state, fields, ref target);
+					return this.ReadToObjectFromArray(state, lookup, ref target);
 
 				case '{':
-					return this.ReadToObjectFromObject(state, fields, ref target);
+					return this.ReadToObjectFromObject(state, lookup, ref target);
 
 				default:
 					return this.Skip(state);
@@ -107,7 +107,8 @@ namespace Verse.Schemas.JSON
 				case 'f':
 					state.Read();
 
-					if (!state.PullExpected('a') || !state.PullExpected('l') || !state.PullExpected('s') || !state.PullExpected('e'))
+					if (!state.PullExpected('a') || !state.PullExpected('l') || !state.PullExpected('s') ||
+					    !state.PullExpected('e'))
 					{
 						value = default;
 
@@ -176,7 +177,7 @@ namespace Verse.Schemas.JSON
 		}
 
 		private BrowserMove<TElement> ReadToArrayFromArray<TElement>(ReaderState state, Func<TElement> constructor,
-			ReaderCallback<ReaderState, JSONValue, TElement> callback)
+			ReaderCallback<ReaderState, JSONValue, char, TElement> callback)
 		{
 			state.Read();
 
@@ -213,8 +214,8 @@ namespace Verse.Schemas.JSON
 			};
 		}
 
-		private BrowserMove<TElement> ReadToArrayFromObjectValues<TElement>(ReaderState state, Func<TElement> constructor,
-			ReaderCallback<ReaderState, JSONValue, TElement> callback)
+		private BrowserMove<TElement> ReadToArrayFromObjectValues<TElement>(ReaderState state,
+			Func<TElement> constructor, ReaderCallback<ReaderState, JSONValue, char, TElement> callback)
 		{
 			state.Read();
 
@@ -286,7 +287,8 @@ namespace Verse.Schemas.JSON
 			};
 		}
 
-		private bool ReadToObjectFromArray<TObject>(ReaderState state, ILookup<int, ReaderCallback<ReaderState, JSONValue, TObject>> fields, ref TObject target)
+		private bool ReadToObjectFromArray<TObject>(ReaderState state,
+			ILookup<char, ReaderCallback<ReaderState, JSONValue, char, TObject>> lookup, ref TObject target)
 		{
 			state.Read();
 
@@ -307,15 +309,15 @@ namespace Verse.Schemas.JSON
 				}
 
 				// Build and move to array index
-				var field = fields;
+				var field = lookup;
 
 				if (index > 9)
 				{
-					foreach (char digit in index.ToString(CultureInfo.InvariantCulture))
+					foreach (var digit in index.ToString(CultureInfo.InvariantCulture))
 						field = field.Follow(digit);
 				}
 				else
-					field = field.Follow((char)('0' + index));
+					field = field.Follow((char) ('0' + index));
 
 				// Read array value
 				if (!(field.HasValue ? field.Value(this, state, ref target) : this.Skip(state)))
@@ -328,7 +330,7 @@ namespace Verse.Schemas.JSON
 		}
 
 		private bool ReadToObjectFromObject<TObject>(ReaderState state,
-			ILookup<int, ReaderCallback<ReaderState, JSONValue, TObject>> fields, ref TObject target)
+			ILookup<char, ReaderCallback<ReaderState, JSONValue, char, TObject>> lookup, ref TObject target)
 		{
 			state.Read();
 
@@ -352,7 +354,7 @@ namespace Verse.Schemas.JSON
 					return false;
 
 				// Read and move to object key
-				var field = fields;
+				var field = lookup;
 
 				while (state.Current != '"')
 				{
@@ -413,7 +415,7 @@ namespace Verse.Schemas.JSON
 				}
 
 				// Read integral part
-				for (; state.Current >= (int)'0' && state.Current <= (int)'9'; state.Read())
+				for (; state.Current >= (int) '0' && state.Current <= (int) '9'; state.Read())
 				{
 					if (numberMantissa > mantissaMax)
 					{
@@ -422,7 +424,7 @@ namespace Verse.Schemas.JSON
 						continue;
 					}
 
-					numberMantissa = numberMantissa * 10 + (ulong)(state.Current - '0');
+					numberMantissa = numberMantissa * 10 + (ulong) (state.Current - '0');
 				}
 
 				// Read decimal part if any
@@ -430,12 +432,12 @@ namespace Verse.Schemas.JSON
 				{
 					state.Read();
 
-					for (; state.Current >= (int)'0' && state.Current <= (int)'9'; state.Read())
+					for (; state.Current >= (int) '0' && state.Current <= (int) '9'; state.Read())
 					{
 						if (numberMantissa > mantissaMax)
 							continue;
 
-						numberMantissa = numberMantissa * 10 + (ulong)(state.Current - '0');
+						numberMantissa = numberMantissa * 10 + (ulong) (state.Current - '0');
 
 						--numberPower;
 					}
@@ -476,14 +478,15 @@ namespace Verse.Schemas.JSON
 
 					uint numberExponent;
 
-					for (numberExponent = 0; state.Current >= (int)'0' && state.Current <= (int)'9'; state.Read())
-						numberExponent = numberExponent * 10 + (uint)(state.Current - '0');
+					for (numberExponent = 0; state.Current >= (int) '0' && state.Current <= (int) '9'; state.Read())
+						numberExponent = numberExponent * 10 + (uint) (state.Current - '0');
 
-					numberPower += (int)((numberExponent ^ numberExponentMask) + numberExponentPlus);
+					numberPower += (int) ((numberExponent ^ numberExponentMask) + numberExponentPlus);
 				}
 
 				// Compute result number and store as JSON value
-				var number = (long)((numberMantissa ^ numberMantissaMask) + numberMantissaPlus) * Math.Pow(10, numberPower);
+				var number = (long) ((numberMantissa ^ numberMantissaMask) + numberMantissaPlus) *
+				             Math.Pow(10, numberPower);
 
 				value = JSONValue.FromNumber(number);
 
@@ -558,7 +561,8 @@ namespace Verse.Schemas.JSON
 				case 'f':
 					state.Read();
 
-					return state.PullExpected('a') && state.PullExpected('l') && state.PullExpected('s') && state.PullExpected('e');
+					return state.PullExpected('a') && state.PullExpected('l') && state.PullExpected('s') &&
+					       state.PullExpected('e');
 
 				case 'n':
 					state.Read();
@@ -571,10 +575,12 @@ namespace Verse.Schemas.JSON
 					return state.PullExpected('r') && state.PullExpected('u') && state.PullExpected('e');
 
 				case '[':
-					return this.ReadToObjectFromArray(state, NameLookup<ReaderCallback<ReaderState, JSONValue, bool>>.Empty, ref empty);
+					return this.ReadToObjectFromArray(state,
+						NameLookup<ReaderCallback<ReaderState, JSONValue, char, bool>>.Empty, ref empty);
 
 				case '{':
-					return this.ReadToObjectFromObject(state, NameLookup<ReaderCallback<ReaderState, JSONValue, bool>>.Empty, ref empty);
+					return this.ReadToObjectFromObject(state,
+						NameLookup<ReaderCallback<ReaderState, JSONValue, char, bool>>.Empty, ref empty);
 
 				default:
 					state.Error("expected array, object or value");

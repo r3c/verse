@@ -7,9 +7,9 @@ namespace Verse.Lookups
 		public const int HashThreshold = 128;
 	}
 
-	internal class NameLookup<TValue> : ILookup<int, TValue>
+	internal class NameLookup<TValue> : ILookup<char, TValue>
 	{
-		public static readonly ILookup<int, TValue> Empty = new NameLookup<TValue>();
+		public static readonly ILookup<char, TValue> Empty = new NameLookup<TValue>();
 
 		public bool HasValue { get; private set; }
 
@@ -72,7 +72,7 @@ namespace Verse.Lookups
 			return true;
 		}
 
-		public ILookup<int, TValue> Follow(int key)
+		public ILookup<char, TValue> Follow(char key)
 		{
 			if (key < NameLookup.HashThreshold)
 			{

@@ -10,7 +10,7 @@ TODO
   - [ ] Require `bool ValueEncoder(TValue, out TNative)` argument to `IEncoderDescriptor.HasValue`
   - [ ] Allow decoding converters to return false  
 - [ ] Allow non-int key types on ILookup from descriptors
-  - [ ] Switch ReaderDefinition to generic interface in TreeDecoderDescriptor?
+  - [x] Introduce TKey generic on reader definitions
   - [ ] Implement mixed look-up to avoid string allocations when reading array indices as keys
 - [ ] Move entity constructors at object definition instead of parent
   - [ ] Restore "IsObject<TObject>" and "IsObject" methods in descriptors
