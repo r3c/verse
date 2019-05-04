@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Verse.Schemas.RawProtobuf
 {
-	internal class RawProtobufWriterState
+	internal class WriterState
 	{
 		public int FieldIndex;
 
@@ -17,7 +17,7 @@ namespace Verse.Schemas.RawProtobuf
 
 		private readonly Stream stream;
 
-		public RawProtobufWriterState(Stream stream, ErrorEvent error, bool noZigZagEncoding)
+		public WriterState(Stream stream, ErrorEvent error, bool noZigZagEncoding)
 		{
 			this.FieldIndex = 0;
 

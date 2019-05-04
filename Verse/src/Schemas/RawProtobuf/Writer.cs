@@ -4,27 +4,27 @@ using Verse.EncoderDescriptors.Tree;
 
 namespace Verse.Schemas.RawProtobuf
 {
-	internal class RawProtobufWriter : IWriter<RawProtobufWriterState, RawProtobufValue>
+	internal class Writer : IWriter<WriterState, RawProtobufValue>
 	{
 		private readonly bool noZigZagEncoding;
 
-		public RawProtobufWriter(bool noZigZagEncoding)
+		public Writer(bool noZigZagEncoding)
 		{
 			this.noZigZagEncoding = noZigZagEncoding;
 		}
 
-		public RawProtobufWriterState Start(Stream stream, ErrorEvent error)
+		public WriterState Start(Stream stream, ErrorEvent error)
 		{
-			return new RawProtobufWriterState(stream, error, this.noZigZagEncoding);
+			return new WriterState(stream, error, this.noZigZagEncoding);
 		}
 
-		public void Stop(RawProtobufWriterState state)
+		public void Stop(WriterState state)
 		{
 			state.Flush();
 		}
 
-		public void WriteAsArray<TEntity>(RawProtobufWriterState state, IEnumerable<TEntity> elements,
-			WriterCallback<RawProtobufWriterState, RawProtobufValue, TEntity> writer)
+		public void WriteAsArray<TEntity>(WriterState state, IEnumerable<TEntity> elements,
+			WriterCallback<WriterState, RawProtobufValue, TEntity> writer)
 		{
 			foreach (var element in elements)
 			{
@@ -36,8 +36,8 @@ namespace Verse.Schemas.RawProtobuf
 			}
 		}
 
-		public void WriteAsObject<TEntity>(RawProtobufWriterState state, TEntity source,
-			IReadOnlyDictionary<string, WriterCallback<RawProtobufWriterState, RawProtobufValue, TEntity>> fields)
+		public void WriteAsObject<TEntity>(WriterState state, TEntity source,
+			IReadOnlyDictionary<string, WriterCallback<WriterState, RawProtobufValue, TEntity>> fields)
 		{
 			var marker = state.ObjectBegin();
 
@@ -54,7 +54,7 @@ namespace Verse.Schemas.RawProtobuf
 			state.ObjectEnd(marker);
 		}
 
-		public void WriteAsValue(RawProtobufWriterState state, RawProtobufValue value)
+		public void WriteAsValue(WriterState state, RawProtobufValue value)
 		{
 			state.Value(value);
 		}

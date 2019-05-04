@@ -5,17 +5,17 @@ using Verse.DecoderDescriptors.Tree;
 
 namespace Verse.Schemas.RawProtobuf
 {
-	internal class RawProtobufReader : IReader<RawProtobufReaderState, RawProtobufValue, char>
+	internal class Reader : IReader<ReaderState, RawProtobufValue, char>
 	{
 		private readonly bool noZigZagEncoding;
 
-		public RawProtobufReader(bool noZigZagEncoding)
+		public Reader(bool noZigZagEncoding)
 		{
 			this.noZigZagEncoding = noZigZagEncoding;
 		}
 
-		public BrowserMove<TElement> ReadToArray<TElement>(RawProtobufReaderState state, Func<TElement> constructor,
-			ReaderCallback<RawProtobufReaderState, RawProtobufValue, char, TElement> callback)
+		public BrowserMove<TElement> ReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
+			ReaderCallback<ReaderState, RawProtobufValue, char, TElement> callback)
 		{
 			var firstIndex = state.FieldIndex;
 
@@ -42,9 +42,8 @@ namespace Verse.Schemas.RawProtobuf
 			};
 		}
 
-		public bool ReadToObject<TObject>(RawProtobufReaderState state,
-			ILookup<char, ReaderCallback<RawProtobufReaderState, RawProtobufValue, char, TObject>> lookup,
-			ref TObject target)
+		public bool ReadToObject<TObject>(ReaderState state,
+			ILookup<char, ReaderCallback<ReaderState, RawProtobufValue, char, TObject>> lookup, ref TObject target)
 		{
 			if (!state.ObjectBegin(out var backup))
 				return state.TrySkipValue();
@@ -76,17 +75,17 @@ namespace Verse.Schemas.RawProtobuf
 			}
 		}
 
-		public bool ReadToValue(RawProtobufReaderState state, out RawProtobufValue value)
+		public bool ReadToValue(ReaderState state, out RawProtobufValue value)
 		{
 			return state.TryReadValue(out value);
 		}
 
-		public RawProtobufReaderState Start(Stream stream, ErrorEvent error)
+		public ReaderState Start(Stream stream, ErrorEvent error)
 		{
-			return new RawProtobufReaderState(stream, error, this.noZigZagEncoding);
+			return new ReaderState(stream, error, this.noZigZagEncoding);
 		}
 
-		public void Stop(RawProtobufReaderState state)
+		public void Stop(ReaderState state)
 		{
 		}
 	}

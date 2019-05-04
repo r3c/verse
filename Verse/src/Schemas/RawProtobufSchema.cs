@@ -21,28 +21,28 @@ namespace Verse.Schemas
 
 		private readonly RawProtobufDecoderConverter decoderConverter;
 
-		private readonly TreeDecoderDescriptor<RawProtobufReaderState, RawProtobufValue, char, TEntity>
+		private readonly TreeDecoderDescriptor<ReaderState, RawProtobufValue, char, TEntity>
 			decoderDescriptor;
 
 		private readonly RawProtobufEncoderConverter encoderConverter;
 
-		private readonly TreeEncoderDescriptor<RawProtobufWriterState, RawProtobufValue, TEntity> encoderDescriptor;
+		private readonly TreeEncoderDescriptor<WriterState, RawProtobufValue, TEntity> encoderDescriptor;
 
 		public RawProtobufSchema(RawProtobufConfiguration configuration)
 		{
 			var decoderConverter = new RawProtobufDecoderConverter();
 			var encoderConverter = new RawProtobufEncoderConverter();
-			var readerDefinition = new RawProtobufReaderDefinition<TEntity>();
-			var writerDefinition = new RawProtobufWriterDefinition<TEntity>();
+			var readerDefinition = new ReaderDefinition<TEntity>();
+			var writerDefinition = new WriterDefinition<TEntity>();
 
 			this.configuration = configuration;
 			this.decoderConverter = decoderConverter;
 			this.decoderDescriptor =
-				new TreeDecoderDescriptor<RawProtobufReaderState, RawProtobufValue, char, TEntity>(decoderConverter,
+				new TreeDecoderDescriptor<ReaderState, RawProtobufValue, char, TEntity>(decoderConverter,
 					readerDefinition);
 			this.encoderConverter = encoderConverter;
 			this.encoderDescriptor =
-				new TreeEncoderDescriptor<RawProtobufWriterState, RawProtobufValue, TEntity>(encoderConverter,
+				new TreeEncoderDescriptor<WriterState, RawProtobufValue, TEntity>(encoderConverter,
 					writerDefinition);
 		}
 
@@ -53,13 +53,13 @@ namespace Verse.Schemas
 
 		public IDecoder<TEntity> CreateDecoder(Func<TEntity> constructor)
 		{
-			return this.decoderDescriptor.CreateDecoder(new RawProtobufReader(this.configuration.NoZigZagEncoding),
+			return this.decoderDescriptor.CreateDecoder(new Reader(this.configuration.NoZigZagEncoding),
 				constructor);
 		}
 
 		public IEncoder<TEntity> CreateEncoder()
 		{
-			return this.encoderDescriptor.CreateEncoder(new RawProtobufWriter(this.configuration.NoZigZagEncoding));
+			return this.encoderDescriptor.CreateEncoder(new Writer(this.configuration.NoZigZagEncoding));
 		}
 
 		public void SetDecoderConverter<TValue>(Converter<RawProtobufValue, TValue> converter)

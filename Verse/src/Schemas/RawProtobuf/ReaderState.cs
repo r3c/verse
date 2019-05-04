@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Verse.Schemas.RawProtobuf
 {
-	internal class RawProtobufReaderState
+	internal class ReaderState
 	{
 		private const int StringMaxLength = 65536;
 
@@ -33,7 +33,7 @@ namespace Verse.Schemas.RawProtobuf
 
 		private readonly Stream stream;
 
-		public RawProtobufReaderState(Stream stream, ErrorEvent error, bool noZigZagEncoding)
+		public ReaderState(Stream stream, ErrorEvent error, bool noZigZagEncoding)
 		{
 			this.error = error;
 			this.noZigZagEncoding = noZigZagEncoding;
@@ -155,9 +155,9 @@ namespace Verse.Schemas.RawProtobuf
 				case RawProtobufWireType.String:
 					var length = (int) this.ReadVarInt();
 
-					if (length > RawProtobufReaderState.StringMaxLength)
+					if (length > ReaderState.StringMaxLength)
 					{
-						this.Error($"string field exceeds maximum length of {RawProtobufReaderState.StringMaxLength}");
+						this.Error($"string field exceeds maximum length of {ReaderState.StringMaxLength}");
 
 						value = default;
 
@@ -229,9 +229,9 @@ namespace Verse.Schemas.RawProtobuf
 				case RawProtobufWireType.String:
 					var length = (int) this.ReadVarInt();
 
-					if (length > RawProtobufReaderState.StringMaxLength)
+					if (length > ReaderState.StringMaxLength)
 					{
-						this.Error($"string field exceeds maximum length of {RawProtobufReaderState.StringMaxLength}");
+						this.Error($"string field exceeds maximum length of {ReaderState.StringMaxLength}");
 
 						return false;
 					}
