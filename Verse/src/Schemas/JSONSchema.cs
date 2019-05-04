@@ -24,7 +24,7 @@ namespace Verse.Schemas
 
 		private readonly DecoderConverter decoderConverter;
 
-		private readonly TreeDecoderDescriptor<ReaderState, JSONValue, char, TEntity> decoderDescriptor;
+		private readonly TreeDecoderDescriptor<ReaderState, JSONValue, int, TEntity> decoderDescriptor;
 
 		private readonly EncoderConverter encoderConverter;
 
@@ -42,7 +42,7 @@ namespace Verse.Schemas
 			this.configuration = configuration;
 			this.decoderConverter = new DecoderConverter();
 			this.encoderConverter = new EncoderConverter();
-			this.decoderDescriptor = new TreeDecoderDescriptor<ReaderState, JSONValue, char, TEntity>(this.decoderConverter, readerDefinition);
+			this.decoderDescriptor = new TreeDecoderDescriptor<ReaderState, JSONValue, int, TEntity>(this.decoderConverter, readerDefinition);
 			this.encoderDescriptor = new TreeEncoderDescriptor<WriterState, JSONValue, TEntity>(this.encoderConverter, writerDefinition);
 		}
 

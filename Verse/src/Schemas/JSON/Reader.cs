@@ -7,7 +7,7 @@ using Verse.LookupNodes;
 
 namespace Verse.Schemas.JSON
 {
-	internal class Reader : IReader<ReaderState, JSONValue, char>
+	internal class Reader : IReader<ReaderState, JSONValue, int>
 	{
 		private readonly bool readObjectValuesAsArray;
 		private readonly bool readScalarAsOneElementArray;
@@ -21,7 +21,7 @@ namespace Verse.Schemas.JSON
 		}
 
 		public BrowserMove<TElement> ReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
-			ReaderCallback<ReaderState, JSONValue, char, TElement> callback)
+			ReaderCallback<ReaderState, JSONValue, int, TElement> callback)
 		{
 			state.PullIgnored();
 
@@ -64,7 +64,7 @@ namespace Verse.Schemas.JSON
 		}
 
 		public bool ReadToObject<TObject>(ReaderState state,
-			ILookupNode<char, ReaderCallback<ReaderState, JSONValue, char, TObject>> root, ref TObject target)
+			ILookupNode<int, ReaderCallback<ReaderState, JSONValue, int, TObject>> root, ref TObject target)
 		{
 			state.PullIgnored();
 
@@ -177,7 +177,7 @@ namespace Verse.Schemas.JSON
 		}
 
 		private BrowserMove<TElement> ReadToArrayFromArray<TElement>(ReaderState state, Func<TElement> constructor,
-			ReaderCallback<ReaderState, JSONValue, char, TElement> callback)
+			ReaderCallback<ReaderState, JSONValue, int, TElement> callback)
 		{
 			state.Read();
 
@@ -215,7 +215,7 @@ namespace Verse.Schemas.JSON
 		}
 
 		private BrowserMove<TElement> ReadToArrayFromObjectValues<TElement>(ReaderState state,
-			Func<TElement> constructor, ReaderCallback<ReaderState, JSONValue, char, TElement> callback)
+			Func<TElement> constructor, ReaderCallback<ReaderState, JSONValue, int, TElement> callback)
 		{
 			state.Read();
 
@@ -288,7 +288,7 @@ namespace Verse.Schemas.JSON
 		}
 
 		private bool ReadToObjectFromArray<TObject>(ReaderState state,
-			ILookupNode<char, ReaderCallback<ReaderState, JSONValue, char, TObject>> root, ref TObject target)
+			ILookupNode<int, ReaderCallback<ReaderState, JSONValue, int, TObject>> root, ref TObject target)
 		{
 			state.Read();
 
@@ -309,15 +309,7 @@ namespace Verse.Schemas.JSON
 				}
 
 				// Build and move to array index
-				var node = root;
-
-				if (index > 9)
-				{
-					foreach (var digit in index.ToString(CultureInfo.InvariantCulture))
-						node = node.Follow(digit);
-				}
-				else
-					node = node.Follow((char) ('0' + index));
+				var node = root.Follow(index);
 
 				// Read array value
 				if (!(node.HasValue ? node.Value(this, state, ref target) : this.Skip(state)))
@@ -330,7 +322,7 @@ namespace Verse.Schemas.JSON
 		}
 
 		private bool ReadToObjectFromObject<TObject>(ReaderState state,
-			ILookupNode<char, ReaderCallback<ReaderState, JSONValue, char, TObject>> root, ref TObject target)
+			ILookupNode<int, ReaderCallback<ReaderState, JSONValue, int, TObject>> root, ref TObject target)
 		{
 			state.Read();
 
@@ -576,11 +568,11 @@ namespace Verse.Schemas.JSON
 
 				case '[':
 					return this.ReadToObjectFromArray(state,
-						EmptyLookupNode<char, ReaderCallback<ReaderState, JSONValue, char, bool>>.Instance, ref empty);
+						EmptyLookupNode<int, ReaderCallback<ReaderState, JSONValue, int, bool>>.Instance, ref empty);
 
 				case '{':
 					return this.ReadToObjectFromObject(state,
-						EmptyLookupNode<char, ReaderCallback<ReaderState, JSONValue, char, bool>>.Instance, ref empty);
+						EmptyLookupNode<int, ReaderCallback<ReaderState, JSONValue, int, bool>>.Instance, ref empty);
 
 				default:
 					state.Error("expected array, object or value");

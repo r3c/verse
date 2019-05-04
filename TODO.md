@@ -9,9 +9,6 @@ TODO
   - [ ] Require `bool ValueDecoder(TNative, out TValue)` argument to `IDecoderDescriptor.HasValue`
   - [ ] Require `bool ValueEncoder(TValue, out TNative)` argument to `IEncoderDescriptor.HasValue`
   - [ ] Allow decoding converters to return false  
-- [ ] Allow non-int key types on ILookup from descriptors
-  - [x] Introduce TKey generic on reader definitions
-  - [ ] Implement mixed look-up to avoid string allocations when reading array indices as keys
 - [ ] Move entity constructors at object definition instead of parent
   - [ ] Restore "IsObject<TObject>" and "IsObject" methods in descriptors
   - [ ] Bypass object construction on JSON "null" to ensure symmetric schema
@@ -22,6 +19,9 @@ TODO
 DONE
 ----
 
+- [x] Allow non-int key types on ILookup from descriptors
+  - [x] Introduce TKey generic on reader definitions
+  - [x] Implement mixed look-up to avoid string allocations when reading array indices as keys
 - [x] Remove Protobuf dependency from RawProtobufSchema
   - [x] Read Protobuf without need for ProtoReader class nor related types
   - [x] Write Protobuf without need for ProtoWriter class nor related types
