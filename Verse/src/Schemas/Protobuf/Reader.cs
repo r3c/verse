@@ -59,7 +59,7 @@ namespace Verse.Schemas.Protobuf
 		}
 
 		public bool ReadToObject<TObject>(ReaderState state,
-			ILookup<int, ReaderCallback<ReaderState, ProtobufValue, int, TObject>> lookup, ref TObject target)
+			ILookupNode<int, ReaderCallback<ReaderState, ProtobufValue, int, TObject>> root, ref TObject target)
 		{
 			var current = state.Stream.ReadByte();
 

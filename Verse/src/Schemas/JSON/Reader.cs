@@ -3,7 +3,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using Verse.DecoderDescriptors.Tree;
-using Verse.Lookups;
+using Verse.LookupNodes;
 
 namespace Verse.Schemas.JSON
 {
@@ -64,17 +64,17 @@ namespace Verse.Schemas.JSON
 		}
 
 		public bool ReadToObject<TObject>(ReaderState state,
-			ILookup<char, ReaderCallback<ReaderState, JSONValue, char, TObject>> lookup, ref TObject target)
+			ILookupNode<char, ReaderCallback<ReaderState, JSONValue, char, TObject>> root, ref TObject target)
 		{
 			state.PullIgnored();
 
 			switch (state.Current)
 			{
 				case '[':
-					return this.ReadToObjectFromArray(state, lookup, ref target);
+					return this.ReadToObjectFromArray(state, root, ref target);
 
 				case '{':
-					return this.ReadToObjectFromObject(state, lookup, ref target);
+					return this.ReadToObjectFromObject(state, root, ref target);
 
 				default:
 					return this.Skip(state);
@@ -288,7 +288,7 @@ namespace Verse.Schemas.JSON
 		}
 
 		private bool ReadToObjectFromArray<TObject>(ReaderState state,
-			ILookup<char, ReaderCallback<ReaderState, JSONValue, char, TObject>> lookup, ref TObject target)
+			ILookupNode<char, ReaderCallback<ReaderState, JSONValue, char, TObject>> root, ref TObject target)
 		{
 			state.Read();
 
@@ -309,18 +309,18 @@ namespace Verse.Schemas.JSON
 				}
 
 				// Build and move to array index
-				var field = lookup;
+				var node = root;
 
 				if (index > 9)
 				{
 					foreach (var digit in index.ToString(CultureInfo.InvariantCulture))
-						field = field.Follow(digit);
+						node = node.Follow(digit);
 				}
 				else
-					field = field.Follow((char) ('0' + index));
+					node = node.Follow((char) ('0' + index));
 
 				// Read array value
-				if (!(field.HasValue ? field.Value(this, state, ref target) : this.Skip(state)))
+				if (!(node.HasValue ? node.Value(this, state, ref target) : this.Skip(state)))
 					return false;
 			}
 
@@ -330,7 +330,7 @@ namespace Verse.Schemas.JSON
 		}
 
 		private bool ReadToObjectFromObject<TObject>(ReaderState state,
-			ILookup<char, ReaderCallback<ReaderState, JSONValue, char, TObject>> lookup, ref TObject target)
+			ILookupNode<char, ReaderCallback<ReaderState, JSONValue, char, TObject>> root, ref TObject target)
 		{
 			state.Read();
 
@@ -354,7 +354,7 @@ namespace Verse.Schemas.JSON
 					return false;
 
 				// Read and move to object key
-				var field = lookup;
+				var node = root;
 
 				while (state.Current != '"')
 				{
@@ -365,7 +365,7 @@ namespace Verse.Schemas.JSON
 						return false;
 					}
 
-					field = field.Follow(character);
+					node = node.Follow(character);
 				}
 
 				state.Read();
@@ -379,7 +379,7 @@ namespace Verse.Schemas.JSON
 				// Read object value
 				state.PullIgnored();
 
-				if (!(field.HasValue ? field.Value(this, state, ref target) : this.Skip(state)))
+				if (!(node.HasValue ? node.Value(this, state, ref target) : this.Skip(state)))
 					return false;
 			}
 
@@ -576,11 +576,11 @@ namespace Verse.Schemas.JSON
 
 				case '[':
 					return this.ReadToObjectFromArray(state,
-						NameLookup<ReaderCallback<ReaderState, JSONValue, char, bool>>.Empty, ref empty);
+						EmptyLookupNode<char, ReaderCallback<ReaderState, JSONValue, char, bool>>.Instance, ref empty);
 
 				case '{':
 					return this.ReadToObjectFromObject(state,
-						NameLookup<ReaderCallback<ReaderState, JSONValue, char, bool>>.Empty, ref empty);
+						EmptyLookupNode<char, ReaderCallback<ReaderState, JSONValue, char, bool>>.Instance, ref empty);
 
 				default:
 					state.Error("expected array, object or value");

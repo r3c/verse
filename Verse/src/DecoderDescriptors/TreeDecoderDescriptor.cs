@@ -46,6 +46,7 @@ namespace Verse.DecoderDescriptors
 			var fieldDefinition = this.definition.Create<TEntity>();
 			var fieldDescriptor = new TreeDecoderDescriptor<TState, TNative, TKey, TEntity>(this.converter, fieldDefinition);
 			var parentLookup = this.definition.Lookup;
+			var parentRoot = parentLookup.Root;
 
 			var success = parentLookup.ConnectTo(name,
 				(IReader<TState, TNative, TKey> reader, TState state, ref TEntity entity) =>
@@ -55,7 +56,7 @@ namespace Verse.DecoderDescriptors
 				throw new InvalidOperationException($"field '{name}' was declared twice on same descriptor");
 
 			this.definition.Callback = (IReader<TState, TNative, TKey> reader, TState state, ref TEntity target) =>
-				reader.ReadToObject(state, parentLookup, ref target);
+				reader.ReadToObject(state, parentRoot, ref target);
 
 			return fieldDescriptor;
 		}
@@ -149,6 +150,7 @@ namespace Verse.DecoderDescriptors
 		{
 			var fieldDefinition = fieldDescriptor.definition;
 			var parentLookup = parentDefinition.Lookup;
+			var parentRoot = parentLookup.Root;
 
 			var success = parentLookup.ConnectTo(name,
 				(IReader<TState, TNative, TKey> reader, TState state, ref TEntity entity) =>
@@ -167,7 +169,7 @@ namespace Verse.DecoderDescriptors
 				throw new InvalidOperationException($"field '{name}' was declared twice on same descriptor");
 
 			parentDefinition.Callback = (IReader<TState, TNative, TKey> reader, TState state, ref TEntity target) =>
-				reader.ReadToObject(state, parentLookup, ref target);
+				reader.ReadToObject(state, parentRoot, ref target);
 
 			return fieldDescriptor;
 		}

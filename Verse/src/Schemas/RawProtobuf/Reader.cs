@@ -43,7 +43,7 @@ namespace Verse.Schemas.RawProtobuf
 		}
 
 		public bool ReadToObject<TObject>(ReaderState state,
-			ILookup<char, ReaderCallback<ReaderState, RawProtobufValue, char, TObject>> lookup, ref TObject target)
+			ILookupNode<char, ReaderCallback<ReaderState, RawProtobufValue, char, TObject>> root, ref TObject target)
 		{
 			if (!state.ObjectBegin(out var backup))
 				return state.TrySkipValue();
@@ -60,17 +60,17 @@ namespace Verse.Schemas.RawProtobuf
 					return true;
 				}
 
-				var field = lookup.Follow('_');
+				var node = root.Follow('_');
 
 				if (state.FieldIndex > 9)
 				{
 					foreach (var digit in state.FieldIndex.ToString(CultureInfo.InvariantCulture))
-						field = field.Follow(digit);
+						node = node.Follow(digit);
 				}
 				else
-					field = field.Follow((char) ('0' + state.FieldIndex));
+					node = node.Follow((char) ('0' + state.FieldIndex));
 
-				if (!(field.HasValue ? field.Value(this, state, ref target) : state.TrySkipValue()))
+				if (!(node.HasValue ? node.Value(this, state, ref target) : state.TrySkipValue()))
 					return false;
 			}
 		}

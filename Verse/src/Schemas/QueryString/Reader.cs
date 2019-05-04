@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using Verse.DecoderDescriptors.Tree;
+using Verse.LookupNodes;
 using Verse.Lookups;
 
 namespace Verse.Schemas.QueryString
@@ -27,7 +28,7 @@ namespace Verse.Schemas.QueryString
 		}
 
 		public bool ReadToObject<TObject>(ReaderState state,
-			ILookup<char, ReaderCallback<ReaderState, string, char, TObject>> lookup, ref TObject target)
+			ILookupNode<char, ReaderCallback<ReaderState, string, char, TObject>> root, ref TObject target)
 		{
 			if (state.Current == -1)
 				return true;
@@ -36,9 +37,10 @@ namespace Verse.Schemas.QueryString
 			{
 				// Parse field name
 				var empty = true;
-				var node = lookup;
 
 				// FIXME: handle % encoding in field names
+				var node = root;
+
 				while (QueryStringCharacter.IsUnreserved(state.Current))
 				{
 					empty = false;
@@ -109,8 +111,8 @@ namespace Verse.Schemas.QueryString
 
 					value = default;
 
-					return this.ReadToObject(state, NameLookup<ReaderCallback<ReaderState, string, char, bool>>.Empty,
-						ref dummy);
+					return this.ReadToObject(state,
+						EmptyLookupNode<char, ReaderCallback<ReaderState, string, char, bool>>.Instance, ref dummy);
 
 				case QueryStringLocation.ValueBegin:
 					return Reader.ReadValue(state, out value);

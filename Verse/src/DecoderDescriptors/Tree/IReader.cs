@@ -8,7 +8,7 @@ namespace Verse.DecoderDescriptors.Tree
 		BrowserMove<TElement> ReadToArray<TElement>(TState state, Func<TElement> constructor,
 			ReaderCallback<TState, TNative, TKey, TElement> callback);
 
-		bool ReadToObject<TObject>(TState state, ILookup<TKey, ReaderCallback<TState, TNative, TKey, TObject>> lookup,
+		bool ReadToObject<TObject>(TState state, ILookupNode<TKey, ReaderCallback<TState, TNative, TKey, TObject>> root,
 			ref TObject target);
 
 		bool ReadToValue(TState state, out TNative value);

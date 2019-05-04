@@ -1,67 +1,26 @@
-using System.Collections.Generic;
+using Verse.LookupNodes;
 
 namespace Verse.Lookups
 {
-	internal static class NameLookup
-	{
-		public const int HashThreshold = 128;
-	}
-
 	internal class NameLookup<TValue> : ILookup<char, TValue>
 	{
 		public static readonly ILookup<char, TValue> Empty = new NameLookup<TValue>();
 
-		public bool HasValue { get; private set; }
+		public ILookupNode<char, TValue> Root => this.root;
 
-		public TValue Value { get; private set; }
-
-		private Dictionary<int, NameLookup<TValue>> hashedChildren;
-
-		private NameLookup<TValue>[] indexedChildren;
+		private readonly HashLookupNode<char, TValue> root;
 
 		public NameLookup()
 		{
-			this.HasValue = false;
-			this.Value = default;
+			this.root = new HashLookupNode<char, TValue>(k => k);
 		}
 
 		public bool ConnectTo(string sequence, TValue value)
 		{
-			var current = this;
+			var current = this.root;
 
 			foreach (var key in sequence)
-			{
-				NameLookup<TValue> next;
-
-				if (key < NameLookup.HashThreshold)
-				{
-					if (current.indexedChildren == null)
-						current.indexedChildren = new NameLookup<TValue>[NameLookup.HashThreshold];
-
-					if (current.indexedChildren[key] != null)
-						next = current.indexedChildren[key];
-					else
-					{
-						next = new NameLookup<TValue>();
-
-						current.indexedChildren[key] = next;
-					}
-				}
-				else
-				{
-					if (current.hashedChildren == null)
-						current.hashedChildren = new Dictionary<int, NameLookup<TValue>>();
-
-					if (!current.hashedChildren.TryGetValue(key, out next))
-					{
-						next = new NameLookup<TValue>();
-
-						current.hashedChildren[key] = next;
-					}
-				}
-
-				current = next;
-			}
+				current = current.ConnectTo(key);
 
 			if (current.HasValue)
 				return false;
@@ -70,22 +29,6 @@ namespace Verse.Lookups
 			current.Value = value;
 
 			return true;
-		}
-
-		public ILookup<char, TValue> Follow(char key)
-		{
-			if (key < NameLookup.HashThreshold)
-			{
-				if (this.indexedChildren != null && this.indexedChildren[key] != null)
-					return this.indexedChildren[key];
-			}
-			else
-			{
-				if (this.hashedChildren != null && this.hashedChildren.TryGetValue(key, out var next))
-					return next;
-			}
-
-			return NameLookup<TValue>.Empty;
 		}
 	}
 }
