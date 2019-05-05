@@ -170,15 +170,12 @@ namespace Verse.Bench
 		private static void BenchDecode<T>(IDecoder<T> decoder, string source, int count)
 		{
 			var expected = JsonConvert.DeserializeObject<T>(source);
-			var buffer = Encoding.UTF8.GetBytes(source);
+			var stream = new MemoryStream(Encoding.UTF8.GetBytes(source));
 
-			using (var stream = new MemoryStream(buffer))
+			using (var decoderStream = decoder.Open(stream))
 			{
-				using (var decoderStream = decoder.Open(stream))
-				{
-					Assert.That(decoderStream.TryDecode(out var candidate), Is.True);
-					Assert.That(candidate, Is.EqualTo(expected));
-				}
+				Assert.That(decoderStream.TryDecode(out var candidate), Is.True);
+				Assert.That(candidate, Is.EqualTo(expected));
 			}
 
 			CompareNewtonsoft.Bench(new (string, Action)[]
@@ -186,11 +183,10 @@ namespace Verse.Bench
 				("Newtonsoft", () => { JsonConvert.DeserializeObject<T>(source); }),
 				("Verse", () =>
 				{
-					using (var stream = new MemoryStream(buffer))
-					{
-						using (var decoderStream = decoder.Open(stream))
-							decoderStream.TryDecode(out _);
-					}
+					stream.Seek(0, SeekOrigin.Begin);
+
+					using (var decoderStream = decoder.Open(stream))
+						decoderStream.TryDecode(out _);
 				})
 			}, count);
 		}
@@ -198,27 +194,24 @@ namespace Verse.Bench
 		private static void BenchEncode<T>(IEncoder<T> encoder, T instance, int count)
 		{
 			var expected = JsonConvert.SerializeObject(instance);
+			var stream = new MemoryStream(1024);
 
-			using (var stream = new MemoryStream())
-			{
-				using (var encoderStream = encoder.Open(stream))
-					encoderStream.Encode(instance);
+			using (var encoderStream = encoder.Open(stream))
+				encoderStream.Encode(instance);
 
-				var candidate = Encoding.UTF8.GetString(stream.ToArray());
+			var candidate = Encoding.UTF8.GetString(stream.ToArray());
 
-				Assert.That(expected, Is.EqualTo(candidate));
-			}
+			Assert.That(expected, Is.EqualTo(candidate));
 
 			CompareNewtonsoft.Bench(new (string, Action)[]
 			{
 				("Newtonsoft", () => { JsonConvert.SerializeObject(instance); }),
 				("Verse", () =>
 				{
-					using (var stream = new MemoryStream())
-					{
-						using (var encoderStream = encoder.Open(stream))
-							encoderStream.Encode(instance);
-					}
+					stream.Seek(0, SeekOrigin.Begin);
+
+					using (var encoderStream = encoder.Open(stream))
+						encoderStream.Encode(instance);
 				})
 			}, count);
 		}
