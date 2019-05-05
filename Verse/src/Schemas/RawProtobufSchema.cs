@@ -7,6 +7,12 @@ using Verse.Schemas.RawProtobuf;
 
 namespace Verse.Schemas
 {
+	/// <inheritdoc />
+	/// <summary>
+	/// Protobuf serialization implementation using implicitly-typed fields (no schema declaration).
+	/// See: https://developers.google.com/protocol-buffers/docs/encoding
+	/// </summary>
+	/// <typeparam name="TEntity">Entity type</typeparam>
 	public sealed class RawProtobufSchema<TEntity> : ISchema<TEntity>
 	{
 		public IDecoderDescriptor<TEntity> DecoderDescriptor => this.decoderDescriptor;

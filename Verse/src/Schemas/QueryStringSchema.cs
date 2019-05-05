@@ -6,11 +6,19 @@ using Verse.Schemas.QueryString;
 
 namespace Verse.Schemas
 {
+	/// <inheritdoc />
+	/// <summary>
+	/// URI query string serialization implementation following RFC-3986. This implementation has no support for
+	/// encoding yet.
+	/// See: https://tools.ietf.org/html/rfc3986#section-3.4
+	/// </summary>
+	/// <typeparam name="TEntity">Entity type</typeparam>
 	public sealed class QueryStringSchema<TEntity> : ISchema<TEntity>
 	{
 		public IDecoderDescriptor<TEntity> DecoderDescriptor => this.decoderDescriptor;
 
-		public IEncoderDescriptor<TEntity> EncoderDescriptor => throw new NotImplementedException("encoding not implemented");
+		public IEncoderDescriptor<TEntity> EncoderDescriptor =>
+			throw new NotImplementedException("encoding not implemented");
 
 		private readonly DecoderConverter decoderConverter;
 
@@ -23,7 +31,8 @@ namespace Verse.Schemas
 			var decoderConverter = new DecoderConverter();
 
 			this.decoderConverter = decoderConverter;
-			this.decoderDescriptor = new TreeDecoderDescriptor<ReaderState, string, TEntity>(decoderConverter, new ReaderDefinition<ReaderState, string, TEntity>());
+			this.decoderDescriptor = new TreeDecoderDescriptor<ReaderState, string, TEntity>(decoderConverter,
+				new ReaderDefinition<ReaderState, string, TEntity>());
 			this.encoding = encoding;
 		}
 

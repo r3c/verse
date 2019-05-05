@@ -8,8 +8,10 @@ using Verse.Schemas.JSON;
 
 namespace Verse.Schemas
 {
+	/// <inheritdoc />
 	/// <summary>
-	/// Schema implementation using JSON format.
+	/// JSON serialization implementation.
+	/// See: https://www.json.org/
 	/// </summary>
 	/// <typeparam name="TEntity">Entity type</typeparam>
 	public sealed class JSONSchema<TEntity> : ISchema<TEntity>
