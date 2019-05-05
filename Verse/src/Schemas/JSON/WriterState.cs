@@ -7,6 +7,8 @@ namespace Verse.Schemas.JSON
 {
 	internal class WriterState : IDisposable
 	{
+		private const char AsciiUpperBound = (char) 128;
+
 		private string currentKey;
 
 		private readonly bool omitNull;
@@ -15,7 +17,7 @@ namespace Verse.Schemas.JSON
 
 		private readonly StreamWriter writer;
 
-		private static readonly string[] Ascii = new string[128];
+		private static readonly string[] Ascii = new string[WriterState.AsciiUpperBound];
 
 		private static readonly char[] Hexa =
 			{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
@@ -33,7 +35,7 @@ namespace Verse.Schemas.JSON
 			for (var i = 0; i < 32; ++i)
 				WriterState.Ascii[i] = "\\u00" + WriterState.Hexa[(i >> 4) & 0xF] + WriterState.Hexa[(i >> 0) & 0xF];
 
-			for (var i = 32; i < 128; ++i)
+			for (var i = 32; i < WriterState.AsciiUpperBound; ++i)
 				WriterState.Ascii[i] = new string((char) i, 1);
 
 			WriterState.Ascii['\b'] = "\\b";
@@ -144,12 +146,11 @@ namespace Verse.Schemas.JSON
 
 			foreach (var c in value)
 			{
-				if (c < 128)
+				if (c < WriterState.AsciiUpperBound)
 					writer.Write(WriterState.Ascii[c]);
 				else
 				{
-					writer.Write('\\');
-					writer.Write('u');
+					writer.Write("\\u");
 					writer.Write(WriterState.Hexa[(c >> 12) & 0xF]);
 					writer.Write(WriterState.Hexa[(c >> 8) & 0xF]);
 					writer.Write(WriterState.Hexa[(c >> 4) & 0xF]);
