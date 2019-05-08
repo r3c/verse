@@ -1,11 +1,10 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 namespace Verse.DecoderDescriptors.Tree
 {
 	internal interface IReader<TState, TNative, TKey>
 	{
-		ReaderStatus ReadToArray<TElement>(TState state, Func<TElement> constructor,
+		ReaderStatus ReadToArray<TElement>(TState state,
 			ReaderCallback<TState, TNative, TKey, TElement> callback, out BrowserMove<TElement> browserMove);
 
 		ReaderStatus ReadToObject<TObject>(TState state,

@@ -55,10 +55,9 @@ namespace Verse.Schemas
 		{
 		}
 
-		public IDecoder<TEntity> CreateDecoder(Func<TEntity> constructor)
+		public IDecoder<TEntity> CreateDecoder()
 		{
-			return this.decoderDescriptor.CreateDecoder(new Reader(this.configuration.NoZigZagEncoding),
-				constructor);
+			return this.decoderDescriptor.CreateDecoder(new Reader(this.configuration.NoZigZagEncoding));
 		}
 
 		public IEncoder<TEntity> CreateEncoder()

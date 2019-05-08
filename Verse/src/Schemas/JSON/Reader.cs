@@ -19,22 +19,21 @@ namespace Verse.Schemas.JSON
 			this.encoding = encoding;
 		}
 
-		public ReaderStatus ReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
-			ReaderCallback<ReaderState, JSONValue, int, TElement> callback, out BrowserMove<TElement> browserMove)
+		public ReaderStatus ReadToArray<TElement>(ReaderState state, ReaderCallback<ReaderState, JSONValue, int, TElement> callback, out BrowserMove<TElement> browserMove)
 		{
 			state.PullIgnored();
 
 			switch (state.Current)
 			{
 				case '[':
-					browserMove = this.ReadToArrayFromArray(state, constructor, callback);
+					browserMove = this.ReadToArrayFromArray(state, callback);
 
 					return ReaderStatus.Succeeded;
 
 				case '{':
 					if (this.readObjectValuesAsArray)
 					{
-						browserMove = this.ReadToArrayFromObjectValues(state, constructor, callback);
+						browserMove = this.ReadToArrayFromObjectValues(state, callback);
 
 						return ReaderStatus.Succeeded;
 					}
@@ -59,7 +58,7 @@ namespace Verse.Schemas.JSON
 								return BrowserState.Success;
 							}
 
-							current = constructor();
+							current = default;
 
 							return callback(this, state, ref current) != ReaderStatus.Failed
 								? BrowserState.Continue
@@ -190,7 +189,7 @@ namespace Verse.Schemas.JSON
 			state.Dispose();
 		}
 
-		private BrowserMove<TElement> ReadToArrayFromArray<TElement>(ReaderState state, Func<TElement> constructor,
+		private BrowserMove<TElement> ReadToArrayFromArray<TElement>(ReaderState state,
 			ReaderCallback<ReaderState, JSONValue, int, TElement> callback)
 		{
 			state.Read();
@@ -222,14 +221,14 @@ namespace Verse.Schemas.JSON
 				}
 
 				// Read array value
-				current = constructor();
+				current = default;
 
 				return callback(this, state, ref current) != ReaderStatus.Failed ? BrowserState.Continue : BrowserState.Failure;
 			};
 		}
 
 		private BrowserMove<TElement> ReadToArrayFromObjectValues<TElement>(ReaderState state,
-			Func<TElement> constructor, ReaderCallback<ReaderState, JSONValue, int, TElement> callback)
+			ReaderCallback<ReaderState, JSONValue, int, TElement> callback)
 		{
 			state.Read();
 
@@ -295,7 +294,7 @@ namespace Verse.Schemas.JSON
 				state.PullIgnored();
 
 				// Read array value
-				current = constructor();
+				current = default;
 
 				return callback(this, state, ref current) != ReaderStatus.Failed
 					? BrowserState.Continue

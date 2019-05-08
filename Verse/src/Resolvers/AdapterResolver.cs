@@ -9,7 +9,7 @@ namespace Verse.Resolvers
 	/// </summary>
 	internal static class AdapterResolver
 	{
-		private static readonly Dictionary<Type, PropertyResolver> ForDecoder = new Dictionary<Type, PropertyResolver>
+		private static readonly Dictionary<Type, PropertyResolver> ForDecoder = new()
 		{
 			{
 				typeof(bool),
@@ -69,7 +69,7 @@ namespace Verse.Resolvers
 			}
 		};
 
-		private static readonly Dictionary<Type, PropertyResolver> ForEncoder = new Dictionary<Type, PropertyResolver>
+		private static readonly Dictionary<Type, PropertyResolver> ForEncoder = new()
 		{
 			{
 				typeof(bool),

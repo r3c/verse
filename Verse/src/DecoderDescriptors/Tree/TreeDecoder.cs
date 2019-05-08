@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 namespace Verse.DecoderDescriptors.Tree
 {
@@ -9,15 +8,12 @@ namespace Verse.DecoderDescriptors.Tree
 
         private readonly ReaderCallback<TState, TNative, TKey, TEntity> callback;
 
-        private readonly Func<TEntity> constructor;
-
         private readonly IReader<TState, TNative, TKey> reader;
 
-        public TreeDecoder(IReader<TState, TNative, TKey> reader, Func<TEntity> constructor,
+        public TreeDecoder(IReader<TState, TNative, TKey> reader,
             ReaderCallback<TState, TNative, TKey, TEntity> callback)
         {
             this.callback = callback;
-            this.constructor = constructor;
             this.reader = reader;
         }
 
@@ -25,8 +21,7 @@ namespace Verse.DecoderDescriptors.Tree
         {
             var state = this.reader.Start(input, (p, m) => this.Error?.Invoke(p, m));
 
-            return new TreeDecoderStream<TState, TNative, TKey, TEntity>(this.reader, this.constructor, this.callback,
-                state);
+            return new TreeDecoderStream<TState, TNative, TKey, TEntity>(this.reader, this.callback, state);
         }
     }
 }

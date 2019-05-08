@@ -1,7 +1,6 @@
 using System.IO;
 using System.Text;
 using NUnit.Framework;
-using Verse.Resolvers;
 using Verse.Schemas;
 
 namespace Verse.Test.Schemas
@@ -14,7 +13,7 @@ namespace Verse.Test.Schemas
 		[TestCase("?a&")]
 		public void DecodeSuccess(string query)
 		{
-			QueryStringSchemaTester.Decode(new QueryStringSchema<string>(), query);
+			Decode(new QueryStringSchema<string>(), query);
 		}
 
 		[Test]
@@ -37,13 +36,14 @@ namespace Verse.Test.Schemas
 		public void DecodeFieldValue<T>(string name, string query, T expected)
 		{
 			var schema = new QueryStringSchema<T>();
+			var converter = SchemaHelper<string>.GetDecoderConverter<T>(schema.DecoderAdapter);
 
-			Assert.That(AdapterResolver.TryGetDecoderConverter<string, T>(schema.DecoderAdapter, out var converter),
-				Is.True);
+			schema.DecoderDescriptor
+				.IsObject(() => default!)
+				.HasField(name, (ref T t, T v) => t = v)
+				.IsValue(converter);
 
-			schema.DecoderDescriptor.HasField(name, () => default, (ref T t, T v) => t = v).HasValue(converter);
-
-			var value = QueryStringSchemaTester.Decode(schema, query);
+			var value = Decode(schema, query);
 
 			Assert.AreEqual(expected, value);
 		}
@@ -57,14 +57,14 @@ namespace Verse.Test.Schemas
 		public void DecodeSpecialCharacter<T>(string name, string query, T expected)
 		{
 			var schema = new QueryStringSchema<T>();
+			var converter = SchemaHelper<string>.GetDecoderConverter<T>(schema.DecoderAdapter);
 
-			Assert.That(AdapterResolver.TryGetDecoderConverter<string, T>(schema.DecoderAdapter, out var converter),
-				Is.True);
+			schema.DecoderDescriptor
+				.IsObject(() => default!)
+				.HasField(name, (ref T t, T v) => t = v)
+				.IsValue(converter);
 
-			schema.DecoderDescriptor.HasField(name, () => default, (ref T t, T v) => t = v)
-				.HasValue(converter);
-
-			var value = QueryStringSchemaTester.Decode(schema, query);
+			var value = Decode(schema, query);
 
 			Assert.AreEqual(expected, value);
 		}
@@ -76,28 +76,24 @@ namespace Verse.Test.Schemas
 		public void DecodeFail(string query)
 		{
 			var schema = new QueryStringSchema<string>();
-			var decoder = schema.CreateDecoder(() => string.Empty);
+			var decoder = schema.CreateDecoder();
 
-			using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(query)))
-			{
-				using (var decoderStream = decoder.Open(stream))
-					Assert.IsFalse(decoderStream.TryDecode(out _));
-			}
+			using var stream = new MemoryStream(Encoding.UTF8.GetBytes(query));
+			using var decoderStream = decoder.Open(stream);
+
+			Assert.IsFalse(decoderStream.TryDecode(out _));
 		}
 
 		private static TEntity Decode<TEntity>(ISchema<string, TEntity> schema, string query)
 		{
-			var decoder = schema.CreateDecoder(() => default);
+			var decoder = schema.CreateDecoder();
 
-			using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(query)))
-			{
-				using (var decoderStream = decoder.Open(stream))
-				{
-					Assert.IsTrue(decoderStream.TryDecode(out var value));
+			using var stream = new MemoryStream(Encoding.UTF8.GetBytes(query));
+			using var decoderStream = decoder.Open(stream);
 
-					return value;
-				}
-			}
+			Assert.IsTrue(decoderStream.TryDecode(out var value));
+
+			return value;
 		}
 	}
 }

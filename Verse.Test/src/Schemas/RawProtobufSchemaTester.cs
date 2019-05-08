@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using ProtoBuf;
-using Verse.Resolvers;
 using Verse.Schemas;
 using Verse.Schemas.Protobuf;
 using Verse.Schemas.RawProtobuf;
@@ -31,23 +30,20 @@ namespace Verse.Test.Schemas
 		[TestCase(double.MinValue, double.MinValue, double.MinValue)]
 		[TestCase(double.MaxValue, double.MaxValue, double.MaxValue)]
 		[TestCase("", "", "")]
-		[TestCase(RawProtobufSchemaTester.LongString, RawProtobufSchemaTester.LongString, RawProtobufSchemaTester.LongString)]
+		[TestCase(LongString, LongString, LongString)]
 		public void DecodeRepeatedScalarFromObject<T>(T a, T b, T c)
 		{
-			var schema = RawProtobufSchemaTester.CreateSchema<List<T>>();
-			var testFieldClass = new TestFieldClass<T> {Items = new List<T> {a, b, c}};
-
-			Assert.That(
-				AdapterResolver.TryGetDecoderConverter<RawProtobufValue, T>(schema.DecoderAdapter, out var converter),
-				Is.True);
+			var schema = CreateSchema<List<T>>();
+			var converter = SchemaHelper<RawProtobufValue>.GetDecoderConverter<T>(schema.DecoderAdapter);
+			var testFieldClass = new TestFieldClass<T> { Items = new List<T> { a, b, c } };
 
 			schema.DecoderDescriptor
-				.HasField("_2", Array.Empty<T>, (ref List<T> target, T[] values) => target.AddRange(values))
-				.HasElements(() => default, (ref T[] target, IEnumerable<T> elements) => target = elements.ToArray())
-				.HasValue(converter);
+				.IsObject(() => new List<T>())
+				.HasField("_2", (ref List<T> target, T[] values) => target.AddRange(values))
+				.IsArray<T>(elements => elements.ToArray())
+				.IsValue(converter);
 
-			var value = RawProtobufSchemaTester.DecodeTranscode(schema.CreateDecoder(() => new List<T>()),
-				testFieldClass);
+			var value = DecodeTranscode(schema.CreateDecoder(), testFieldClass);
 
 			CollectionAssert.AreEqual(testFieldClass.Items, value);
 		}
@@ -60,22 +56,22 @@ namespace Verse.Test.Schemas
 		[TestCase(double.MinValue)]
 		[TestCase(double.MaxValue)]
 		[TestCase("")]
-		[TestCase(RawProtobufSchemaTester.LongString)]
+		[TestCase(LongString)]
 		public void DecodeScalarFromNestedObject<T>(T expectedValue)
 		{
-			var schema = RawProtobufSchemaTester.CreateSchema<T>();
-			var testFieldClass = new TestFieldClass<T> {SubValue = new SubTestFieldClass<T> {Value = expectedValue}};
-
-			Assert.That(
-				AdapterResolver.TryGetDecoderConverter<RawProtobufValue, T>(schema.DecoderAdapter, out var converter),
-				Is.True);
+			var schema = CreateSchema<T>();
+			var converter = SchemaHelper<RawProtobufValue>.GetDecoderConverter<T>(schema.DecoderAdapter);
+			var testFieldClass = new TestFieldClass<T>
+				{ SubValue = new SubTestFieldClass<T> { Value = expectedValue } };
 
 			schema.DecoderDescriptor
-				.HasField("_3", () => default, (ref T t, T v) => t = v)
-				.HasField("_4", () => default, (ref T t, T v) => t = v)
-				.HasValue(converter);
+				.IsObject(() => default!)
+				.HasField("_3", (ref T t, T v) => t = v)
+				.IsObject(() => default!)
+				.HasField("_4", (ref T t, T v) => t = v)
+				.IsValue(converter);
 
-			var value = RawProtobufSchemaTester.DecodeTranscode(schema.CreateDecoder(() => default), testFieldClass);
+			var value = DecodeTranscode(schema.CreateDecoder(), testFieldClass);
 
 			Assert.AreEqual(expectedValue, value);
 		}
@@ -90,19 +86,19 @@ namespace Verse.Test.Schemas
 		[TestCase(double.MaxValue, ProtobufType.Float64)]
 		[TestCase(0.0, ProtobufType.Float64)]
 		[TestCase("", ProtobufType.String)]
-		[TestCase(RawProtobufSchemaTester.LongString, ProtobufType.String)]
+		[TestCase(LongString, ProtobufType.String)]
 		public void DecodeScalarFromObject<T>(T value, ProtobufType type)
 		{
-			var schema = RawProtobufSchemaTester.CreateSchema<T>();
-			var testFieldClass = new TestFieldClass<T> {Value = value};
+			var schema = CreateSchema<T>();
+			var testFieldClass = new TestFieldClass<T> { Value = value };
+			var converter = SchemaHelper<RawProtobufValue>.GetDecoderConverter<T>(schema.DecoderAdapter);
 
-			Assert.That(
-				AdapterResolver.TryGetDecoderConverter<RawProtobufValue, T>(schema.DecoderAdapter, out var converter),
-				Is.True);
+			schema.DecoderDescriptor
+				.IsObject(() => default!)
+				.HasField("_1", (ref T obj, T v) => obj = v)
+				.IsValue(converter);
 
-			schema.DecoderDescriptor.HasField("_1", () => default, (ref T obj, T v) => obj = v).HasValue(converter);
-
-			var decodedValue = RawProtobufSchemaTester.DecodeTranscode(schema.CreateDecoder(() => default), testFieldClass);
+			var decodedValue = DecodeTranscode(schema.CreateDecoder(), testFieldClass);
 
 			Assert.AreEqual(value, decodedValue);
 		}
@@ -115,11 +111,11 @@ namespace Verse.Test.Schemas
 		[TestCase(double.MinValue, double.MinValue, double.MinValue)]
 		[TestCase(double.MaxValue, double.MaxValue, double.MaxValue)]
 		[TestCase("", "", "")]
-		[TestCase(RawProtobufSchemaTester.LongString, RawProtobufSchemaTester.LongString, RawProtobufSchemaTester.LongString)]
+		[TestCase(LongString, LongString, LongString)]
 		public void DecodeScalarFromRepeatedObject<T>(T a, T b, T c)
 		{
 			T[] expectedValues = { a, b, c };
-			var schema = RawProtobufSchemaTester.CreateSchema<TestFieldClass<TestFieldClass<T>>>();
+			var schema = CreateSchema<TestFieldClass<TestFieldClass<T>>>();
 			var testFieldClass = new TestFieldClass<TestFieldClass<T>>();
 
 			foreach (var value in expectedValues)
@@ -133,25 +129,19 @@ namespace Verse.Test.Schemas
 				});
 			}
 
-			Assert.That(
-				AdapterResolver.TryGetDecoderConverter<RawProtobufValue, T>(schema.DecoderAdapter, out var converter),
-				Is.True);
+			var converter = SchemaHelper<RawProtobufValue>.GetDecoderConverter<T>(schema.DecoderAdapter);
 
 			schema.DecoderDescriptor
-				.HasField("_2", () => default,
-					(ref TestFieldClass<TestFieldClass<T>> target, TestFieldClass<T>[] value) =>
-						target.Items.AddRange(value))
-				.HasElements(() => new TestFieldClass<T>(),
-					(ref TestFieldClass<T>[] target, IEnumerable<TestFieldClass<T>> elements) =>
-						target = elements.ToArray())
-				.HasField("_3", () => new SubTestFieldClass<T>(),
-					(ref TestFieldClass<T> target, SubTestFieldClass<T> value) => target.SubValue = value)
-				.HasField("_4", () => default, (ref SubTestFieldClass<T> target, T value) => target.Value = value)
-				.HasValue(converter);
+				.IsObject(() => new TestFieldClass<TestFieldClass<T>>())
+				.HasField("_2", (ref TestFieldClass<TestFieldClass<T>> t, TestFieldClass<T>[] v) => t.Items.AddRange(v))
+				.IsArray<TestFieldClass<T>>(elements => elements.ToArray())
+				.IsObject(() => new TestFieldClass<T>())
+				.HasField("_3", (ref TestFieldClass<T> target, SubTestFieldClass<T> value) => target.SubValue = value)
+				.IsObject(() => new SubTestFieldClass<T>())
+				.HasField("_4", (ref SubTestFieldClass<T> target, T value) => target.Value = value)
+				.IsValue(converter);
 
-			var decodedValue =
-				RawProtobufSchemaTester.DecodeRoundTrip(
-					schema.CreateDecoder(() => new TestFieldClass<TestFieldClass<T>>()), testFieldClass);
+			var decodedValue = DecodeRoundTrip(schema.CreateDecoder(), testFieldClass);
 
 			Assert.AreEqual(expectedValues.Length, decodedValue.Items.Count);
 
@@ -181,59 +171,69 @@ namespace Verse.Test.Schemas
 		[Ignore("This feature is currently not supported")]
 		public void DecodeFromNestedFixedIndex(int? index0, int? index1, int expected)
 		{
-			var schema = RawProtobufSchemaTester.CreateSchema<int>();
+			var schema = CreateSchema<int>();
 			var testFieldClass = new TestFieldClass<TestFieldClass<SubTestFieldClass<int>>>
 			{
 				Items = new List<TestFieldClass<SubTestFieldClass<int>>>
 				{
-					new TestFieldClass<SubTestFieldClass<int>>
+					new()
 					{
 						Items = new List<SubTestFieldClass<int>>
 						{
-							new SubTestFieldClass<int> {Value = 10},
-							new SubTestFieldClass<int> {Value = 20},
-							new SubTestFieldClass<int> {Value = 30}
+							new() { Value = 10 },
+							new() { Value = 20 },
+							new() { Value = 30 }
 						}
 					},
-					new TestFieldClass<SubTestFieldClass<int>>
+					new()
 					{
 						Items = new List<SubTestFieldClass<int>>
 						{
-							new SubTestFieldClass<int> {Value = 40},
-							new SubTestFieldClass<int> {Value = 50},
-							new SubTestFieldClass<int> {Value = 60}
+							new() { Value = 40 },
+							new() { Value = 50 },
+							new() { Value = 60 }
 						}
 					},
-					new TestFieldClass<SubTestFieldClass<int>>
+					new()
 					{
 						Items = new List<SubTestFieldClass<int>>
 						{
-							new SubTestFieldClass<int> {Value = 70},
-							new SubTestFieldClass<int> {Value = 80},
-							new SubTestFieldClass<int> {Value = 90}
+							new() { Value = 70 },
+							new() { Value = 80 },
+							new() { Value = 90 }
 						}
 					}
 				}
 			};
 
 			var descriptor = schema.DecoderDescriptor
-				.HasField("_2", () => default, (ref int t, int v) => t = v);
+				.IsObject(() => default!)
+				.HasField("_2", (ref int t, int v) => t = v);
 
 			if (index0.HasValue)
-				descriptor = descriptor.HasField(index0.Value.ToString(CultureInfo.InvariantCulture), () => default,
-					(ref int t, int v) => t = v);
+			{
+				descriptor = descriptor
+					.IsObject(() => default!)
+					.HasField(index0.Value.ToString(CultureInfo.InvariantCulture), (ref int t, int v) => t = v);
+			}
 
-			descriptor = descriptor.HasField("_2", () => default, (ref int t, int v) => t = v);
+			descriptor = descriptor
+				.IsObject(() => default!)
+				.HasField("_2", (ref int t, int v) => t = v);
 
 			if (index1.HasValue)
-				descriptor = descriptor.HasField(index1.Value.ToString(CultureInfo.InvariantCulture), () => default,
-					(ref int t, int v) => t = v);
+			{
+				descriptor = descriptor
+					.IsObject(() => default!)
+					.HasField(index1.Value.ToString(CultureInfo.InvariantCulture), (ref int t, int v) => t = v);
+			}
 
 			descriptor
-				.HasField("_4", () => default, (ref int t, int v) => t = v)
-				.HasValue(schema.DecoderAdapter.ToInteger32S);
+				.IsObject(() => 0)
+				.HasField("_4", (ref int t, int v) => t = v)
+				.IsValue(schema.DecoderAdapter.ToInteger32S);
 
-			var value = RawProtobufSchemaTester.DecodeTranscode(schema.CreateDecoder(() => 0), testFieldClass);
+			var value = DecodeTranscode(schema.CreateDecoder(), testFieldClass);
 
 			Assert.AreEqual(expected, value);
 		}
@@ -246,22 +246,19 @@ namespace Verse.Test.Schemas
 		[TestCase(double.MinValue, double.MinValue, double.MinValue)]
 		[TestCase(double.MaxValue, double.MaxValue, double.MaxValue)]
 		[TestCase("", "", "")]
-		[TestCase(RawProtobufSchemaTester.LongString, RawProtobufSchemaTester.LongString, RawProtobufSchemaTester.LongString)]
+		[TestCase(LongString, LongString, LongString)]
 		public void EncodeRepeatedScalarToObject<T>(T a, T b, T c)
 		{
 			var expectedItems = new[] { a, b, c };
-			var schema = RawProtobufSchemaTester.CreateSchema<List<T>>();
-
-			Assert.That(
-				AdapterResolver.TryGetEncoderConverter<RawProtobufValue, T>(schema.EncoderAdapter, out var converter),
-				Is.True);
+			var schema = CreateSchema<List<T>>();
+			var converter = SchemaHelper<RawProtobufValue>.GetEncoderConverter<T>(schema.EncoderAdapter);
 
 			schema.EncoderDescriptor
 				.HasField("_2", v => v)
 				.HasElements(source => source)
 				.HasValue(converter);
 
-			var testFieldClass = RawProtobufSchemaTester.EncodeTranscode<List<T>, TestFieldClass<T>>(schema.CreateEncoder(), new List<T>(expectedItems));
+			var testFieldClass = EncodeTranscode<List<T>, TestFieldClass<T>>(schema.CreateEncoder(), new List<T>(expectedItems));
 
 			CollectionAssert.AreEqual(expectedItems, testFieldClass.Items);
 		}
@@ -274,22 +271,19 @@ namespace Verse.Test.Schemas
 		[TestCase(double.MinValue)]
 		[TestCase(double.MaxValue)]
 		[TestCase("")]
-		[TestCase(RawProtobufSchemaTester.LongString)]
+		[TestCase(LongString)]
 		public void EncodeScalarToNestedObject<T>(T expectedValue)
 		{
-			var schema = RawProtobufSchemaTester.CreateSchema<TestFieldClass<T>>();
+			var schema = CreateSchema<TestFieldClass<T>>();
 			var testFieldClass = new TestFieldClass<T> {SubValue = new SubTestFieldClass<T> {Value = expectedValue}};
-
-			Assert.That(
-				AdapterResolver.TryGetEncoderConverter<RawProtobufValue, T>(schema.EncoderAdapter, out var converter),
-				Is.True);
+			var converter = SchemaHelper<RawProtobufValue>.GetEncoderConverter<T>(schema.EncoderAdapter);
 
 			schema.EncoderDescriptor
 				.HasField("_3", target => target.SubValue)
 				.HasField("_4", target => target.Value)
 				.HasValue(converter);
 
-			var decodedTestFieldClass = RawProtobufSchemaTester.EncodeRoundTrip(schema.CreateEncoder(), testFieldClass);
+			var decodedTestFieldClass = EncodeRoundTrip(schema.CreateEncoder(), testFieldClass);
 
 			Assert.AreEqual(expectedValue, decodedTestFieldClass.SubValue.Value);
 		}
@@ -304,21 +298,18 @@ namespace Verse.Test.Schemas
 		[TestCase(double.MinValue)]
 		[TestCase(double.MaxValue)]
 		[TestCase("")]
-		[TestCase(RawProtobufSchemaTester.LongString)]
+		[TestCase(LongString)]
 		public void EncodeScalarToObject<T>(T value)
 		{
-			var schema = RawProtobufSchemaTester.CreateSchema<T>();
-
-			Assert.That(
-				AdapterResolver.TryGetEncoderConverter<RawProtobufValue, T>(schema.EncoderAdapter, out var converter),
-				Is.True);
+			var schema = CreateSchema<T>();
+			var converter = SchemaHelper<RawProtobufValue>.GetEncoderConverter<T>(schema.EncoderAdapter);
 
 			schema.EncoderDescriptor
 				.HasField("_1", v => v)
 				.HasValue(converter);
 
 			var testFieldClass =
-				RawProtobufSchemaTester.EncodeTranscode<T, TestFieldClass<T>>(schema.CreateEncoder(),
+				EncodeTranscode<T, TestFieldClass<T>>(schema.CreateEncoder(),
 					value);
 
 			Assert.AreEqual(value, testFieldClass.Value);
@@ -332,11 +323,12 @@ namespace Verse.Test.Schemas
 		[TestCase(double.MinValue, double.MinValue, double.MinValue)]
 		[TestCase(double.MaxValue, double.MaxValue, double.MaxValue)]
 		[TestCase("", "", "")]
-		[TestCase(RawProtobufSchemaTester.LongString, RawProtobufSchemaTester.LongString, RawProtobufSchemaTester.LongString)]
+		[TestCase(LongString, LongString, LongString)]
 		public void EncodeScalarToRepeatedObject<T>(T a, T b, T c)
 		{
 			var fieldClass = new TestFieldClass<TestFieldClass<T>>();
-			var schema = RawProtobufSchemaTester.CreateSchema<TestFieldClass<TestFieldClass<T>>>();
+			var schema = CreateSchema<TestFieldClass<TestFieldClass<T>>>();
+			var converter = SchemaHelper<RawProtobufValue>.GetEncoderConverter<T>(schema.EncoderAdapter);
 			var expectedValues = new[] { a, b, c };
 
 			foreach (var value in expectedValues)
@@ -350,10 +342,6 @@ namespace Verse.Test.Schemas
 				});
 			}
 
-			Assert.That(
-				AdapterResolver.TryGetEncoderConverter<RawProtobufValue, T>(schema.EncoderAdapter, out var converter),
-				Is.True);
-
 			schema.EncoderDescriptor
 				.HasField("_2", v => v)
 				.HasElements(source => source.Items)
@@ -361,7 +349,7 @@ namespace Verse.Test.Schemas
 				.HasField("_4", target => target.Value)
 				.HasValue(converter);
 
-			var decodedFieldClass = RawProtobufSchemaTester.EncodeRoundTrip(schema.CreateEncoder(), fieldClass);
+			var decodedFieldClass = EncodeRoundTrip(schema.CreateEncoder(), fieldClass);
 
 			Assert.AreEqual(expectedValues.Length, decodedFieldClass.Items.Count);
 
@@ -376,42 +364,39 @@ namespace Verse.Test.Schemas
 
 		private static T DecodeRoundTrip<T>(IDecoder<T> decoder, T input)
 		{
-			return RawProtobufSchemaTester.DecodeTranscode(decoder, input);
+			return DecodeTranscode(decoder, input);
 		}
 
 		private static TOutput DecodeTranscode<TInput, TOutput>(IDecoder<TOutput> decoder, TInput input)
 		{
-			using (var stream = new MemoryStream())
-			{
-				Serializer.Serialize(stream, input);
+			using var stream = new MemoryStream();
 
-				stream.Seek(0, SeekOrigin.Begin);
+			Serializer.Serialize(stream, input);
 
-				using (var decoderStream = decoder.Open(stream))
-				{
-					Assert.IsTrue(decoderStream.TryDecode(out var output));
+			stream.Seek(0, SeekOrigin.Begin);
 
-					return output;
-				}
-			}
+			using var decoderStream = decoder.Open(stream);
+
+			Assert.IsTrue(decoderStream.TryDecode(out var output));
+
+			return output;
 		}
 
 		private static T EncodeRoundTrip<T>(IEncoder<T> encoder, T input)
 		{
-			return RawProtobufSchemaTester.EncodeTranscode<T, T>(encoder, input);
+			return EncodeTranscode<T, T>(encoder, input);
 		}
 
 		private static TOutput EncodeTranscode<TInput, TOutput>(IEncoder<TInput> encoder, TInput input)
 		{
-			using (var stream = new MemoryStream())
-			{
-				using (var encoderStream = encoder.Open(stream))
-					encoderStream.Encode(input);
+			using var stream = new MemoryStream();
 
-				stream.Seek(0, SeekOrigin.Begin);
+			using (var encoderStream = encoder.Open(stream))
+				encoderStream.Encode(input);
 
-				return Serializer.Deserialize<TOutput>(stream);
-			}
+			stream.Seek(0, SeekOrigin.Begin);
+
+			return Serializer.Deserialize<TOutput>(stream);
 		}
 
 		[Serializable, ProtoContract(Name = @"SubTestFieldClass")]
@@ -422,7 +407,7 @@ namespace Verse.Test.Schemas
 			[ProtoMember(4, IsRequired = true)]
 			public T Value
 			{
-				get => this.value;
+				get => value;
 				set => this.value = value;
 			}
 
@@ -430,7 +415,7 @@ namespace Verse.Test.Schemas
 
 			IExtension IExtensible.GetExtensionObject(bool createIfMissing)
 			{
-				return Extensible.GetExtensionObject(ref this.extensionObject, createIfMissing);
+				return Extensible.GetExtensionObject(ref extensionObject, createIfMissing);
 			}
 		}
 
@@ -442,17 +427,17 @@ namespace Verse.Test.Schemas
 			[ProtoMember(1, IsRequired = true)]
 			public T Value
 			{
-				get => this.value;
+				get => value;
 				set => this.value = value;
 			}
 
-			private List<T> items = new List<T>();
+			private List<T> items = new();
 
 			[ProtoMember(2, IsRequired = true, DataFormat = DataFormat.Default)]
 			public List<T> Items
 			{
-				get => this.items;
-				set => this.items = value;
+				get => items;
+				set => items = value;
 			}
 
 			private SubTestFieldClass<T> subValue;
@@ -460,8 +445,8 @@ namespace Verse.Test.Schemas
 			[ProtoMember(3, IsRequired = true)]
 			public SubTestFieldClass<T> SubValue
 			{
-				get => this.subValue;
-				set => this.subValue = value;
+				get => subValue;
+				set => subValue = value;
 			}
 
 			private IExtension extensionObject;

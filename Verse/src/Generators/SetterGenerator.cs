@@ -9,60 +9,6 @@ namespace Verse.Generators
 {
 	internal static class SetterGenerator
 	{
-		/// <summary>
-		/// Create setter using compatible constructor.
-		/// </summary>
-		public static Setter<TEntity, TParameter> CreateFromConstructor<TEntity, TParameter>(
-			ConstructorInfo constructor)
-		{
-			var parameters = constructor.GetParameters();
-
-			if (constructor.DeclaringType != typeof(TEntity))
-				throw new ArgumentException($"constructor parent type is not {typeof(TEntity)}",
-					nameof(constructor));
-
-			if (parameters.Length != 1)
-				throw new ArgumentException("constructor doesn't take one argument", nameof(constructor));
-
-			if (parameters[0].ParameterType != typeof(TParameter))
-				throw new ArgumentException($"constructor argument type is not {typeof(TParameter)}",
-					nameof(constructor));
-
-			var parameterTypes = new[] {typeof(TEntity).MakeByRefType(), typeof(TParameter)};
-			var method = new DynamicMethod(string.Empty, null, parameterTypes, constructor.Module, true);
-			var generator = method.GetILGenerator();
-
-			generator.Emit(OpCodes.Ldarg_0);
-			generator.Emit(OpCodes.Ldarg_1);
-			generator.Emit(OpCodes.Newobj, constructor);
-			generator.Emit(OpCodes.Stind_Ref);
-			generator.Emit(OpCodes.Ret);
-
-			return (Setter<TEntity, TParameter>) method.CreateDelegate(typeof(Setter<TEntity, TParameter>));
-		}
-
-		/// <summary>
-		/// Create setter from any <see cref="IEnumerable{T}"/> elements to array target.
-		/// </summary>
-		/// <typeparam name="TElement">Element type</typeparam>
-		/// <returns>Setter callback</returns>
-		public static Setter<TElement[], IEnumerable<TElement>> CreateFromEnumerable<TElement>()
-		{
-			var arrayConverter = MethodResolver.Create<Func<IEnumerable<TElement>, TElement[]>>(e => e.ToArray());
-			var parameterTypes = new[] {typeof(TElement[]).MakeByRefType(), typeof(IEnumerable<TElement>)};
-			var method = new DynamicMethod(string.Empty, null, parameterTypes, typeof(TElement).Module, true);
-			var generator = method.GetILGenerator();
-
-			generator.Emit(OpCodes.Ldarg_0);
-			generator.Emit(OpCodes.Ldarg_1);
-			generator.Emit(OpCodes.Call, arrayConverter.Method);
-			generator.Emit(OpCodes.Stind_Ref);
-			generator.Emit(OpCodes.Ret);
-
-			return (Setter<TElement[], IEnumerable<TElement>>) method.CreateDelegate(
-				typeof(Setter<TElement[], IEnumerable<TElement>>));
-		}
-
 		/// <Summary>
 		/// Create field setter delegate for given runtime field.
 		/// </Summary>

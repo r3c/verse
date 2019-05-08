@@ -31,7 +31,7 @@ namespace Verse
 				new Dictionary<Type, object>()))
 				throw new ArgumentException($"can't link decoder for type '{typeof(TEntity)}'", nameof(schema));
 
-			return schema.CreateDecoder(ConstructorGenerator.CreateConstructor<TEntity>(bindings));
+			return schema.CreateDecoder();
 		}
 
 		/// <summary>
@@ -117,13 +117,13 @@ namespace Verse
 			if (entityType.IsArray)
 			{
 				var element = entityType.GetElementType();
-				var setter = MethodResolver
-					.Create<Func<Setter<object[], IEnumerable<object>>>>(() =>
-						SetterGenerator.CreateFromEnumerable<object>())
+				var converter = MethodResolver
+					.Create<Func<Func<IEnumerable<object>, object[]>>>(() =>
+						ConverterGenerator.CreateFromEnumerable<object>())
 					.SetGenericArguments(element)
 					.Invoke(null);
 
-				return Linker.TryLinkDecoderAsArray(descriptor, adapter, converters, bindings, element, setter,
+				return Linker.TryLinkDecoderAsArray(descriptor, adapter, converters, bindings, element, converter,
 					parents);
 			}
 
@@ -152,16 +152,19 @@ namespace Verse
 					    parameterArguments[0] != elementType)
 						continue;
 
-					var setter = MethodResolver
-						.Create<Func<ConstructorInfo, Setter<object, object>>>(c =>
-							SetterGenerator.CreateFromConstructor<object, object>(c))
+					var converter = MethodResolver
+						.Create<Func<ConstructorInfo, Func<object, object>>>(c =>
+							ConverterGenerator.CreateFromConstructor<object, object>(c))
 						.SetGenericArguments(entityType, parameterType)
 						.Invoke(null, constructor);
 
-					return Linker.TryLinkDecoderAsArray(descriptor, adapter, converters, bindings, elementType, setter,
-						parents);
+					return Linker.TryLinkDecoderAsArray(descriptor, adapter, converters, bindings, elementType,
+						converter, parents);
 				}
 			}
+
+			// Bind descriptor as object
+			var objectDescriptor = descriptor.IsObject(ConstructorGenerator.CreateConstructor<TEntity>(bindings));
 
 			// Bind readable and writable instance properties
 			foreach (var property in entityType.GetProperties(bindings))
@@ -176,8 +179,8 @@ namespace Verse
 					.SetGenericArguments(entityType, property.PropertyType)
 					.Invoke(null, property);
 
-				if (!Linker.TryLinkDecoderAsObject(descriptor, adapter, converters, bindings, property.PropertyType,
-					property.Name, setter, parents))
+				if (!Linker.TryLinkDecoderAsObject(objectDescriptor, adapter, converters, bindings,
+					property.PropertyType, property.Name, setter, parents))
 					return false;
 			}
 
@@ -193,9 +196,8 @@ namespace Verse
 					.SetGenericArguments(entityType, field.FieldType)
 					.Invoke(null, field);
 
-				if (!Linker.TryLinkDecoderAsObject(descriptor, adapter, converters, bindings, field.FieldType,
-					field.Name,
-					setter, parents))
+				if (!Linker.TryLinkDecoderAsObject(objectDescriptor, adapter, converters, bindings, field.FieldType,
+					field.Name, setter, parents))
 					return false;
 			}
 
@@ -204,32 +206,25 @@ namespace Verse
 
 		private static bool TryLinkDecoderAsArray<TNative, TEntity>(IDecoderDescriptor<TNative, TEntity> descriptor,
 			IDecoderAdapter<TNative> adapter, IReadOnlyDictionary<Type, object> converters, BindingFlags bindings,
-			Type type, object setter, IDictionary<Type, object> parents)
+			Type type, object converter, IDictionary<Type, object> parents)
 		{
-			var constructor = MethodResolver
-				.Create<Func<object>>(() => ConstructorGenerator.CreateConstructor<object>(bindings))
-				.SetGenericArguments(type)
-				.Invoke(null);
-
 			if (parents.TryGetValue(type, out var recurse))
 			{
 				MethodResolver
-					.Create<Func<IDecoderDescriptor<TNative, TEntity>, Func<object>,
-						Setter<TEntity, IEnumerable<object>>,
-						IDecoderDescriptor<TNative, object>, IDecoderDescriptor<TNative, object>>>((d, c, s, p) =>
-						d.HasElements(c, s, p))
+					.Create<Func<IDecoderDescriptor<TNative, TEntity>, Func<IEnumerable<object>, TEntity>,
+						IDecoderDescriptor<TNative, object>, IDecoderDescriptor<TNative, object>>>((d, c, p) =>
+						d.IsArray(c, p))
 					.SetGenericArguments(type)
-					.Invoke(descriptor, constructor, setter, recurse);
+					.Invoke(descriptor, converter, recurse);
 
 				return true;
 			}
 
 			var itemDescriptor = MethodResolver
-				.Create<Func<IDecoderDescriptor<TNative, TEntity>, Func<object>,
-					Setter<TEntity, IEnumerable<object>>,
-					IDecoderDescriptor<TNative, object>>>((d, c, s) => d.HasElements(c, s))
+				.Create<Func<IDecoderDescriptor<TNative, TEntity>, Func<IEnumerable<object>, TEntity>,
+					IDecoderDescriptor<TNative, object>>>((d, c) => d.IsArray(c))
 				.SetGenericArguments(type)
-				.Invoke(descriptor, constructor, setter);
+				.Invoke(descriptor, converter);
 
 			return (bool) MethodResolver
 				.Create<Func<IDecoderDescriptor<TNative, object>, IDecoderAdapter<TNative>,
@@ -239,33 +234,29 @@ namespace Verse
 				.Invoke(null, itemDescriptor, adapter, converters, bindings, parents);
 		}
 
-		private static bool TryLinkDecoderAsObject<TNative, TEntity>(IDecoderDescriptor<TNative, TEntity> descriptor,
-			IDecoderAdapter<TNative> adapter, IReadOnlyDictionary<Type, object> converters, BindingFlags bindings,
-			Type type, string name, object setter, IDictionary<Type, object> parents)
+		private static bool TryLinkDecoderAsObject<TNative, TEntity>(
+			IDecoderObjectDescriptor<TNative, TEntity> objectDescriptor, IDecoderAdapter<TNative> adapter,
+			IReadOnlyDictionary<Type, object> converters, BindingFlags bindings, Type type, string name,
+			object setter, IDictionary<Type, object> parents)
 		{
-			var constructor = MethodResolver
-				.Create<Func<object>>(() => ConstructorGenerator.CreateConstructor<object>(bindings))
-				.SetGenericArguments(type)
-				.Invoke(null);
-
 			if (parents.TryGetValue(type, out var parent))
 			{
 				MethodResolver
-					.Create<Func<IDecoderDescriptor<TNative, TEntity>, string, Func<object>,
-						Setter<TEntity, object>,
-						IDecoderDescriptor<TNative, object>, IDecoderDescriptor<TNative, object>>>((d, n, c, s, p) =>
-						d.HasField(n, c, s, p))
+					.Create<Func<IDecoderObjectDescriptor<TNative, TEntity>, string, Setter<TEntity, object>,
+						IDecoderDescriptor<TNative, object>,
+						IDecoderDescriptor<TNative, object>>>((d, n, s, p) =>
+						d.HasField(n, s, p))
 					.SetGenericArguments(type)
-					.Invoke(descriptor, name, constructor, setter, parent);
+					.Invoke(objectDescriptor, name, setter, parent);
 
 				return true;
 			}
 
 			var fieldDescriptor = MethodResolver
-				.Create<Func<IDecoderDescriptor<TNative, TEntity>, string, Func<object>, Setter<TEntity, object>,
-					IDecoderDescriptor<TNative, object>>>((d, n, c, s) => d.HasField(n, c, s))
+				.Create<Func<IDecoderObjectDescriptor<TNative, TEntity>, string, Setter<TEntity, object>,
+					IDecoderDescriptor<TNative, object>>>((d, n, s) => d.HasField(n, s))
 				.SetGenericArguments(type)
-				.Invoke(descriptor, name, constructor, setter);
+				.Invoke(objectDescriptor, name, setter);
 
 			return (bool) MethodResolver
 				.Create<Func<IDecoderDescriptor<TNative, object>, IDecoderAdapter<TNative>,
@@ -282,7 +273,7 @@ namespace Verse
 			// Try linking using provided entity type directly
 			if (Linker.TryGetDecoderConverter<TValue, TEntity>(adapter, converters, out var converter))
 			{
-				descriptor.HasValue(converter);
+				descriptor.IsValue(converter);
 
 				return true;
 			}
@@ -306,7 +297,7 @@ namespace Verse
 			if (!Linker.TryGetDecoderConverter<TValue, TEntity>(adapter, converters, out var converter))
 				return false;
 
-			descriptor.HasValue((ref TEntity? target, TValue source) =>
+			descriptor.IsValue((ref TEntity? target, TValue source) =>
 			{
 				// Assume that default TValue is equivalent to null entity
 				if (EqualityComparer<TValue>.Default.Equals(source, default))
