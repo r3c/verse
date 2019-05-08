@@ -1,5 +1,4 @@
-﻿using System;
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using Verse.DecoderDescriptors.Tree;
 
@@ -14,7 +13,7 @@ namespace Verse.Schemas.RawProtobuf
 			this.noZigZagEncoding = noZigZagEncoding;
 		}
 
-		public ReaderStatus ReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
+		public ReaderStatus ReadToArray<TElement>(ReaderState state,
 			ReaderCallback<ReaderState, RawProtobufValue, char, TElement> callback,
 			out BrowserMove<TElement> browserMove)
 		{
@@ -37,7 +36,7 @@ namespace Verse.Schemas.RawProtobuf
 				}
 
 				// Read field and continue enumeration if we're still reading elements sharing the same field index
-				element = constructor();
+				element = default;
 
 				return callback(this, state, ref element) != ReaderStatus.Failed
 					? BrowserState.Continue

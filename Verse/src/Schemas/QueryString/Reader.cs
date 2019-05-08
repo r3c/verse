@@ -15,7 +15,7 @@ namespace Verse.Schemas.QueryString
 			this.encoding = encoding;
 		}
 
-		public ReaderStatus ReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
+		public ReaderStatus ReadToArray<TElement>(ReaderState state,
 			ReaderCallback<ReaderState, string, char, TElement> callback, out BrowserMove<TElement> browserMove)
 		{
 			browserMove = default;

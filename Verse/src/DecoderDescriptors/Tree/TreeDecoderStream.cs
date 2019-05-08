@@ -1,22 +1,17 @@
-﻿using System;
-
-namespace Verse.DecoderDescriptors.Tree
+﻿namespace Verse.DecoderDescriptors.Tree
 {
 	internal class TreeDecoderStream<TState, TNative, TKey, TEntity> : IDecoderStream<TEntity>
 	{
 		private readonly ReaderCallback<TState, TNative, TKey, TEntity> callback;
 
-		private readonly Func<TEntity> constructor;
-
 		private readonly IReader<TState, TNative, TKey> reader;
 
 		private readonly TState state;
 
-		public TreeDecoderStream(IReader<TState, TNative, TKey> reader, Func<TEntity> constructor,
+		public TreeDecoderStream(IReader<TState, TNative, TKey> reader,
 			ReaderCallback<TState, TNative, TKey, TEntity> callback, TState state)
 		{
 			this.callback = callback;
-			this.constructor = constructor;
 			this.reader = reader;
 			this.state = state;
 		}
@@ -28,7 +23,7 @@ namespace Verse.DecoderDescriptors.Tree
 
 		public bool TryDecode(out TEntity entity)
 		{
-			var entityValue = this.constructor();
+			var entityValue = default(TEntity);
 
 			var result = this.callback(this.reader, this.state, ref entityValue);
 

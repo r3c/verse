@@ -36,9 +36,8 @@ namespace Verse
 		/// Create an entity decoder based on instructions passed to the
 		/// decoder descriptor associated to this schema.
 		/// </summary>
-		/// <param name="constructor">Entity constructor</param>
 		/// <returns>Decoder descriptor</returns>
-		IDecoder<TEntity> CreateDecoder(Func<TEntity> constructor);
+		IDecoder<TEntity> CreateDecoder();
 
 		/// <summary>
 		/// Create an entity encoder based on instructions passed to the

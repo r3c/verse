@@ -61,13 +61,13 @@ namespace Verse.Schemas
 		}
 
 		/// <inheritdoc/>
-		public IDecoder<TEntity> CreateDecoder(Func<TEntity> constructor)
+		public IDecoder<TEntity> CreateDecoder()
 		{
 			var configuration = this.configuration;
 			var reader = new Reader(configuration.Encoding ?? new UTF8Encoding(false),
 				configuration.ReadObjectValuesAsArray, configuration.ReadScalarAsOneElementArray);
 
-			return this.decoderDescriptor.CreateDecoder(reader, constructor);
+			return this.decoderDescriptor.CreateDecoder(reader);
 		}
 
 		/// <inheritdoc/>

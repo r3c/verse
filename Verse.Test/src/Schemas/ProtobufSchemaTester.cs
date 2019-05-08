@@ -32,24 +32,22 @@ namespace Verse.Test.Schemas
 		{
 			var proto = File.ReadAllText(Path.Combine(TestContext.CurrentContext.TestDirectory, "res/Protobuf/Person.proto"));
 			var schema = new ProtobufSchema<Person>(new StringReader(proto), "Person");
+			var root = schema.DecoderDescriptor.IsObject(() => new Person());
 
-			schema.DecoderDescriptor.HasField("email", () => string.Empty, (ref Person p, string v) => p.Email = v)
-				.HasValue(schema.DecoderAdapter.ToString);
-			schema.DecoderDescriptor.HasField("id", () => 0, (ref Person p, int v) => p.Id = v)
-				.HasValue(schema.DecoderAdapter.ToInteger32S);
-			schema.DecoderDescriptor.HasField("name", () => string.Empty, (ref Person p, string v) => p.Name = v)
-				.HasValue(schema.DecoderAdapter.ToString);
+			root.HasField("email", (ref Person p, string v) => p.Email = v)
+				.IsValue(schema.DecoderAdapter.ToString);
+			root.HasField("id", (ref Person p, int v) => p.Id = v)
+				.IsValue(schema.DecoderAdapter.ToInteger32S);
+			root.HasField("name", (ref Person p, string v) => p.Name = v)
+				.IsValue(schema.DecoderAdapter.ToString);
 
-			var decoder = schema.CreateDecoder(() => new Person());
+			var decoder = schema.CreateDecoder();
 
-			using (var stream = new MemoryStream(new byte[] { 16, 17, 0, 0, 0 }))
-			{
-				using (var decoderStream = decoder.Open(stream))
-				{
-					Assert.True(decoderStream.TryDecode(out var entity));
-					Assert.AreEqual(17, entity.Id);
-				}
-			}
+			using var stream = new MemoryStream(new byte[] { 16, 17, 0, 0, 0 });
+			using var decoderStream = decoder.Open(stream);
+
+			Assert.True(decoderStream.TryDecode(out var entity));
+			Assert.AreEqual(17, entity.Id);
 		}	
 	}
 }

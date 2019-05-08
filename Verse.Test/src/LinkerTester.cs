@@ -73,7 +73,7 @@ namespace Verse.Test
 
 		[Test]
 		[TestCase(BindingFlags.Instance | BindingFlags.Public, "{\"isPublic\":1}", "0:0:1")]
-		[TestCase(BindingFlags.Instance | BindingFlags.NonPublic, "{\"isProtected\":2,\"isPrivate\":3}", "3:2:0")]
+		[TestCase(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, "{\"isPublic\":1,\"isProtected\":2,\"isPrivate\":3}", "3:2:1")]
 		public void LinkDecoderVisibility(BindingFlags bindings, string json, string expected)
 		{
 			var encoded = Encoding.UTF8.GetBytes(json);
@@ -220,7 +220,7 @@ namespace Verse.Test
 			public int v = 0;
 		}
 
-		private class Visibility
+		public class Visibility
 		{
 			public int isPublic = 0;
 			protected int isProtected = 0;

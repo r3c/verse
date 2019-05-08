@@ -52,7 +52,7 @@ namespace Verse.Schemas.Protobuf
 
 	internal class Reader : IReader<ReaderState, ProtobufValue, int>
 	{
-		public ReaderStatus ReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
+		public ReaderStatus ReadToArray<TElement>(ReaderState state,
 			ReaderCallback<ReaderState, ProtobufValue, int, TElement> callback, out BrowserMove<TElement> browserMove)
 		{
 			throw new NotImplementedException();

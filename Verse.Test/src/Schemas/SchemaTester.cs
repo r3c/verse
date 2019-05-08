@@ -4,6 +4,10 @@ using System.IO;
 using System.Reflection;
 using KellermanSoftware.CompareNetObjects;
 using NUnit.Framework;
+using Verse.Resolvers;
+
+// ReSharper disable NotAccessedField.Local
+// ReSharper disable UnusedMember.Local
 
 namespace Verse.Test.Schemas
 {
@@ -12,56 +16,63 @@ namespace Verse.Test.Schemas
 		[Test]
 		public void RoundTripFieldFlatten()
 		{
-			var schema = this.CreateSchema<int>();
+			var schema = CreateSchema<int>();
 
-			schema.DecoderDescriptor.HasField("virtual").HasField("value", () => 0,
-				(ref int target, int source) => target = source).HasValue(schema.DecoderAdapter.ToInteger32S);
-			schema.EncoderDescriptor.HasField("virtual").HasField("value", source => source)
+			schema.DecoderDescriptor
+				.IsObject(() => 0)
+				.HasField("virtual")
+				.IsObject(() => 0)
+				.HasField("value", (ref int target, int source) => target = source)
+				.IsValue(schema.DecoderAdapter.ToInteger32S);
+
+			schema.EncoderDescriptor
+				.HasField("virtual")
+				.HasField("value", source => source)
 				.HasValue(schema.EncoderAdapter.FromInteger32S);
 
-			SchemaTester<TNative>.AssertRoundTrip(schema.CreateDecoder(() => 0), schema.CreateEncoder(), 17);
+			SchemaHelper<TNative>.AssertRoundTrip(schema.CreateDecoder(), schema.CreateEncoder(), 17);
 		}
 
 		[Test]
 		public void RoundTripNestedArray()
 		{
-			var schema = this.CreateSchema<NestedArray>();
+			var schema = CreateSchema<NestedArray>();
 			var decoder = Linker.CreateDecoder(schema);
 			var encoder = Linker.CreateEncoder(schema);
 
-			SchemaTester<TNative>.AssertRoundTrip(decoder, encoder, new NestedArray
+			SchemaHelper<TNative>.AssertRoundTrip(decoder, encoder, new NestedArray
 			{
-				children = new[]
+				Children = new[]
 				{
 					new NestedArray
 					{
-						children = Array.Empty<NestedArray>(),
-						value = "a"
+						Children = Array.Empty<NestedArray>(),
+						Value = "a"
 					},
 					new NestedArray
 					{
-						children = new[]
+						Children = new[]
 						{
 							new NestedArray
 							{
-								children = Array.Empty<NestedArray>(),
-								value = "b"
+								Children = Array.Empty<NestedArray>(),
+								Value = "b"
 							},
 							new NestedArray
 							{
-								children = Array.Empty<NestedArray>(),
-								value = "c"
+								Children = Array.Empty<NestedArray>(),
+								Value = "c"
 							}
 						},
-						value = "d"
+						Value = "d"
 					},
 					new NestedArray
 					{
-						children = Array.Empty<NestedArray>(),
-						value = "e"
+						Children = Array.Empty<NestedArray>(),
+						Value = "e"
 					}
 				},
-				value = "f"
+				Value = "f"
 			});
 		}
 
@@ -69,43 +80,43 @@ namespace Verse.Test.Schemas
 		[Ignore("Enum types are not handled by linker yet.")]
 		public void RoundTripMixedTypes()
 		{
-			var schema = this.CreateSchema<MixedContainer>();
+			var schema = CreateSchema<MixedContainer>();
 			var decoder = Linker.CreateDecoder(schema);
 			var encoder = Linker.CreateEncoder(schema);
 
-			SchemaTester<TNative>.AssertRoundTrip(decoder, encoder, new MixedContainer
+			SchemaHelper<TNative>.AssertRoundTrip(decoder, encoder, new MixedContainer
 			{
-				floats = new[] {1.1f, 2.2f, 3.3f},
-				integer = 17,
-				option = SomeEnum.B,
-				pairs = new Dictionary<string, string>
+				Floats = new[] {1.1f, 2.2f, 3.3f},
+				Integer = 17,
+				Option = SomeEnum.B,
+				Pairs = new Dictionary<string, string>
 				{
 					{"a", "aaa"},
 					{"b", "bbb"}
 				},
-				text = "Hello, World!"
+				Text = "Hello, World!"
 			});
 		}
 
 		[Test]
 		public void RoundTripNestedValue()
 		{
-			var schema = this.CreateSchema<NestedValue>();
+			var schema = CreateSchema<NestedValue>();
 			var decoder = Linker.CreateDecoder(schema);
 			var encoder = Linker.CreateEncoder(schema);
 
-			SchemaTester<TNative>.AssertRoundTrip(decoder, encoder, new NestedValue
+			SchemaHelper<TNative>.AssertRoundTrip(decoder, encoder, new NestedValue
 			{
-				child = new NestedValue
+				Child = new NestedValue
 				{
-					child = new NestedValue
+					Child = new NestedValue
 					{
-						child = null,
-						value = 64
+						Child = null,
+						Value = 64
 					},
-					value = 42
+					Value = 42
 				},
-				value = 17
+				Value = 17
 			});
 		}
 
@@ -114,69 +125,33 @@ namespace Verse.Test.Schemas
 		[TestCase(25.5)]
 		public void RoundTripValueNative<T>(T instance)
 		{
-			var schema = this.CreateSchema<T>();
+			var schema = CreateSchema<T>();
 			var decoder = Linker.CreateDecoder(schema);
 			var encoder = Linker.CreateEncoder(schema);
 
-			SchemaTester<TNative>.AssertRoundTrip(decoder, encoder, instance);
+			SchemaHelper<TNative>.AssertRoundTrip(decoder, encoder, instance);
 		}
 
 		[Test]
 		public void RoundTripValueNullableField()
 		{
-			var schema = this.CreateSchema<Container<double?>>();
+			var schema = CreateSchema<Container<double?>>();
 			var decoder = Linker.CreateDecoder(schema);
 			var encoder = Linker.CreateEncoder(schema);
 
-			SchemaTester<TNative>.AssertRoundTrip(decoder, encoder, new Container<double?>());
-			SchemaTester<TNative>.AssertRoundTrip(decoder, encoder, new Container<double?> {Value = 42});
+			SchemaHelper<TNative>.AssertRoundTrip(decoder, encoder, new Container<double?>());
+			SchemaHelper<TNative>.AssertRoundTrip(decoder, encoder, new Container<double?> {Value = 42});
 		}
 
 		[Test]
 		public void RoundTripValueNullableValue()
 		{
-			var schema = this.CreateSchema<double?>();
+			var schema = CreateSchema<double?>();
 			var decoder = Linker.CreateDecoder(schema);
 			var encoder = Linker.CreateEncoder(schema);
 
-			SchemaTester<TNative>.AssertRoundTrip(decoder, encoder, null);
-			SchemaTester<TNative>.AssertRoundTrip(decoder, encoder, 42);
-		}
-
-		protected static void AssertRoundTrip<T>(IDecoder<T> decoder, IEncoder<T> encoder, T instance)
-		{
-			T decoded;
-			byte[] encoded1;
-			byte[] encoded2;
-
-			using (var stream = new MemoryStream())
-			{
-				using (var encoderStream = encoder.Open(stream))
-					encoderStream.Encode(instance);
-
-				encoded1 = stream.ToArray();
-			}
-
-			using (var stream = new MemoryStream(encoded1))
-			{
-				using (var decoderStream = decoder.Open(stream))
-					Assert.IsTrue(decoderStream.TryDecode(out decoded));
-			}
-
-			var comparisonResult = new CompareLogic().Compare(instance, decoded);
-
-			CollectionAssert.IsEmpty(comparisonResult.Differences,
-				$"differences found after decoding entity: {comparisonResult.DifferencesString}");
-
-			using (var stream = new MemoryStream())
-			{
-				using (var encoderStream = encoder.Open(stream))
-					encoderStream.Encode(decoded);
-
-				encoded2 = stream.ToArray();
-			}
-
-			CollectionAssert.AreEqual(encoded1, encoded2);
+			SchemaHelper<TNative>.AssertRoundTrip(decoder, encoder, null);
+			SchemaHelper<TNative>.AssertRoundTrip(decoder, encoder, 42);
 		}
 
 		protected abstract ISchema<TNative, TEntity> CreateSchema<TEntity>();
@@ -188,23 +163,23 @@ namespace Verse.Test.Schemas
 
 		private class MixedContainer
 		{
-			public float[] floats;
-			public short integer;
-			public SomeEnum option;
-			public Dictionary<string, string> pairs;
-			public string text;
+			public float[] Floats;
+			public short Integer;
+			public SomeEnum Option;
+			public Dictionary<string, string> Pairs;
+			public string Text;
 		}
 
 		private class NestedArray
 		{
-			public NestedArray[] children;
-			public string value;
+			public NestedArray[] Children;
+			public string Value;
 		}
 
 		private class NestedValue
 		{
-			public NestedValue child;
-			public int value;
+			public NestedValue Child;
+			public int Value;
 		}
 
 		private enum SomeEnum

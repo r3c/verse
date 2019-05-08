@@ -6,7 +6,6 @@
     <AssemblyName>Verse</AssemblyName>
     <AssemblyTitle>Fast Generic Runtime (de)serializer</AssemblyTitle>
     <Authors>Remi Caput</Authors>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <LangVersion>latest</LangVersion>
     <PackageIconUrl>https://raw.github.com/r3c/verse/master/icon.png</PackageIconUrl>
     <PackageId>Verse</PackageId>
@@ -16,10 +15,11 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>git://github.com/r3c/verse</RepositoryUrl>
     <TargetFrameworks>net7.0;net6.0;net472</TargetFrameworks>
+    <Title>Verse: Versatile (de)Serializer</Title>
     <Version>0.6.0</Version>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' != 'net472' ">
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' ">
     <PackageReference Include="System.Collections" Version="4.3.0" />
     <PackageReference Include="System.Reflection.Emit" Version="4.7.0" />
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.7.0" />
@@ -27,10 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- From: https://stackoverflow.com/questions/42810705/visual-studio-2017-new-csproj-internalsvisibleto -->
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-      <_Parameter1>$(MSBuildProjectName).Test</_Parameter1>
-    </AssemblyAttribute>
+	<InternalsVisibleTo Include="$(MSBuildProjectName).Test" />
   </ItemGroup>
 
 </Project>
