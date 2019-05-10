@@ -36,7 +36,7 @@ namespace Verse.Test.Schemas
 		[Test]
 		[TestCase("{\"value1\" : { \"value2\" : 123 } }", "123")]
 		[TestCase("{\"value1\" : { \"value2\" : null } }", "null")]
-		[TestCase("{\"value1\" : null }", "null")]
+		[TestCase("{\"value1\" : null }", "default")]
 		public void DecodeNullField(string json, string expected)
 		{
 			var schema = new JSONSchema<string>();
@@ -62,12 +62,89 @@ namespace Verse.Test.Schemas
 				.HasField("value2", () => "null", (ref string e, string v) => e = v)
 				.HasValue();
 
-			var parser = schema.CreateDecoder(() => default);
+			var parser = schema.CreateDecoder(() => "default");
 			string result = default;
 
 			var decoderStream = parser.Open(new MemoryStream(Encoding.UTF8.GetBytes(json)));
 			Assert.IsTrue(decoderStream.TryDecode(out result));
 			Assert.AreEqual(expected, result);
+		}
+
+		[Test]
+		[TestCase("{\"sizes\" : [ { \"w\" : 10, \"h\" : 20 } ] }", 1, true)]
+		[TestCase("{\"sizes\" : null }", 0, false)]
+		[TestCase("{\"sizes\" : [] }", 0, true)]
+		public void DecodeNullArrayField(string json, int sizesLen, bool expectConstructArray)
+		{
+			var schema = new JSONSchema<List<(int, int)>>();
+			schema.SetDecoderConverter(JSONSchemaTester.JsonToDoubleConverter);
+
+			var constructArray = false;
+
+			var sizesDesc = schema.DecoderDescriptor
+				.HasField("sizes",
+					() =>
+					{
+						constructArray = true;
+						return new List<(int, int)>();
+					},
+					(ref List<(int, int)> e, IEnumerable<(int, int)> v) => e.AddRange(v))
+				.HasElements(() => (-1, -1),
+					(ref IEnumerable<(int, int)> target, IEnumerable<(int, int)> value) => { target = value.ToArray(); });
+
+			sizesDesc
+				.HasField<int>("w", () => -2, (ref (int, int) e, int v) => e.Item1 = v)
+				.HasValue((ref int e, int v) => { e = v; });
+
+			sizesDesc
+				.HasField<int>("h", () => -3, (ref (int, int) e, int v) => e.Item2 = v)
+				.HasValue((ref int e, int v) => { e = v; });
+
+			var parser = schema.CreateDecoder(() => new List<(int, int)>());
+
+			List<(int, int)> result = default;
+
+			var decoderStream = parser.Open(new MemoryStream(Encoding.UTF8.GetBytes(json)));
+			Assert.IsTrue(decoderStream.TryDecode(out result));
+			Assert.AreEqual(sizesLen, result.Count);
+			Assert.AreEqual(expectConstructArray, constructArray);
+		}
+
+		[Test]
+		[TestCase("[ { \"w\" : 10, \"h\" : 20 } ]", 1, true)]
+		[TestCase("null", 0, false)]
+		[TestCase("[]", 0, true)]
+		public void DecodeNullArrayValue(string json, int sizesLen, bool expectConstructArray)
+		{
+			var schema = new JSONSchema<List<(int, int)>>();
+			schema.SetDecoderConverter(JSONSchemaTester.JsonToDoubleConverter);
+
+			var constructArray = false;
+
+			var sizesDesc = schema.DecoderDescriptor
+				.HasElements(() => (-1, -1),
+					(ref List<(int, int)> target, IEnumerable<(int, int)> value) => { target.AddRange(value.ToArray()); });
+
+			sizesDesc
+				.HasField<int>("w", () => -2, (ref (int, int) e, int v) => e.Item1 = v)
+				.HasValue((ref int e, int v) => { e = v; });
+
+			sizesDesc
+				.HasField<int>("h", () => -3, (ref (int, int) e, int v) => e.Item2 = v)
+				.HasValue((ref int e, int v) => { e = v; });
+
+			var parser = schema.CreateDecoder(() =>
+			{
+				constructArray = true;
+				return new List<(int, int)>();
+			});
+
+			List<(int, int)> result = default;
+
+			var decoderStream = parser.Open(new MemoryStream(Encoding.UTF8.GetBytes(json)));
+			Assert.IsTrue(decoderStream.TryDecode(out result));
+			Assert.AreEqual(sizesLen, result?.Count ?? 0);
+			Assert.AreEqual(expectConstructArray, constructArray);
 		}
 
 		[Test]
@@ -547,6 +624,16 @@ namespace Verse.Test.Schemas
 
 				Assert.That(Encoding.UTF8.GetString(stream.ToArray()), Is.EqualTo(expected));
 			}
+		}
+
+		private static double JsonToDoubleConverter(JSONValue v)
+		{
+			switch (v.Type)
+			{
+				case JSONType.Number:
+					return v.Number;
+			}
+			return -1;
 		}
 
 		private class GuidContainer

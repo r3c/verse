@@ -279,12 +279,19 @@ namespace Verse.Schemas.Protobuf
 		}
 
 		public ReaderState Start(Stream stream, ErrorEvent error)
-        {
-            return new ReaderState(stream, error);
-        }
+		{
+			return new ReaderState(stream, error);
+		}
 
-        public void Stop(ReaderState state)
-        {
-        }
+		public void Stop(ReaderState state)
+		{
+		}
+
+		public bool TryDecode<TEntity>(ReaderState state, ReaderCallback<ReaderState, ProtobufValue, TEntity> callback, Func<TEntity> constructor, out TEntity entity)
+		{
+			entity = constructor();
+
+			return callback(this, state, ref entity);
+		}
 	}
 }

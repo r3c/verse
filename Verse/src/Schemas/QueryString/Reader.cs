@@ -141,6 +141,12 @@ namespace Verse.Schemas.QueryString
 		{
 		}
 
+		public bool TryDecode<TEntity>(ReaderState state, ReaderCallback<ReaderState, string, TEntity> callback, Func<TEntity> constructor, out TEntity entity)
+		{
+			entity = constructor();
+			return callback(this, state, ref entity);
+		}
+
 		private static bool ReadValue(ReaderState state, out string value)
 		{
 			var buffer = new byte[state.Encoding.GetMaxByteCount(1)];

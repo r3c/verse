@@ -175,6 +175,23 @@ namespace Verse.Schemas.JSON
 			state.Dispose();
 		}
 
+		public bool TryDecode<TEntity>(ReaderState state, ReaderCallback<ReaderState, JSONValue, TEntity> callback, Func<TEntity> constructor, out TEntity entity)
+		{
+			// If it is null the decoder should behave as if the element was not present at all.
+			// So test null to prevent the call to the constructor() and to create the corresponding entity.
+			if (state.Current == 'n')
+			{
+				entity = default;
+				state.Read();
+				return state.PullExpected('u') && state.PullExpected('l') && state.PullExpected('l');
+			}
+			else
+			{
+				entity = constructor();
+				return callback(this, state, ref entity);
+			}
+		}
+
 		private BrowserMove<TElement> ReadToArrayFromArray<TElement>(ReaderState state, Func<TElement> constructor,
 			ReaderCallback<ReaderState, JSONValue, TElement> callback)
 		{
@@ -377,8 +394,21 @@ namespace Verse.Schemas.JSON
 				// Read object value
 				state.PullIgnored();
 
-				if (!(field.HasValue ? field.Value(this, state, ref target) : this.Skip(state)))
-					return false;
+				// If it is null the decoder should behave as if the element was not present at all.
+				// So test null to prevent the call to field.Value() and to create the corresponding entity.
+				if (state.Current == 'n')
+				{
+					state.Read();
+					if (!(state.PullExpected('u') && state.PullExpected('l') && state.PullExpected('l')))
+					{
+						return false;
+					}
+				}
+				else
+				{
+					if (!(field.HasValue ? field.Value(this, state, ref target) : this.Skip(state)))
+						return false;
+				}
 			}
 
 			state.Read();

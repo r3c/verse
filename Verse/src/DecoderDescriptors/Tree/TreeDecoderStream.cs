@@ -28,9 +28,7 @@ namespace Verse.DecoderDescriptors.Tree
 
 		public bool TryDecode(out TEntity entity)
 		{
-			entity = this.constructor();
-
-			return this.callback(this.reader, this.state, ref entity);
+			return reader.TryDecode(this.state, this.callback, this.constructor, out entity);
 		}
 	}
 }

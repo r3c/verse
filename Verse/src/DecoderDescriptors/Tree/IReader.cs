@@ -16,5 +16,7 @@ namespace Verse.DecoderDescriptors.Tree
 		TState Start(Stream stream, ErrorEvent error);
 
 		void Stop(TState state);
+
+		bool TryDecode<TEntity>(TState state, ReaderCallback<TState, TNative, TEntity> callback, Func<TEntity> constructor, out TEntity entity);
 	}
 }

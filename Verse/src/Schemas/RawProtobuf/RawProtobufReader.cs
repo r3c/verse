@@ -88,5 +88,11 @@ namespace Verse.Schemas.RawProtobuf
 		public void Stop(RawProtobufReaderState state)
 		{
 		}
+
+		public bool TryDecode<TEntity>(RawProtobufReaderState state, ReaderCallback<RawProtobufReaderState, RawProtobufValue, TEntity> callback, Func<TEntity> constructor, out TEntity entity)
+		{
+			entity = constructor();
+			return callback(this, state, ref entity);
+		}
 	}
 }
