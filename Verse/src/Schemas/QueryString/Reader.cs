@@ -16,17 +16,6 @@ namespace Verse.Schemas.QueryString
 			this.encoding = encoding;
 		}
 
-		public BrowserMove<TElement> ReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
-			ReaderCallback<ReaderState, string, char, TElement> callback)
-		{
-			return (int index, out TElement element) =>
-			{
-				element = default;
-
-				return BrowserState.Failure;
-			};
-		}
-
 		public bool ReadToObject<TObject>(ReaderState state,
 			ILookupNode<char, ReaderCallback<ReaderState, string, char, TObject>> root, ref TObject target)
 		{
@@ -141,6 +130,14 @@ namespace Verse.Schemas.QueryString
 
 		public void Stop(ReaderState context)
 		{
+		}
+
+		public bool TryReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
+			ReaderCallback<ReaderState, string, char, TElement> callback, out BrowserMove<TElement> browserMove)
+		{
+			browserMove = default;
+
+			return false;
 		}
 
 		private static bool ReadValue(ReaderState state, out string value)

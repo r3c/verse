@@ -52,12 +52,6 @@ namespace Verse.Schemas.Protobuf
 
 	internal class Reader : IReader<ReaderState, ProtobufValue, int>
 	{
-		public BrowserMove<TElement> ReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
-			ReaderCallback<ReaderState, ProtobufValue, int, TElement> callback)
-		{
-			throw new NotImplementedException();
-		}
-
 		public bool ReadToObject<TObject>(ReaderState state,
 			ILookupNode<int, ReaderCallback<ReaderState, ProtobufValue, int, TObject>> root, ref TObject target)
 		{
@@ -281,12 +275,18 @@ namespace Verse.Schemas.Protobuf
 		}
 
 		public ReaderState Start(Stream stream, ErrorEvent error)
-        {
-            return new ReaderState(stream, error);
-        }
+		{
+			return new ReaderState(stream, error);
+		}
 
-        public void Stop(ReaderState state)
-        {
-        }
+		public void Stop(ReaderState state)
+		{
+		}
+
+		public bool TryReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
+			ReaderCallback<ReaderState, ProtobufValue, int, TElement> callback, out BrowserMove<TElement> browserMove)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

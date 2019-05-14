@@ -132,8 +132,10 @@ namespace Verse.DecoderDescriptors
 
 			parentDefinition.Callback = (IReader<TState, TNative, TKey> reader, TState state, ref TEntity entity) =>
 			{
-				using (var browser =
-					new Browser<TElement>(reader.ReadToArray(state, constructor, elementDefinition.Callback)))
+				if (!reader.TryReadToArray(state, constructor, elementDefinition.Callback, out var browserMove))
+					return true;
+
+				using (var browser = new Browser<TElement>(browserMove))
 				{
 					setter(ref entity, browser);
 

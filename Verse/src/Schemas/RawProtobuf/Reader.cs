@@ -14,34 +14,6 @@ namespace Verse.Schemas.RawProtobuf
 			this.noZigZagEncoding = noZigZagEncoding;
 		}
 
-		public BrowserMove<TElement> ReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
-			ReaderCallback<ReaderState, RawProtobufValue, char, TElement> callback)
-		{
-			var firstIndex = state.FieldIndex;
-
-			return (int index, out TElement element) =>
-			{
-				// Read next field header if required so we know whether it's still part of the same array or not
-				if (index > 0)
-				{
-					state.ReadHeader();
-
-					// Different field index (or end of stream) was met, stop enumeration
-					if (firstIndex != state.FieldIndex)
-					{
-						element = default;
-
-						return BrowserState.Success;
-					}
-				}
-
-				// Read field and continue enumeration if we're still reading elements sharing the same field index
-				element = constructor();
-
-				return callback(this, state, ref element) ? BrowserState.Continue : BrowserState.Failure;
-			};
-		}
-
 		public bool ReadToObject<TObject>(ReaderState state,
 			ILookupNode<char, ReaderCallback<ReaderState, RawProtobufValue, char, TObject>> root, ref TObject target)
 		{
@@ -87,6 +59,37 @@ namespace Verse.Schemas.RawProtobuf
 
 		public void Stop(ReaderState state)
 		{
+		}
+
+		public bool TryReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
+			ReaderCallback<ReaderState, RawProtobufValue, char, TElement> callback,
+			out BrowserMove<TElement> browserMove)
+		{
+			var firstIndex = state.FieldIndex;
+
+			browserMove = (int index, out TElement element) =>
+			{
+				// Read next field header if required so we know whether it's still part of the same array or not
+				if (index > 0)
+				{
+					state.ReadHeader();
+
+					// Different field index (or end of stream) was met, stop enumeration
+					if (firstIndex != state.FieldIndex)
+					{
+						element = default;
+
+						return BrowserState.Success;
+					}
+				}
+
+				// Read field and continue enumeration if we're still reading elements sharing the same field index
+				element = constructor();
+
+				return callback(this, state, ref element) ? BrowserState.Continue : BrowserState.Failure;
+			};
+
+			return true;
 		}
 	}
 }

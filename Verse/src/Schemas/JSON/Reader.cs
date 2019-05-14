@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Globalization;
 using System.IO;
 using System.Text;
 using Verse.DecoderDescriptors.Tree;
@@ -18,49 +17,6 @@ namespace Verse.Schemas.JSON
 			this.readObjectValuesAsArray = readObjectValuesAsArray;
 			this.readScalarAsOneElementArray = readScalarAsOneElementArray;
 			this.encoding = encoding;
-		}
-
-		public BrowserMove<TElement> ReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
-			ReaderCallback<ReaderState, JSONValue, int, TElement> callback)
-		{
-			state.PullIgnored();
-
-			switch (state.Current)
-			{
-				case '[':
-					return this.ReadToArrayFromArray(state, constructor, callback);
-
-				case '{':
-					if (this.readObjectValuesAsArray)
-						return this.ReadToArrayFromObjectValues(state, constructor, callback);
-
-					goto default;
-
-				default:
-					// Accept any scalar value as an array of one element
-					if (this.readScalarAsOneElementArray)
-					{
-						return (int index, out TElement current) =>
-						{
-							if (index > 0)
-							{
-								current = default;
-
-								return BrowserState.Success;
-							}
-
-							current = constructor();
-
-							return callback(this, state, ref current)
-								? BrowserState.Continue
-								: BrowserState.Failure;
-						};
-					}
-
-					// Ignore array when not supported by current descriptor
-					else
-						return this.Skip(state) ? Browser<TElement>.EmptySuccess : Browser<TElement>.EmptyFailure;
-			}
 		}
 
 		public bool ReadToObject<TObject>(ReaderState state,
@@ -174,6 +130,61 @@ namespace Verse.Schemas.JSON
 		public void Stop(ReaderState state)
 		{
 			state.Dispose();
+		}
+
+		public bool TryReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
+			ReaderCallback<ReaderState, JSONValue, int, TElement> callback, out BrowserMove<TElement> browserMove)
+		{
+			state.PullIgnored();
+
+			switch (state.Current)
+			{
+				case '[':
+					browserMove = this.ReadToArrayFromArray(state, constructor, callback);
+
+					return true;
+
+				case '{':
+					if (this.readObjectValuesAsArray)
+					{
+						browserMove = this.ReadToArrayFromObjectValues(state, constructor, callback);
+
+						return true;
+					}
+
+					goto default;
+
+				default:
+					// Accept any scalar value as an array of one element
+					if (this.readScalarAsOneElementArray)
+					{
+						browserMove = (int index, out TElement current) =>
+						{
+							if (index > 0)
+							{
+								current = default;
+
+								return BrowserState.Success;
+							}
+
+							current = constructor();
+
+							return callback(this, state, ref current)
+								? BrowserState.Continue
+								: BrowserState.Failure;
+						};
+					}
+
+					// Ignore array when not supported by current descriptor
+					else
+					{
+						browserMove = this.Skip(state)
+							? Browser<TElement>.EmptySuccess
+							: Browser<TElement>.EmptyFailure;
+					}
+
+					return true;
+			}
 		}
 
 		private BrowserMove<TElement> ReadToArrayFromArray<TElement>(ReaderState state, Func<TElement> constructor,
