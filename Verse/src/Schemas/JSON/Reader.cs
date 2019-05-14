@@ -61,10 +61,7 @@ namespace Verse.Schemas.JSON
 					return Reader.ReadToValueFromNumber(state, out value);
 
 				case 'f':
-					state.Read();
-
-					if (!state.PullExpected('a') || !state.PullExpected('l') || !state.PullExpected('s') ||
-					    !state.PullExpected('e'))
+					if (!Reader.ExpectKeywordFalse(state))
 					{
 						value = default;
 
@@ -76,9 +73,7 @@ namespace Verse.Schemas.JSON
 					return true;
 
 				case 'n':
-					state.Read();
-
-					if (!state.PullExpected('u') || !state.PullExpected('l') || !state.PullExpected('l'))
+					if (!Reader.ExpectKeywordNull(state))
 					{
 						value = default;
 
@@ -90,9 +85,7 @@ namespace Verse.Schemas.JSON
 					return true;
 
 				case 't':
-					state.Read();
-
-					if (!state.PullExpected('r') || !state.PullExpected('u') || !state.PullExpected('e'))
+					if (!Reader.ExpectKeywordTrue(state))
 					{
 						value = default;
 
@@ -153,6 +146,18 @@ namespace Verse.Schemas.JSON
 					}
 
 					goto default;
+
+				case 'n':
+					if (Reader.ExpectKeywordNull(state))
+					{
+						browserMove = default;
+
+						return false;
+					}
+
+					browserMove = Browser<TElement>.EmptyFailure;
+
+					return true;
 
 				default:
 					// Accept any scalar value as an array of one element
@@ -391,6 +396,24 @@ namespace Verse.Schemas.JSON
 			return true;
 		}
 
+		private static bool ExpectKeywordFalse(ReaderState state)
+		{
+			return state.PullExpected('f') && state.PullExpected('a') && state.PullExpected('l') &&
+			       state.PullExpected('s') && state.PullExpected('e');
+		}
+
+		private static bool ExpectKeywordNull(ReaderState state)
+		{
+			return state.PullExpected('n') && state.PullExpected('u') && state.PullExpected('l') &&
+			       state.PullExpected('l');
+		}
+
+		private static bool ExpectKeywordTrue(ReaderState state)
+		{
+			return state.PullExpected('t') && state.PullExpected('r') && state.PullExpected('u') &&
+			       state.PullExpected('e');
+		}
+
 		private static bool ReadToValueFromNumber(ReaderState state, out JSONValue value)
 		{
 			unchecked
@@ -562,20 +585,13 @@ namespace Verse.Schemas.JSON
 					return Reader.ReadToValueFromNumber(state, out _);
 
 				case 'f':
-					state.Read();
-
-					return state.PullExpected('a') && state.PullExpected('l') && state.PullExpected('s') &&
-					       state.PullExpected('e');
+					return Reader.ExpectKeywordFalse(state);
 
 				case 'n':
-					state.Read();
-
-					return state.PullExpected('u') && state.PullExpected('l') && state.PullExpected('l');
+					return Reader.ExpectKeywordNull(state);
 
 				case 't':
-					state.Read();
-
-					return state.PullExpected('r') && state.PullExpected('u') && state.PullExpected('e');
+					return Reader.ExpectKeywordTrue(state);
 
 				case '[':
 					return this.ReadToObjectFromArray(state,

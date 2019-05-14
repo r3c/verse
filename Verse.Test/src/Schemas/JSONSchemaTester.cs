@@ -98,6 +98,32 @@ namespace Verse.Test.Schemas
 		}
 
 		[Test]
+		public void DecodeArrayUndefinedInRoot()
+		{
+			var schema = new JSONSchema<int[]>();
+
+			schema.DecoderDescriptor.HasElements(() => 0, (ref int[] t, IEnumerable<int> e) => t = e.ToArray())
+				.HasValue();
+
+			JSONSchemaTester.AssertDecodeAndEqual(schema, () => null, "null", null);
+		}
+
+		[Test]
+		[TestCase("{}")]
+		[TestCase("{\"field\": null}")]
+		public void DecodeArrayUndefinedInObject(string json)
+		{
+			var schema = new JSONSchema<Container<int[]>>();
+
+			schema.DecoderDescriptor
+				.HasField("field", () => null, (ref Container<int[]> parent, int[] field) => parent.Value = field)
+				.HasElements(() => 0, (ref int[] t, IEnumerable<int> e) => t = e.ToArray())
+				.HasValue();
+
+			JSONSchemaTester.AssertDecodeAndEqual(schema, () => new Container<int[]>(), json, new Container<int[]>());
+		}
+
+		[Test]
 		[TestCase("~", 1)]
 		[TestCase("\"Unfinished", 13)]
 		[TestCase("[1.1.1]", 5)]
@@ -501,15 +527,15 @@ namespace Verse.Test.Schemas
 		[Test]
 		public void RoundTripCustomType()
 		{
-			var schema = new JSONSchema<GuidContainer>();
+			var schema = new JSONSchema<Container<Guid>>();
 
 			schema.SetDecoderConverter(v => Guid.Parse(v.String));
 			schema.SetEncoderConverter<Guid>(g => JSONValue.FromString(g.ToString()));
 
 			SchemaTester.AssertRoundTrip(Linker.CreateDecoder(schema), Linker.CreateEncoder(schema),
-				new GuidContainer
+				new Container<Guid>
 				{
-					guid = Guid.NewGuid()
+					Value = Guid.NewGuid()
 				});
 		}
 
@@ -549,9 +575,9 @@ namespace Verse.Test.Schemas
 			}
 		}
 
-		private class GuidContainer
+		private class Container<T>
 		{
-			public Guid guid { get; set; }
+			public T Value { get; set; }
 		}
 
 		private class RecursiveEntity
