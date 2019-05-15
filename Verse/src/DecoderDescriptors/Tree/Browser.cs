@@ -6,20 +6,6 @@ namespace Verse.DecoderDescriptors.Tree
 {
 	internal class Browser<TEntity> : IDisposable, IEnumerable<TEntity>
 	{
-		public static readonly BrowserMove<TEntity> EmptyFailure = (int index, out TEntity current) =>
-		{
-			current = default;
-
-			return BrowserState.Failure;
-		};
-
-		public static readonly BrowserMove<TEntity> EmptySuccess = (int index, out TEntity current) =>
-		{
-			current = default;
-
-			return BrowserState.Success;
-		};
-
 		private Enumerator enumerator;
 
 		private bool started;

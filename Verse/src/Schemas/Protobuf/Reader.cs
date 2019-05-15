@@ -52,19 +52,19 @@ namespace Verse.Schemas.Protobuf
 
 	internal class Reader : IReader<ReaderState, ProtobufValue, int>
 	{
-		public BrowserMove<TElement> ReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
-			ReaderCallback<ReaderState, ProtobufValue, int, TElement> callback)
+		public ReaderStatus ReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
+			ReaderCallback<ReaderState, ProtobufValue, int, TElement> callback, out BrowserMove<TElement> browserMove)
 		{
 			throw new NotImplementedException();
 		}
 
-		public bool ReadToObject<TObject>(ReaderState state,
+		public ReaderStatus ReadToObject<TObject>(ReaderState state,
 			ILookupNode<int, ReaderCallback<ReaderState, ProtobufValue, int, TObject>> root, ref TObject target)
 		{
 			var current = state.Stream.ReadByte();
 
 			if (current < 0)
-				return true;
+				return ReaderStatus.Succeeded;
 
 			// Read field number and wire type
 			var index = (current >> 3) & 15;
@@ -123,7 +123,7 @@ namespace Verse.Schemas.Protobuf
 						default:
 							state.RaiseError("field {0} is incompatible with wire type {1}", field.Name, wire);
 
-							return false;
+							return ReaderStatus.Failed;
 					}
 
 					break;
@@ -157,7 +157,7 @@ namespace Verse.Schemas.Protobuf
 						default:
 							state.RaiseError("field {0} is incompatible with wire type {1}", field.Name, wire);
 
-							return false;
+							return ReaderStatus.Failed;
 					}
 
 					break;
@@ -167,7 +167,7 @@ namespace Verse.Schemas.Protobuf
 					{
 						state.RaiseError("groups are not supported");
 
-						return false;
+						return ReaderStatus.Failed;
 					}
 
 					break;
@@ -177,7 +177,7 @@ namespace Verse.Schemas.Protobuf
 					{
 						state.RaiseError("groups are not supported");
 
-						return false;
+						return ReaderStatus.Failed;
 					}
 
 					break;
@@ -201,7 +201,7 @@ namespace Verse.Schemas.Protobuf
 							var buffer = new byte[length];
 
 							if (state.Stream.Read(buffer, 0, (int) length) != (int) length)
-								return false;
+								return ReaderStatus.Failed;
 
 							state.Value = new ProtobufValue(Encoding.UTF8.GetString(buffer));
 
@@ -213,10 +213,10 @@ namespace Verse.Schemas.Protobuf
 						default:
 							state.RaiseError("field {0} is incompatible with wire type {1}", field.Name, wire);
 
-							return false;
+							return ReaderStatus.Failed;
 					}
 
-					return false;
+					return ReaderStatus.Failed;
 
 				case WireType.VarInt:
 					var varint = ReaderHelper.ReadVarInt(state);
@@ -256,7 +256,7 @@ namespace Verse.Schemas.Protobuf
 						default:
 							state.RaiseError("field {0} is incompatible with wire type {1}", field.Name, wire);
 
-							return false;
+							return ReaderStatus.Failed;
 					}
 
 					break;
@@ -264,7 +264,7 @@ namespace Verse.Schemas.Protobuf
 				default:
 					state.RaiseError("field {0} has unsupported wire type {1}", field.Name, wire);
 
-					return false;
+					return ReaderStatus.Failed;
 			}
 
 /*
@@ -272,21 +272,21 @@ namespace Verse.Schemas.Protobuf
 				? this.fields[index](state, ref entity)
 				: Reader<TObject>.Ignore(state);
 */
-			return false;
+			return ReaderStatus.Failed;
 		}
 
-		public bool ReadToValue(ReaderState state, out ProtobufValue value)
+		public ReaderStatus ReadToValue(ReaderState state, out ProtobufValue value)
 		{
 			throw new NotImplementedException();
 		}
 
 		public ReaderState Start(Stream stream, ErrorEvent error)
-        {
-            return new ReaderState(stream, error);
-        }
+		{
+			return new ReaderState(stream, error);
+		}
 
-        public void Stop(ReaderState state)
-        {
-        }
+		public void Stop(ReaderState state)
+		{
+		}
 	}
 }

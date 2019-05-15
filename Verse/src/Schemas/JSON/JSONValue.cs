@@ -1,4 +1,6 @@
 
+using Verse.DecoderDescriptors.Tree;
+
 namespace Verse.Schemas.JSON
 {
 	/// <summary>

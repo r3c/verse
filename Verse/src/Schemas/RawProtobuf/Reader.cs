@@ -14,12 +14,13 @@ namespace Verse.Schemas.RawProtobuf
 			this.noZigZagEncoding = noZigZagEncoding;
 		}
 
-		public BrowserMove<TElement> ReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
-			ReaderCallback<ReaderState, RawProtobufValue, char, TElement> callback)
+		public ReaderStatus ReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
+			ReaderCallback<ReaderState, RawProtobufValue, char, TElement> callback,
+			out BrowserMove<TElement> browserMove)
 		{
 			var firstIndex = state.FieldIndex;
 
-			return (int index, out TElement element) =>
+			browserMove = (int index, out TElement element) =>
 			{
 				// Read next field header if required so we know whether it's still part of the same array or not
 				if (index > 0)
@@ -38,15 +39,19 @@ namespace Verse.Schemas.RawProtobuf
 				// Read field and continue enumeration if we're still reading elements sharing the same field index
 				element = constructor();
 
-				return callback(this, state, ref element) ? BrowserState.Continue : BrowserState.Failure;
+				return callback(this, state, ref element) != ReaderStatus.Failed
+					? BrowserState.Continue
+					: BrowserState.Failure;
 			};
+
+			return ReaderStatus.Succeeded;
 		}
 
-		public bool ReadToObject<TObject>(ReaderState state,
+		public ReaderStatus ReadToObject<TObject>(ReaderState state,
 			ILookupNode<char, ReaderCallback<ReaderState, RawProtobufValue, char, TObject>> root, ref TObject target)
 		{
 			if (!state.ObjectBegin(out var backup))
-				return state.TrySkipValue();
+				return state.TrySkipValue() ? ReaderStatus.Succeeded : ReaderStatus.Failed;
 
 			while (true)
 			{
@@ -57,7 +62,7 @@ namespace Verse.Schemas.RawProtobuf
 				{
 					state.ObjectEnd(backup);
 
-					return true;
+					return ReaderStatus.Succeeded;
 				}
 
 				var node = root.Follow('_');
@@ -70,14 +75,14 @@ namespace Verse.Schemas.RawProtobuf
 				else
 					node = node.Follow((char) ('0' + state.FieldIndex));
 
-				if (!(node.HasValue ? node.Value(this, state, ref target) : state.TrySkipValue()))
-					return false;
+				if (!(node.HasValue ? node.Value(this, state, ref target) == ReaderStatus.Succeeded : state.TrySkipValue()))
+					return ReaderStatus.Failed;
 			}
 		}
 
-		public bool ReadToValue(ReaderState state, out RawProtobufValue value)
+		public ReaderStatus ReadToValue(ReaderState state, out RawProtobufValue value)
 		{
-			return state.TryReadValue(out value);
+			return state.TryReadValue(out value) ? ReaderStatus.Succeeded : ReaderStatus.Failed;
 		}
 
 		public ReaderState Start(Stream stream, ErrorEvent error)

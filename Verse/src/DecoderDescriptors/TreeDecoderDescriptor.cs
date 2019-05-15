@@ -88,17 +88,16 @@ namespace Verse.DecoderDescriptors
 
 			this.definition.Callback = (IReader<TState, TNative, TKey> reader, TState state, ref TEntity entity) =>
 			{
-				if (!reader.ReadToValue(state, out var value))
+				if (reader.ReadToValue(state, out var value) == ReaderStatus.Failed)
 				{
 					entity = default;
-
-					return false;
+					return ReaderStatus.Failed;
 				}
 
 				// FIXME: support conversion failures
 				setter(ref entity, native(value));
 
-				return true;
+				return ReaderStatus.Succeeded;
 			};
 		}
 
@@ -109,17 +108,21 @@ namespace Verse.DecoderDescriptors
 			// FIXME: close duplicate of previous method
 			this.definition.Callback = (IReader<TState, TNative, TKey> reader, TState state, ref TEntity entity) =>
 			{
-				if (!reader.ReadToValue(state, out var value))
+				var readStatus = reader.ReadToValue(state, out var value);
+				if (readStatus == ReaderStatus.Failed)
 				{
 					entity = default;
-
-					return false;
+					return ReaderStatus.Failed;
+				}
+				else if (readStatus == ReaderStatus.Ignored)
+				{
+					return ReaderStatus.Ignored;
 				}
 
 				// FIXME: support conversion failures
 				entity = converter(value);
 
-				return true;
+				return ReaderStatus.Succeeded;
 			};
 		}
 
@@ -132,12 +135,16 @@ namespace Verse.DecoderDescriptors
 
 			parentDefinition.Callback = (IReader<TState, TNative, TKey> reader, TState state, ref TEntity entity) =>
 			{
-				using (var browser =
-					new Browser<TElement>(reader.ReadToArray(state, constructor, elementDefinition.Callback)))
+				var status = reader.ReadToArray(state, constructor, elementDefinition.Callback, out var browserMove);
+
+				if (status != ReaderStatus.Succeeded)
+					return status;
+
+				using (var browser = new Browser<TElement>(browserMove))
 				{
 					setter(ref entity, browser);
 
-					return browser.Finish();
+					return browser.Finish() ? ReaderStatus.Succeeded : ReaderStatus.Failed;
 				}
 			};
 
@@ -157,12 +164,18 @@ namespace Verse.DecoderDescriptors
 				{
 					var field = constructor();
 
-					if (!fieldDefinition.Callback(reader, state, ref field))
-						return false;
+					switch (fieldDefinition.Callback(reader, state, ref field))
+					{
+						case ReaderStatus.Failed:
+							return ReaderStatus.Failed;
 
-					setter(ref entity, field);
+						case ReaderStatus.Succeeded:
+							setter(ref entity, field);
 
-					return true;
+							break;
+					}
+
+					return ReaderStatus.Succeeded;
 				});
 
 			if (!success)

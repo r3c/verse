@@ -28,9 +28,13 @@ namespace Verse.DecoderDescriptors.Tree
 
 		public bool TryDecode(out TEntity entity)
 		{
-			entity = this.constructor();
+			var entityValue = this.constructor();
 
-			return this.callback(this.reader, this.state, ref entity);
+			var result = this.callback(this.reader, this.state, ref entityValue);
+
+			entity = result == ReaderStatus.Succeeded ? entityValue : default;
+
+			return result != ReaderStatus.Failed;
 		}
 	}
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Globalization;
 using System.IO;
 using System.Text;
 using Verse.DecoderDescriptors.Tree;
@@ -20,27 +19,38 @@ namespace Verse.Schemas.JSON
 			this.encoding = encoding;
 		}
 
-		public BrowserMove<TElement> ReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
-			ReaderCallback<ReaderState, JSONValue, int, TElement> callback)
+		public ReaderStatus ReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
+			ReaderCallback<ReaderState, JSONValue, int, TElement> callback, out BrowserMove<TElement> browserMove)
 		{
 			state.PullIgnored();
 
 			switch (state.Current)
 			{
 				case '[':
-					return this.ReadToArrayFromArray(state, constructor, callback);
+					browserMove = this.ReadToArrayFromArray(state, constructor, callback);
+
+					return ReaderStatus.Succeeded;
 
 				case '{':
 					if (this.readObjectValuesAsArray)
-						return this.ReadToArrayFromObjectValues(state, constructor, callback);
+					{
+						browserMove = this.ReadToArrayFromObjectValues(state, constructor, callback);
+
+						return ReaderStatus.Succeeded;
+					}
 
 					goto default;
+
+				case 'n':
+					browserMove = default;
+
+					return Reader.ExpectKeywordNull(state) ? ReaderStatus.Ignored : ReaderStatus.Failed;
 
 				default:
 					// Accept any scalar value as an array of one element
 					if (this.readScalarAsOneElementArray)
 					{
-						return (int index, out TElement current) =>
+						browserMove = (int index, out TElement current) =>
 						{
 							if (index > 0)
 							{
@@ -51,19 +61,30 @@ namespace Verse.Schemas.JSON
 
 							current = constructor();
 
-							return callback(this, state, ref current)
+							return callback(this, state, ref current) != ReaderStatus.Failed
 								? BrowserState.Continue
 								: BrowserState.Failure;
 						};
+
+						return ReaderStatus.Succeeded;
 					}
 
 					// Ignore array when not supported by current descriptor
 					else
-						return this.Skip(state) ? Browser<TElement>.EmptySuccess : Browser<TElement>.EmptyFailure;
+					{
+						browserMove = (int index, out TElement current) =>
+						{
+							current = default;
+
+							return BrowserState.Success;
+						};
+
+						return this.Skip(state) ? ReaderStatus.Succeeded : ReaderStatus.Failed;
+					}
 			}
 		}
 
-		public bool ReadToObject<TObject>(ReaderState state,
+		public ReaderStatus ReadToObject<TObject>(ReaderState state,
 			ILookupNode<int, ReaderCallback<ReaderState, JSONValue, int, TObject>> root, ref TObject target)
 		{
 			state.PullIgnored();
@@ -77,11 +98,11 @@ namespace Verse.Schemas.JSON
 					return this.ReadToObjectFromObject(state, root, ref target);
 
 				default:
-					return this.Skip(state);
+					return this.Skip(state) ? ReaderStatus.Ignored : ReaderStatus.Failed;
 			}
 		}
 
-		public bool ReadToValue(ReaderState state, out JSONValue value)
+		public ReaderStatus ReadToValue(ReaderState state, out JSONValue value)
 		{
 			state.PullIgnored();
 
@@ -105,64 +126,57 @@ namespace Verse.Schemas.JSON
 					return Reader.ReadToValueFromNumber(state, out value);
 
 				case 'f':
-					state.Read();
-
-					if (!state.PullExpected('a') || !state.PullExpected('l') || !state.PullExpected('s') ||
-					    !state.PullExpected('e'))
+					if (!Reader.ExpectKeywordFalse(state))
 					{
 						value = default;
 
-						return false;
+						return ReaderStatus.Failed;
 					}
 
 					value = JSONValue.FromBoolean(false);
 
-					return true;
+					return ReaderStatus.Succeeded;
 
 				case 'n':
-					state.Read();
-
-					if (!state.PullExpected('u') || !state.PullExpected('l') || !state.PullExpected('l'))
+					if (!Reader.ExpectKeywordNull(state))
 					{
 						value = default;
 
-						return false;
+						return ReaderStatus.Failed;
 					}
 
 					value = JSONValue.Void;
 
-					return true;
+					return ReaderStatus.Ignored;
 
 				case 't':
-					state.Read();
-
-					if (!state.PullExpected('r') || !state.PullExpected('u') || !state.PullExpected('e'))
+					if (!Reader.ExpectKeywordTrue(state))
 					{
 						value = default;
 
-						return false;
+						return ReaderStatus.Failed;
 					}
 
 					value = JSONValue.FromBoolean(true);
 
-					return true;
+					return ReaderStatus.Succeeded;
 
 				case '[':
 					value = default;
 
-					return this.Skip(state);
+					return this.Skip(state) ? ReaderStatus.Ignored : ReaderStatus.Failed;
 
 				case '{':
 					value = default;
 
-					return this.Skip(state);
+					return this.Skip(state) ? ReaderStatus.Ignored : ReaderStatus.Failed;
 
 				default:
 					state.Error("expected array, object or value");
 
 					value = default;
 
-					return false;
+					return ReaderStatus.Failed;
 			}
 		}
 
@@ -210,7 +224,7 @@ namespace Verse.Schemas.JSON
 				// Read array value
 				current = constructor();
 
-				return callback(this, state, ref current) ? BrowserState.Continue : BrowserState.Failure;
+				return callback(this, state, ref current) != ReaderStatus.Failed ? BrowserState.Continue : BrowserState.Failure;
 			};
 		}
 
@@ -283,11 +297,13 @@ namespace Verse.Schemas.JSON
 				// Read array value
 				current = constructor();
 
-				return callback(this, state, ref current) ? BrowserState.Continue : BrowserState.Failure;
+				return callback(this, state, ref current) != ReaderStatus.Failed
+					? BrowserState.Continue
+					: BrowserState.Failure;
 			};
 		}
 
-		private bool ReadToObjectFromArray<TObject>(ReaderState state,
+		private ReaderStatus ReadToObjectFromArray<TObject>(ReaderState state,
 			ILookupNode<int, ReaderCallback<ReaderState, JSONValue, int, TObject>> root, ref TObject target)
 		{
 			state.Read();
@@ -303,7 +319,7 @@ namespace Verse.Schemas.JSON
 				if (index > 0)
 				{
 					if (!state.PullExpected(','))
-						return false;
+						return ReaderStatus.Failed;
 
 					state.PullIgnored();
 				}
@@ -312,16 +328,16 @@ namespace Verse.Schemas.JSON
 				var node = root.Follow(index);
 
 				// Read array value
-				if (!(node.HasValue ? node.Value(this, state, ref target) : this.Skip(state)))
-					return false;
+				if (!(node.HasValue ? node.Value(this, state, ref target) != ReaderStatus.Failed : this.Skip(state)))
+					return ReaderStatus.Failed;
 			}
 
 			state.Read();
 
-			return true;
+			return ReaderStatus.Succeeded;
 		}
 
-		private bool ReadToObjectFromObject<TObject>(ReaderState state,
+		private ReaderStatus ReadToObjectFromObject<TObject>(ReaderState state,
 			ILookupNode<int, ReaderCallback<ReaderState, JSONValue, int, TObject>> root, ref TObject target)
 		{
 			state.Read();
@@ -331,19 +347,21 @@ namespace Verse.Schemas.JSON
 				state.PullIgnored();
 
 				if (state.Current == '}')
+				{
 					break;
+				}
 
 				// Read comma separator if any
 				if (index > 0)
 				{
 					if (!state.PullExpected(','))
-						return false;
+						return ReaderStatus.Failed;
 
 					state.PullIgnored();
 				}
 
 				if (!state.PullExpected('"'))
-					return false;
+					return ReaderStatus.Failed;
 
 				// Read and move to object key
 				var node = root;
@@ -354,7 +372,7 @@ namespace Verse.Schemas.JSON
 					{
 						state.Error("invalid character in object key");
 
-						return false;
+						return ReaderStatus.Failed;
 					}
 
 					node = node.Follow(character);
@@ -366,21 +384,47 @@ namespace Verse.Schemas.JSON
 				state.PullIgnored();
 
 				if (!state.PullExpected(':'))
-					return false;
+					return ReaderStatus.Failed;
 
 				// Read object value
 				state.PullIgnored();
 
-				if (!(node.HasValue ? node.Value(this, state, ref target) : this.Skip(state)))
-					return false;
+				if (node.HasValue)
+				{
+					if (node.Value(this, state, ref target) == ReaderStatus.Failed)
+						return ReaderStatus.Failed;
+				}
+				else
+				{
+					if (!this.Skip(state))
+						return ReaderStatus.Failed;
+				}
 			}
 
 			state.Read();
 
-			return true;
+			return ReaderStatus.Succeeded;
 		}
 
-		private static bool ReadToValueFromNumber(ReaderState state, out JSONValue value)
+		private static bool ExpectKeywordFalse(ReaderState state)
+		{
+			return state.PullExpected('f') && state.PullExpected('a') && state.PullExpected('l') &&
+			       state.PullExpected('s') && state.PullExpected('e');
+		}
+
+		private static bool ExpectKeywordNull(ReaderState state)
+		{
+			return state.PullExpected('n') && state.PullExpected('u') && state.PullExpected('l') &&
+				   state.PullExpected('l');
+		}
+
+		private static bool ExpectKeywordTrue(ReaderState state)
+		{
+			return state.PullExpected('t') && state.PullExpected('r') && state.PullExpected('u') &&
+				   state.PullExpected('e');
+		}
+
+		private static ReaderStatus ReadToValueFromNumber(ReaderState state, out JSONValue value)
 		{
 			unchecked
 			{
@@ -478,15 +522,15 @@ namespace Verse.Schemas.JSON
 
 				// Compute result number and store as JSON value
 				var number = (long) ((numberMantissa ^ numberMantissaMask) + numberMantissaPlus) *
-				             Math.Pow(10, numberPower);
+							 Math.Pow(10, numberPower);
 
 				value = JSONValue.FromNumber(number);
 
-				return true;
+				return ReaderStatus.Succeeded;
 			}
 		}
 
-		private static bool ReadToValueFromString(ReaderState state, out JSONValue value)
+		private static ReaderStatus ReadToValueFromString(ReaderState state, out JSONValue value)
 		{
 			state.Read();
 
@@ -500,7 +544,7 @@ namespace Verse.Schemas.JSON
 
 					value = default;
 
-					return false;
+					return ReaderStatus.Failed;
 				}
 
 				buffer.Append(character);
@@ -510,7 +554,7 @@ namespace Verse.Schemas.JSON
 
 			value = JSONValue.FromString(buffer.ToString());
 
-			return true;
+			return ReaderStatus.Succeeded;
 		}
 
 		private bool Skip(ReaderState state)
@@ -548,31 +592,26 @@ namespace Verse.Schemas.JSON
 				case '7':
 				case '8':
 				case '9':
-					return Reader.ReadToValueFromNumber(state, out _);
+					return Reader.ReadToValueFromNumber(state, out _) != ReaderStatus.Failed;
 
 				case 'f':
-					state.Read();
-
-					return state.PullExpected('a') && state.PullExpected('l') && state.PullExpected('s') &&
-					       state.PullExpected('e');
+					return Reader.ExpectKeywordFalse(state);
 
 				case 'n':
-					state.Read();
-
-					return state.PullExpected('u') && state.PullExpected('l') && state.PullExpected('l');
+					return Reader.ExpectKeywordNull(state);
 
 				case 't':
-					state.Read();
-
-					return state.PullExpected('r') && state.PullExpected('u') && state.PullExpected('e');
+					return Reader.ExpectKeywordTrue(state);
 
 				case '[':
 					return this.ReadToObjectFromArray(state,
-						EmptyLookupNode<int, ReaderCallback<ReaderState, JSONValue, int, bool>>.Instance, ref empty);
+						       EmptyLookupNode<int, ReaderCallback<ReaderState, JSONValue, int, bool>>.Instance,
+						       ref empty) != ReaderStatus.Failed;
 
 				case '{':
 					return this.ReadToObjectFromObject(state,
-						EmptyLookupNode<int, ReaderCallback<ReaderState, JSONValue, int, bool>>.Instance, ref empty);
+						       EmptyLookupNode<int, ReaderCallback<ReaderState, JSONValue, int, bool>>.Instance,
+						       ref empty) != ReaderStatus.Failed;
 
 				default:
 					state.Error("expected array, object or value");

@@ -3,7 +3,6 @@ using System.IO;
 using System.Text;
 using Verse.DecoderDescriptors.Tree;
 using Verse.LookupNodes;
-using Verse.Lookups;
 
 namespace Verse.Schemas.QueryString
 {
@@ -16,22 +15,19 @@ namespace Verse.Schemas.QueryString
 			this.encoding = encoding;
 		}
 
-		public BrowserMove<TElement> ReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
-			ReaderCallback<ReaderState, string, char, TElement> callback)
+		public ReaderStatus ReadToArray<TElement>(ReaderState state, Func<TElement> constructor,
+			ReaderCallback<ReaderState, string, char, TElement> callback, out BrowserMove<TElement> browserMove)
 		{
-			return (int index, out TElement element) =>
-			{
-				element = default;
+			browserMove = default;
 
-				return BrowserState.Failure;
-			};
+			return ReaderStatus.Ignored;
 		}
 
-		public bool ReadToObject<TObject>(ReaderState state,
+		public ReaderStatus ReadToObject<TObject>(ReaderState state,
 			ILookupNode<char, ReaderCallback<ReaderState, string, char, TObject>> root, ref TObject target)
 		{
 			if (state.Current == -1)
-				return true;
+				return ReaderStatus.Succeeded;
 
 			while (true)
 			{
@@ -53,7 +49,7 @@ namespace Verse.Schemas.QueryString
 				{
 					state.Error("empty field name");
 
-					return false;
+					return ReaderStatus.Failed;
 				}
 
 				// Parse field value
@@ -63,16 +59,16 @@ namespace Verse.Schemas.QueryString
 						state.Pull();
 						state.Location = QueryStringLocation.ValueBegin;
 
-						if (!(node.HasValue ? node.Value(this, state, ref target) : this.ReadToValue(state, out _)))
-							return false;
+						if (!(node.HasValue ? node.Value(this, state, ref target) == ReaderStatus.Succeeded : this.ReadToValue(state, out _) == ReaderStatus.Succeeded))
+							return ReaderStatus.Failed;
 
 						break;
 
 					default:
 						state.Location = QueryStringLocation.ValueEnd;
 
-						if (node.HasValue && !node.Value(this, state, ref target))
-							return false;
+						if (node.HasValue && node.Value(this, state, ref target) != ReaderStatus.Succeeded)
+							return ReaderStatus.Failed;
 
 						break;
 				}
@@ -83,26 +79,26 @@ namespace Verse.Schemas.QueryString
 
 				// Expect either field separator or end of stream
 				if (state.Current == -1)
-					return true;
+					return ReaderStatus.Succeeded;
 
 				if (!QueryStringCharacter.IsSeparator(state.Current))
 				{
 					state.Error("unexpected character");
 
-					return false;
+					return ReaderStatus.Failed;
 				}
 
 				state.Pull();
 
 				// Check for end of stream (in case of dangling separator e.g. "?k&") and resume loop
 				if (state.Current == -1)
-					return true;
+					return ReaderStatus.Succeeded;
 
 				state.Location = QueryStringLocation.Sequence;
 			}
 		}
 
-		public bool ReadToValue(ReaderState state, out string value)
+		public ReaderStatus ReadToValue(ReaderState state, out string value)
 		{
 			switch (state.Location)
 			{
@@ -115,17 +111,17 @@ namespace Verse.Schemas.QueryString
 						EmptyLookupNode<char, ReaderCallback<ReaderState, string, char, bool>>.Instance, ref dummy);
 
 				case QueryStringLocation.ValueBegin:
-					return Reader.ReadValue(state, out value);
+					return Reader.ReadValue(state, out value) ? ReaderStatus.Succeeded : ReaderStatus.Failed;
 
 				case QueryStringLocation.ValueEnd:
 					value = string.Empty;
 
-					return true;
+					return ReaderStatus.Succeeded;
 
 				default:
 					value = default;
 
-					return false;
+					return ReaderStatus.Failed;
 			}
 		}
 
