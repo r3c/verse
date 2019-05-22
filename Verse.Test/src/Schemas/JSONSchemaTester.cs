@@ -74,6 +74,46 @@ namespace Verse.Test.Schemas
 		}
 
 		[Test]
+		[TestCase("{\"value1\" : { \"value2\" : 123 } }", "123")]
+		[TestCase("{\"value1\" : { \"value2\" : null } }", "defaultFromValue1")]
+		[TestCase("{\"value1\" : { } }", "defaultFromValue1")]
+		[TestCase("{\"value1\" : null }", "default")]
+		[TestCase("{\"value2\" : 123 }", "default")]
+		[TestCase("{}", "default")]
+		public void DecodeNullFieldWithValueAssign(string json, string expected)
+		{
+			var schema = new JSONSchema<string>();
+
+			schema.SetDecoderConverter((v) =>
+			{
+				switch (v.Type)
+				{
+					case JSONType.Boolean:
+						return v.Boolean.ToString();
+					case JSONType.Number:
+						return v.Number.ToString();
+					case JSONType.String:
+						return v.String;
+					case JSONType.Void:
+						return "null";
+				}
+				return null;
+			});
+
+			schema.DecoderDescriptor
+				.HasField("value1", () => "defaultFromValue1", (ref string e, string v) => e = v)
+				.HasField("value2", () => "defaultFromValue2", (ref string e, string v) => e = v)
+				.HasValue((ref string target, string value) => target = value);
+
+			var parser = schema.CreateDecoder(() => "default");
+			string result = default;
+
+			var decoderStream = parser.Open(new MemoryStream(Encoding.UTF8.GetBytes(json)));
+			Assert.IsTrue(decoderStream.TryDecode(out result));
+			Assert.AreEqual(expected, result);
+		}
+
+		[Test]
 		[TestCase("{}", false)]
 		[TestCase("{\"field\": null}", false)]
 		[TestCase("{\"field\": 1}", true)]
