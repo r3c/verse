@@ -88,10 +88,15 @@ namespace Verse.DecoderDescriptors
 
 			this.definition.Callback = (IReader<TState, TNative, TKey> reader, TState state, ref TEntity entity) =>
 			{
-				if (reader.ReadToValue(state, out var value) == ReaderStatus.Failed)
+				var readStatus = reader.ReadToValue(state, out var value);
+				if (readStatus == ReaderStatus.Failed)
 				{
 					entity = default;
 					return ReaderStatus.Failed;
+				}
+				else if (readStatus == ReaderStatus.Ignored)
+				{
+					return ReaderStatus.Ignored;
 				}
 
 				// FIXME: support conversion failures

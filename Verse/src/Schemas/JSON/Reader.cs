@@ -164,12 +164,12 @@ namespace Verse.Schemas.JSON
 				case '[':
 					value = default;
 
-					return this.Skip(state) ? ReaderStatus.Ignored : ReaderStatus.Failed;
+					return this.Skip(state) ? ReaderStatus.Succeeded : ReaderStatus.Failed;
 
 				case '{':
 					value = default;
 
-					return this.Skip(state) ? ReaderStatus.Ignored : ReaderStatus.Failed;
+					return this.Skip(state) ? ReaderStatus.Succeeded : ReaderStatus.Failed;
 
 				default:
 					state.Error("expected array, object or value");
