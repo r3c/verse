@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text;
 using NUnit.Framework;
+using Verse.Resolvers;
 using Verse.Schemas;
 
 namespace Verse.Test.Schemas
@@ -37,7 +38,10 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new QueryStringSchema<T>();
 
-			schema.DecoderDescriptor.HasField(name, () => default, (ref T t, T v) => t = v).HasValue();
+			Assert.That(AdapterResolver.TryGetDecoderConverter<string, T>(schema.DecoderAdapter, out var converter),
+				Is.True);
+
+			schema.DecoderDescriptor.HasField(name, () => default, (ref T t, T v) => t = v).HasValue(converter);
 
 			var value = QueryStringSchemaTester.Decode(schema, query);
 
@@ -54,7 +58,11 @@ namespace Verse.Test.Schemas
 		{
 			var schema = new QueryStringSchema<T>();
 
-			schema.DecoderDescriptor.HasField(name, () => default, (ref T t, T v) => t = v).HasValue();
+			Assert.That(AdapterResolver.TryGetDecoderConverter<string, T>(schema.DecoderAdapter, out var converter),
+				Is.True);
+
+			schema.DecoderDescriptor.HasField(name, () => default, (ref T t, T v) => t = v)
+				.HasValue(converter);
 
 			var value = QueryStringSchemaTester.Decode(schema, query);
 
@@ -77,7 +85,7 @@ namespace Verse.Test.Schemas
 			}
 		}
 
-		private static T Decode<T>(ISchema<T> schema, string query)
+		private static TEntity Decode<TEntity>(ISchema<string, TEntity> schema, string query)
 		{
 			var decoder = schema.CreateDecoder(() => default);
 

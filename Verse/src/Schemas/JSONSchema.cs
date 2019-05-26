@@ -12,21 +12,27 @@ namespace Verse.Schemas
 	/// See: https://www.json.org/
 	/// </summary>
 	/// <typeparam name="TEntity">Entity type</typeparam>
-	public sealed class JSONSchema<TEntity> : ISchema<TEntity>
+	public sealed class JSONSchema<TEntity> : ISchema<JSONValue, TEntity>
 	{
 		/// <inheritdoc/>
-		public IDecoderDescriptor<TEntity> DecoderDescriptor => this.decoderDescriptor;
+		public IDecoderAdapter<JSONValue> DecoderAdapter => this.decoderAdapter;
 
 		/// <inheritdoc/>
-		public IEncoderDescriptor<TEntity> EncoderDescriptor => this.encoderDescriptor;
+		public IDecoderDescriptor<JSONValue, TEntity> DecoderDescriptor => this.decoderDescriptor;
+
+		/// <inheritdoc/>
+		public IEncoderAdapter<JSONValue> EncoderAdapter => this.encoderAdapter;
+
+		/// <inheritdoc/>
+		public IEncoderDescriptor<JSONValue, TEntity> EncoderDescriptor => this.encoderDescriptor;
 
 		private readonly JSONConfiguration configuration;
 
-		private readonly DecoderConverter decoderConverter;
+		private readonly JSONDecoderAdapter decoderAdapter;
 
 		private readonly TreeDecoderDescriptor<ReaderState, JSONValue, int, TEntity> decoderDescriptor;
 
-		private readonly EncoderConverter encoderConverter;
+		private readonly JSONEncoderAdapter encoderAdapter;
 
 		private readonly TreeEncoderDescriptor<WriterState, JSONValue, TEntity> encoderDescriptor;
 
@@ -40,10 +46,10 @@ namespace Verse.Schemas
 			var readerDefinition = new ReaderDefinition<TEntity>();
 
 			this.configuration = configuration;
-			this.decoderConverter = new DecoderConverter();
-			this.encoderConverter = new EncoderConverter();
-			this.decoderDescriptor = new TreeDecoderDescriptor<ReaderState, JSONValue, int, TEntity>(this.decoderConverter, readerDefinition);
-			this.encoderDescriptor = new TreeEncoderDescriptor<WriterState, JSONValue, TEntity>(this.encoderConverter, writerDefinition);
+			this.decoderAdapter = new JSONDecoderAdapter();
+			this.decoderDescriptor = new TreeDecoderDescriptor<ReaderState, JSONValue, int, TEntity>(readerDefinition);
+			this.encoderAdapter = new JSONEncoderAdapter();
+			this.encoderDescriptor = new TreeEncoderDescriptor<WriterState, JSONValue, TEntity>(writerDefinition);
 		}
 
 		/// <summary>
@@ -71,26 +77,6 @@ namespace Verse.Schemas
 			var reader = new Writer(encoding, this.configuration.OmitNull);
 
 			return this.encoderDescriptor.CreateEncoder(reader);
-		}
-
-		/// <summary>
-		/// Declare decoder to convert JSON native value into target output type.
-		/// </summary>
-		/// <typeparam name="TOutput">Target output type</typeparam>
-		/// <param name="converter">Converter from JSON native value to output type</param>
-		public void SetDecoderConverter<TOutput>(Converter<JSONValue, TOutput> converter)
-		{
-			this.decoderConverter.Set(converter);
-		}
-
-		/// <summary>
-		/// Declare encoder to convert target input type into JSON native value.
-		/// </summary>
-		/// <typeparam name="TInput">Target input type</typeparam>
-		/// <param name="converter">Converter from input type to JSON native value</param>
-		public void SetEncoderConverter<TInput>(Converter<TInput, JSONValue> converter)
-		{
-			this.encoderConverter.Set(converter);
 		}
 	}
 }

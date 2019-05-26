@@ -8,8 +8,9 @@ namespace Verse
 	/// <typeparamref name="TEntity"/> type. Those instructions are used when
 	/// an actual encoder is used to write entity to a stream.
 	/// </summary>
+	/// <typeparam name="TNative">Schema native value type</typeparam>
 	/// <typeparam name="TEntity">Entity type</typeparam>
-	public interface IEncoderDescriptor<out TEntity>
+	public interface IEncoderDescriptor<TNative, out TEntity>
 	{
 		/// <summary>
 		/// Declare entity as a collection of elements and reuse existing
@@ -20,8 +21,8 @@ namespace Verse
 		/// <param name="getter">Elements getter from current entity</param>
 		/// <param name="descriptor">Existing encoder descriptor</param>
 		/// <returns>Element encoder descriptor</returns>
-		IEncoderDescriptor<TElement> HasElements<TElement>(Func<TEntity, IEnumerable<TElement>> getter,
-			IEncoderDescriptor<TElement> descriptor);
+		IEncoderDescriptor<TNative, TElement> HasElements<TElement>(Func<TEntity, IEnumerable<TElement>> getter,
+			IEncoderDescriptor<TNative, TElement> descriptor);
 
 		/// <summary>
 		/// Declare entity as a collection of elements. Resulting descriptor
@@ -30,7 +31,7 @@ namespace Verse
 		/// <typeparam name="TElement">Element type</typeparam>
 		/// <param name="getter">Elements getter from current entity</param>
 		/// <returns>Element encoder descriptor</returns>
-		IEncoderDescriptor<TElement> HasElements<TElement>(Func<TEntity, IEnumerable<TElement>> getter);
+		IEncoderDescriptor<TNative, TElement> HasElements<TElement>(Func<TEntity, IEnumerable<TElement>> getter);
 
 		/// <summary>
 		/// Declare new named field on current object entity and reuse existing
@@ -42,8 +43,8 @@ namespace Verse
 		/// <param name="getter">Field getter from current entity</param>
 		/// <param name="descriptor">Existing encoder descriptor</param>
 		/// <returns>Field encoder descriptor</returns>
-		IEncoderDescriptor<TField> HasField<TField>(string name, Func<TEntity, TField> getter,
-			IEncoderDescriptor<TField> descriptor);
+		IEncoderDescriptor<TNative, TField> HasField<TField>(string name, Func<TEntity, TField> getter,
+			IEncoderDescriptor<TNative, TField> descriptor);
 
 		/// <summary>
 		/// Declare new named field on current object entity. Resulting
@@ -53,7 +54,7 @@ namespace Verse
 		/// <param name="name">Field name</param>
 		/// <param name="getter">Field getter from current entity</param>
 		/// <returns>Field encoder descriptor</returns>
-		IEncoderDescriptor<TField> HasField<TField>(string name, Func<TEntity, TField> getter);
+		IEncoderDescriptor<TNative, TField> HasField<TField>(string name, Func<TEntity, TField> getter);
 
 		/// <summary>
 		/// Declare new named field on current object entity without using a
@@ -62,21 +63,14 @@ namespace Verse
 		/// </summary>
 		/// <param name="name">Field name</param>
 		/// <returns>Current entity encoder descriptor</returns>
-		IEncoderDescriptor<TEntity> HasField(string name);
+		IEncoderDescriptor<TNative, TEntity> HasField(string name);
 
 		/// <summary>
 		/// Declare entity as a value and use given converter to access it.
 		/// Value type must be natively compatible with current schema or have
 		/// a custom encoder declared.
 		/// </summary>
-		/// <typeparam name="TValue">Value type</typeparam>
-		/// <param name="getter">Entity to value getter</param>
-		void HasValue<TValue>(Func<TEntity, TValue> getter);
-
-		/// <summary>
-		/// Declare entity as a value. Its type must be natively compatible
-		/// with current schema or have a custom encoder declared.
-		/// </summary>
-		void HasValue();
+		/// <param name="converter">Entity converter to native type</param>
+		void HasValue(Func<TEntity, TNative> converter);
 	}
 }

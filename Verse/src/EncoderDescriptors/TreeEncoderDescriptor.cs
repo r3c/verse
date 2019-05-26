@@ -4,17 +4,14 @@ using Verse.EncoderDescriptors.Tree;
 
 namespace Verse.EncoderDescriptors
 {
-	internal class TreeEncoderDescriptor<TState, TNative, TEntity> : IEncoderDescriptor<TEntity>
+	internal class TreeEncoderDescriptor<TState, TNative, TEntity> : IEncoderDescriptor<TNative, TEntity>
 	{
-		private readonly IEncoderConverter<TNative> converter;
-
 		private readonly IWriterDefinition<TState, TNative, TEntity> definition;
 
 		private readonly Dictionary<string, WriterCallback<TState, TNative, TEntity>> fields;
 
-		public TreeEncoderDescriptor(IEncoderConverter<TNative> converter, IWriterDefinition<TState, TNative, TEntity> definition)
+		public TreeEncoderDescriptor(IWriterDefinition<TState, TNative, TEntity> definition)
 		{
-			this.converter = converter;
 			this.definition = definition;
 			this.fields = new Dictionary<string, WriterCallback<TState, TNative, TEntity>>();
 		}
@@ -24,8 +21,8 @@ namespace Verse.EncoderDescriptors
 			return new TreeEncoder<TState, TNative, TEntity>(reader, this.definition.Callback);
 		}
 
-		public IEncoderDescriptor<TField> HasField<TField>(string name, Func<TEntity, TField> getter,
-			IEncoderDescriptor<TField> descriptor)
+		public IEncoderDescriptor<TNative, TField> HasField<TField>(string name, Func<TEntity, TField> getter,
+			IEncoderDescriptor<TNative, TField> descriptor)
 		{
 			if (!(descriptor is TreeEncoderDescriptor<TState, TNative, TField> ancestor))
 				throw new ArgumentOutOfRangeException(nameof(descriptor), "incompatible descriptor type");
@@ -34,22 +31,22 @@ namespace Verse.EncoderDescriptors
 				ancestor);
 		}
 
-		public IEncoderDescriptor<TField> HasField<TField>(string name, Func<TEntity, TField> getter)
+		public IEncoderDescriptor<TNative, TField> HasField<TField>(string name, Func<TEntity, TField> getter)
 		{
 			var fieldDefinition = this.definition.Create<TField>();
-			var fieldDescriptor = new TreeEncoderDescriptor<TState, TNative, TField>(this.converter, fieldDefinition);
+			var fieldDescriptor = new TreeEncoderDescriptor<TState, TNative, TField>(fieldDefinition);
 
 			return TreeEncoderDescriptor<TState, TNative, TEntity>.BindField(this.definition, name, this.fields, getter,
 				fieldDescriptor);
 		}
 
-		public IEncoderDescriptor<TEntity> HasField(string name)
+		public IEncoderDescriptor<TNative, TEntity> HasField(string name)
 		{
 			return this.HasField(name, e => e);
 		}
 
-		public IEncoderDescriptor<TElement> HasElements<TElement>(Func<TEntity, IEnumerable<TElement>> getter,
-			IEncoderDescriptor<TElement> descriptor)
+		public IEncoderDescriptor<TNative, TElement> HasElements<TElement>(Func<TEntity, IEnumerable<TElement>> getter,
+			IEncoderDescriptor<TNative, TElement> descriptor)
 		{
 			if (!(descriptor is TreeEncoderDescriptor<TState, TNative, TElement> ancestor))
 				throw new ArgumentOutOfRangeException(nameof(descriptor), "incompatible descriptor type");
@@ -57,32 +54,21 @@ namespace Verse.EncoderDescriptors
 			return TreeEncoderDescriptor<TState, TNative, TEntity>.BindArray(this.definition, getter, ancestor);
 		}
 
-		public IEncoderDescriptor<TElement> HasElements<TElement>(Func<TEntity, IEnumerable<TElement>> getter)
+		public IEncoderDescriptor<TNative, TElement> HasElements<TElement>(Func<TEntity, IEnumerable<TElement>> getter)
 		{
 			var elementDefinition = this.definition.Create<TElement>();
-			var elementDescriptor =
-				new TreeEncoderDescriptor<TState, TNative, TElement>(this.converter, elementDefinition);
+			var elementDescriptor = new TreeEncoderDescriptor<TState, TNative, TElement>(elementDefinition);
 
-			return TreeEncoderDescriptor<TState, TNative, TEntity>.BindArray(this.definition, getter, elementDescriptor);
+			return TreeEncoderDescriptor<TState, TNative, TEntity>.BindArray(this.definition, getter,
+				elementDescriptor);
 		}
 
-		public void HasValue<TValue>(Func<TEntity, TValue> converter)
+		public void HasValue(Func<TEntity, TNative> converter)
 		{
-			var native = this.converter.Get<TValue>();
-
-			TreeEncoderDescriptor<TState, TNative, TEntity>.BindValue(this.definition, e => native(converter(e)));
-
-			this.definition.Callback = (reader, state, entity) => reader.WriteAsValue(state, native(converter(entity)));
+			this.definition.Callback = (session, state, entity) => session.WriteAsValue(state, converter(entity));
 		}
 
-		public void HasValue()
-		{
-			var converter = this.converter.Get<TEntity>();
-
-			TreeEncoderDescriptor<TState, TNative, TEntity>.BindValue(this.definition, converter);
-		}
-
-		private static IEncoderDescriptor<TElement> BindArray<TElement>(
+		private static IEncoderDescriptor<TNative, TElement> BindArray<TElement>(
 			IWriterDefinition<TState, TNative, TEntity> parent, Func<TEntity, IEnumerable<TElement>> getter,
 			TreeEncoderDescriptor<TState, TNative, TElement> elementDescriptor)
 		{
@@ -94,7 +80,7 @@ namespace Verse.EncoderDescriptors
 			return elementDescriptor;
 		}
 
-		private static IEncoderDescriptor<TField> BindField<TField>(
+		private static IEncoderDescriptor<TNative, TField> BindField<TField>(
 			IWriterDefinition<TState, TNative, TEntity> parentDefinition,
 			string name, Dictionary<string, WriterCallback<TState, TNative, TEntity>> parentFields,
 			Func<TEntity, TField> getter, TreeEncoderDescriptor<TState, TNative, TField> fieldDescriptor)
@@ -109,12 +95,6 @@ namespace Verse.EncoderDescriptors
 			parentFields[name] = (reader, state, entity) => fieldDefinition.Callback(reader, state, getter(entity));
 
 			return fieldDescriptor;
-		}
-
-		private static void BindValue(IWriterDefinition<TState, TNative, TEntity> parent,
-			Converter<TEntity, TNative> converter)
-		{
-			parent.Callback = (reader, state, entity) => reader.WriteAsValue(state, converter(entity));
 		}
 	}
 }

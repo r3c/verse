@@ -13,35 +13,38 @@ namespace Verse.Schemas
 	/// See: https://developers.google.com/protocol-buffers/docs/encoding
 	/// </summary>
 	/// <typeparam name="TEntity">Entity type</typeparam>
-	public sealed class ProtobufSchema<TEntity> : ISchema<TEntity>
+	public sealed class ProtobufSchema<TEntity> : ISchema<ProtobufValue, TEntity>
 	{
-		public IDecoderDescriptor<TEntity> DecoderDescriptor => this.decoderDescriptor;
+		/// <inheritdoc/>
+		public IDecoderAdapter<ProtobufValue> DecoderAdapter => this.decoderAdapter;
 
-		public IEncoderDescriptor<TEntity> EncoderDescriptor => this.encoderDescriptor;
+		/// <inheritdoc/>
+		public IDecoderDescriptor<ProtobufValue, TEntity> DecoderDescriptor => this.decoderDescriptor;
 
-		private readonly DecoderConverter decoderConverter;
+		/// <inheritdoc/>
+		public IEncoderAdapter<ProtobufValue> EncoderAdapter => this.encoderAdapter;
+
+		/// <inheritdoc/>
+		public IEncoderDescriptor<ProtobufValue, TEntity> EncoderDescriptor => this.encoderDescriptor;
+
+		private readonly ProtobufDecoderAdapter decoderAdapter;
 
 		private readonly TreeDecoderDescriptor<ReaderState, ProtobufValue, int, TEntity> decoderDescriptor;
 
-		private readonly EncoderConverter encoderConverter;
+		private readonly ProtobufEncoderAdapter encoderAdapter;
 
 		private readonly TreeEncoderDescriptor<WriterState, ProtobufValue, TEntity> encoderDescriptor;
 
 		public ProtobufSchema(TextReader proto, string messageName, ProtobufConfiguration configuration)
 		{
 			var bindings = Parser.Parse(proto).Resolve(messageName);
-			var decoderConverter = new DecoderConverter();
-			var encoderConverter = new EncoderConverter();
 			var reader = new ProtobufReaderDefinition<TEntity>(bindings, configuration.RejectUnknown);
 			var writer = new ProtobufWriterDefinition<TEntity>(bindings);
 
-			this.decoderConverter = decoderConverter;
-			this.decoderDescriptor =
-				new TreeDecoderDescriptor<ReaderState, ProtobufValue, int, TEntity>(decoderConverter, reader);
-
-			this.encoderConverter = encoderConverter;
-			this.encoderDescriptor =
-				new TreeEncoderDescriptor<WriterState, ProtobufValue, TEntity>(encoderConverter, writer);
+			this.decoderAdapter = new ProtobufDecoderAdapter();
+			this.decoderDescriptor = new TreeDecoderDescriptor<ReaderState, ProtobufValue, int, TEntity>(reader);
+			this.encoderAdapter = new ProtobufEncoderAdapter();
+			this.encoderDescriptor = new TreeEncoderDescriptor<WriterState, ProtobufValue, TEntity>(writer);
 		}
 
 		public ProtobufSchema(TextReader proto, string messageName)
@@ -57,16 +60,6 @@ namespace Verse.Schemas
 		public IEncoder<TEntity> CreateEncoder()
 		{
 			return this.encoderDescriptor.CreateEncoder(new Writer());
-		}
-
-		public void SetDecoderConverter<TValue>(Converter<ProtobufValue, TValue> converter)
-		{
-			this.decoderConverter.Set(converter);
-		}
-
-		public void SetEncoderConverter<TValue>(Converter<TValue, ProtobufValue> converter)
-		{
-			this.encoderConverter.Set(converter);
 		}
 	}
 }

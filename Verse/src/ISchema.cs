@@ -8,24 +8,29 @@ namespace Verse
 	/// <typeparamref name="TEntity"/> using a given serialization format which
 	/// depends on the actual implementation.
 	/// </summary>
+	/// <typeparam name="TNative">Schema native value type</typeparam>
 	/// <typeparam name="TEntity">Associated entity type</typeparam>
-	public interface ISchema<TEntity>
+	public interface ISchema<TNative, TEntity>
 	{
+		/// <summary>
+		/// Get value adapter for decoding schema values to native C# types.
+		/// </summary>
+		IDecoderAdapter<TNative> DecoderAdapter { get; }
+
 		/// <summary>
 		/// Get decoder descriptor for this schema and entity type.
 		/// </summary>
-		IDecoderDescriptor<TEntity> DecoderDescriptor
-		{
-			get;
-		}
+		IDecoderDescriptor<TNative, TEntity> DecoderDescriptor { get; }
+
+		/// <summary>
+		/// Get value adapter for encoding native C# types to schema values.
+		/// </summary>
+		IEncoderAdapter<TNative> EncoderAdapter { get; }
 
 		/// <summary>
 		/// Get encoder descriptor for this schema and entity type.
 		/// </summary>
-		IEncoderDescriptor<TEntity> EncoderDescriptor
-		{
-			get;
-		}
+		IEncoderDescriptor<TNative, TEntity> EncoderDescriptor { get; }
 
 		/// <summary>
 		/// Create an entity decoder based on instructions passed to the

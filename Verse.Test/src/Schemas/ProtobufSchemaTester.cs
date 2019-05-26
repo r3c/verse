@@ -34,10 +34,11 @@ namespace Verse.Test.Schemas
 			var schema = new ProtobufSchema<Person>(new StringReader(proto), "Person");
 
 			schema.DecoderDescriptor.HasField("email", () => string.Empty, (ref Person p, string v) => p.Email = v)
-				.HasValue();
-			schema.DecoderDescriptor.HasField("id", () => 0, (ref Person p, int v) => p.Id = v).HasValue();
+				.HasValue(schema.DecoderAdapter.ToString);
+			schema.DecoderDescriptor.HasField("id", () => 0, (ref Person p, int v) => p.Id = v)
+				.HasValue(schema.DecoderAdapter.ToInteger32S);
 			schema.DecoderDescriptor.HasField("name", () => string.Empty, (ref Person p, string v) => p.Name = v)
-				.HasValue();
+				.HasValue(schema.DecoderAdapter.ToString);
 
 			var decoder = schema.CreateDecoder(() => new Person());
 
