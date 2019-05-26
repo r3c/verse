@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using ProtoBuf;
+using Verse.Resolvers;
 using Verse.Schemas;
 using Verse.Schemas.Protobuf;
 using Verse.Schemas.RawProtobuf;
@@ -36,10 +37,14 @@ namespace Verse.Test.Schemas
 			var schema = RawProtobufSchemaTester.CreateSchema<List<T>>();
 			var testFieldClass = new TestFieldClass<T> {Items = new List<T> {a, b, c}};
 
+			Assert.That(
+				AdapterResolver.TryGetDecoderConverter<RawProtobufValue, T>(schema.DecoderAdapter, out var converter),
+				Is.True);
+
 			schema.DecoderDescriptor
 				.HasField("_2", Array.Empty<T>, (ref List<T> target, T[] values) => target.AddRange(values))
 				.HasElements(() => default, (ref T[] target, IEnumerable<T> elements) => target = elements.ToArray())
-				.HasValue();
+				.HasValue(converter);
 
 			var value = RawProtobufSchemaTester.DecodeTranscode(schema.CreateDecoder(() => new List<T>()),
 				testFieldClass);
@@ -61,10 +66,14 @@ namespace Verse.Test.Schemas
 			var schema = RawProtobufSchemaTester.CreateSchema<T>();
 			var testFieldClass = new TestFieldClass<T> {SubValue = new SubTestFieldClass<T> {Value = expectedValue}};
 
+			Assert.That(
+				AdapterResolver.TryGetDecoderConverter<RawProtobufValue, T>(schema.DecoderAdapter, out var converter),
+				Is.True);
+
 			schema.DecoderDescriptor
 				.HasField("_3", () => default, (ref T t, T v) => t = v)
 				.HasField("_4", () => default, (ref T t, T v) => t = v)
-				.HasValue();
+				.HasValue(converter);
 
 			var value = RawProtobufSchemaTester.DecodeTranscode(schema.CreateDecoder(() => default), testFieldClass);
 
@@ -87,7 +96,11 @@ namespace Verse.Test.Schemas
 			var schema = RawProtobufSchemaTester.CreateSchema<T>();
 			var testFieldClass = new TestFieldClass<T> {Value = value};
 
-			schema.DecoderDescriptor.HasField("_1", () => default, (ref T obj, T v) => obj = v).HasValue();
+			Assert.That(
+				AdapterResolver.TryGetDecoderConverter<RawProtobufValue, T>(schema.DecoderAdapter, out var converter),
+				Is.True);
+
+			schema.DecoderDescriptor.HasField("_1", () => default, (ref T obj, T v) => obj = v).HasValue(converter);
 
 			var decodedValue = RawProtobufSchemaTester.DecodeTranscode(schema.CreateDecoder(() => default), testFieldClass);
 
@@ -120,6 +133,10 @@ namespace Verse.Test.Schemas
 				});
 			}
 
+			Assert.That(
+				AdapterResolver.TryGetDecoderConverter<RawProtobufValue, T>(schema.DecoderAdapter, out var converter),
+				Is.True);
+
 			schema.DecoderDescriptor
 				.HasField("_2", () => default,
 					(ref TestFieldClass<TestFieldClass<T>> target, TestFieldClass<T>[] value) =>
@@ -130,7 +147,7 @@ namespace Verse.Test.Schemas
 				.HasField("_3", () => new SubTestFieldClass<T>(),
 					(ref TestFieldClass<T> target, SubTestFieldClass<T> value) => target.SubValue = value)
 				.HasField("_4", () => default, (ref SubTestFieldClass<T> target, T value) => target.Value = value)
-				.HasValue();
+				.HasValue(converter);
 
 			var decodedValue =
 				RawProtobufSchemaTester.DecodeRoundTrip(
@@ -214,7 +231,7 @@ namespace Verse.Test.Schemas
 
 			descriptor
 				.HasField("_4", () => default, (ref int t, int v) => t = v)
-				.HasValue();
+				.HasValue(schema.DecoderAdapter.ToInteger32S);
 
 			var value = RawProtobufSchemaTester.DecodeTranscode(schema.CreateDecoder(() => 0), testFieldClass);
 
@@ -235,10 +252,14 @@ namespace Verse.Test.Schemas
 			var expectedItems = new[] { a, b, c };
 			var schema = RawProtobufSchemaTester.CreateSchema<List<T>>();
 
+			Assert.That(
+				AdapterResolver.TryGetEncoderConverter<RawProtobufValue, T>(schema.EncoderAdapter, out var converter),
+				Is.True);
+
 			schema.EncoderDescriptor
 				.HasField("_2", v => v)
 				.HasElements(source => source)
-				.HasValue();
+				.HasValue(converter);
 
 			var testFieldClass = RawProtobufSchemaTester.EncodeTranscode<List<T>, TestFieldClass<T>>(schema.CreateEncoder(), new List<T>(expectedItems));
 
@@ -259,10 +280,14 @@ namespace Verse.Test.Schemas
 			var schema = RawProtobufSchemaTester.CreateSchema<TestFieldClass<T>>();
 			var testFieldClass = new TestFieldClass<T> {SubValue = new SubTestFieldClass<T> {Value = expectedValue}};
 
+			Assert.That(
+				AdapterResolver.TryGetEncoderConverter<RawProtobufValue, T>(schema.EncoderAdapter, out var converter),
+				Is.True);
+
 			schema.EncoderDescriptor
 				.HasField("_3", target => target.SubValue)
 				.HasField("_4", target => target.Value)
-				.HasValue();
+				.HasValue(converter);
 
 			var decodedTestFieldClass = RawProtobufSchemaTester.EncodeRoundTrip(schema.CreateEncoder(), testFieldClass);
 
@@ -284,9 +309,13 @@ namespace Verse.Test.Schemas
 		{
 			var schema = RawProtobufSchemaTester.CreateSchema<T>();
 
+			Assert.That(
+				AdapterResolver.TryGetEncoderConverter<RawProtobufValue, T>(schema.EncoderAdapter, out var converter),
+				Is.True);
+
 			schema.EncoderDescriptor
 				.HasField("_1", v => v)
-				.HasValue();
+				.HasValue(converter);
 
 			var testFieldClass =
 				RawProtobufSchemaTester.EncodeTranscode<T, TestFieldClass<T>>(schema.CreateEncoder(),
@@ -321,12 +350,16 @@ namespace Verse.Test.Schemas
 				});
 			}
 
+			Assert.That(
+				AdapterResolver.TryGetEncoderConverter<RawProtobufValue, T>(schema.EncoderAdapter, out var converter),
+				Is.True);
+
 			schema.EncoderDescriptor
 				.HasField("_2", v => v)
 				.HasElements(source => source.Items)
 				.HasField("_3", target => target.SubValue)
 				.HasField("_4", target => target.Value)
-				.HasValue();
+				.HasValue(converter);
 
 			var decodedFieldClass = RawProtobufSchemaTester.EncodeRoundTrip(schema.CreateEncoder(), fieldClass);
 
@@ -336,7 +369,7 @@ namespace Verse.Test.Schemas
 				Assert.AreEqual(expectedValues[i], decodedFieldClass.Items[i].SubValue.Value);
 		}
 
-		private static ISchema<TEntity> CreateSchema<TEntity>()
+		private static ISchema<RawProtobufValue, TEntity> CreateSchema<TEntity>()
 		{
 			return new RawProtobufSchema<TEntity>(new RawProtobufConfiguration {NoZigZagEncoding = true});
 		}

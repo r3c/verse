@@ -12,14 +12,22 @@ namespace Verse.Schemas
 	/// See: https://tools.ietf.org/html/rfc3986#section-3.4
 	/// </summary>
 	/// <typeparam name="TEntity">Entity type</typeparam>
-	public sealed class QueryStringSchema<TEntity> : ISchema<TEntity>
+	public sealed class QueryStringSchema<TEntity> : ISchema<string, TEntity>
 	{
-		public IDecoderDescriptor<TEntity> DecoderDescriptor => this.decoderDescriptor;
+		/// <inheritdoc/>
+		public IDecoderAdapter<string> DecoderAdapter => this.decoderAdapter;
 
-		public IEncoderDescriptor<TEntity> EncoderDescriptor =>
+		/// <inheritdoc/>
+		public IDecoderDescriptor<string, TEntity> DecoderDescriptor => this.decoderDescriptor;
+
+		/// <inheritdoc/>
+		public IEncoderAdapter<string> EncoderAdapter => throw new NotImplementedException("encoding not implemented");
+
+		/// <inheritdoc/>
+		public IEncoderDescriptor<string, TEntity> EncoderDescriptor =>
 			throw new NotImplementedException("encoding not implemented");
 
-		private readonly DecoderConverter decoderConverter;
+		private readonly QueryStringDecoderAdapter decoderAdapter;
 
 		private readonly TreeDecoderDescriptor<ReaderState, string, char, TEntity> decoderDescriptor;
 
@@ -27,12 +35,10 @@ namespace Verse.Schemas
 
 		public QueryStringSchema(Encoding encoding)
 		{
-			var decoderConverter = new DecoderConverter();
+			var readerDefinition = new ReaderDefinition<TEntity>();
 
-			this.decoderConverter = decoderConverter;
-			this.decoderDescriptor =
-				new TreeDecoderDescriptor<ReaderState, string, char, TEntity>(decoderConverter,
-					new ReaderDefinition<TEntity>());
+			this.decoderAdapter = new QueryStringDecoderAdapter();
+			this.decoderDescriptor = new TreeDecoderDescriptor<ReaderState, string, char, TEntity>(readerDefinition);
 			this.encoding = encoding;
 		}
 
@@ -51,11 +57,6 @@ namespace Verse.Schemas
 		public IEncoder<TEntity> CreateEncoder()
 		{
 			throw new NotImplementedException("encoding not implemented");
-		}
-
-		public void SetDecoderConverter<U>(Converter<string, U> converter)
-		{
-			this.decoderConverter.Set(converter);
 		}
 	}
 }

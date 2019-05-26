@@ -4,15 +4,12 @@ using Verse.DecoderDescriptors.Tree;
 
 namespace Verse.DecoderDescriptors
 {
-	internal class TreeDecoderDescriptor<TState, TNative, TKey, TEntity> : IDecoderDescriptor<TEntity>
+	internal class TreeDecoderDescriptor<TState, TNative, TKey, TEntity> : IDecoderDescriptor<TNative, TEntity>
 	{
-		private readonly IDecoderConverter<TNative> converter;
-
 		private readonly IReaderDefinition<TState, TNative, TKey, TEntity> definition;
 
-		public TreeDecoderDescriptor(IDecoderConverter<TNative> converter, IReaderDefinition<TState, TNative, TKey, TEntity> definition)
+		public TreeDecoderDescriptor(IReaderDefinition<TState, TNative, TKey, TEntity> definition)
 		{
-			this.converter = converter;
 			this.definition = definition;
 		}
 
@@ -21,8 +18,8 @@ namespace Verse.DecoderDescriptors
 			return new TreeDecoder<TState, TNative, TKey, TEntity>(reader, constructor, this.definition.Callback);
 		}
 
-		public IDecoderDescriptor<TField> HasField<TField>(string name, Func<TField> constructor,
-			Setter<TEntity, TField> setter, IDecoderDescriptor<TField> descriptor)
+		public IDecoderDescriptor<TNative, TField> HasField<TField>(string name, Func<TField> constructor,
+			Setter<TEntity, TField> setter, IDecoderDescriptor<TNative, TField> descriptor)
 		{
 			if (!(descriptor is TreeDecoderDescriptor<TState, TNative, TKey, TField> ancestor))
 				throw new ArgumentOutOfRangeException(nameof(descriptor), "incompatible descriptor type");
@@ -31,20 +28,20 @@ namespace Verse.DecoderDescriptors
 				setter, ancestor);
 		}
 
-		public IDecoderDescriptor<TField> HasField<TField>(string name, Func<TField> constructor,
+		public IDecoderDescriptor<TNative, TField> HasField<TField>(string name, Func<TField> constructor,
 			Setter<TEntity, TField> setter)
 		{
 			var fieldDefinition = this.definition.Create<TField>();
-			var fieldDescriptor = new TreeDecoderDescriptor<TState, TNative, TKey, TField>(this.converter, fieldDefinition);
+			var fieldDescriptor = new TreeDecoderDescriptor<TState, TNative, TKey, TField>(fieldDefinition);
 
 			return TreeDecoderDescriptor<TState, TNative, TKey, TEntity>.BindField(this.definition, name, constructor,
 				setter, fieldDescriptor);
 		}
 
-		public IDecoderDescriptor<TEntity> HasField(string name)
+		public IDecoderDescriptor<TNative, TEntity> HasField(string name)
 		{
 			var fieldDefinition = this.definition.Create<TEntity>();
-			var fieldDescriptor = new TreeDecoderDescriptor<TState, TNative, TKey, TEntity>(this.converter, fieldDefinition);
+			var fieldDescriptor = new TreeDecoderDescriptor<TState, TNative, TKey, TEntity>(fieldDefinition);
 			var parentLookup = this.definition.Lookup;
 			var parentRoot = parentLookup.Root;
 
@@ -61,8 +58,8 @@ namespace Verse.DecoderDescriptors
 			return fieldDescriptor;
 		}
 
-		public IDecoderDescriptor<TElement> HasElements<TElement>(Func<TElement> constructor,
-			Setter<TEntity, IEnumerable<TElement>> setter, IDecoderDescriptor<TElement> descriptor)
+		public IDecoderDescriptor<TNative, TElement> HasElements<TElement>(Func<TElement> constructor,
+			Setter<TEntity, IEnumerable<TElement>> setter, IDecoderDescriptor<TNative, TElement> descriptor)
 		{
 			if (!(descriptor is TreeDecoderDescriptor<TState, TNative, TKey, TElement> ancestor))
 				throw new ArgumentOutOfRangeException(nameof(descriptor), "incompatible descriptor type");
@@ -71,63 +68,37 @@ namespace Verse.DecoderDescriptors
 				ancestor);
 		}
 
-		public IDecoderDescriptor<TElement> HasElements<TElement>(Func<TElement> constructor,
+		public IDecoderDescriptor<TNative, TElement> HasElements<TElement>(Func<TElement> constructor,
 			Setter<TEntity, IEnumerable<TElement>> setter)
 		{
 			var elementDefinition = this.definition.Create<TElement>();
 			var elementDescriptor =
-				new TreeDecoderDescriptor<TState, TNative, TKey, TElement>(this.converter, elementDefinition);
+				new TreeDecoderDescriptor<TState, TNative, TKey, TElement>(elementDefinition);
 
 			return TreeDecoderDescriptor<TState, TNative, TKey, TEntity>.BindArray(this.definition, constructor, setter,
 				elementDescriptor);
 		}
 
-		public void HasValue<TValue>(Setter<TEntity, TValue> setter)
+		public void HasValue(Setter<TEntity, TNative> converter)
 		{
-			var native = this.converter.Get<TValue>();
-
 			this.definition.Callback = (IReader<TState, TNative, TKey> reader, TState state, ref TEntity entity) =>
 			{
-				var readStatus = reader.ReadToValue(state, out var value);
-				if (readStatus == ReaderStatus.Failed)
+				switch (reader.ReadToValue(state, out var value))
 				{
-					entity = default;
-					return ReaderStatus.Failed;
+					case ReaderStatus.Succeeded:
+						// FIXME: support conversion failures
+						converter(ref entity, value);
+
+						return ReaderStatus.Succeeded;
+
+					case ReaderStatus.Ignored:
+						return ReaderStatus.Ignored;
+
+					default:
+						entity = default;
+
+						return ReaderStatus.Failed;
 				}
-				else if (readStatus == ReaderStatus.Ignored)
-				{
-					return ReaderStatus.Ignored;
-				}
-
-				// FIXME: support conversion failures
-				setter(ref entity, native(value));
-
-				return ReaderStatus.Succeeded;
-			};
-		}
-
-		public void HasValue()
-		{
-			var converter = this.converter.Get<TEntity>();
-
-			// FIXME: close duplicate of previous method
-			this.definition.Callback = (IReader<TState, TNative, TKey> reader, TState state, ref TEntity entity) =>
-			{
-				var readStatus = reader.ReadToValue(state, out var value);
-				if (readStatus == ReaderStatus.Failed)
-				{
-					entity = default;
-					return ReaderStatus.Failed;
-				}
-				else if (readStatus == ReaderStatus.Ignored)
-				{
-					return ReaderStatus.Ignored;
-				}
-
-				// FIXME: support conversion failures
-				entity = converter(value);
-
-				return ReaderStatus.Succeeded;
 			};
 		}
 

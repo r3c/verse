@@ -11,39 +11,43 @@ namespace Verse.Schemas
 	/// See: https://developers.google.com/protocol-buffers/docs/encoding
 	/// </summary>
 	/// <typeparam name="TEntity">Entity type</typeparam>
-	public sealed class RawProtobufSchema<TEntity> : ISchema<TEntity>
+	public sealed class RawProtobufSchema<TEntity> : ISchema<RawProtobufValue, TEntity>
 	{
-		public IDecoderDescriptor<TEntity> DecoderDescriptor => this.decoderDescriptor;
+		/// <inheritdoc/>
+		public IDecoderAdapter<RawProtobufValue> DecoderAdapter => this.decoderAdapter;
 
-		public IEncoderDescriptor<TEntity> EncoderDescriptor => this.encoderDescriptor;
+		/// <inheritdoc/>
+		public IDecoderDescriptor<RawProtobufValue, TEntity> DecoderDescriptor => this.decoderDescriptor;
 
 		private readonly RawProtobufConfiguration configuration;
 
-		private readonly RawProtobufDecoderConverter decoderConverter;
+		/// <inheritdoc/>
+		public IEncoderAdapter<RawProtobufValue> EncoderAdapter => this.encoderAdapter;
+
+		/// <inheritdoc/>
+		public IEncoderDescriptor<RawProtobufValue, TEntity> EncoderDescriptor => this.encoderDescriptor;
+
+		private readonly RawProtobufDecoderAdapter decoderAdapter;
 
 		private readonly TreeDecoderDescriptor<ReaderState, RawProtobufValue, char, TEntity>
 			decoderDescriptor;
 
-		private readonly RawProtobufEncoderConverter encoderConverter;
+		private readonly RawProtobufEncoderAdapter encoderAdapter;
 
 		private readonly TreeEncoderDescriptor<WriterState, RawProtobufValue, TEntity> encoderDescriptor;
 
 		public RawProtobufSchema(RawProtobufConfiguration configuration)
 		{
-			var decoderConverter = new RawProtobufDecoderConverter();
-			var encoderConverter = new RawProtobufEncoderConverter();
 			var readerDefinition = new ReaderDefinition<TEntity>();
 			var writerDefinition = new WriterDefinition<TEntity>();
 
 			this.configuration = configuration;
-			this.decoderConverter = decoderConverter;
+			this.decoderAdapter = new RawProtobufDecoderAdapter();
 			this.decoderDescriptor =
-				new TreeDecoderDescriptor<ReaderState, RawProtobufValue, char, TEntity>(decoderConverter,
-					readerDefinition);
-			this.encoderConverter = encoderConverter;
+				new TreeDecoderDescriptor<ReaderState, RawProtobufValue, char, TEntity>(readerDefinition);
+			this.encoderAdapter = new RawProtobufEncoderAdapter();
 			this.encoderDescriptor =
-				new TreeEncoderDescriptor<WriterState, RawProtobufValue, TEntity>(encoderConverter,
-					writerDefinition);
+				new TreeEncoderDescriptor<WriterState, RawProtobufValue, TEntity>(writerDefinition);
 		}
 
 		public RawProtobufSchema() :
@@ -60,16 +64,6 @@ namespace Verse.Schemas
 		public IEncoder<TEntity> CreateEncoder()
 		{
 			return this.encoderDescriptor.CreateEncoder(new Writer(this.configuration.NoZigZagEncoding));
-		}
-
-		public void SetDecoderConverter<TValue>(Converter<RawProtobufValue, TValue> converter)
-		{
-			this.decoderConverter.Set(converter);
-		}
-
-		public void SetEncoderConverter<TValue>(Converter<TValue, RawProtobufValue> converter)
-		{
-			this.encoderConverter.Set(converter);
 		}
 	}
 }
