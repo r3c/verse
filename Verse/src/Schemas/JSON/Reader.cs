@@ -520,11 +520,7 @@ namespace Verse.Schemas.JSON
 					numberPower += (int) ((numberExponent ^ numberExponentMask) + numberExponentPlus);
 				}
 
-				// Compute result number and store as JSON value
-				var number = (long) ((numberMantissa ^ numberMantissaMask) + numberMantissaPlus) *
-							 Math.Pow(10, numberPower);
-
-				value = JSONValue.FromNumber(number);
+				value = JSONValue.FromNumber((long)((numberMantissa ^ numberMantissaMask) + numberMantissaPlus), numberPower);
 
 				return ReaderStatus.Succeeded;
 			}

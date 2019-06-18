@@ -354,6 +354,43 @@ namespace Verse.Test.Schemas
 			JSONSchemaTester.AssertDecodeAndEqual(schema, () => default, json, expected);
 		}
 
+		[TestCase(long.MinValue)]
+		[TestCase(long.MaxValue)]
+		[TestCase(10)]
+		public void DecodeValueFromLongConstantToDecimal(long expectedLong)
+		{
+			var json = expectedLong.ToString();
+			decimal expected = expectedLong;
+			var schema = new JSONSchema<decimal>();
+
+			schema.DecoderDescriptor.HasValue();
+
+			JSONSchemaTester.AssertDecodeAndEqual(schema, () => default, json, expected);
+		}
+
+		[TestCase(0d)]
+		[TestCase(1d)]
+		[TestCase(10d)]
+		[TestCase(100d)]
+		[TestCase(0.1d)]
+		[TestCase(45d)]
+		[TestCase(.45d)]
+		[TestCase(-45d)]
+		[TestCase(-.45d)]
+		[TestCase(12.56496d)]
+		[TestCase(double.NaN)]
+		[TestCase(double.MaxValue)]
+		[TestCase(double.MinValue)]
+		[TestCase(double.NegativeInfinity)]
+		[TestCase(double.PositiveInfinity)]
+		[TestCase(double.Epsilon)]
+		[TestCase(4.94065645841247E-323)]
+		public void JSONValueFromNumberTest(double value)
+		{
+			var jsonValue = JSONValue.FromNumber(value);
+			Assert.AreEqual(value, jsonValue.Number);
+		}
+
 		[Test]
 		public void DecodeValueFromNativeDecimal()
 		{
