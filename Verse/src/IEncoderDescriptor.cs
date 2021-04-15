@@ -78,5 +78,15 @@ namespace Verse
 		/// with current schema or have a custom encoder declared.
 		/// </summary>
 		void HasValue();
+
+		/// <summary>
+		/// Declare entity as a raw encoded content and use given converter to access it.
+		/// This will write the value as is at this point of the hierarchy.
+		/// Value type must be natively compatible with current schema or have
+		/// a custom encoder declared.
+		/// </summary>
+		/// <typeparam name="TValue">Value type</typeparam>
+		/// <param name="getter">Entity to value getter</param>
+		void HasRawContent<TValue>(Func<TEntity, TValue> getter);
 	}
 }
