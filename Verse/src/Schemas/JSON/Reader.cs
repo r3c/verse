@@ -180,6 +180,28 @@ namespace Verse.Schemas.JSON
 			}
 		}
 
+		public ReaderStatus ReadRawToValue(ReaderState state, out JSONValue value)
+		{
+			var builder = new StringBuilder();
+			state.OnCharacterRead = character => builder.Append((char) character);
+
+			try
+			{
+				if (this.Skip(state))
+				{
+					value = JSONValue.FromString(builder.ToString());
+					return ReaderStatus.Succeeded;
+				}
+			}
+			finally
+			{
+				state.OnCharacterRead = null;
+			}
+
+			value = default;
+			return ReaderStatus.Failed;
+		}
+
 		public ReaderState Start(Stream stream, ErrorEvent error)
 		{
 			return new ReaderState(stream, this.encoding, error);

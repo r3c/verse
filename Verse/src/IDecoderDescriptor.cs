@@ -85,5 +85,15 @@ namespace Verse
 		/// with current schema or have a custom decoder declared.
 		/// </summary>
 		void HasValue();
+
+		/// <summary>
+		/// Declare entity as a raw encoded content.
+		/// For instance, for JSON, declaring a raw encoded content will
+		/// provide the serialized form of the JSON at this point of the
+		/// hierarchy.
+		/// </summary>
+		/// <typeparam name="TValue">Value type</typeparam>
+		/// <param name="setter">Value to entity converter</param>
+		void HasRawContent<TValue>(Setter<TEntity, TValue> setter);
 	}
 }

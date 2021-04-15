@@ -14,6 +14,74 @@ namespace Verse.Test.Schemas
 	public class JSONSchemaTester : SchemaTester
 	{
 		[Test]
+		[TestCase("{}")]
+		[TestCase("{\"parent\" : [ {" +
+		          "\"object\" : {}," +
+		          "\"array\" : []," +
+		          "\"number\": 123," +
+		          "\"string\": \"foobar\"," +
+		          "\"null\": null," +
+		          "\"true\": true," +
+		          "\"false\": false," +
+		          "\"\": \"empty key\"" +
+		          "} ]}")]
+		[TestCase("[]")]
+		[TestCase("[ {\"parent\" : [ { \"child\" : 123 } ] }, null, {\"parent\" : [ { \"child\" : 124 } ] } ]")]
+		[TestCase("124")]
+		[TestCase("\"foobar\"")]
+		[TestCase("null")]
+		[TestCase("true")]
+		[TestCase("false")]
+		[TestCase("false")]
+		[TestCase("{\"\": 42}")]
+		[TestCase("-15.5")]
+		[TestCase("-.5645")]
+		[TestCase("1.2e3")]
+		[TestCase(".5e-2")]
+		[TestCase("2.945")]
+		[TestCase("1.1111111111111111111111")]
+		[TestCase("8976435454354345437845468735")]
+		[TestCase("9007199254740992")] // 2^53
+		[TestCase("-9007199254740992")] // -2^53
+		[TestCase("\"\"")]
+		[TestCase("\"Hello, World!\"")]
+		[TestCase("\"\\u00FF \\u0066 \\uB3A8\"")]
+		[TestCase("\"\\\"\"")]
+		[TestCase("\"\\\\\"")]
+		[TestCase("9223372036854775807")]
+		public void DecodeRawValue(string json)
+		{
+			var schema = new JSONSchema<string>();
+
+			schema.DecoderDescriptor.HasRawContent((ref string target, string value) => target = value);
+
+			JSONSchemaTester.AssertDecodeAndEqual(schema, () => "", json, json);
+		}
+
+		[Test]
+		[TestCase(false, "{\"parent\" : [ { \"child\" : 123 } ]}", new[] {"{ \"child\" : 123 }"})]
+		[TestCase(true, "{\"parent\" : [ { \"child\" : 123 } ]}", new[] {"{ \"child\" : 123 }"})]
+		[TestCase(false, "{\"parent\" : [ { \"child\" : 123 }, { \"child\" : 124 } ]}", new[] {"{ \"child\" : 123 }", "{ \"child\" : 124 }"})]
+		[TestCase(true, "{\"parent\" : [ { \"child\" : 123 }, { \"child\" : 124 } ]}", new[] {"{ \"child\" : 123 }", "{ \"child\" : 124 }"})]
+		[TestCase(false, "{\"parent\" : { \"child\" : 123 } }", new string[0])]
+		[TestCase(true, "{\"parent\" : { \"child\" : 123 } }", new[] {"{ \"child\" : 123 }"})]
+		[TestCase(false, "{\"parent\" : [ 123, 124 ] }", new[] {"123", "124"})]
+		[TestCase(true, "{\"parent\" : [ 123, 124 ] }", new[] {"123", "124"})]
+		[TestCase(false, "{\"parent\" : 123 }", new string[0])]
+		[TestCase(true, "{\"parent\" : 123 }", new[] {"123"})]
+		public void DecodeRawAsArray(bool scalarAsArray, string json, string[] expected)
+		{
+			var schema = new JSONSchema<string[]>(new JSONConfiguration {ReadScalarAsOneElementArray = scalarAsArray});
+
+			schema.DecoderDescriptor
+				.HasField("parent", () => default, (ref string[] entity, string[] value) => entity = value)
+				.HasElements(() => "", (ref string[] t, IEnumerable<string> e) => t = e.ToArray())
+				.HasRawContent((ref string target, string value) => target = value);
+
+			JSONSchemaTester.AssertDecodeAndEqual(schema, Array.Empty<string>, json, expected);
+		}
+
+		[Test]
 		[TestCase(false, "{\"parent\" : [ { \"child\" : 123 } ]}", new[] {123})]
 		[TestCase(true, "{\"parent\" : [ { \"child\" : 123 } ]}", new[] {123})]
 		[TestCase(false, "{\"parent\" : [ { \"child\" : 123 }, { \"child\" : 124 } ]}", new[] {123, 124})]
@@ -31,6 +99,29 @@ namespace Verse.Test.Schemas
 				.HasValue();
 
 			JSONSchemaTester.AssertDecodeAndEqual(schema, Array.Empty<int>, json, expected);
+		}
+
+		[Test]
+		[TestCase("{\"value1\" : { \"value2\" : 123 } }", "123")]
+		[TestCase("{\"value1\" : { \"value2\" : null } }", "null")]
+		[TestCase("{\"value1\" : { } }", "defaultFromValue1")]
+		[TestCase("{\"value1\" : null }", "default")]
+		[TestCase("{\"value2\" : 123 }", "default")]
+		[TestCase("{}", "default")]
+		public void DecodeNullFieldWithRawValueAssign(string json, string expected)
+		{
+			var schema = new JSONSchema<string>();
+
+			schema.DecoderDescriptor
+				.HasField("value1", () => "defaultFromValue1", (ref string e, string v) => e = v)
+				.HasField("value2", () => "defaultFromValue2", (ref string e, string v) => e = v)
+				.HasRawContent((ref string target, string value) => target = value);
+
+			var parser = schema.CreateDecoder(() => "default");
+
+			var decoderStream = parser.Open(new MemoryStream(Encoding.UTF8.GetBytes(json)));
+			Assert.IsTrue(decoderStream.TryDecode(out var result));
+			Assert.AreEqual(expected, result);
 		}
 
 		[Test]
@@ -171,18 +262,32 @@ namespace Verse.Test.Schemas
 		}
 
 		[Test]
-		[TestCase("~", 1)]
-		[TestCase("\"Unfinished", 13)]
-		[TestCase("[1.1.1]", 5)]
-		[TestCase("[0 0]", 4)]
-		[TestCase("{0}", 2)]
-		[TestCase("{\"\" 0}", 5)]
-		[TestCase("fail", 3)]
-		public void DecodeFailsWithInvalidStream(string json, int expected)
+		[TestCase(true, "~", 1)]
+		[TestCase(false, "~", 1)]
+		[TestCase(true, "\"Unfinished", 13)]
+		[TestCase(false, "\"Unfinished", 13)]
+		[TestCase(true, "[1.1.1]", 5)]
+		[TestCase(false, "[1.1.1]", 5)]
+		[TestCase(true, "[0 0]", 4)]
+		[TestCase(false, "[0 0]", 4)]
+		[TestCase(true, "{0}", 2)]
+		[TestCase(false, "{0}", 2)]
+		[TestCase(true, "{\"\" 0}", 5)]
+		[TestCase(false, "{\"\" 0}", 5)]
+		[TestCase(true, "fail", 3)]
+		[TestCase(false, "fail", 3)]
+		public void DecodeFailsWithInvalidStream(bool rawContent, string json, int expected)
 		{
 			var schema = new JSONSchema<string>();
 
-			schema.DecoderDescriptor.HasValue();
+			if (rawContent)
+			{
+				schema.DecoderDescriptor.HasRawContent((ref string target, string value) => target = value);
+			}
+			else
+			{
+				schema.DecoderDescriptor.HasValue();
+			}
 
 			var decoder = schema.CreateDecoder(() => string.Empty);
 			var position = -1;

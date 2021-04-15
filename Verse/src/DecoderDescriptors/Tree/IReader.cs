@@ -13,6 +13,8 @@ namespace Verse.DecoderDescriptors.Tree
 
 		ReaderStatus ReadToValue(TState state, out TNative value);
 
+		ReaderStatus ReadRawToValue(TState state, out TNative value);
+
 		TState Start(Stream stream, ErrorEvent error);
 
 		void Stop(TState state);

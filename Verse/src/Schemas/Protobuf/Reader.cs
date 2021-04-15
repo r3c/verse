@@ -280,6 +280,11 @@ namespace Verse.Schemas.Protobuf
 			throw new NotImplementedException();
 		}
 
+		public ReaderStatus ReadRawToValue(ReaderState state, out ProtobufValue value)
+		{
+			throw new NotImplementedException();
+		}
+
 		public ReaderState Start(Stream stream, ErrorEvent error)
 		{
 			return new ReaderState(stream, error);
