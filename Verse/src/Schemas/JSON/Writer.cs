@@ -66,5 +66,19 @@ namespace Verse.Schemas.JSON
 		{
 			state.Value(value);
 		}
+
+		public void WriteAsRawValue(WriterState state, JSONValue value)
+		{
+			if (value.Type == JSONType.String)
+			{
+				state.RawJson(value.String);
+			}
+			else
+			{
+				// Normally, it is expected that raw values are only string
+				// But we can easily write raw JSON from null, booleans and numbers
+				this.WriteAsValue(state, value);
+			}
+		}
 	}
 }

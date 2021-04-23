@@ -85,6 +85,11 @@ namespace Verse.Schemas.RawProtobuf
 			return state.TryReadValue(out value) ? ReaderStatus.Succeeded : ReaderStatus.Failed;
 		}
 
+		public ReaderStatus ReadRawToValue(ReaderState state, out RawProtobufValue value)
+		{
+			throw new NotImplementedException();
+		}
+
 		public ReaderState Start(Stream stream, ErrorEvent error)
 		{
 			return new ReaderState(stream, error, this.noZigZagEncoding);

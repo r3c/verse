@@ -131,6 +131,30 @@ namespace Verse.DecoderDescriptors
 			};
 		}
 
+		public void HasRawContent<TValue>(Setter<TEntity, TValue> setter)
+		{
+			var converter = this.converter.Get<TValue>();
+
+			this.definition.Callback = (IReader<TState, TNative, TKey> reader, TState state, ref TEntity entity) =>
+			{
+				var readStatus = reader.ReadRawToValue(state, out var value);
+				if (readStatus == ReaderStatus.Failed)
+				{
+					entity = default;
+					return ReaderStatus.Failed;
+				}
+				else if (readStatus == ReaderStatus.Ignored)
+				{
+					return ReaderStatus.Ignored;
+				}
+
+				// FIXME: support conversion failures
+				setter(ref entity, converter(value));
+
+				return ReaderStatus.Succeeded;
+			};
+		}
+
 		private static TreeDecoderDescriptor<TState, TNative, TKey, TElement> BindArray<TElement>(
 			IReaderDefinition<TState, TNative, TKey, TEntity> parentDefinition, Func<TElement> constructor,
 			Setter<TEntity, IEnumerable<TElement>> setter,

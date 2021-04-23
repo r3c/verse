@@ -58,5 +58,10 @@ namespace Verse.Schemas.RawProtobuf
 		{
 			state.Value(value);
 		}
+
+		public void WriteAsRawValue(WriterState state, RawProtobufValue value)
+		{
+			throw new System.NotImplementedException();
+		}
 	}
 }

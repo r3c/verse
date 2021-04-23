@@ -7,6 +7,7 @@ namespace Verse.Schemas.JSON
 	internal class ReaderState : IDisposable
 	{
 		public int Current;
+		public Action<int> OnCharacterRead { get; set; }
 
 		private readonly ErrorEvent error;
 
@@ -161,6 +162,7 @@ namespace Verse.Schemas.JSON
 
 		public void Read()
 		{
+			this.OnCharacterRead?.Invoke(this.Current);
 			this.Current = this.reader.Read();
 
 			++this.position;

@@ -82,6 +82,13 @@ namespace Verse.EncoderDescriptors
 			TreeEncoderDescriptor<TState, TNative, TEntity>.BindValue(this.definition, converter);
 		}
 
+		public void HasRawContent<TValue>(Func<TEntity, TValue> getter)
+		{
+			var native = this.converter.Get<TValue>();
+
+			this.definition.Callback = (writer, state, entity) => writer.WriteAsRawValue(state, native(getter(entity)));
+		}
+
 		private static IEncoderDescriptor<TElement> BindArray<TElement>(
 			IWriterDefinition<TState, TNative, TEntity> parent, Func<TEntity, IEnumerable<TElement>> getter,
 			TreeEncoderDescriptor<TState, TNative, TElement> elementDescriptor)

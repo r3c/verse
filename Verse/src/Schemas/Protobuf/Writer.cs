@@ -33,5 +33,10 @@ namespace Verse.Schemas.Protobuf
 		{
 			throw new NotImplementedException();
 		}
+
+		public void WriteAsRawValue(WriterState state, ProtobufValue value)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

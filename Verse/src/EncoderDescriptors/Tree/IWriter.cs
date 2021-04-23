@@ -16,5 +16,7 @@ namespace Verse.EncoderDescriptors.Tree
 			IReadOnlyDictionary<string, WriterCallback<TState, TNative, TObject>> fields);
 
 		void WriteAsValue(TState state, TNative value);
+
+		void WriteAsRawValue(TState state, TNative value);
 	}
 }

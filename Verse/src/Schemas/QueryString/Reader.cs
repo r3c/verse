@@ -125,6 +125,11 @@ namespace Verse.Schemas.QueryString
 			}
 		}
 
+		public ReaderStatus ReadRawToValue(ReaderState state, out string value)
+		{
+			throw new NotImplementedException();
+		}
+
 		public ReaderState Start(Stream stream, ErrorEvent error)
 		{
 			var state = new ReaderState(stream, this.encoding, error);

@@ -126,6 +126,13 @@ namespace Verse.Schemas.JSON
 			this.needComma = true;
 		}
 
+		public void RawJson(string json)
+		{
+			this.Prefix();
+			this.writer.Write(json);
+			this.needComma = true;
+		}
+
 		private void Prefix()
 		{
 			if (this.needComma)
