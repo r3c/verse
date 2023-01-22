@@ -84,7 +84,7 @@ namespace Verse.Schemas.JSON
 					return value.Boolean ? 1 : 0;
 
 				case JSONType.Number:
-					return value.NumberAsDecimal;
+					return (decimal)value.Number;
 
 				case JSONType.String:
 				    if (decimal.TryParse(value.String, NumberStyles.Float, CultureInfo.InvariantCulture, out var number))
