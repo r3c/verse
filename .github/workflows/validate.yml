@@ -1,0 +1,45 @@
+name: Build, check & test
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+  schedule:
+    - cron: "55 4 * * *"
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+  DOTNET_VERSION: 7.0.x
+
+jobs:
+  build:
+    name: Build for ${{ matrix.dotnet.framework }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        dotnet: # https://dotnetcli.blob.core.windows.net/dotnet/release-metadata/releases-index.json
+          - framework: net6.0
+          - framework: net7.0
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - run: dotnet build --framework ${{ matrix.dotnet.framework }} Verse.sln
+
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - run: dotnet test --framework net7.0 Verse.sln
