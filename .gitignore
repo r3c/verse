@@ -1,6 +1,9 @@
 .idea/
 bin/
 obj/
+*.user
+
 /packages/
+/src/.vs/
 /src/Verse.*.nupkg
 /TestResult.xml
