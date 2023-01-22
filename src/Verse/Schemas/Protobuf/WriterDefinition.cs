@@ -2,39 +2,38 @@
 using Verse.EncoderDescriptors.Tree;
 using Verse.Schemas.Protobuf.Definition;
 
-namespace Verse.Schemas.Protobuf
+namespace Verse.Schemas.Protobuf;
+
+internal class ProtobufWriterDefinition<TEntity> : IWriterDefinition<WriterState, ProtobufValue, TEntity>
 {
-	internal class ProtobufWriterDefinition<TEntity> : IWriterDefinition<WriterState, ProtobufValue, TEntity>
-	{
-		private readonly ProtoBinding[] fields;
+    private readonly ProtoBinding[] fields;
 
-		public ProtobufWriterDefinition(ProtoBinding[] fields)
-		{
-			this.fields = fields;
-		}
+    public ProtobufWriterDefinition(ProtoBinding[] fields)
+    {
+        this.fields = fields;
+    }
 
-		public WriterCallback<WriterState, ProtobufValue, TEntity> Callback { get; set; } = (reader, state, entity) =>
-			reader.WriteAsValue(state, ProtobufValue.Empty);
+    public WriterCallback<WriterState, ProtobufValue, TEntity> Callback { get; set; } = (reader, state, entity) =>
+        reader.WriteAsValue(state, ProtobufValue.Empty);
 
-		public IWriterDefinition<WriterState, ProtobufValue, TOther> Create<TOther>()
-		{
-			return new ProtobufWriterDefinition<TOther>(fields);
-		}
+    public IWriterDefinition<WriterState, ProtobufValue, TOther> Create<TOther>()
+    {
+        return new ProtobufWriterDefinition<TOther>(fields);
+    }
 
-		protected bool TryLookup<TOther>(string name, out int index, out IWriterDefinition<WriterState, ProtobufValue, TOther> writer)
-		{
-			index = Array.FindIndex(fields, binding => binding.Name == name);
+    protected bool TryLookup<TOther>(string name, out int index, out IWriterDefinition<WriterState, ProtobufValue, TOther> writer)
+    {
+        index = Array.FindIndex(fields, binding => binding.Name == name);
 
-			if (index < 0)
-			{
-				writer = null;
+        if (index < 0)
+        {
+            writer = null;
 
-				return false;
-			}
+            return false;
+        }
 
-			writer = new ProtobufWriterDefinition<TOther>(fields[index].Fields);
+        writer = new ProtobufWriterDefinition<TOther>(fields[index].Fields);
 
-			return true;
-		}
-	}
+        return true;
+    }
 }

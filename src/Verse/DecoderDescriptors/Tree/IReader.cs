@@ -1,19 +1,18 @@
 ﻿using System.IO;
 
-namespace Verse.DecoderDescriptors.Tree
+namespace Verse.DecoderDescriptors.Tree;
+
+internal interface IReader<TState, TNative, TKey>
 {
-	internal interface IReader<TState, TNative, TKey>
-	{
-		ReaderStatus ReadToArray<TElement>(TState state,
-			ReaderCallback<TState, TNative, TKey, TElement> callback, out BrowserMove<TElement> browserMove);
+    ReaderStatus ReadToArray<TElement>(TState state,
+        ReaderCallback<TState, TNative, TKey, TElement> callback, out BrowserMove<TElement> browserMove);
 
-		ReaderStatus ReadToObject<TObject>(TState state,
-			ILookupNode<TKey, ReaderCallback<TState, TNative, TKey, TObject>> root, ref TObject target);
+    ReaderStatus ReadToObject<TObject>(TState state,
+        ILookupNode<TKey, ReaderCallback<TState, TNative, TKey, TObject>> root, ref TObject target);
 
-		ReaderStatus ReadToValue(TState state, out TNative value);
+    ReaderStatus ReadToValue(TState state, out TNative value);
 
-		TState Start(Stream stream, ErrorEvent error);
+    TState Start(Stream stream, ErrorEvent error);
 
-		void Stop(TState state);
-	}
+    void Stop(TState state);
 }

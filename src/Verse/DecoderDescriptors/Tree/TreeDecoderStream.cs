@@ -1,35 +1,34 @@
-﻿namespace Verse.DecoderDescriptors.Tree
+﻿namespace Verse.DecoderDescriptors.Tree;
+
+internal class TreeDecoderStream<TState, TNative, TKey, TEntity> : IDecoderStream<TEntity>
 {
-	internal class TreeDecoderStream<TState, TNative, TKey, TEntity> : IDecoderStream<TEntity>
-	{
-		private readonly ReaderCallback<TState, TNative, TKey, TEntity> callback;
+    private readonly ReaderCallback<TState, TNative, TKey, TEntity> callback;
 
-		private readonly IReader<TState, TNative, TKey> reader;
+    private readonly IReader<TState, TNative, TKey> reader;
 
-		private readonly TState state;
+    private readonly TState state;
 
-		public TreeDecoderStream(IReader<TState, TNative, TKey> reader,
-			ReaderCallback<TState, TNative, TKey, TEntity> callback, TState state)
-		{
-			this.callback = callback;
-			this.reader = reader;
-			this.state = state;
-		}
+    public TreeDecoderStream(IReader<TState, TNative, TKey> reader,
+        ReaderCallback<TState, TNative, TKey, TEntity> callback, TState state)
+    {
+        this.callback = callback;
+        this.reader = reader;
+        this.state = state;
+    }
 
-		public void Dispose()
-		{
-			reader.Stop(state);
-		}
+    public void Dispose()
+    {
+        reader.Stop(state);
+    }
 
-		public bool TryDecode(out TEntity entity)
-		{
-			var entityValue = default(TEntity);
+    public bool TryDecode(out TEntity entity)
+    {
+        var entityValue = default(TEntity);
 
-			var result = callback(reader, state, ref entityValue);
+        var result = callback(reader, state, ref entityValue);
 
-			entity = result == ReaderStatus.Succeeded ? entityValue : default;
+        entity = result == ReaderStatus.Succeeded ? entityValue : default;
 
-			return result != ReaderStatus.Failed;
-		}
-	}
+        return result != ReaderStatus.Failed;
+    }
 }

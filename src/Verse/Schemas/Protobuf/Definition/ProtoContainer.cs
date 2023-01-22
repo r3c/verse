@@ -1,11 +1,10 @@
 ﻿
-namespace Verse.Schemas.Protobuf.Definition
+namespace Verse.Schemas.Protobuf.Definition;
+
+internal enum ProtoContainer
 {
-    internal enum ProtoContainer
-    {
-        Enum,
-        Message,
-        OneOf,
-        Root
-    }
+    Enum,
+    Message,
+    OneOf,
+    Root
 }

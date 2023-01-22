@@ -4,619 +4,618 @@ using System.Text;
 using Verse.DecoderDescriptors.Tree;
 using Verse.LookupNodes;
 
-namespace Verse.Schemas.JSON
+namespace Verse.Schemas.JSON;
+
+internal class Reader : IReader<ReaderState, JSONValue, int>
 {
-	internal class Reader : IReader<ReaderState, JSONValue, int>
-	{
-		private readonly bool readObjectValuesAsArray;
-		private readonly bool readScalarAsOneElementArray;
-		private readonly Encoding encoding;
-
-		public Reader(Encoding encoding, bool readObjectValuesAsArray, bool readScalarAsOneElementArray)
-		{
-			this.readObjectValuesAsArray = readObjectValuesAsArray;
-			this.readScalarAsOneElementArray = readScalarAsOneElementArray;
-			this.encoding = encoding;
-		}
-
-		public ReaderStatus ReadToArray<TElement>(ReaderState state, ReaderCallback<ReaderState, JSONValue, int, TElement> callback, out BrowserMove<TElement> browserMove)
-		{
-			state.PullIgnored();
-
-			switch (state.Current)
-			{
-				case '[':
-					browserMove = ReadToArrayFromArray(state, callback);
-
-					return ReaderStatus.Succeeded;
-
-				case '{':
-					if (readObjectValuesAsArray)
-					{
-						browserMove = ReadToArrayFromObjectValues(state, callback);
-
-						return ReaderStatus.Succeeded;
-					}
-
-					goto default;
-
-				case 'n':
-					browserMove = default;
-
-					return ExpectKeywordNull(state) ? ReaderStatus.Ignored : ReaderStatus.Failed;
-
-				default:
-					// Accept any scalar value as an array of one element
-					if (readScalarAsOneElementArray)
-					{
-						browserMove = (int index, out TElement current) =>
-						{
-							if (index > 0)
-							{
-								current = default;
-
-								return BrowserState.Success;
-							}
-
-							current = default;
-
-							return callback(this, state, ref current) != ReaderStatus.Failed
-								? BrowserState.Continue
-								: BrowserState.Failure;
-						};
-
-						return ReaderStatus.Succeeded;
-					}
-
-					// Ignore array when not supported by current descriptor
-					else
-					{
-						browserMove = (int index, out TElement current) =>
-						{
-							current = default;
+    private readonly bool readObjectValuesAsArray;
+    private readonly bool readScalarAsOneElementArray;
+    private readonly Encoding encoding;
+
+    public Reader(Encoding encoding, bool readObjectValuesAsArray, bool readScalarAsOneElementArray)
+    {
+        this.readObjectValuesAsArray = readObjectValuesAsArray;
+        this.readScalarAsOneElementArray = readScalarAsOneElementArray;
+        this.encoding = encoding;
+    }
+
+    public ReaderStatus ReadToArray<TElement>(ReaderState state, ReaderCallback<ReaderState, JSONValue, int, TElement> callback, out BrowserMove<TElement> browserMove)
+    {
+        state.PullIgnored();
+
+        switch (state.Current)
+        {
+            case '[':
+                browserMove = ReadToArrayFromArray(state, callback);
+
+                return ReaderStatus.Succeeded;
+
+            case '{':
+                if (readObjectValuesAsArray)
+                {
+                    browserMove = ReadToArrayFromObjectValues(state, callback);
+
+                    return ReaderStatus.Succeeded;
+                }
+
+                goto default;
+
+            case 'n':
+                browserMove = default;
+
+                return ExpectKeywordNull(state) ? ReaderStatus.Ignored : ReaderStatus.Failed;
+
+            default:
+                // Accept any scalar value as an array of one element
+                if (readScalarAsOneElementArray)
+                {
+                    browserMove = (int index, out TElement current) =>
+                    {
+                        if (index > 0)
+                        {
+                            current = default;
+
+                            return BrowserState.Success;
+                        }
+
+                        current = default;
+
+                        return callback(this, state, ref current) != ReaderStatus.Failed
+                            ? BrowserState.Continue
+                            : BrowserState.Failure;
+                    };
+
+                    return ReaderStatus.Succeeded;
+                }
+
+                // Ignore array when not supported by current descriptor
+                else
+                {
+                    browserMove = (int index, out TElement current) =>
+                    {
+                        current = default;
 
-							return BrowserState.Success;
-						};
+                        return BrowserState.Success;
+                    };
 
-						return Skip(state) ? ReaderStatus.Succeeded : ReaderStatus.Failed;
-					}
-			}
-		}
+                    return Skip(state) ? ReaderStatus.Succeeded : ReaderStatus.Failed;
+                }
+        }
+    }
 
-		public ReaderStatus ReadToObject<TObject>(ReaderState state,
-			ILookupNode<int, ReaderCallback<ReaderState, JSONValue, int, TObject>> root, ref TObject target)
-		{
-			state.PullIgnored();
-
-			switch (state.Current)
-			{
-				case '[':
-					return ReadToObjectFromArray(state, root, ref target);
-
-				case '{':
-					return ReadToObjectFromObject(state, root, ref target);
-
-				default:
-					return Skip(state) ? ReaderStatus.Ignored : ReaderStatus.Failed;
-			}
-		}
-
-		public ReaderStatus ReadToValue(ReaderState state, out JSONValue value)
-		{
-			state.PullIgnored();
+    public ReaderStatus ReadToObject<TObject>(ReaderState state,
+        ILookupNode<int, ReaderCallback<ReaderState, JSONValue, int, TObject>> root, ref TObject target)
+    {
+        state.PullIgnored();
 
-			switch (state.Current)
-			{
-				case '"':
-					return ReadToValueFromString(state, out value);
+        switch (state.Current)
+        {
+            case '[':
+                return ReadToObjectFromArray(state, root, ref target);
 
-				case '-':
-				case '.':
-				case '0':
-				case '1':
-				case '2':
-				case '3':
-				case '4':
-				case '5':
-				case '6':
-				case '7':
-				case '8':
-				case '9':
-					return ReadToValueFromNumber(state, out value);
+            case '{':
+                return ReadToObjectFromObject(state, root, ref target);
 
-				case 'f':
-					if (!ExpectKeywordFalse(state))
-					{
-						value = default;
+            default:
+                return Skip(state) ? ReaderStatus.Ignored : ReaderStatus.Failed;
+        }
+    }
 
-						return ReaderStatus.Failed;
-					}
+    public ReaderStatus ReadToValue(ReaderState state, out JSONValue value)
+    {
+        state.PullIgnored();
 
-					value = JSONValue.FromBoolean(false);
+        switch (state.Current)
+        {
+            case '"':
+                return ReadToValueFromString(state, out value);
 
-					return ReaderStatus.Succeeded;
+            case '-':
+            case '.':
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+                return ReadToValueFromNumber(state, out value);
 
-				case 'n':
-					if (!ExpectKeywordNull(state))
-					{
-						value = default;
+            case 'f':
+                if (!ExpectKeywordFalse(state))
+                {
+                    value = default;
 
-						return ReaderStatus.Failed;
-					}
+                    return ReaderStatus.Failed;
+                }
 
-					value = JSONValue.Void;
+                value = JSONValue.FromBoolean(false);
 
-					return ReaderStatus.Ignored;
+                return ReaderStatus.Succeeded;
 
-				case 't':
-					if (!ExpectKeywordTrue(state))
-					{
-						value = default;
+            case 'n':
+                if (!ExpectKeywordNull(state))
+                {
+                    value = default;
 
-						return ReaderStatus.Failed;
-					}
+                    return ReaderStatus.Failed;
+                }
 
-					value = JSONValue.FromBoolean(true);
+                value = JSONValue.Void;
 
-					return ReaderStatus.Succeeded;
+                return ReaderStatus.Ignored;
 
-				case '[':
-					value = default;
+            case 't':
+                if (!ExpectKeywordTrue(state))
+                {
+                    value = default;
 
-					return Skip(state) ? ReaderStatus.Succeeded : ReaderStatus.Failed;
+                    return ReaderStatus.Failed;
+                }
 
-				case '{':
-					value = default;
+                value = JSONValue.FromBoolean(true);
 
-					return Skip(state) ? ReaderStatus.Succeeded : ReaderStatus.Failed;
+                return ReaderStatus.Succeeded;
 
-				default:
-					state.Error("expected array, object or value");
+            case '[':
+                value = default;
 
-					value = default;
+                return Skip(state) ? ReaderStatus.Succeeded : ReaderStatus.Failed;
 
-					return ReaderStatus.Failed;
-			}
-		}
+            case '{':
+                value = default;
 
-		public ReaderState Start(Stream stream, ErrorEvent error)
-		{
-			return new ReaderState(stream, encoding, error);
-		}
+                return Skip(state) ? ReaderStatus.Succeeded : ReaderStatus.Failed;
 
-		public void Stop(ReaderState state)
-		{
-			state.Dispose();
-		}
+            default:
+                state.Error("expected array, object or value");
 
-		private BrowserMove<TElement> ReadToArrayFromArray<TElement>(ReaderState state,
-			ReaderCallback<ReaderState, JSONValue, int, TElement> callback)
-		{
-			state.Read();
+                value = default;
 
-			return (int index, out TElement current) =>
-			{
-				state.PullIgnored();
+                return ReaderStatus.Failed;
+        }
+    }
 
-				if (state.Current == ']')
-				{
-					state.Read();
+    public ReaderState Start(Stream stream, ErrorEvent error)
+    {
+        return new ReaderState(stream, encoding, error);
+    }
 
-					current = default;
+    public void Stop(ReaderState state)
+    {
+        state.Dispose();
+    }
 
-					return BrowserState.Success;
-				}
+    private BrowserMove<TElement> ReadToArrayFromArray<TElement>(ReaderState state,
+        ReaderCallback<ReaderState, JSONValue, int, TElement> callback)
+    {
+        state.Read();
 
-				// Read comma separator if any
-				if (index > 0)
-				{
-					if (!state.PullExpected(','))
-					{
-						current = default;
+        return (int index, out TElement current) =>
+        {
+            state.PullIgnored();
 
-						return BrowserState.Failure;
-					}
+            if (state.Current == ']')
+            {
+                state.Read();
 
-					state.PullIgnored();
-				}
+                current = default;
 
-				// Read array value
-				current = default;
+                return BrowserState.Success;
+            }
 
-				return callback(this, state, ref current) != ReaderStatus.Failed ? BrowserState.Continue : BrowserState.Failure;
-			};
-		}
+            // Read comma separator if any
+            if (index > 0)
+            {
+                if (!state.PullExpected(','))
+                {
+                    current = default;
 
-		private BrowserMove<TElement> ReadToArrayFromObjectValues<TElement>(ReaderState state,
-			ReaderCallback<ReaderState, JSONValue, int, TElement> callback)
-		{
-			state.Read();
+                    return BrowserState.Failure;
+                }
 
-			return (int index, out TElement current) =>
-			{
-				state.PullIgnored();
+                state.PullIgnored();
+            }
 
-				if (state.Current == '}')
-				{
-					state.Read();
+            // Read array value
+            current = default;
 
-					current = default;
+            return callback(this, state, ref current) != ReaderStatus.Failed ? BrowserState.Continue : BrowserState.Failure;
+        };
+    }
 
-					return BrowserState.Success;
-				}
+    private BrowserMove<TElement> ReadToArrayFromObjectValues<TElement>(ReaderState state,
+        ReaderCallback<ReaderState, JSONValue, int, TElement> callback)
+    {
+        state.Read();
 
-				// Read comma separator if any
-				if (index > 0)
-				{
-					if (!state.PullExpected(','))
-					{
-						current = default;
+        return (int index, out TElement current) =>
+        {
+            state.PullIgnored();
 
-						return BrowserState.Failure;
-					}
+            if (state.Current == '}')
+            {
+                state.Read();
 
-					state.PullIgnored();
-				}
+                current = default;
 
-				if (!state.PullExpected('"'))
-				{
-					current = default;
+                return BrowserState.Success;
+            }
 
-					return BrowserState.Failure;
-				}
+            // Read comma separator if any
+            if (index > 0)
+            {
+                if (!state.PullExpected(','))
+                {
+                    current = default;
 
-				// Read and move to object key
-				while (state.Current != '"')
-				{
-					if (!state.PullCharacter(out _))
-					{
-						state.Error("invalid character in object key");
+                    return BrowserState.Failure;
+                }
 
-						current = default;
+                state.PullIgnored();
+            }
 
-						return BrowserState.Failure;
-					}
-				}
+            if (!state.PullExpected('"'))
+            {
+                current = default;
 
-				state.Read();
+                return BrowserState.Failure;
+            }
 
-				// Read object separator
-				state.PullIgnored();
+            // Read and move to object key
+            while (state.Current != '"')
+            {
+                if (!state.PullCharacter(out _))
+                {
+                    state.Error("invalid character in object key");
 
-				if (!state.PullExpected(':'))
-				{
-					current = default;
+                    current = default;
 
-					return BrowserState.Failure;
-				}
+                    return BrowserState.Failure;
+                }
+            }
 
-				// Read object value
-				state.PullIgnored();
+            state.Read();
 
-				// Read array value
-				current = default;
+            // Read object separator
+            state.PullIgnored();
 
-				return callback(this, state, ref current) != ReaderStatus.Failed
-					? BrowserState.Continue
-					: BrowserState.Failure;
-			};
-		}
+            if (!state.PullExpected(':'))
+            {
+                current = default;
 
-		private ReaderStatus ReadToObjectFromArray<TObject>(ReaderState state,
-			ILookupNode<int, ReaderCallback<ReaderState, JSONValue, int, TObject>> root, ref TObject target)
-		{
-			state.Read();
+                return BrowserState.Failure;
+            }
 
-			for (var index = 0;; ++index)
-			{
-				state.PullIgnored();
+            // Read object value
+            state.PullIgnored();
 
-				if (state.Current == ']')
-					break;
+            // Read array value
+            current = default;
 
-				// Read comma separator if any
-				if (index > 0)
-				{
-					if (!state.PullExpected(','))
-						return ReaderStatus.Failed;
+            return callback(this, state, ref current) != ReaderStatus.Failed
+                ? BrowserState.Continue
+                : BrowserState.Failure;
+        };
+    }
 
-					state.PullIgnored();
-				}
+    private ReaderStatus ReadToObjectFromArray<TObject>(ReaderState state,
+        ILookupNode<int, ReaderCallback<ReaderState, JSONValue, int, TObject>> root, ref TObject target)
+    {
+        state.Read();
 
-				// Build and move to array index
-				var node = root.Follow(index);
+        for (var index = 0;; ++index)
+        {
+            state.PullIgnored();
 
-				// Read array value
-				if (!(node.HasValue ? node.Value(this, state, ref target) != ReaderStatus.Failed : Skip(state)))
-					return ReaderStatus.Failed;
-			}
+            if (state.Current == ']')
+                break;
 
-			state.Read();
+            // Read comma separator if any
+            if (index > 0)
+            {
+                if (!state.PullExpected(','))
+                    return ReaderStatus.Failed;
 
-			return ReaderStatus.Succeeded;
-		}
+                state.PullIgnored();
+            }
 
-		private ReaderStatus ReadToObjectFromObject<TObject>(ReaderState state,
-			ILookupNode<int, ReaderCallback<ReaderState, JSONValue, int, TObject>> root, ref TObject target)
-		{
-			state.Read();
+            // Build and move to array index
+            var node = root.Follow(index);
 
-			for (var index = 0;; ++index)
-			{
-				state.PullIgnored();
+            // Read array value
+            if (!(node.HasValue ? node.Value(this, state, ref target) != ReaderStatus.Failed : Skip(state)))
+                return ReaderStatus.Failed;
+        }
 
-				if (state.Current == '}')
-				{
-					break;
-				}
+        state.Read();
 
-				// Read comma separator if any
-				if (index > 0)
-				{
-					if (!state.PullExpected(','))
-						return ReaderStatus.Failed;
-
-					state.PullIgnored();
-				}
+        return ReaderStatus.Succeeded;
+    }
 
-				if (!state.PullExpected('"'))
-					return ReaderStatus.Failed;
+    private ReaderStatus ReadToObjectFromObject<TObject>(ReaderState state,
+        ILookupNode<int, ReaderCallback<ReaderState, JSONValue, int, TObject>> root, ref TObject target)
+    {
+        state.Read();
 
-				// Read and move to object key
-				var node = root;
+        for (var index = 0;; ++index)
+        {
+            state.PullIgnored();
 
-				while (state.Current != '"')
-				{
-					if (!state.PullCharacter(out var character))
-					{
-						state.Error("invalid character in object key");
+            if (state.Current == '}')
+            {
+                break;
+            }
 
-						return ReaderStatus.Failed;
-					}
+            // Read comma separator if any
+            if (index > 0)
+            {
+                if (!state.PullExpected(','))
+                    return ReaderStatus.Failed;
 
-					node = node.Follow(character);
-				}
+                state.PullIgnored();
+            }
 
-				state.Read();
+            if (!state.PullExpected('"'))
+                return ReaderStatus.Failed;
 
-				// Read object separator
-				state.PullIgnored();
+            // Read and move to object key
+            var node = root;
 
-				if (!state.PullExpected(':'))
-					return ReaderStatus.Failed;
+            while (state.Current != '"')
+            {
+                if (!state.PullCharacter(out var character))
+                {
+                    state.Error("invalid character in object key");
 
-				// Read object value
-				state.PullIgnored();
+                    return ReaderStatus.Failed;
+                }
 
-				if (node.HasValue)
-				{
-					if (node.Value(this, state, ref target) == ReaderStatus.Failed)
-						return ReaderStatus.Failed;
-				}
-				else
-				{
-					if (!Skip(state))
-						return ReaderStatus.Failed;
-				}
-			}
+                node = node.Follow(character);
+            }
 
-			state.Read();
+            state.Read();
 
-			return ReaderStatus.Succeeded;
-		}
+            // Read object separator
+            state.PullIgnored();
 
-		private static bool ExpectKeywordFalse(ReaderState state)
-		{
-			return state.PullExpected('f') && state.PullExpected('a') && state.PullExpected('l') &&
-			       state.PullExpected('s') && state.PullExpected('e');
-		}
+            if (!state.PullExpected(':'))
+                return ReaderStatus.Failed;
 
-		private static bool ExpectKeywordNull(ReaderState state)
-		{
-			return state.PullExpected('n') && state.PullExpected('u') && state.PullExpected('l') &&
-				   state.PullExpected('l');
-		}
+            // Read object value
+            state.PullIgnored();
 
-		private static bool ExpectKeywordTrue(ReaderState state)
-		{
-			return state.PullExpected('t') && state.PullExpected('r') && state.PullExpected('u') &&
-				   state.PullExpected('e');
-		}
+            if (node.HasValue)
+            {
+                if (node.Value(this, state, ref target) == ReaderStatus.Failed)
+                    return ReaderStatus.Failed;
+            }
+            else
+            {
+                if (!Skip(state))
+                    return ReaderStatus.Failed;
+            }
+        }
 
-		private static ReaderStatus ReadToValueFromNumber(ReaderState state, out JSONValue value)
-		{
-			unchecked
-			{
-				const ulong mantissaMax = long.MaxValue / 10;
+        state.Read();
 
-				var numberMantissa = 0UL;
-				var numberPower = 0;
+        return ReaderStatus.Succeeded;
+    }
 
-				// Read number sign
-				ulong numberMantissaMask;
-				ulong numberMantissaPlus;
+    private static bool ExpectKeywordFalse(ReaderState state)
+    {
+        return state.PullExpected('f') && state.PullExpected('a') && state.PullExpected('l') &&
+               state.PullExpected('s') && state.PullExpected('e');
+    }
 
-				if (state.Current == '-')
-				{
-					state.Read();
+    private static bool ExpectKeywordNull(ReaderState state)
+    {
+        return state.PullExpected('n') && state.PullExpected('u') && state.PullExpected('l') &&
+               state.PullExpected('l');
+    }
 
-					numberMantissaMask = ~0UL;
-					numberMantissaPlus = 1;
-				}
-				else
-				{
-					numberMantissaMask = 0;
-					numberMantissaPlus = 0;
-				}
+    private static bool ExpectKeywordTrue(ReaderState state)
+    {
+        return state.PullExpected('t') && state.PullExpected('r') && state.PullExpected('u') &&
+               state.PullExpected('e');
+    }
 
-				// Read integral part
-				for (; state.Current >= (int) '0' && state.Current <= (int) '9'; state.Read())
-				{
-					if (numberMantissa > mantissaMax)
-					{
-						++numberPower;
+    private static ReaderStatus ReadToValueFromNumber(ReaderState state, out JSONValue value)
+    {
+        unchecked
+        {
+            const ulong mantissaMax = long.MaxValue / 10;
 
-						continue;
-					}
+            var numberMantissa = 0UL;
+            var numberPower = 0;
 
-					numberMantissa = numberMantissa * 10 + (ulong) (state.Current - '0');
-				}
+            // Read number sign
+            ulong numberMantissaMask;
+            ulong numberMantissaPlus;
 
-				// Read decimal part if any
-				if (state.Current == '.')
-				{
-					state.Read();
+            if (state.Current == '-')
+            {
+                state.Read();
 
-					for (; state.Current >= (int) '0' && state.Current <= (int) '9'; state.Read())
-					{
-						if (numberMantissa > mantissaMax)
-							continue;
+                numberMantissaMask = ~0UL;
+                numberMantissaPlus = 1;
+            }
+            else
+            {
+                numberMantissaMask = 0;
+                numberMantissaPlus = 0;
+            }
 
-						numberMantissa = numberMantissa * 10 + (ulong) (state.Current - '0');
+            // Read integral part
+            for (; state.Current >= (int) '0' && state.Current <= (int) '9'; state.Read())
+            {
+                if (numberMantissa > mantissaMax)
+                {
+                    ++numberPower;
 
-						--numberPower;
-					}
-				}
+                    continue;
+                }
 
-				// Read exponent if any
-				if (state.Current == 'E' || state.Current == 'e')
-				{
-					uint numberExponentMask;
-					uint numberExponentPlus;
+                numberMantissa = numberMantissa * 10 + (ulong) (state.Current - '0');
+            }
 
-					state.Read();
+            // Read decimal part if any
+            if (state.Current == '.')
+            {
+                state.Read();
 
-					switch (state.Current)
-					{
-						case '+':
-							state.Read();
+                for (; state.Current >= (int) '0' && state.Current <= (int) '9'; state.Read())
+                {
+                    if (numberMantissa > mantissaMax)
+                        continue;
 
-							numberExponentMask = 0;
-							numberExponentPlus = 0;
+                    numberMantissa = numberMantissa * 10 + (ulong) (state.Current - '0');
 
-							break;
+                    --numberPower;
+                }
+            }
 
-						case '-':
-							state.Read();
+            // Read exponent if any
+            if (state.Current == 'E' || state.Current == 'e')
+            {
+                uint numberExponentMask;
+                uint numberExponentPlus;
 
-							numberExponentMask = ~0U;
-							numberExponentPlus = 1;
+                state.Read();
 
-							break;
+                switch (state.Current)
+                {
+                    case '+':
+                        state.Read();
 
-						default:
-							numberExponentMask = 0;
-							numberExponentPlus = 0;
+                        numberExponentMask = 0;
+                        numberExponentPlus = 0;
 
-							break;
-					}
+                        break;
 
-					uint numberExponent;
+                    case '-':
+                        state.Read();
 
-					for (numberExponent = 0; state.Current >= (int) '0' && state.Current <= (int) '9'; state.Read())
-						numberExponent = numberExponent * 10 + (uint) (state.Current - '0');
+                        numberExponentMask = ~0U;
+                        numberExponentPlus = 1;
 
-					numberPower += (int) ((numberExponent ^ numberExponentMask) + numberExponentPlus);
-				}
+                        break;
 
-				// Compute result number and store as JSON value
-				var number = (long) ((numberMantissa ^ numberMantissaMask) + numberMantissaPlus) *
-							 Math.Pow(10, numberPower);
+                    default:
+                        numberExponentMask = 0;
+                        numberExponentPlus = 0;
 
-				value = JSONValue.FromNumber(number);
+                        break;
+                }
 
-				return ReaderStatus.Succeeded;
-			}
-		}
+                uint numberExponent;
 
-		private static ReaderStatus ReadToValueFromString(ReaderState state, out JSONValue value)
-		{
-			state.Read();
+                for (numberExponent = 0; state.Current >= (int) '0' && state.Current <= (int) '9'; state.Read())
+                    numberExponent = numberExponent * 10 + (uint) (state.Current - '0');
 
-			var buffer = new StringBuilder(32);
+                numberPower += (int) ((numberExponent ^ numberExponentMask) + numberExponentPlus);
+            }
 
-			while (state.Current != '"')
-			{
-				if (!state.PullCharacter(out var character))
-				{
-					state.Error("invalid character in string value");
+            // Compute result number and store as JSON value
+            var number = (long) ((numberMantissa ^ numberMantissaMask) + numberMantissaPlus) *
+                         Math.Pow(10, numberPower);
 
-					value = default;
+            value = JSONValue.FromNumber(number);
 
-					return ReaderStatus.Failed;
-				}
+            return ReaderStatus.Succeeded;
+        }
+    }
 
-				buffer.Append(character);
-			}
+    private static ReaderStatus ReadToValueFromString(ReaderState state, out JSONValue value)
+    {
+        state.Read();
 
-			state.Read();
+        var buffer = new StringBuilder(32);
 
-			value = JSONValue.FromString(buffer.ToString());
+        while (state.Current != '"')
+        {
+            if (!state.PullCharacter(out var character))
+            {
+                state.Error("invalid character in string value");
 
-			return ReaderStatus.Succeeded;
-		}
+                value = default;
 
-		private bool Skip(ReaderState state)
-		{
-			var empty = false;
+                return ReaderStatus.Failed;
+            }
 
-			switch (state.Current)
-			{
-				case '"':
-					state.Read();
+            buffer.Append(character);
+        }
 
-					while (state.Current != '"')
-					{
-						if (state.PullCharacter(out _))
-							continue;
+        state.Read();
 
-						state.Error("invalid character in string value");
+        value = JSONValue.FromString(buffer.ToString());
 
-						return false;
-					}
+        return ReaderStatus.Succeeded;
+    }
 
-					state.Read();
+    private bool Skip(ReaderState state)
+    {
+        var empty = false;
 
-					return true;
+        switch (state.Current)
+        {
+            case '"':
+                state.Read();
 
-				case '-':
-				case '.':
-				case '0':
-				case '1':
-				case '2':
-				case '3':
-				case '4':
-				case '5':
-				case '6':
-				case '7':
-				case '8':
-				case '9':
-					return ReadToValueFromNumber(state, out _) != ReaderStatus.Failed;
+                while (state.Current != '"')
+                {
+                    if (state.PullCharacter(out _))
+                        continue;
 
-				case 'f':
-					return ExpectKeywordFalse(state);
+                    state.Error("invalid character in string value");
 
-				case 'n':
-					return ExpectKeywordNull(state);
+                    return false;
+                }
 
-				case 't':
-					return ExpectKeywordTrue(state);
+                state.Read();
 
-				case '[':
-					return ReadToObjectFromArray(state,
-						       EmptyLookupNode<int, ReaderCallback<ReaderState, JSONValue, int, bool>>.Instance,
-						       ref empty) != ReaderStatus.Failed;
+                return true;
 
-				case '{':
-					return ReadToObjectFromObject(state,
-						       EmptyLookupNode<int, ReaderCallback<ReaderState, JSONValue, int, bool>>.Instance,
-						       ref empty) != ReaderStatus.Failed;
+            case '-':
+            case '.':
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+                return ReadToValueFromNumber(state, out _) != ReaderStatus.Failed;
 
-				default:
-					state.Error("expected array, object or value");
+            case 'f':
+                return ExpectKeywordFalse(state);
 
-					return false;
-			}
-		}
-	}
+            case 'n':
+                return ExpectKeywordNull(state);
+
+            case 't':
+                return ExpectKeywordTrue(state);
+
+            case '[':
+                return ReadToObjectFromArray(state,
+                    EmptyLookupNode<int, ReaderCallback<ReaderState, JSONValue, int, bool>>.Instance,
+                    ref empty) != ReaderStatus.Failed;
+
+            case '{':
+                return ReadToObjectFromObject(state,
+                    EmptyLookupNode<int, ReaderCallback<ReaderState, JSONValue, int, bool>>.Instance,
+                    ref empty) != ReaderStatus.Failed;
+
+            default:
+                state.Error("expected array, object or value");
+
+                return false;
+        }
+    }
 }

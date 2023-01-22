@@ -1,25 +1,24 @@
-namespace Verse.Schemas.RawProtobuf
+namespace Verse.Schemas.RawProtobuf;
+
+public readonly struct RawProtobufValue
 {
-	public readonly struct RawProtobufValue
-	{
-		public readonly long Number;
+    public readonly long Number;
 
-		public readonly RawProtobufWireType Storage;
+    public readonly RawProtobufWireType Storage;
 
-		public readonly string String;
+    public readonly string String;
 
-		public RawProtobufValue(long number, RawProtobufWireType storage)
-		{
-			Number = number;
-			Storage = storage;
-			String = default;
-		}
+    public RawProtobufValue(long number, RawProtobufWireType storage)
+    {
+        Number = number;
+        Storage = storage;
+        String = default;
+    }
 
-		public RawProtobufValue(string value, RawProtobufWireType storage)
-		{
-			Number = default;
-			Storage = storage;
-			String = value;
-		}
-	}
+    public RawProtobufValue(string value, RawProtobufWireType storage)
+    {
+        Number = default;
+        Storage = storage;
+        String = value;
+    }
 }

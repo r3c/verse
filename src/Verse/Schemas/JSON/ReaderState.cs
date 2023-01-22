@@ -2,168 +2,167 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace Verse.Schemas.JSON
+namespace Verse.Schemas.JSON;
+
+internal class ReaderState : IDisposable
 {
-	internal class ReaderState : IDisposable
-	{
-		public int Current;
+    public int Current;
 
-		private readonly ErrorEvent error;
+    private readonly ErrorEvent error;
 
-		private int position;
+    private int position;
 
-		private readonly StreamReader reader;
+    private readonly StreamReader reader;
 
-	    public ReaderState(Stream stream, Encoding encoding, ErrorEvent error)
-		{
-			this.error = error;
-			position = 0;
-			reader = new StreamReader(stream, encoding, false, 1024, true);
+    public ReaderState(Stream stream, Encoding encoding, ErrorEvent error)
+    {
+        this.error = error;
+        position = 0;
+        reader = new StreamReader(stream, encoding, false, 1024, true);
 
-			Read();
-		}
+        Read();
+    }
 
-	    public void Dispose()
-	    {
-		    reader.Dispose();
-	    }
+    public void Dispose()
+    {
+        reader.Dispose();
+    }
 
-		public void Error(string message)
-		{
-			error(position, message);
-		}
+    public void Error(string message)
+    {
+        error(position, message);
+    }
 
-		public bool PullCharacter(out char character)
-		{
-		    var previous = Current;
+    public bool PullCharacter(out char character)
+    {
+        var previous = Current;
 
-			Read();
+        Read();
 
-			if (previous < 0)
-			{
-				character = default;
+        if (previous < 0)
+        {
+            character = default;
 
-				return false;
-			}
+            return false;
+        }
 
-			if (previous != '\\')
-			{
-				character = (char)previous;
+        if (previous != '\\')
+        {
+            character = (char)previous;
 
-				return true;
-			}
+            return true;
+        }
 
-			previous = Current;
+        previous = Current;
 
-			Read();
+        Read();
 
-			switch (previous)
-			{
-				case -1:
-					character = default;
+        switch (previous)
+        {
+            case -1:
+                character = default;
 
-					return false;
+                return false;
 
-				case '"':
-					character = '"';
+            case '"':
+                character = '"';
 
-					return true;
+                return true;
 
-				case '\\':
-					character = '\\';
+            case '\\':
+                character = '\\';
 
-					return true;
+                return true;
 
-				case 'b':
-					character = '\b';
+            case 'b':
+                character = '\b';
 
-					return true;
+                return true;
 
-				case 'f':
-					character = '\f';
+            case 'f':
+                character = '\f';
 
-					return true;
+                return true;
 
-				case 'n':
-					character = '\n';
+            case 'n':
+                character = '\n';
 
-					return true;
+                return true;
 
-				case 'r':
-					character = '\r';
+            case 'r':
+                character = '\r';
 
-					return true;
+                return true;
 
-				case 't':
-					character = '\t';
+            case 't':
+                character = '\t';
 
-					return true;
+                return true;
 
-				case 'u':
-					var value = 0;
+            case 'u':
+                var value = 0;
 
-					for (var i = 0; i < 4; ++i)
-					{
-						previous = Current;
+                for (var i = 0; i < 4; ++i)
+                {
+                    previous = Current;
 
-						Read();
+                    Read();
 
-					    int nibble;
+                    int nibble;
 
-					    if (previous >= '0' && previous <= '9')
-							nibble = previous - '0';
-						else if (previous >= 'A' && previous <= 'F')
-							nibble = previous - 'A' + 10;
-						else if (previous >= 'a' && previous <= 'f')
-							nibble = previous - 'a' + 10;
-						else
-						{
-							Error("unknown character in unicode escape sequence");
+                    if (previous >= '0' && previous <= '9')
+                        nibble = previous - '0';
+                    else if (previous >= 'A' && previous <= 'F')
+                        nibble = previous - 'A' + 10;
+                    else if (previous >= 'a' && previous <= 'f')
+                        nibble = previous - 'a' + 10;
+                    else
+                    {
+                        Error("unknown character in unicode escape sequence");
 
-							character = default;
+                        character = default;
 
-							return false;
-						}
+                        return false;
+                    }
 
-						value = (value << 4) + nibble;
-					}
+                    value = (value << 4) + nibble;
+                }
 
-					character = (char)value;
+                character = (char)value;
 
-					return true;
+                return true;
 
-				default:
-					character = (char)previous;
+            default:
+                character = (char)previous;
 
-					return true;
-			}
-		}
+                return true;
+        }
+    }
 
-		public bool PullExpected(char expected)
-		{
-			if (Current != expected)
-			{
-				Error("expected '" + expected + "'");
+    public bool PullExpected(char expected)
+    {
+        if (Current != expected)
+        {
+            Error("expected '" + expected + "'");
 
-				return false;
-			}
+            return false;
+        }
 
-			Read();
+        Read();
 
-			return true;
-		}
+        return true;
+    }
 
-		public void PullIgnored()
-		{
-		    while (Current >= 0 && Current <= ' ')
-			    Read();
-		}
+    public void PullIgnored()
+    {
+        while (Current >= 0 && Current <= ' ')
+            Read();
+    }
 
-		public void Read()
-		{
-			Current = reader.Read();
+    public void Read()
+    {
+        Current = reader.Read();
 
-			++position;
-		}
-	}
+        ++position;
+    }
 }

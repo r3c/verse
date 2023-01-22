@@ -1,10 +1,9 @@
 ﻿
-namespace Verse.Schemas.Protobuf.Definition
+namespace Verse.Schemas.Protobuf.Definition;
+
+internal enum ProtoOccurrence
 {
-    internal enum ProtoOccurrence
-    {
-        Optional,
-        Repeated,
-        Required
-    }
+    Optional,
+    Repeated,
+    Required
 }

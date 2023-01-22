@@ -1,11 +1,10 @@
 ﻿
-namespace Verse.Schemas.Protobuf
+namespace Verse.Schemas.Protobuf;
+
+public struct ProtobufConfiguration
 {
-	public struct ProtobufConfiguration
-	{
-		/// <summary>
-		/// Do not silently ignore unknown fields.
-		/// </summary>
-		public bool RejectUnknown;
-	}
+    /// <summary>
+    /// Do not silently ignore unknown fields.
+    /// </summary>
+    public bool RejectUnknown;
 }

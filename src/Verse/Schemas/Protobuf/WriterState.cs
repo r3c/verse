@@ -1,17 +1,16 @@
 ﻿using System.IO;
 
-namespace Verse.Schemas.Protobuf
+namespace Verse.Schemas.Protobuf;
+
+internal class WriterState
 {
-    internal class WriterState
+    public readonly ErrorEvent Error;
+
+    public readonly Stream Stream;        
+
+    public WriterState(Stream stream, ErrorEvent error)
     {
-        public readonly ErrorEvent Error;
-
-        public readonly Stream Stream;        
-
-        public WriterState(Stream stream, ErrorEvent error)
-        {
-            Error = error;
-            Stream = stream;
-        }
+        Error = error;
+        Stream = stream;
     }
 }

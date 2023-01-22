@@ -1,24 +1,23 @@
 ﻿using System.IO;
 
-namespace Verse
+namespace Verse;
+
+/// <summary>
+/// Entity encoder, open stream for writing entities to it using a
+/// serialization format depending on implementation.
+/// </summary>
+/// <typeparam name="TEntity">Entity type</typeparam>
+public interface IEncoder<in TEntity>
 {
     /// <summary>
-    /// Entity encoder, open stream for writing entities to it using a
-    /// serialization format depending on implementation.
+    /// Encoding error event.
     /// </summary>
-    /// <typeparam name="TEntity">Entity type</typeparam>
-    public interface IEncoder<in TEntity>
-    {
-        /// <summary>
-        /// Encoding error event.
-        /// </summary>
-        event ErrorEvent Error;
+    event ErrorEvent Error;
 
-        /// <summary>
-        /// Open write-enabled stream for encoding entities to it.
-        /// </summary>
-        /// <param name="output">Output stream</param>
-        /// <returns>Encoder stream instance</returns>
-        IEncoderStream<TEntity> Open(Stream output);
-    }
+    /// <summary>
+    /// Open write-enabled stream for encoding entities to it.
+    /// </summary>
+    /// <param name="output">Output stream</param>
+    /// <returns>Encoder stream instance</returns>
+    IEncoderStream<TEntity> Open(Stream output);
 }

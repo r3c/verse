@@ -1,92 +1,91 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Verse.Schemas.Protobuf.Definition
+namespace Verse.Schemas.Protobuf.Definition;
+
+internal struct ProtoEntity
 {
-    internal struct ProtoEntity
+    public readonly ProtoContainer Container;
+
+    public readonly List<ProtoEntity> Entities;
+
+    public readonly List<ProtoField> Fields;
+
+    public readonly List<ProtoLabel> Labels;
+
+    public readonly string Name;
+
+    public ProtoEntity(ProtoContainer container, string name)
     {
-        public readonly ProtoContainer Container;
+        Container = container;
+        Entities = new List<ProtoEntity>();
+        Fields = new List<ProtoField>();
+        Labels = new List<ProtoLabel>();
+        Name = name;
+    }
 
-        public readonly List<ProtoEntity> Entities;
+    public ProtoBinding[] Resolve(string name)
+    {
+        int index = Entities.FindIndex(d => d.Name == name);
 
-        public readonly List<ProtoField> Fields;
+        if (index < 0)
+            throw new ResolverException("can't find message '{0}'", name);
 
-        public readonly List<ProtoLabel> Labels;
+        var entity = Entities[index];
 
-        public readonly string Name;
+        return ResolveEntity(entity, new [] { this, entity });
+    }
 
-        public ProtoEntity(ProtoContainer container, string name)
+    private ProtoBinding[] ResolveEntity(ProtoEntity entity, IEnumerable<ProtoEntity> parents)
+    {
+        var bindings = new ProtoBinding[0];
+
+        foreach (var field in entity.Fields)
         {
-            Container = container;
-            Entities = new List<ProtoEntity>();
-            Fields = new List<ProtoField>();
-            Labels = new List<ProtoLabel>();
-            Name = name;
+            if (bindings.Length <= field.Number)
+                Array.Resize(ref bindings, field.Number + 1);
+
+            bindings[field.Number] = ResolveField(field, parents);
         }
 
-        public ProtoBinding[] Resolve(string name)
+        return bindings;
+    }
+
+    private ProtoBinding ResolveField(ProtoField field, IEnumerable<ProtoEntity> parents)
+    {
+        if (field.Reference.Type != ProtoType.Custom)
+            return new ProtoBinding(field.Name, field.Reference.Type);
+
+        for (var stack = new Stack<ProtoEntity>(parents); stack.Count > 0; stack.Pop())
         {
-            int index = Entities.FindIndex(d => d.Name == name);
+            var entity = stack.Peek();
+            var found = true;
+            var match = new List<ProtoEntity>(stack);
 
-            if (index < 0)
-                throw new ResolverException("can't find message '{0}'", name);
-
-            var entity = Entities[index];
-
-            return ResolveEntity(entity, new [] { this, entity });
-        }
-
-        private ProtoBinding[] ResolveEntity(ProtoEntity entity, IEnumerable<ProtoEntity> parents)
-        {
-            var bindings = new ProtoBinding[0];
-
-            foreach (var field in entity.Fields)
+            foreach (var name in field.Reference.Names)
             {
-                if (bindings.Length <= field.Number)
-                    Array.Resize(ref bindings, field.Number + 1);
+                var index = entity.Entities.FindIndex(e => e.Name == name);
 
-                bindings[field.Number] = ResolveField(field, parents);
-            }
-
-            return bindings;
-        }
-
-        private ProtoBinding ResolveField(ProtoField field, IEnumerable<ProtoEntity> parents)
-        {
-            if (field.Reference.Type != ProtoType.Custom)
-                return new ProtoBinding(field.Name, field.Reference.Type);
-
-            for (var stack = new Stack<ProtoEntity>(parents); stack.Count > 0; stack.Pop())
-            {
-                var entity = stack.Peek();
-                var found = true;
-                var match = new List<ProtoEntity>(stack);
-
-                foreach (var name in field.Reference.Names)
+                if (index < 0)
                 {
-                    var index = entity.Entities.FindIndex(e => e.Name == name);
+                    found = false;
 
-                    if (index < 0)
-                    {
-                        found = false;
-
-                        break;
-                    }
-
-                    entity = entity.Entities[index];
-                    match.Add(entity);
+                    break;
                 }
 
-                if (found)
-                {
-                    if (entity.Container == ProtoContainer.Enum)
-                        return new ProtoBinding(field.Name, ProtoType.Int32);
+                entity = entity.Entities[index];
+                match.Add(entity);
+            }
+
+            if (found)
+            {
+                if (entity.Container == ProtoContainer.Enum)
+                    return new ProtoBinding(field.Name, ProtoType.Int32);
         
-                    return new ProtoBinding(field.Name, ResolveEntity(entity, match));
-                }
+                return new ProtoBinding(field.Name, ResolveEntity(entity, match));
             }
-
-            throw new ResolverException("field '{0}' has undefined type '{1}'", field.Name, string.Join(".", field.Reference.Names));
         }
+
+        throw new ResolverException("field '{0}' has undefined type '{1}'", field.Name, string.Join(".", field.Reference.Names));
     }
 }

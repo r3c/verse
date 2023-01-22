@@ -1,11 +1,10 @@
-namespace Verse.DecoderDescriptors.Tree
+namespace Verse.DecoderDescriptors.Tree;
+
+internal interface IReaderDefinition<TState, TNative, TKey, TEntity>
 {
-	internal interface IReaderDefinition<TState, TNative, TKey, TEntity>
-	{
-		ReaderCallback<TState, TNative, TKey, TEntity> Callback { get; set; }
+    ReaderCallback<TState, TNative, TKey, TEntity> Callback { get; set; }
 
-		ILookup<TKey, ReaderCallback<TState, TNative, TKey, TEntity>> Lookup { get; }
+    ILookup<TKey, ReaderCallback<TState, TNative, TKey, TEntity>> Lookup { get; }
 
-		IReaderDefinition<TState, TNative, TKey, TOther> Create<TOther>();
-	}
+    IReaderDefinition<TState, TNative, TKey, TOther> Create<TOther>();
 }

@@ -1,46 +1,45 @@
 ﻿using System.IO;
 using System.Text;
 
-namespace Verse.Schemas.QueryString
+namespace Verse.Schemas.QueryString;
+
+internal class ReaderState
 {
-	internal class ReaderState
-	{
-		public int Current;
+    public int Current;
 
-		public readonly Encoding Encoding;
+    public readonly Encoding Encoding;
 
-		public QueryStringLocation Location;
+    public QueryStringLocation Location;
 
-		private readonly ErrorEvent error;
+    private readonly ErrorEvent error;
 
-		private int position;
+    private int position;
 
-		private readonly StreamReader reader;
+    private readonly StreamReader reader;
 
-		public ReaderState(Stream stream, Encoding encoding, ErrorEvent error)
-		{
-			Current = 0;
-			Encoding = encoding;
+    public ReaderState(Stream stream, Encoding encoding, ErrorEvent error)
+    {
+        Current = 0;
+        Encoding = encoding;
 
-			this.error = error;
-			position = 0;
-			reader = new StreamReader(stream, encoding);
+        this.error = error;
+        position = 0;
+        reader = new StreamReader(stream, encoding);
 
-			Pull();
+        Pull();
 
-			Location = QueryStringLocation.Sequence;
-		}
+        Location = QueryStringLocation.Sequence;
+    }
 
-		public void Error(string message)
-		{
-			error(position, message);
-		}
+    public void Error(string message)
+    {
+        error(position, message);
+    }
 
-		public void Pull()
-		{
-			Current = reader.Read();
+    public void Pull()
+    {
+        Current = reader.Read();
 
-			++position;
-		}
-	}
+        ++position;
+    }
 }

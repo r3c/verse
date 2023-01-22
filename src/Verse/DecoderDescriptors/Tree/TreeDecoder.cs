@@ -1,27 +1,26 @@
 ﻿using System.IO;
 
-namespace Verse.DecoderDescriptors.Tree
+namespace Verse.DecoderDescriptors.Tree;
+
+internal class TreeDecoder<TState, TNative, TKey, TEntity> : IDecoder<TEntity>
 {
-    internal class TreeDecoder<TState, TNative, TKey, TEntity> : IDecoder<TEntity>
+    public event ErrorEvent Error;
+
+    private readonly ReaderCallback<TState, TNative, TKey, TEntity> callback;
+
+    private readonly IReader<TState, TNative, TKey> reader;
+
+    public TreeDecoder(IReader<TState, TNative, TKey> reader,
+        ReaderCallback<TState, TNative, TKey, TEntity> callback)
     {
-        public event ErrorEvent Error;
+        this.callback = callback;
+        this.reader = reader;
+    }
 
-        private readonly ReaderCallback<TState, TNative, TKey, TEntity> callback;
+    public IDecoderStream<TEntity> Open(Stream input)
+    {
+        var state = reader.Start(input, (p, m) => Error?.Invoke(p, m));
 
-        private readonly IReader<TState, TNative, TKey> reader;
-
-        public TreeDecoder(IReader<TState, TNative, TKey> reader,
-            ReaderCallback<TState, TNative, TKey, TEntity> callback)
-        {
-            this.callback = callback;
-            this.reader = reader;
-        }
-
-        public IDecoderStream<TEntity> Open(Stream input)
-        {
-            var state = reader.Start(input, (p, m) => Error?.Invoke(p, m));
-
-            return new TreeDecoderStream<TState, TNative, TKey, TEntity>(reader, callback, state);
-        }
+        return new TreeDecoderStream<TState, TNative, TKey, TEntity>(reader, callback, state);
     }
 }

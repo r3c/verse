@@ -1,10 +1,9 @@
 
-namespace Verse.Schemas.QueryString
+namespace Verse.Schemas.QueryString;
+
+internal enum QueryStringLocation
 {
-	internal enum QueryStringLocation
-	{
-		Sequence,
-		ValueBegin,
-		ValueEnd
-	}
+    Sequence,
+    ValueBegin,
+    ValueEnd
 }

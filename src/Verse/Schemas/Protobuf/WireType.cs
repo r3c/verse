@@ -1,12 +1,11 @@
-﻿namespace Verse.Schemas.Protobuf
+﻿namespace Verse.Schemas.Protobuf;
+
+internal enum WireType : byte
 {
-	internal enum WireType : byte
-	{
-		VarInt = 0,
-		Fixed64 = 1,
-		LengthDelimited = 2,
-		GroupBegin = 3,
-		GroupEnd = 4,
-		Fixed32 = 5
-	}
+    VarInt = 0,
+    Fixed64 = 1,
+    LengthDelimited = 2,
+    GroupBegin = 3,
+    GroupEnd = 4,
+    Fixed32 = 5
 }

@@ -1,26 +1,25 @@
 ﻿
-namespace Verse.Schemas.Protobuf.Definition
+namespace Verse.Schemas.Protobuf.Definition;
+
+internal enum LexemType
 {
-    internal enum LexemType
-    {
-        Unknown,
-        BraceBegin,
-        BraceEnd,
-        BracketBegin,
-        BracketEnd,
-        Comma,
-        Dot,
-        End,
-        Equal,
-        GreaterThan,
-        LowerThan,
-        Minus,
-        Number,
-        ParenthesisBegin,
-        ParenthesisEnd,
-        Plus,
-        SemiColon,
-        String,
-        Symbol
-    }
+    Unknown,
+    BraceBegin,
+    BraceEnd,
+    BracketBegin,
+    BracketEnd,
+    Comma,
+    Dot,
+    End,
+    Equal,
+    GreaterThan,
+    LowerThan,
+    Minus,
+    Number,
+    ParenthesisBegin,
+    ParenthesisEnd,
+    Plus,
+    SemiColon,
+    String,
+    Symbol
 }

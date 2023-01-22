@@ -1,379 +1,378 @@
 using System;
 using System.Globalization;
 
-namespace Verse.Schemas.JSON
+namespace Verse.Schemas.JSON;
+
+internal class JSONDecoderAdapter : IDecoderAdapter<JSONValue>
 {
-	internal class JSONDecoderAdapter : IDecoderAdapter<JSONValue>
-	{
-		public Setter<bool, JSONValue> ToBoolean => (ref bool target, JSONValue source) =>
-		{
-			switch (source.Type)
-			{
-				case JSONType.Boolean:
-					target = source.Boolean;
+    public Setter<bool, JSONValue> ToBoolean => (ref bool target, JSONValue source) =>
+    {
+        switch (source.Type)
+        {
+            case JSONType.Boolean:
+                target = source.Boolean;
 
-					break;
+                break;
 
-				case JSONType.Number:
-					target = Math.Abs(source.Number) >= double.Epsilon;
+            case JSONType.Number:
+                target = Math.Abs(source.Number) >= double.Epsilon;
 
-					break;
+                break;
 
-				case JSONType.String:
-					target = !string.IsNullOrEmpty(source.String);
+            case JSONType.String:
+                target = !string.IsNullOrEmpty(source.String);
 
-					break;
+                break;
 
-				default:
-					target = default;
+            default:
+                target = default;
 
-					break;
-			}
-		};
+                break;
+        }
+    };
 
-		public Setter<char, JSONValue> ToCharacter => (ref char target, JSONValue source) =>
-		{
-			switch (source.Type)
-			{
-				case JSONType.Boolean:
-					target = source.Boolean ? '1' : '\0';
+    public Setter<char, JSONValue> ToCharacter => (ref char target, JSONValue source) =>
+    {
+        switch (source.Type)
+        {
+            case JSONType.Boolean:
+                target = source.Boolean ? '1' : '\0';
 
-					break;
+                break;
 
-				case JSONType.Number:
-					target = Math.Abs(source.Number) >= double.Epsilon ? '1' : '\0';
+            case JSONType.Number:
+                target = Math.Abs(source.Number) >= double.Epsilon ? '1' : '\0';
 
-					break;
+                break;
 
-				case JSONType.String:
-					if (source.String.Length > 0)
-					{
-						target = source.String[0];
+            case JSONType.String:
+                if (source.String.Length > 0)
+                {
+                    target = source.String[0];
 
-						break;
-					}
+                    break;
+                }
 
-					target = default;
+                target = default;
 
-					break;
+                break;
 
-				default:
-					target = default;
+            default:
+                target = default;
 
-					break;
-			}
-		};
+                break;
+        }
+    };
 
-		public Setter<decimal, JSONValue> ToDecimal => (ref decimal target, JSONValue source) =>
-		{
-			switch (source.Type)
-			{
-				case JSONType.Boolean:
-					target = source.Boolean ? 1 : 0;
+    public Setter<decimal, JSONValue> ToDecimal => (ref decimal target, JSONValue source) =>
+    {
+        switch (source.Type)
+        {
+            case JSONType.Boolean:
+                target = source.Boolean ? 1 : 0;
 
-					break;
+                break;
 
-				case JSONType.Number:
-					target = (decimal)source.Number;
+            case JSONType.Number:
+                target = (decimal)source.Number;
 
-					break;
+                break;
 
-				case JSONType.String:
-					decimal.TryParse(source.String, NumberStyles.Float, CultureInfo.InvariantCulture, out target);
+            case JSONType.String:
+                decimal.TryParse(source.String, NumberStyles.Float, CultureInfo.InvariantCulture, out target);
 
-					break;
+                break;
 
-				default:
-					target = default;
+            default:
+                target = default;
 
-					break;
-			}
-		};
+                break;
+        }
+    };
 
-		public Setter<float, JSONValue> ToFloat32 => (ref float target, JSONValue source) =>
-		{
-			switch (source.Type)
-			{
-				case JSONType.Boolean:
-					target = source.Boolean ? 1 : 0;
+    public Setter<float, JSONValue> ToFloat32 => (ref float target, JSONValue source) =>
+    {
+        switch (source.Type)
+        {
+            case JSONType.Boolean:
+                target = source.Boolean ? 1 : 0;
 
-					break;
+                break;
 
-				case JSONType.Number:
-					target = (float) source.Number;
+            case JSONType.Number:
+                target = (float) source.Number;
 
-					break;
+                break;
 
-				case JSONType.String:
-					float.TryParse(source.String, NumberStyles.Float, CultureInfo.InvariantCulture, out target);
+            case JSONType.String:
+                float.TryParse(source.String, NumberStyles.Float, CultureInfo.InvariantCulture, out target);
 
-					break;
+                break;
 
-				default:
-					target = default;
+            default:
+                target = default;
 
-					break;
-			}
-		};
+                break;
+        }
+    };
 
-		public Setter<double, JSONValue> ToFloat64 => (ref double target, JSONValue source) =>
-		{
-			switch (source.Type)
-			{
-				case JSONType.Boolean:
-					target = source.Boolean ? 1 : 0;
+    public Setter<double, JSONValue> ToFloat64 => (ref double target, JSONValue source) =>
+    {
+        switch (source.Type)
+        {
+            case JSONType.Boolean:
+                target = source.Boolean ? 1 : 0;
 
-					break;
+                break;
 
-				case JSONType.Number:
-					target = source.Number;
+            case JSONType.Number:
+                target = source.Number;
 
-					break;
+                break;
 
-				case JSONType.String:
-					double.TryParse(source.String, NumberStyles.Float, CultureInfo.InvariantCulture, out target);
+            case JSONType.String:
+                double.TryParse(source.String, NumberStyles.Float, CultureInfo.InvariantCulture, out target);
 
-					break;
+                break;
 
-				default:
-					target = default;
+            default:
+                target = default;
 
-					break;
-			}
-		};
+                break;
+        }
+    };
 
-		public Setter<sbyte, JSONValue> ToInteger8S => (ref sbyte target, JSONValue source) =>
-		{
-			switch (source.Type)
-			{
-				case JSONType.Boolean:
-					target = source.Boolean ? (sbyte) 1 : (sbyte) 0;
+    public Setter<sbyte, JSONValue> ToInteger8S => (ref sbyte target, JSONValue source) =>
+    {
+        switch (source.Type)
+        {
+            case JSONType.Boolean:
+                target = source.Boolean ? (sbyte) 1 : (sbyte) 0;
 
-					break;
+                break;
 
-				case JSONType.Number:
-					target = (sbyte) source.Number;
+            case JSONType.Number:
+                target = (sbyte) source.Number;
 
-					break;
+                break;
 
-				case JSONType.String:
-					sbyte.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
+            case JSONType.String:
+                sbyte.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
 
-					break;
+                break;
 
-				default:
-					target = default;
+            default:
+                target = default;
 
-					break;
-			}
-		};
+                break;
+        }
+    };
 
-		public Setter<byte, JSONValue> ToInteger8U => (ref byte target, JSONValue source) =>
-		{
-			switch (source.Type)
-			{
-				case JSONType.Boolean:
-					target = source.Boolean ? (byte) 1 : (byte) 0;
+    public Setter<byte, JSONValue> ToInteger8U => (ref byte target, JSONValue source) =>
+    {
+        switch (source.Type)
+        {
+            case JSONType.Boolean:
+                target = source.Boolean ? (byte) 1 : (byte) 0;
 
-					break;
+                break;
 
-				case JSONType.Number:
-					target = (byte) source.Number;
+            case JSONType.Number:
+                target = (byte) source.Number;
 
-					break;
+                break;
 
-				case JSONType.String:
-					byte.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
+            case JSONType.String:
+                byte.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
 
-					break;
+                break;
 
-				default:
-					target = default;
+            default:
+                target = default;
 
-					break;
-			}
-		};
+                break;
+        }
+    };
 
-		public Setter<short, JSONValue> ToInteger16S => (ref short target, JSONValue source) =>
-		{
-			switch (source.Type)
-			{
-				case JSONType.Boolean:
-					target = source.Boolean ? (short) 1 : (short) 0;
+    public Setter<short, JSONValue> ToInteger16S => (ref short target, JSONValue source) =>
+    {
+        switch (source.Type)
+        {
+            case JSONType.Boolean:
+                target = source.Boolean ? (short) 1 : (short) 0;
 
-					break;
+                break;
 
-				case JSONType.Number:
-					target = (short) source.Number;
+            case JSONType.Number:
+                target = (short) source.Number;
 
-					break;
+                break;
 
-				case JSONType.String:
-					short.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
+            case JSONType.String:
+                short.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
 
-					break;
+                break;
 
-				default:
-					target = default;
+            default:
+                target = default;
 
-					break;
-			}
-		};
+                break;
+        }
+    };
 
-		public Setter<ushort, JSONValue> ToInteger16U => (ref ushort target, JSONValue source) =>
-		{
-			switch (source.Type)
-			{
-				case JSONType.Boolean:
-					target = source.Boolean ? (ushort) 1 : (ushort) 0;
+    public Setter<ushort, JSONValue> ToInteger16U => (ref ushort target, JSONValue source) =>
+    {
+        switch (source.Type)
+        {
+            case JSONType.Boolean:
+                target = source.Boolean ? (ushort) 1 : (ushort) 0;
 
-					break;
+                break;
 
-				case JSONType.Number:
-					target = (ushort) source.Number;
+            case JSONType.Number:
+                target = (ushort) source.Number;
 
-					break;
+                break;
 
-				case JSONType.String:
-					ushort.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
+            case JSONType.String:
+                ushort.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
 
-					break;
+                break;
 
-				default:
-					target = default;
+            default:
+                target = default;
 
-					break;
-			}
-		};
+                break;
+        }
+    };
 
-		public Setter<int, JSONValue> ToInteger32S => (ref int target, JSONValue source) =>
-		{
-			switch (source.Type)
-			{
-				case JSONType.Boolean:
-					target = source.Boolean ? 1 : 0;
+    public Setter<int, JSONValue> ToInteger32S => (ref int target, JSONValue source) =>
+    {
+        switch (source.Type)
+        {
+            case JSONType.Boolean:
+                target = source.Boolean ? 1 : 0;
 
-					break;
+                break;
 
-				case JSONType.Number:
-					target = (int) source.Number;
+            case JSONType.Number:
+                target = (int) source.Number;
 
-					break;
+                break;
 
-				case JSONType.String:
-					int.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
+            case JSONType.String:
+                int.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
 
-					break;
+                break;
 
-				default:
-					target = default;
+            default:
+                target = default;
 
-					break;
-			}
-		};
+                break;
+        }
+    };
 
-		public Setter<uint, JSONValue> ToInteger32U => (ref uint target, JSONValue source) =>
-		{
-			switch (source.Type)
-			{
-				case JSONType.Boolean:
-					target = source.Boolean ? 1u : 0;
+    public Setter<uint, JSONValue> ToInteger32U => (ref uint target, JSONValue source) =>
+    {
+        switch (source.Type)
+        {
+            case JSONType.Boolean:
+                target = source.Boolean ? 1u : 0;
 
-					break;
+                break;
 
-				case JSONType.Number:
-					target = (uint) source.Number;
+            case JSONType.Number:
+                target = (uint) source.Number;
 
-					break;
+                break;
 
-				case JSONType.String:
-					uint.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
+            case JSONType.String:
+                uint.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
 
-					break;
+                break;
 
-				default:
-					target = default;
+            default:
+                target = default;
 
-					break;
-			}
-		};
+                break;
+        }
+    };
 
-		public Setter<long, JSONValue> ToInteger64S => (ref long target, JSONValue source) =>
-		{
-			switch (source.Type)
-			{
-				case JSONType.Boolean:
-					target = source.Boolean ? 1 : 0;
+    public Setter<long, JSONValue> ToInteger64S => (ref long target, JSONValue source) =>
+    {
+        switch (source.Type)
+        {
+            case JSONType.Boolean:
+                target = source.Boolean ? 1 : 0;
 
-					break;
+                break;
 
-				case JSONType.Number:
-					target = (long) source.Number;
+            case JSONType.Number:
+                target = (long) source.Number;
 
-					break;
+                break;
 
-				case JSONType.String:
-					long.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
+            case JSONType.String:
+                long.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
 
-					break;
+                break;
 
-				default:
-					target = default;
+            default:
+                target = default;
 
-					break;
-			}
-		};
+                break;
+        }
+    };
 
-		public Setter<ulong, JSONValue> ToInteger64U => (ref ulong target, JSONValue source) =>
-		{
-			switch (source.Type)
-			{
-				case JSONType.Boolean:
-					target = source.Boolean ? 1u : 0;
+    public Setter<ulong, JSONValue> ToInteger64U => (ref ulong target, JSONValue source) =>
+    {
+        switch (source.Type)
+        {
+            case JSONType.Boolean:
+                target = source.Boolean ? 1u : 0;
 
-					break;
+                break;
 
-				case JSONType.Number:
-					target = (ulong) source.Number;
+            case JSONType.Number:
+                target = (ulong) source.Number;
 
-					break;
+                break;
 
-				case JSONType.String:
-					ulong.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
+            case JSONType.String:
+                ulong.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
 
-					break;
+                break;
 
-				default:
-					target = default;
+            default:
+                target = default;
 
-					break;
-			}
-		};
+                break;
+        }
+    };
 
-		public new Setter<string, JSONValue> ToString => (ref string target, JSONValue source) =>
-		{
-			switch (source.Type)
-			{
-				case JSONType.Boolean:
-					target = source.Boolean ? "1" : string.Empty;
+    public new Setter<string, JSONValue> ToString => (ref string target, JSONValue source) =>
+    {
+        switch (source.Type)
+        {
+            case JSONType.Boolean:
+                target = source.Boolean ? "1" : string.Empty;
 
-					break;
+                break;
 
-				case JSONType.Number:
-					target = source.Number.ToString(CultureInfo.InvariantCulture);
+            case JSONType.Number:
+                target = source.Number.ToString(CultureInfo.InvariantCulture);
 
-					break;
+                break;
 
-				case JSONType.String:
-					target = source.String;
+            case JSONType.String:
+                target = source.String;
 
-					break;
+                break;
 
-				default:
-					target = default;
+            default:
+                target = default;
 
-					break;
-			}
-		};
-	}
+                break;
+        }
+    };
 }

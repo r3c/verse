@@ -1,283 +1,282 @@
 ﻿using System.IO;
 using System.Text;
 
-namespace Verse.Schemas.RawProtobuf
+namespace Verse.Schemas.RawProtobuf;
+
+internal class ReaderState
 {
-	internal class ReaderState
-	{
-		private const int StringMaxLength = 65536;
+    private const int StringMaxLength = 65536;
 
-		/// <summary>
-		/// Index of field read from last header.
-		/// </summary>
-		public int FieldIndex;
+    /// <summary>
+    /// Index of field read from last header.
+    /// </summary>
+    public int FieldIndex;
 
-		/// <summary>
-		/// Absolute offset to end of the object being read, if any.
-		/// </summary>
-		private int? boundary;
+    /// <summary>
+    /// Absolute offset to end of the object being read, if any.
+    /// </summary>
+    private int? boundary;
 
-		/// <summary>
-		/// Type of field read from last header.
-		/// </summary>
-		private RawProtobufWireType? fieldType;
-
-		/// <summary>
-		/// Current byte offset in stream being read.
-		/// </summary>
-		private int position;
-
-		private readonly ErrorEvent error;
-
-		private readonly bool noZigZagEncoding;
+    /// <summary>
+    /// Type of field read from last header.
+    /// </summary>
+    private RawProtobufWireType? fieldType;
 
-		private readonly Stream stream;
+    /// <summary>
+    /// Current byte offset in stream being read.
+    /// </summary>
+    private int position;
+
+    private readonly ErrorEvent error;
 
-		public ReaderState(Stream stream, ErrorEvent error, bool noZigZagEncoding)
-		{
-			this.error = error;
-			this.noZigZagEncoding = noZigZagEncoding;
-			this.stream = stream;
+    private readonly bool noZigZagEncoding;
 
-			FieldIndex = 0;
+    private readonly Stream stream;
 
-			boundary = null;
-			fieldType = null;
-			position = 0;
-		}
-
-		public bool ObjectBegin(out int? backup)
-		{
-			// Complex objects are expected to be at top-level (no parent field type) or contained within string type
-			if (fieldType.GetValueOrDefault(RawProtobufWireType.String) != RawProtobufWireType.String)
-			{
-				backup = default;
+    public ReaderState(Stream stream, ErrorEvent error, bool noZigZagEncoding)
+    {
+        this.error = error;
+        this.noZigZagEncoding = noZigZagEncoding;
+        this.stream = stream;
 
-				return false;
-			}
+        FieldIndex = 0;
 
-			if (fieldType.HasValue)
-			{
-				backup = boundary;
+        boundary = null;
+        fieldType = null;
+        position = 0;
+    }
 
-				boundary = position + (int) ReadVarInt();
-			}
-			else
-				backup = null;
+    public bool ObjectBegin(out int? backup)
+    {
+        // Complex objects are expected to be at top-level (no parent field type) or contained within string type
+        if (fieldType.GetValueOrDefault(RawProtobufWireType.String) != RawProtobufWireType.String)
+        {
+            backup = default;
 
-			return true;
-		}
+            return false;
+        }
 
-		public void ObjectEnd(int? backup)
-		{
-			if (position < boundary.GetValueOrDefault())
-				Error("sub-message was not read entirely");
+        if (fieldType.HasValue)
+        {
+            backup = boundary;
 
-			boundary = backup;
-		}
+            boundary = position + (int) ReadVarInt();
+        }
+        else
+            backup = null;
 
-		public void ReadHeader()
-		{
-			if (boundary.HasValue && position >= boundary.Value)
-			{
-				FieldIndex = 0;
-				this.fieldType = null;
+        return true;
+    }
 
-				return;
-			}
+    public void ObjectEnd(int? backup)
+    {
+        if (position < boundary.GetValueOrDefault())
+            Error("sub-message was not read entirely");
 
-			var current = stream.ReadByte();
+        boundary = backup;
+    }
 
-			++position;
+    public void ReadHeader()
+    {
+        if (boundary.HasValue && position >= boundary.Value)
+        {
+            FieldIndex = 0;
+            this.fieldType = null;
 
-			if (current < 0)
-			{
-				FieldIndex = 0;
-				this.fieldType = null;
+            return;
+        }
 
-				return;
-			}
+        var current = stream.ReadByte();
 
-			var fieldIndex = (current >> 3) & 15;
-			var fieldType = (RawProtobufWireType)(current & 7);
-			var shift = 4;
+        ++position;
 
-			while ((current & 128) != 0)
-			{
-				current = stream.ReadByte();
+        if (current < 0)
+        {
+            FieldIndex = 0;
+            this.fieldType = null;
 
-				position += 1;
+            return;
+        }
 
-				fieldIndex += (current & 127) << shift;
-				shift += 7;
-			}
+        var fieldIndex = (current >> 3) & 15;
+        var fieldType = (RawProtobufWireType)(current & 7);
+        var shift = 4;
 
-			FieldIndex = fieldIndex;
-			this.fieldType = fieldType;
-		}
+        while ((current & 128) != 0)
+        {
+            current = stream.ReadByte();
 
-		public bool TryReadValue(out RawProtobufValue value)
-		{
-			switch (fieldType.GetValueOrDefault())
-			{
-				case RawProtobufWireType.Fixed32:
-					var fixed32 = 0;
+            position += 1;
 
-					fixed32 += stream.ReadByte();
-					fixed32 += stream.ReadByte() << 8;
-					fixed32 += stream.ReadByte() << 16;
-					fixed32 += stream.ReadByte() << 24;
+            fieldIndex += (current & 127) << shift;
+            shift += 7;
+        }
 
-					value = new RawProtobufValue(fixed32, RawProtobufWireType.Fixed32);
+        FieldIndex = fieldIndex;
+        this.fieldType = fieldType;
+    }
 
-					position += 4;
+    public bool TryReadValue(out RawProtobufValue value)
+    {
+        switch (fieldType.GetValueOrDefault())
+        {
+            case RawProtobufWireType.Fixed32:
+                var fixed32 = 0;
 
-					return true;
+                fixed32 += stream.ReadByte();
+                fixed32 += stream.ReadByte() << 8;
+                fixed32 += stream.ReadByte() << 16;
+                fixed32 += stream.ReadByte() << 24;
 
-				case RawProtobufWireType.Fixed64:
-					var fixed64 = 0L;
+                value = new RawProtobufValue(fixed32, RawProtobufWireType.Fixed32);
 
-					fixed64 += stream.ReadByte();
-					fixed64 += (long) stream.ReadByte() << 8;
-					fixed64 += (long) stream.ReadByte() << 16;
-					fixed64 += (long) stream.ReadByte() << 24;
-					fixed64 += (long) stream.ReadByte() << 32;
-					fixed64 += (long) stream.ReadByte() << 40;
-					fixed64 += (long) stream.ReadByte() << 48;
-					fixed64 += (long) stream.ReadByte() << 56;
+                position += 4;
 
-					position += 8;
+                return true;
 
-					value = new RawProtobufValue(fixed64, RawProtobufWireType.Fixed64);
+            case RawProtobufWireType.Fixed64:
+                var fixed64 = 0L;
 
-					return true;
+                fixed64 += stream.ReadByte();
+                fixed64 += (long) stream.ReadByte() << 8;
+                fixed64 += (long) stream.ReadByte() << 16;
+                fixed64 += (long) stream.ReadByte() << 24;
+                fixed64 += (long) stream.ReadByte() << 32;
+                fixed64 += (long) stream.ReadByte() << 40;
+                fixed64 += (long) stream.ReadByte() << 48;
+                fixed64 += (long) stream.ReadByte() << 56;
 
-				case RawProtobufWireType.String:
-					var length = (int) ReadVarInt();
+                position += 8;
 
-					if (length > StringMaxLength)
-					{
-						Error($"string field exceeds maximum length of {StringMaxLength}");
+                value = new RawProtobufValue(fixed64, RawProtobufWireType.Fixed64);
 
-						value = default;
+                return true;
 
-						return false;
-					}
+            case RawProtobufWireType.String:
+                var length = (int) ReadVarInt();
 
-					var buffer = new byte[length];
+                if (length > StringMaxLength)
+                {
+                    Error($"string field exceeds maximum length of {StringMaxLength}");
 
-					if (stream.Read(buffer, 0, length) != length)
-					{
-						Error($"could not read string of length {length}");
+                    value = default;
 
-						value = default;
+                    return false;
+                }
 
-						return false;
-					}
+                var buffer = new byte[length];
 
-					position += length;
+                if (stream.Read(buffer, 0, length) != length)
+                {
+                    Error($"could not read string of length {length}");
 
-					value = new RawProtobufValue(Encoding.UTF8.GetString(buffer), RawProtobufWireType.String);
+                    value = default;
 
-					return true;
+                    return false;
+                }
 
-				case RawProtobufWireType.VarInt:
-					var varint = ReadVarInt();
+                position += length;
 
-					// See: https://developers.google.com/protocol-buffers/docs/encoding
-					var number = noZigZagEncoding ? varint : -(varint & 1) ^ (varint >> 1);
+                value = new RawProtobufValue(Encoding.UTF8.GetString(buffer), RawProtobufWireType.String);
 
-					value = new RawProtobufValue(number, RawProtobufWireType.VarInt);
+                return true;
 
-					return true;
+            case RawProtobufWireType.VarInt:
+                var varint = ReadVarInt();
 
-				default:
-					Error($"unsupported wire type {fieldType}");
+                // See: https://developers.google.com/protocol-buffers/docs/encoding
+                var number = noZigZagEncoding ? varint : -(varint & 1) ^ (varint >> 1);
 
-					value = default;
+                value = new RawProtobufValue(number, RawProtobufWireType.VarInt);
 
-					return false;
-			}
-		}
+                return true;
 
-		public bool TrySkipValue()
-		{
-			switch (fieldType.GetValueOrDefault())
-			{
-				case RawProtobufWireType.Fixed32:
-					stream.ReadByte();
-					stream.ReadByte();
-					stream.ReadByte();
-					stream.ReadByte();
-					position += 4;
+            default:
+                Error($"unsupported wire type {fieldType}");
 
-					return true;
+                value = default;
 
-				case RawProtobufWireType.Fixed64:
-					stream.ReadByte();
-					stream.ReadByte();
-					stream.ReadByte();
-					stream.ReadByte();
-					stream.ReadByte();
-					stream.ReadByte();
-					stream.ReadByte();
-					stream.ReadByte();
-					position += 8;
+                return false;
+        }
+    }
 
-					return true;
+    public bool TrySkipValue()
+    {
+        switch (fieldType.GetValueOrDefault())
+        {
+            case RawProtobufWireType.Fixed32:
+                stream.ReadByte();
+                stream.ReadByte();
+                stream.ReadByte();
+                stream.ReadByte();
+                position += 4;
 
-				case RawProtobufWireType.String:
-					var length = (int) ReadVarInt();
+                return true;
 
-					if (length > StringMaxLength)
-					{
-						Error($"string field exceeds maximum length of {StringMaxLength}");
+            case RawProtobufWireType.Fixed64:
+                stream.ReadByte();
+                stream.ReadByte();
+                stream.ReadByte();
+                stream.ReadByte();
+                stream.ReadByte();
+                stream.ReadByte();
+                stream.ReadByte();
+                stream.ReadByte();
+                position += 8;
 
-						return false;
-					}
+                return true;
 
-					while (length-- > 0)
-					{
-						stream.ReadByte();
-						position += 1;
-					}
+            case RawProtobufWireType.String:
+                var length = (int) ReadVarInt();
 
-					return true;
+                if (length > StringMaxLength)
+                {
+                    Error($"string field exceeds maximum length of {StringMaxLength}");
 
-				case RawProtobufWireType.VarInt:
-					ReadVarInt();
+                    return false;
+                }
 
-					return true;
+                while (length-- > 0)
+                {
+                    stream.ReadByte();
+                    position += 1;
+                }
 
-				default:
-					Error($"unsupported wire type {fieldType}");
+                return true;
 
-					return false;
-			}
-		}
+            case RawProtobufWireType.VarInt:
+                ReadVarInt();
 
-		private void Error(string message)
-		{
-			error(position, message);
-		}
+                return true;
 
-		private unsafe long ReadVarInt()
-		{
-			byte current;
-			var shift = 0;
-			var value = 0UL;
+            default:
+                Error($"unsupported wire type {fieldType}");
 
-			do
-			{
-				current = (byte) stream.ReadByte();
+                return false;
+        }
+    }
 
-				position += 1;
+    private void Error(string message)
+    {
+        error(position, message);
+    }
 
-				value += (ulong) (current & 127u) << shift;
-				shift += 7;
-			} while ((current & 128) != 0);
+    private unsafe long ReadVarInt()
+    {
+        byte current;
+        var shift = 0;
+        var value = 0UL;
 
-			return *(long*) &value;
-		}
-	}
+        do
+        {
+            current = (byte) stream.ReadByte();
+
+            position += 1;
+
+            value += (ulong) (current & 127u) << shift;
+            shift += 7;
+        } while ((current & 128) != 0);
+
+        return *(long*) &value;
+    }
 }

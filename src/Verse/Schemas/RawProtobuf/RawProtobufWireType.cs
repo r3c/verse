@@ -1,10 +1,9 @@
-namespace Verse.Schemas.RawProtobuf
+namespace Verse.Schemas.RawProtobuf;
+
+public enum RawProtobufWireType
 {
-	public enum RawProtobufWireType
-	{
-		VarInt = 0,
-		Fixed64 = 1,
-		String = 2,
-		Fixed32 = 5
-	}
+    VarInt = 0,
+    Fixed64 = 1,
+    String = 2,
+    Fixed32 = 5
 }

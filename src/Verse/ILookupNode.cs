@@ -1,11 +1,10 @@
-namespace Verse
+namespace Verse;
+
+internal interface ILookupNode<in TKey, out TValue>
 {
-	internal interface ILookupNode<in TKey, out TValue>
-	{
-		bool HasValue { get; }
+    bool HasValue { get; }
 
-		TValue Value { get; }
+    TValue Value { get; }
 
-		ILookupNode<TKey, TValue> Follow(TKey key);
-	}
+    ILookupNode<TKey, TValue> Follow(TKey key);
 }

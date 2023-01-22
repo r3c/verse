@@ -1,9 +1,8 @@
-namespace Verse.DecoderDescriptors.Tree
+namespace Verse.DecoderDescriptors.Tree;
+
+internal enum BrowserState
 {
-	internal enum BrowserState
-	{
-		Continue,
-		Failure,
-		Success
-	}
+    Continue,
+    Failure,
+    Success
 }

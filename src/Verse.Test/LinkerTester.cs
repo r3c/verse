@@ -11,221 +11,220 @@ using Verse.Schemas.JSON;
 // ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable MemberCanBePrivate.Global
 
-namespace Verse.Test
+namespace Verse.Test;
+
+[TestFixture]
+public class LinkerTester
 {
-	[TestFixture]
-	public class LinkerTester
-	{
-		[Test]
-		[TestCase("[]", new double[0])]
-		[TestCase("[0, 5, 90, 23, -9, 5.32]", new[] {0, 5, 90, 23, -9, 5.32})]
-		public void LinkDecoderArrayFromArray(string json, double[] expected)
-		{
-			var encoded = Encoding.UTF8.GetBytes(json);
-			var decoded = Decode(Linker.CreateDecoder(new JSONSchema<double[]>()), encoded);
+    [Test]
+    [TestCase("[]", new double[0])]
+    [TestCase("[0, 5, 90, 23, -9, 5.32]", new[] {0, 5, 90, 23, -9, 5.32})]
+    public void LinkDecoderArrayFromArray(string json, double[] expected)
+    {
+        var encoded = Encoding.UTF8.GetBytes(json);
+        var decoded = Decode(Linker.CreateDecoder(new JSONSchema<double[]>()), encoded);
 
-			CollectionAssert.AreEqual(expected, decoded);
-		}
+        CollectionAssert.AreEqual(expected, decoded);
+    }
 
-		[Test]
-		[TestCase("[]", new double[0])]
-		[TestCase("[0, 5, 90, 23, -9, 5.32]", new[] { 0, 5, 90, 23, -9, 5.32 })]
-		public void LinkDecoderArrayFromList(string json, double[] expected)
-		{
-			var encoded = Encoding.UTF8.GetBytes(json);
-			var decoded = Decode(Linker.CreateDecoder(new JSONSchema<List<double>>()), encoded);
+    [Test]
+    [TestCase("[]", new double[0])]
+    [TestCase("[0, 5, 90, 23, -9, 5.32]", new[] { 0, 5, 90, 23, -9, 5.32 })]
+    public void LinkDecoderArrayFromList(string json, double[] expected)
+    {
+        var encoded = Encoding.UTF8.GetBytes(json);
+        var decoded = Decode(Linker.CreateDecoder(new JSONSchema<List<double>>()), encoded);
 
-			CollectionAssert.AreEqual(expected, decoded);
-		}
+        CollectionAssert.AreEqual(expected, decoded);
+    }
 
-		[Test]
-		[TestCase("{\"Field\": 53}", 53)]
-		[TestCase("{\"Field\": \"Black sheep wall\"}", "Black sheep wall")]
-		public void LinkDecoderField<T>(string json, T expected)
-		{
-			var encoded = Encoding.UTF8.GetBytes(json);
-			var decoded = Decode(Linker.CreateDecoder(new JSONSchema<FieldContainer<T>>()), encoded);
+    [Test]
+    [TestCase("{\"Field\": 53}", 53)]
+    [TestCase("{\"Field\": \"Black sheep wall\"}", "Black sheep wall")]
+    public void LinkDecoderField<T>(string json, T expected)
+    {
+        var encoded = Encoding.UTF8.GetBytes(json);
+        var decoded = Decode(Linker.CreateDecoder(new JSONSchema<FieldContainer<T>>()), encoded);
 
-			Assert.AreEqual(expected, decoded.Field);
-		}
+        Assert.AreEqual(expected, decoded.Field);
+    }
 
-		[Test]
-		[TestCase("{\"Property\": 53}", 53)]
-		[TestCase("{\"Property\": \"Black sheep wall\"}", "Black sheep wall")]
-		public void LinkDecoderProperty<T>(string json, T expected)
-		{
-			var encoded = Encoding.UTF8.GetBytes(json);
-			var decoded = Decode(Linker.CreateDecoder(new JSONSchema<PropertyContainer<T>>()), encoded);
+    [Test]
+    [TestCase("{\"Property\": 53}", 53)]
+    [TestCase("{\"Property\": \"Black sheep wall\"}", "Black sheep wall")]
+    public void LinkDecoderProperty<T>(string json, T expected)
+    {
+        var encoded = Encoding.UTF8.GetBytes(json);
+        var decoded = Decode(Linker.CreateDecoder(new JSONSchema<PropertyContainer<T>>()), encoded);
 
-			Assert.AreEqual(expected, decoded.Property);
-		}
+        Assert.AreEqual(expected, decoded.Property);
+    }
 
-		[Test]
-		public void LinkDecoderRecursive()
-		{
-			var encoded = Encoding.UTF8.GetBytes("{\"r\": {\"r\": {\"v\": 42}, \"v\": 17}, \"v\": 3}");
-			var decoded = Decode(Linker.CreateDecoder(new JSONSchema<Recursive>()), encoded);
+    [Test]
+    public void LinkDecoderRecursive()
+    {
+        var encoded = Encoding.UTF8.GetBytes("{\"r\": {\"r\": {\"v\": 42}, \"v\": 17}, \"v\": 3}");
+        var decoded = Decode(Linker.CreateDecoder(new JSONSchema<Recursive>()), encoded);
 
-			Assert.AreEqual(42, decoded.r.r.v);
-			Assert.AreEqual(17, decoded.r.v);
-			Assert.AreEqual(3, decoded.v);
-		}
+        Assert.AreEqual(42, decoded.r.r.v);
+        Assert.AreEqual(17, decoded.r.v);
+        Assert.AreEqual(3, decoded.v);
+    }
 
-		[Test]
-		[TestCase(BindingFlags.Instance | BindingFlags.Public, "{\"isPublic\":1}", "0:0:1")]
-		[TestCase(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, "{\"isPublic\":1,\"isProtected\":2,\"isPrivate\":3}", "3:2:1")]
-		public void LinkDecoderVisibility(BindingFlags bindings, string json, string expected)
-		{
-			var encoded = Encoding.UTF8.GetBytes(json);
-			var decoded =
-				Decode(
-					Linker.CreateDecoder(new JSONSchema<Visibility>(), new Dictionary<Type, object>(), bindings),
-					encoded);
+    [Test]
+    [TestCase(BindingFlags.Instance | BindingFlags.Public, "{\"isPublic\":1}", "0:0:1")]
+    [TestCase(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, "{\"isPublic\":1,\"isProtected\":2,\"isPrivate\":3}", "3:2:1")]
+    public void LinkDecoderVisibility(BindingFlags bindings, string json, string expected)
+    {
+        var encoded = Encoding.UTF8.GetBytes(json);
+        var decoded =
+            Decode(
+                Linker.CreateDecoder(new JSONSchema<Visibility>(), new Dictionary<Type, object>(), bindings),
+                encoded);
 
-			Assert.AreEqual(expected, decoded.ToString());
-		}
+        Assert.AreEqual(expected, decoded.ToString());
+    }
 
-		[Test]
-		public void CreateDecoder_ShouldFindParameterlessConstructorFromReference()
-		{
-			var schema = new JSONSchema<ReferenceType>();
-			var decoder = Linker.CreateDecoder(schema);
-			var decoded = Decode(decoder, "{}"u8.ToArray());
+    [Test]
+    public void CreateDecoder_ShouldFindParameterlessConstructorFromReference()
+    {
+        var schema = new JSONSchema<ReferenceType>();
+        var decoder = Linker.CreateDecoder(schema);
+        var decoded = Decode(decoder, "{}"u8.ToArray());
 
-			Assert.That(decoded, Is.InstanceOf<ReferenceType>());
-		}
+        Assert.That(decoded, Is.InstanceOf<ReferenceType>());
+    }
 
-		[Test]
-		public void CreateDecoder_ShouldThrowWhenNoParameterlessConstructor()
-		{
-			var schema = new JSONSchema<Uri>();
+    [Test]
+    public void CreateDecoder_ShouldThrowWhenNoParameterlessConstructor()
+    {
+        var schema = new JSONSchema<Uri>();
 
-			Assert.That(() => Linker.CreateDecoder(schema), Throws.InstanceOf<ConstructorNotFoundException>());
-		}
+        Assert.That(() => Linker.CreateDecoder(schema), Throws.InstanceOf<ConstructorNotFoundException>());
+    }
 
-		[Test]
-		[TestCase(new[] { 0, 5, 90, 23, -9, 5.32 }, "[0,5,90,23,-9,5.32]")]
-		[TestCase(new[] { 27.5, 19 }, "[27.5,19]")]
-		public void LinkEncoderArrayFromArray(double[] value, string expected)
-		{
-			var encoded = Encode(Linker.CreateEncoder(new JSONSchema<double[]>()), value);
+    [Test]
+    [TestCase(new[] { 0, 5, 90, 23, -9, 5.32 }, "[0,5,90,23,-9,5.32]")]
+    [TestCase(new[] { 27.5, 19 }, "[27.5,19]")]
+    public void LinkEncoderArrayFromArray(double[] value, string expected)
+    {
+        var encoded = Encode(Linker.CreateEncoder(new JSONSchema<double[]>()), value);
 
-			CollectionAssert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
-		}
+        CollectionAssert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
+    }
 
-		[Test]
-		[TestCase(new[] { 0, 5, 90, 23, -9, 5.32 }, "[0,5,90,23,-9,5.32]")]
-		[TestCase(new[] { 27.5, 19 }, "[27.5,19]")]
-		public void LinkEncoderArrayFromList(double[] value, string expected)
-		{
-			var decoded = new List<double>(value);
-			var encoded = Encode(Linker.CreateEncoder(new JSONSchema<List<double>>()), decoded);
+    [Test]
+    [TestCase(new[] { 0, 5, 90, 23, -9, 5.32 }, "[0,5,90,23,-9,5.32]")]
+    [TestCase(new[] { 27.5, 19 }, "[27.5,19]")]
+    public void LinkEncoderArrayFromList(double[] value, string expected)
+    {
+        var decoded = new List<double>(value);
+        var encoded = Encode(Linker.CreateEncoder(new JSONSchema<List<double>>()), decoded);
 
-			CollectionAssert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
-		}
+        CollectionAssert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
+    }
 
-		[Test]
-		[TestCase(53, "{\"Field\":53}")]
-		[TestCase("Black sheep wall", "{\"Field\":\"Black sheep wall\"}")]
-		public void LinkEncoderField<T>(T value, string expected)
-		{
-			var decoded = new FieldContainer<T> { Field = value };
-			var encoded = Encode(Linker.CreateEncoder(new JSONSchema<FieldContainer<T>>()), decoded);
+    [Test]
+    [TestCase(53, "{\"Field\":53}")]
+    [TestCase("Black sheep wall", "{\"Field\":\"Black sheep wall\"}")]
+    public void LinkEncoderField<T>(T value, string expected)
+    {
+        var decoded = new FieldContainer<T> { Field = value };
+        var encoded = Encode(Linker.CreateEncoder(new JSONSchema<FieldContainer<T>>()), decoded);
 
-			Assert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
-		}
+        Assert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
+    }
 
-		[Test]
-		[TestCase(53, "{\"Property\":53}")]
-		[TestCase("Black sheep wall", "{\"Property\":\"Black sheep wall\"}")]
-		public void LinkEncoderProperty<T>(T value, string expected)
-		{
-			var decoded = new PropertyContainer<T> { Property = value };
-			var encoded = Encode(Linker.CreateEncoder(new JSONSchema<PropertyContainer<T>>()), decoded);
+    [Test]
+    [TestCase(53, "{\"Property\":53}")]
+    [TestCase("Black sheep wall", "{\"Property\":\"Black sheep wall\"}")]
+    public void LinkEncoderProperty<T>(T value, string expected)
+    {
+        var decoded = new PropertyContainer<T> { Property = value };
+        var encoded = Encode(Linker.CreateEncoder(new JSONSchema<PropertyContainer<T>>()), decoded);
 
-			Assert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
-		}
+        Assert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
+    }
 
-		[Test]
-		[TestCase(false, "{\"r\":{\"r\":{\"r\":null,\"v\":42},\"v\":17},\"v\":3}")]
-		[TestCase(true, "{\"r\":{\"r\":{\"v\":42},\"v\":17},\"v\":3}")]
-		public void LinkEncoderRecursive(bool omitNull, string expected)
-		{
-			var decoded = new Recursive { r = new Recursive { r = new Recursive { v = 42 }, v = 17 }, v = 3 };
-			var encoded = Encode(Linker.CreateEncoder(new JSONSchema<Recursive>(new JSONConfiguration { OmitNull = omitNull })), decoded);
+    [Test]
+    [TestCase(false, "{\"r\":{\"r\":{\"r\":null,\"v\":42},\"v\":17},\"v\":3}")]
+    [TestCase(true, "{\"r\":{\"r\":{\"v\":42},\"v\":17},\"v\":3}")]
+    public void LinkEncoderRecursive(bool omitNull, string expected)
+    {
+        var decoded = new Recursive { r = new Recursive { r = new Recursive { v = 42 }, v = 17 }, v = 3 };
+        var encoded = Encode(Linker.CreateEncoder(new JSONSchema<Recursive>(new JSONConfiguration { OmitNull = omitNull })), decoded);
 
-			Assert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
-		}
+        Assert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
+    }
 
-		[Test]
-		[TestCase(BindingFlags.Instance | BindingFlags.Public, "{\"isPublic\":0}")]
-		[TestCase(BindingFlags.Instance | BindingFlags.NonPublic, "{\"isProtected\":0,\"isPrivate\":0}")]
-		public void LinkEncoderVisibility(BindingFlags bindings, string expected)
-		{
-			var decoded = new Visibility();
-			var encoded =
-				Encode(
-					Linker.CreateEncoder(new JSONSchema<Visibility>(), new Dictionary<Type, object>(), bindings),
-					decoded);
+    [Test]
+    [TestCase(BindingFlags.Instance | BindingFlags.Public, "{\"isPublic\":0}")]
+    [TestCase(BindingFlags.Instance | BindingFlags.NonPublic, "{\"isProtected\":0,\"isPrivate\":0}")]
+    public void LinkEncoderVisibility(BindingFlags bindings, string expected)
+    {
+        var decoded = new Visibility();
+        var encoded =
+            Encode(
+                Linker.CreateEncoder(new JSONSchema<Visibility>(), new Dictionary<Type, object>(), bindings),
+                decoded);
 
-			Assert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
-		}
+        Assert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
+    }
 
-		private static T Decode<T>(IDecoder<T> decoder, byte[] encoded)
+    private static T Decode<T>(IDecoder<T> decoder, byte[] encoded)
+    {
+        using var stream = new MemoryStream(encoded);
+        using var decoderStream = decoder.Open(stream);
+
+        Assert.IsTrue(decoderStream.TryDecode(out var decoded));
+
+        return decoded;
+    }
+
+    private static byte[] Encode<T>(IEncoder<T> encoder, T decoded)
+    {
+        using var stream = new MemoryStream();
+
+        using (var encoderStream = encoder.Open(stream))
+            encoderStream.Encode(decoded);
+
+        return stream.ToArray();
+    }
+
+    public class ReferenceType
+    {
+    }
+
+    private class FieldContainer<T>
+    {
+        public T Field;
+    }
+
+    private class PropertyContainer<T>
+    {
+        public T Property
         {
-            using var stream = new MemoryStream(encoded);
-            using var decoderStream = decoder.Open(stream);
-
-            Assert.IsTrue(decoderStream.TryDecode(out var decoded));
-
-            return decoded;
+            get;
+            set;
         }
+    }
 
-		private static byte[] Encode<T>(IEncoder<T> encoder, T decoded)
+    private class Recursive
+    {
+        public Recursive r = null;
+
+        public int v = 0;
+    }
+
+    public class Visibility
+    {
+        public int isPublic = 0;
+        protected int isProtected = 0;
+        private int isPrivate = 0;
+
+        public override string ToString()
         {
-            using var stream = new MemoryStream();
-
-            using (var encoderStream = encoder.Open(stream))
-                encoderStream.Encode(decoded);
-
-            return stream.ToArray();
+            return $"{isPrivate}:{isProtected}:{isPublic}";
         }
-
-		public class ReferenceType
-		{
-		}
-
-		private class FieldContainer<T>
-		{
-			public T Field;
-		}
-
-		private class PropertyContainer<T>
-		{
-			public T Property
-			{
-				get;
-				set;
-			}
-		}
-
-		private class Recursive
-		{
-			public Recursive r = null;
-
-			public int v = 0;
-		}
-
-		public class Visibility
-		{
-			public int isPublic = 0;
-			protected int isProtected = 0;
-			private int isPrivate = 0;
-
-			public override string ToString()
-			{
-				return $"{isPrivate}:{isProtected}:{isPublic}";
-			}
-		}
-	}
+    }
 }

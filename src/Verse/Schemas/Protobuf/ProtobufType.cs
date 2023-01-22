@@ -1,13 +1,12 @@
-﻿namespace Verse.Schemas.Protobuf
+﻿namespace Verse.Schemas.Protobuf;
+
+public enum ProtobufType
 {
-	public enum ProtobufType
-	{
-        Void,
-        Boolean,
-        Float32,
-        Float64,
-        Signed,
-        String,
-        Unsigned
-	}
+    Void,
+    Boolean,
+    Float32,
+    Float64,
+    Signed,
+    String,
+    Unsigned
 }

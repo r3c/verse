@@ -1,7 +1,6 @@
-namespace Verse.Schemas.RawProtobuf
+namespace Verse.Schemas.RawProtobuf;
+
+public struct RawProtobufConfiguration
 {
-	public struct RawProtobufConfiguration
-	{
-		public bool NoZigZagEncoding;
-	}
+    public bool NoZigZagEncoding;
 }

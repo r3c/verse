@@ -4,220 +4,219 @@ using System.Text;
 using Verse.DecoderDescriptors.Tree;
 using Verse.LookupNodes;
 
-namespace Verse.Schemas.QueryString
+namespace Verse.Schemas.QueryString;
+
+internal class Reader : IReader<ReaderState, string, char>
 {
-	internal class Reader : IReader<ReaderState, string, char>
-	{
-		private readonly Encoding encoding;
+    private readonly Encoding encoding;
 
-		public Reader(Encoding encoding)
-		{
-			this.encoding = encoding;
-		}
+    public Reader(Encoding encoding)
+    {
+        this.encoding = encoding;
+    }
 
-		public ReaderStatus ReadToArray<TElement>(ReaderState state,
-			ReaderCallback<ReaderState, string, char, TElement> callback, out BrowserMove<TElement> browserMove)
-		{
-			browserMove = default;
+    public ReaderStatus ReadToArray<TElement>(ReaderState state,
+        ReaderCallback<ReaderState, string, char, TElement> callback, out BrowserMove<TElement> browserMove)
+    {
+        browserMove = default;
 
-			return ReaderStatus.Ignored;
-		}
+        return ReaderStatus.Ignored;
+    }
 
-		public ReaderStatus ReadToObject<TObject>(ReaderState state,
-			ILookupNode<char, ReaderCallback<ReaderState, string, char, TObject>> root, ref TObject target)
-		{
-			if (state.Current == -1)
-				return ReaderStatus.Succeeded;
+    public ReaderStatus ReadToObject<TObject>(ReaderState state,
+        ILookupNode<char, ReaderCallback<ReaderState, string, char, TObject>> root, ref TObject target)
+    {
+        if (state.Current == -1)
+            return ReaderStatus.Succeeded;
 
-			while (true)
-			{
-				// Parse field name
-				var empty = true;
+        while (true)
+        {
+            // Parse field name
+            var empty = true;
 
-				// FIXME: handle % encoding in field names
-				var node = root;
+            // FIXME: handle % encoding in field names
+            var node = root;
 
-				while (QueryStringCharacter.IsUnreserved(state.Current))
-				{
-					empty = false;
-					node = node.Follow((char) state.Current);
+            while (QueryStringCharacter.IsUnreserved(state.Current))
+            {
+                empty = false;
+                node = node.Follow((char) state.Current);
 
-					state.Pull();
-				}
+                state.Pull();
+            }
 
-				if (empty)
-				{
-					state.Error("empty field name");
+            if (empty)
+            {
+                state.Error("empty field name");
 
-					return ReaderStatus.Failed;
-				}
+                return ReaderStatus.Failed;
+            }
 
-				// Parse field value
-				switch (state.Current)
-				{
-					case '=':
-						state.Pull();
-						state.Location = QueryStringLocation.ValueBegin;
+            // Parse field value
+            switch (state.Current)
+            {
+                case '=':
+                    state.Pull();
+                    state.Location = QueryStringLocation.ValueBegin;
 
-						if (!(node.HasValue ? node.Value(this, state, ref target) == ReaderStatus.Succeeded : ReadToValue(state, out _) == ReaderStatus.Succeeded))
-							return ReaderStatus.Failed;
+                    if (!(node.HasValue ? node.Value(this, state, ref target) == ReaderStatus.Succeeded : ReadToValue(state, out _) == ReaderStatus.Succeeded))
+                        return ReaderStatus.Failed;
 
-						break;
+                    break;
 
-					default:
-						state.Location = QueryStringLocation.ValueEnd;
+                default:
+                    state.Location = QueryStringLocation.ValueEnd;
 
-						if (node.HasValue && node.Value(this, state, ref target) != ReaderStatus.Succeeded)
-							return ReaderStatus.Failed;
+                    if (node.HasValue && node.Value(this, state, ref target) != ReaderStatus.Succeeded)
+                        return ReaderStatus.Failed;
 
-						break;
-				}
+                    break;
+            }
 
-				if (state.Location != QueryStringLocation.ValueEnd)
-					throw new InvalidOperationException(
-						"internal error, please report an issue on GitHub: https://github.com/r3c/verse/issues");
+            if (state.Location != QueryStringLocation.ValueEnd)
+                throw new InvalidOperationException(
+                    "internal error, please report an issue on GitHub: https://github.com/r3c/verse/issues");
 
-				// Expect either field separator or end of stream
-				if (state.Current == -1)
-					return ReaderStatus.Succeeded;
+            // Expect either field separator or end of stream
+            if (state.Current == -1)
+                return ReaderStatus.Succeeded;
 
-				if (!QueryStringCharacter.IsSeparator(state.Current))
-				{
-					state.Error("unexpected character");
+            if (!QueryStringCharacter.IsSeparator(state.Current))
+            {
+                state.Error("unexpected character");
 
-					return ReaderStatus.Failed;
-				}
+                return ReaderStatus.Failed;
+            }
 
-				state.Pull();
+            state.Pull();
 
-				// Check for end of stream (in case of dangling separator e.g. "?k&") and resume loop
-				if (state.Current == -1)
-					return ReaderStatus.Succeeded;
+            // Check for end of stream (in case of dangling separator e.g. "?k&") and resume loop
+            if (state.Current == -1)
+                return ReaderStatus.Succeeded;
 
-				state.Location = QueryStringLocation.Sequence;
-			}
-		}
+            state.Location = QueryStringLocation.Sequence;
+        }
+    }
 
-		public ReaderStatus ReadToValue(ReaderState state, out string value)
-		{
-			switch (state.Location)
-			{
-				case QueryStringLocation.Sequence:
-					var dummy = false;
+    public ReaderStatus ReadToValue(ReaderState state, out string value)
+    {
+        switch (state.Location)
+        {
+            case QueryStringLocation.Sequence:
+                var dummy = false;
 
-					value = default;
+                value = default;
 
-					return ReadToObject(state,
-						EmptyLookupNode<char, ReaderCallback<ReaderState, string, char, bool>>.Instance, ref dummy);
+                return ReadToObject(state,
+                    EmptyLookupNode<char, ReaderCallback<ReaderState, string, char, bool>>.Instance, ref dummy);
 
-				case QueryStringLocation.ValueBegin:
-					return ReadValue(state, out value) ? ReaderStatus.Succeeded : ReaderStatus.Failed;
+            case QueryStringLocation.ValueBegin:
+                return ReadValue(state, out value) ? ReaderStatus.Succeeded : ReaderStatus.Failed;
 
-				case QueryStringLocation.ValueEnd:
-					value = string.Empty;
+            case QueryStringLocation.ValueEnd:
+                value = string.Empty;
 
-					return ReaderStatus.Succeeded;
+                return ReaderStatus.Succeeded;
 
-				default:
-					value = default;
+            default:
+                value = default;
 
-					return ReaderStatus.Failed;
-			}
-		}
+                return ReaderStatus.Failed;
+        }
+    }
 
-		public ReaderState Start(Stream stream, ErrorEvent error)
-		{
-			var state = new ReaderState(stream, encoding, error);
+    public ReaderState Start(Stream stream, ErrorEvent error)
+    {
+        var state = new ReaderState(stream, encoding, error);
 
-			if (state.Current == '?')
-				state.Pull();
+        if (state.Current == '?')
+            state.Pull();
 
-			return state;
-		}
+        return state;
+    }
 
-		public void Stop(ReaderState context)
-		{
-		}
+    public void Stop(ReaderState context)
+    {
+    }
 
-		private static bool ReadValue(ReaderState state, out string value)
-		{
-			var buffer = new byte[state.Encoding.GetMaxByteCount(1)];
-			var builder = new StringBuilder(32);
+    private static bool ReadValue(ReaderState state, out string value)
+    {
+        var buffer = new byte[state.Encoding.GetMaxByteCount(1)];
+        var builder = new StringBuilder(32);
 
-			while (true)
-			{
-				int current = state.Current;
+        while (true)
+        {
+            int current = state.Current;
 
-				if (QueryStringCharacter.IsUnreserved(current))
-				{
-					builder.Append((char)current);
+            if (QueryStringCharacter.IsUnreserved(current))
+            {
+                builder.Append((char)current);
 
-					state.Pull();
-				}
-				else if (current == '+')
-				{
-					builder.Append(' ');
+                state.Pull();
+            }
+            else if (current == '+')
+            {
+                builder.Append(' ');
 
-					state.Pull();
-				}
-				else if (current == '%')
-				{
-					int count;
+                state.Pull();
+            }
+            else if (current == '%')
+            {
+                int count;
 
-					for (count = 0; state.Current == '%'; ++count)
-					{
-						if (count >= buffer.Length)
-						{
-							value = default;
+                for (count = 0; state.Current == '%'; ++count)
+                {
+                    if (count >= buffer.Length)
+                    {
+                        value = default;
 
-							return false;
-						}
+                        return false;
+                    }
 
-						state.Pull();
+                    state.Pull();
 
-						if (state.Current == -1)
-						{
-							value = default;
+                    if (state.Current == -1)
+                    {
+                        value = default;
 
-							return false;
-						}
+                        return false;
+                    }
 
-						var hex1 = QueryStringCharacter.HexaToDecimal(state.Current);
+                    var hex1 = QueryStringCharacter.HexaToDecimal(state.Current);
 
-						state.Pull();
+                    state.Pull();
 
-						if (state.Current == -1)
-						{
-							value = default;
+                    if (state.Current == -1)
+                    {
+                        value = default;
 
-							return false;
-						}
+                        return false;
+                    }
 
-						var hex2 = QueryStringCharacter.HexaToDecimal(state.Current);
+                    var hex2 = QueryStringCharacter.HexaToDecimal(state.Current);
 
-						state.Pull();
+                    state.Pull();
 
-						if (hex1 < 0 || hex2 < 0)
-						{
-							value = default;
+                    if (hex1 < 0 || hex2 < 0)
+                    {
+                        value = default;
 
-							return false;
-						}
+                        return false;
+                    }
 
-						buffer[count] = (byte)((hex1 << 4) + hex2);
-					}
+                    buffer[count] = (byte)((hex1 << 4) + hex2);
+                }
 
-					builder.Append(state.Encoding.GetChars(buffer, 0, count));
-				}
-				else
-				{
-					state.Location = QueryStringLocation.ValueEnd;
+                builder.Append(state.Encoding.GetChars(buffer, 0, count));
+            }
+            else
+            {
+                state.Location = QueryStringLocation.ValueEnd;
 
-					value = builder.ToString();
+                value = builder.ToString();
 
-					return true;
-				}
-			}	
-		}
-	}
+                return true;
+            }
+        }	
+    }
 }

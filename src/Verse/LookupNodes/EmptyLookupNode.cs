@@ -1,15 +1,14 @@
-namespace Verse.LookupNodes
+namespace Verse.LookupNodes;
+
+internal class EmptyLookupNode<TKey, TValue> : ILookupNode<TKey, TValue>
 {
-	internal class EmptyLookupNode<TKey, TValue> : ILookupNode<TKey, TValue>
-	{
-		public static readonly EmptyLookupNode<TKey, TValue> Instance = new EmptyLookupNode<TKey, TValue>();
+    public static readonly EmptyLookupNode<TKey, TValue> Instance = new EmptyLookupNode<TKey, TValue>();
 
-		public bool HasValue => false;
-		public TValue Value => default;
+    public bool HasValue => false;
+    public TValue Value => default;
 
-		public ILookupNode<TKey, TValue> Follow(TKey key)
-		{
-			return this;
-		}
-	}
+    public ILookupNode<TKey, TValue> Follow(TKey key)
+    {
+        return this;
+    }
 }

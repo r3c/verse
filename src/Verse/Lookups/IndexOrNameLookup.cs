@@ -1,51 +1,50 @@
 using System.Globalization;
 using Verse.LookupNodes;
 
-namespace Verse.Lookups
+namespace Verse.Lookups;
+
+internal class IndexOrNameLookup<TValue> : ILookup<int, TValue>
 {
-	internal class IndexOrNameLookup<TValue> : ILookup<int, TValue>
-	{
-		public ILookupNode<int, TValue> Root => fastRoot;
+    public ILookupNode<int, TValue> Root => fastRoot;
 
-		private readonly FastLookupNode<int, TValue> fastRoot;
-		private readonly HashLookupNode<int, TValue> indexRoot;
-		private readonly HashLookupNode<int, TValue> nameRoot;
+    private readonly FastLookupNode<int, TValue> fastRoot;
+    private readonly HashLookupNode<int, TValue> indexRoot;
+    private readonly HashLookupNode<int, TValue> nameRoot;
 
-		public IndexOrNameLookup()
-		{
-			var index = new HashLookupNode<int, TValue>(k => k);
-			var name = new HashLookupNode<int, TValue>(k => k);
+    public IndexOrNameLookup()
+    {
+        var index = new HashLookupNode<int, TValue>(k => k);
+        var name = new HashLookupNode<int, TValue>(k => k);
 
-			fastRoot = new FastLookupNode<int, TValue>(index, name);
-			indexRoot = index;
-			nameRoot = name;
-		}
+        fastRoot = new FastLookupNode<int, TValue>(index, name);
+        indexRoot = index;
+        nameRoot = name;
+    }
 
-		public bool ConnectTo(string sequence, TValue value)
-		{
-			if (int.TryParse(sequence, NumberStyles.Integer, CultureInfo.InvariantCulture, out var index))
-			{
-				var indexNode = indexRoot.ConnectTo(index);
+    public bool ConnectTo(string sequence, TValue value)
+    {
+        if (int.TryParse(sequence, NumberStyles.Integer, CultureInfo.InvariantCulture, out var index))
+        {
+            var indexNode = indexRoot.ConnectTo(index);
 
-				if (indexNode.HasValue)
-					return false;
+            if (indexNode.HasValue)
+                return false;
 
-				indexNode.HasValue = true;
-				indexNode.Value = value;
-			}
+            indexNode.HasValue = true;
+            indexNode.Value = value;
+        }
 
-			var current = nameRoot;
+        var current = nameRoot;
 
-			foreach (var key in sequence)
-				current = current.ConnectTo(key);
+        foreach (var key in sequence)
+            current = current.ConnectTo(key);
 
-			if (current.HasValue)
-				return false;
+        if (current.HasValue)
+            return false;
 
-			current.HasValue = true;
-			current.Value = value;
+        current.HasValue = true;
+        current.Value = value;
 
-			return true;
-		}
-	}
+        return true;
+    }
 }
