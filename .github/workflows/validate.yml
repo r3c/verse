@@ -42,4 +42,4 @@ jobs:
       - uses: actions/setup-dotnet@v3
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
-      - run: dotnet test --framework net7.0 Verse.sln
+      - run: dotnet test --framework net7.0 Verse.Test
