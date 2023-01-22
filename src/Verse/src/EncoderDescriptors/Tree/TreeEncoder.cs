@@ -18,9 +18,9 @@ namespace Verse.EncoderDescriptors.Tree
 
         public IEncoderStream<TEntity> Open(Stream output)
         {
-            var state = this.reader.Start(output, (p, m) => this.Error?.Invoke(p, m));
+            var state = reader.Start(output, (p, m) => Error?.Invoke(p, m));
 
-            return new TreeEncoderStream<TState, TNative, TEntity>(this.reader, this.callback, state);
+            return new TreeEncoderStream<TState, TNative, TEntity>(reader, callback, state);
         }
     }
 }

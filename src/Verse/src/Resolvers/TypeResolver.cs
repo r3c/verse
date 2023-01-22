@@ -36,14 +36,14 @@ namespace Verse.Resolvers
 
 			var definition = expected.GetGenericTypeDefinition();
 
-			if (!this.Type.IsGenericType || this.Type.GetGenericTypeDefinition() != definition)
+			if (!Type.IsGenericType || Type.GetGenericTypeDefinition() != definition)
 			{
 				arguments = default;
 
 				return false;
 			}
 
-			arguments = this.Type.GetGenericArguments();
+			arguments = Type.GetGenericArguments();
 
 			return true;
 		}

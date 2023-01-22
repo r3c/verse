@@ -17,23 +17,23 @@ namespace Verse.Schemas.Protobuf.Definition
 
         public ProtoEntity(ProtoContainer container, string name)
         {
-            this.Container = container;
-            this.Entities = new List<ProtoEntity>();
-            this.Fields = new List<ProtoField>();
-            this.Labels = new List<ProtoLabel>();
-            this.Name = name;
+            Container = container;
+            Entities = new List<ProtoEntity>();
+            Fields = new List<ProtoField>();
+            Labels = new List<ProtoLabel>();
+            Name = name;
         }
 
         public ProtoBinding[] Resolve(string name)
         {
-            int index = this.Entities.FindIndex(d => d.Name == name);
+            int index = Entities.FindIndex(d => d.Name == name);
 
             if (index < 0)
                 throw new ResolverException("can't find message '{0}'", name);
 
-            var entity = this.Entities[index];
+            var entity = Entities[index];
 
-            return this.ResolveEntity(entity, new [] { this, entity });
+            return ResolveEntity(entity, new [] { this, entity });
         }
 
         private ProtoBinding[] ResolveEntity(ProtoEntity entity, IEnumerable<ProtoEntity> parents)
@@ -45,7 +45,7 @@ namespace Verse.Schemas.Protobuf.Definition
                 if (bindings.Length <= field.Number)
                     Array.Resize(ref bindings, field.Number + 1);
 
-                bindings[field.Number] = this.ResolveField(field, parents);
+                bindings[field.Number] = ResolveField(field, parents);
             }
 
             return bindings;
@@ -82,7 +82,7 @@ namespace Verse.Schemas.Protobuf.Definition
                     if (entity.Container == ProtoContainer.Enum)
                         return new ProtoBinding(field.Name, ProtoType.Int32);
         
-                    return new ProtoBinding(field.Name, this.ResolveEntity(entity, match));
+                    return new ProtoBinding(field.Name, ResolveEntity(entity, match));
                 }
             }
 

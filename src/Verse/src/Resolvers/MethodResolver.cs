@@ -21,7 +21,7 @@ namespace Verse.Resolvers
 
 		private MethodResolver(MethodInfo method)
 		{
-			this.Method = method;
+			Method = method;
 		}
 
 		/// <Summary>
@@ -29,7 +29,7 @@ namespace Verse.Resolvers
 		/// </Summary>
 		public object Invoke(object caller, params object[] arguments)
 		{
-			return this.Method.Invoke(caller, arguments);
+			return Method.Invoke(caller, arguments);
 		}
 
 		/// <Summary>
@@ -38,13 +38,13 @@ namespace Verse.Resolvers
 		public MethodResolver SetGenericArguments(params Type[] arguments)
 		{
 			// Change method generic parameters if requested
-			if (!this.Method.IsGenericMethod)
+			if (!Method.IsGenericMethod)
 				throw new InvalidOperationException("method is not generic");
 
-			if (this.Method.GetGenericArguments().Length != arguments.Length)
+			if (Method.GetGenericArguments().Length != arguments.Length)
 				throw new InvalidOperationException($"method doesn't have {arguments.Length} generic argument(s)");
 
-			return new MethodResolver(this.Method.GetGenericMethodDefinition().MakeGenericMethod(arguments));
+			return new MethodResolver(Method.GetGenericMethodDefinition().MakeGenericMethod(arguments));
 		}
 	}
 }

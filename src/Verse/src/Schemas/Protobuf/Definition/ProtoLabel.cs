@@ -9,8 +9,8 @@ namespace Verse.Schemas.Protobuf.Definition
 
         public ProtoLabel(int value, string name)
         {
-            this.Value = value;
-            this.Name = name;
+            Value = value;
+            Name = name;
         }
     }
 }

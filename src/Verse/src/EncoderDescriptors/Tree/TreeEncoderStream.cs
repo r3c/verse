@@ -19,13 +19,13 @@ namespace Verse.EncoderDescriptors.Tree
 
 		public void Dispose()
 		{
-			this.reader.Stop(this.state);
+			reader.Stop(state);
 		}
 
 		public void Encode(TEntity input)
 		{
-			this.callback(this.reader, this.state, input);
-			this.reader.Flush(this.state);
+			callback(reader, state, input);
+			reader.Flush(state);
 		}
 	}
 }

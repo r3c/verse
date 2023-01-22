@@ -14,18 +14,18 @@ namespace Verse.Schemas
 	public sealed class RawProtobufSchema<TEntity> : ISchema<RawProtobufValue, TEntity>
 	{
 		/// <inheritdoc/>
-		public IDecoderAdapter<RawProtobufValue> DecoderAdapter => this.decoderAdapter;
+		public IDecoderAdapter<RawProtobufValue> DecoderAdapter => decoderAdapter;
 
 		/// <inheritdoc/>
-		public IDecoderDescriptor<RawProtobufValue, TEntity> DecoderDescriptor => this.decoderDescriptor;
+		public IDecoderDescriptor<RawProtobufValue, TEntity> DecoderDescriptor => decoderDescriptor;
 
 		private readonly RawProtobufConfiguration configuration;
 
 		/// <inheritdoc/>
-		public IEncoderAdapter<RawProtobufValue> EncoderAdapter => this.encoderAdapter;
+		public IEncoderAdapter<RawProtobufValue> EncoderAdapter => encoderAdapter;
 
 		/// <inheritdoc/>
-		public IEncoderDescriptor<RawProtobufValue, TEntity> EncoderDescriptor => this.encoderDescriptor;
+		public IEncoderDescriptor<RawProtobufValue, TEntity> EncoderDescriptor => encoderDescriptor;
 
 		private readonly RawProtobufDecoderAdapter decoderAdapter;
 
@@ -42,11 +42,11 @@ namespace Verse.Schemas
 			var writerDefinition = new WriterDefinition<TEntity>();
 
 			this.configuration = configuration;
-			this.decoderAdapter = new RawProtobufDecoderAdapter();
-			this.decoderDescriptor =
+			decoderAdapter = new RawProtobufDecoderAdapter();
+			decoderDescriptor =
 				new TreeDecoderDescriptor<ReaderState, RawProtobufValue, char, TEntity>(readerDefinition);
-			this.encoderAdapter = new RawProtobufEncoderAdapter();
-			this.encoderDescriptor =
+			encoderAdapter = new RawProtobufEncoderAdapter();
+			encoderDescriptor =
 				new TreeEncoderDescriptor<WriterState, RawProtobufValue, TEntity>(writerDefinition);
 		}
 
@@ -57,12 +57,12 @@ namespace Verse.Schemas
 
 		public IDecoder<TEntity> CreateDecoder()
 		{
-			return this.decoderDescriptor.CreateDecoder(new Reader(this.configuration.NoZigZagEncoding));
+			return decoderDescriptor.CreateDecoder(new Reader(configuration.NoZigZagEncoding));
 		}
 
 		public IEncoder<TEntity> CreateEncoder()
 		{
-			return this.encoderDescriptor.CreateEncoder(new Writer(this.configuration.NoZigZagEncoding));
+			return encoderDescriptor.CreateEncoder(new Writer(configuration.NoZigZagEncoding));
 		}
 	}
 }

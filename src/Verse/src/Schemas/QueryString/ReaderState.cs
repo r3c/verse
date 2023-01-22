@@ -19,28 +19,28 @@ namespace Verse.Schemas.QueryString
 
 		public ReaderState(Stream stream, Encoding encoding, ErrorEvent error)
 		{
-			this.Current = 0;
-			this.Encoding = encoding;
+			Current = 0;
+			Encoding = encoding;
 
 			this.error = error;
-			this.position = 0;
-			this.reader = new StreamReader(stream, encoding);
+			position = 0;
+			reader = new StreamReader(stream, encoding);
 
-			this.Pull();
+			Pull();
 
-			this.Location = QueryStringLocation.Sequence;
+			Location = QueryStringLocation.Sequence;
 		}
 
 		public void Error(string message)
 		{
-			this.error(this.position, message);
+			error(position, message);
 		}
 
 		public void Pull()
 		{
-			this.Current = this.reader.Read();
+			Current = reader.Read();
 
-			++this.position;
+			++position;
 		}
 	}
 }

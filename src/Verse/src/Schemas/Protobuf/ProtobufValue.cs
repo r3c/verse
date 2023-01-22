@@ -47,43 +47,43 @@ namespace Verse.Schemas.Protobuf
         public ProtobufValue(bool value)
 			: this()
         {
-            this.Boolean = value;
-            this.Type = ProtobufType.Boolean;
+            Boolean = value;
+            Type = ProtobufType.Boolean;
         }
 
         public ProtobufValue(double value)
 			: this()
         {
-            this.Float64 = value;
-            this.Type = ProtobufType.Float64;
+            Float64 = value;
+            Type = ProtobufType.Float64;
         }
 
         public ProtobufValue(float value)
 			: this()
         {
-            this.Float32 = value;
-            this.Type = ProtobufType.Float32;
+            Float32 = value;
+            Type = ProtobufType.Float32;
         }
 
         public ProtobufValue(long value)
         	: this()
         {
-            this.Signed = value;
-            this.Type = ProtobufType.Signed;
+            Signed = value;
+            Type = ProtobufType.Signed;
         }
 
         public ProtobufValue(string value)
 			: this()
         {
-            this.String = value;
-            this.Type = ProtobufType.String;
+            String = value;
+            Type = ProtobufType.String;
         }
 
         public ProtobufValue(ulong value)
         	: this()
         {
-            this.Type = ProtobufType.Unsigned;
-            this.Unsigned = value;
+            Type = ProtobufType.Unsigned;
+            Unsigned = value;
         }
 	}
 }

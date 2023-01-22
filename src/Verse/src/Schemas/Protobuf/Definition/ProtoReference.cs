@@ -11,14 +11,14 @@ namespace Verse.Schemas.Protobuf.Definition
 
         public ProtoReference(IEnumerable<string> names)
         {
-            this.Names = names.ToArray();
-            this.Type = ProtoType.Custom;
+            Names = names.ToArray();
+            Type = ProtoType.Custom;
         }
 
         public ProtoReference(ProtoType type)
         {
-            this.Names = null;
-            this.Type = type;
+            Names = null;
+            Type = type;
         }
     }
 }

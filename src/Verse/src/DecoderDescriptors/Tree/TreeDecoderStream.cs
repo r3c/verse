@@ -18,14 +18,14 @@
 
 		public void Dispose()
 		{
-			this.reader.Stop(this.state);
+			reader.Stop(state);
 		}
 
 		public bool TryDecode(out TEntity entity)
 		{
 			var entityValue = default(TEntity);
 
-			var result = this.callback(this.reader, this.state, ref entityValue);
+			var result = callback(reader, state, ref entityValue);
 
 			entity = result == ReaderStatus.Succeeded ? entityValue : default;
 

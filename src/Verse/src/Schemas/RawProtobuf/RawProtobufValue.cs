@@ -10,16 +10,16 @@ namespace Verse.Schemas.RawProtobuf
 
 		public RawProtobufValue(long number, RawProtobufWireType storage)
 		{
-			this.Number = number;
-			this.Storage = storage;
-			this.String = default;
+			Number = number;
+			Storage = storage;
+			String = default;
 		}
 
 		public RawProtobufValue(string value, RawProtobufWireType storage)
 		{
-			this.Number = default;
-			this.Storage = storage;
-			this.String = value;
+			Number = default;
+			Storage = storage;
+			String = value;
 		}
 	}
 }

@@ -15,16 +15,16 @@ namespace Verse.Schemas
 	public sealed class JSONSchema<TEntity> : ISchema<JSONValue, TEntity>
 	{
 		/// <inheritdoc/>
-		public IDecoderAdapter<JSONValue> DecoderAdapter => this.decoderAdapter;
+		public IDecoderAdapter<JSONValue> DecoderAdapter => decoderAdapter;
 
 		/// <inheritdoc/>
-		public IDecoderDescriptor<JSONValue, TEntity> DecoderDescriptor => this.decoderDescriptor;
+		public IDecoderDescriptor<JSONValue, TEntity> DecoderDescriptor => decoderDescriptor;
 
 		/// <inheritdoc/>
-		public IEncoderAdapter<JSONValue> EncoderAdapter => this.encoderAdapter;
+		public IEncoderAdapter<JSONValue> EncoderAdapter => encoderAdapter;
 
 		/// <inheritdoc/>
-		public IEncoderDescriptor<JSONValue, TEntity> EncoderDescriptor => this.encoderDescriptor;
+		public IEncoderDescriptor<JSONValue, TEntity> EncoderDescriptor => encoderDescriptor;
 
 		private readonly JSONConfiguration configuration;
 
@@ -46,10 +46,10 @@ namespace Verse.Schemas
 			var readerDefinition = new ReaderDefinition<TEntity>();
 
 			this.configuration = configuration;
-			this.decoderAdapter = new JSONDecoderAdapter();
-			this.decoderDescriptor = new TreeDecoderDescriptor<ReaderState, JSONValue, int, TEntity>(readerDefinition);
-			this.encoderAdapter = new JSONEncoderAdapter();
-			this.encoderDescriptor = new TreeEncoderDescriptor<WriterState, JSONValue, TEntity>(writerDefinition);
+			decoderAdapter = new JSONDecoderAdapter();
+			decoderDescriptor = new TreeDecoderDescriptor<ReaderState, JSONValue, int, TEntity>(readerDefinition);
+			encoderAdapter = new JSONEncoderAdapter();
+			encoderDescriptor = new TreeEncoderDescriptor<WriterState, JSONValue, TEntity>(writerDefinition);
 		}
 
 		/// <summary>
@@ -67,16 +67,16 @@ namespace Verse.Schemas
 			var reader = new Reader(configuration.Encoding ?? new UTF8Encoding(false),
 				configuration.ReadObjectValuesAsArray, configuration.ReadScalarAsOneElementArray);
 
-			return this.decoderDescriptor.CreateDecoder(reader);
+			return decoderDescriptor.CreateDecoder(reader);
 		}
 
 		/// <inheritdoc/>
 		public IEncoder<TEntity> CreateEncoder()
 		{
-			var encoding = this.configuration.Encoding ?? new UTF8Encoding(false);
-			var reader = new Writer(encoding, this.configuration.OmitNull);
+			var encoding = configuration.Encoding ?? new UTF8Encoding(false);
+			var reader = new Writer(encoding, configuration.OmitNull);
 
-			return this.encoderDescriptor.CreateEncoder(reader);
+			return encoderDescriptor.CreateEncoder(reader);
 		}
 	}
 }

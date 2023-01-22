@@ -13,12 +13,12 @@ namespace Verse.EncoderDescriptors
 		public TreeEncoderDescriptor(IWriterDefinition<TState, TNative, TEntity> definition)
 		{
 			this.definition = definition;
-			this.fields = new Dictionary<string, WriterCallback<TState, TNative, TEntity>>();
+			fields = new Dictionary<string, WriterCallback<TState, TNative, TEntity>>();
 		}
 
 		public IEncoder<TEntity> CreateEncoder(IWriter<TState, TNative> reader)
 		{
-			return new TreeEncoder<TState, TNative, TEntity>(reader, this.definition.Callback);
+			return new TreeEncoder<TState, TNative, TEntity>(reader, definition.Callback);
 		}
 
 		public IEncoderDescriptor<TNative, TField> HasField<TField>(string name, Func<TEntity, TField> getter,
@@ -27,22 +27,22 @@ namespace Verse.EncoderDescriptors
 			if (!(descriptor is TreeEncoderDescriptor<TState, TNative, TField> ancestor))
 				throw new ArgumentOutOfRangeException(nameof(descriptor), "incompatible descriptor type");
 
-			return TreeEncoderDescriptor<TState, TNative, TEntity>.BindField(this.definition, name, this.fields, getter,
+			return BindField(definition, name, fields, getter,
 				ancestor);
 		}
 
 		public IEncoderDescriptor<TNative, TField> HasField<TField>(string name, Func<TEntity, TField> getter)
 		{
-			var fieldDefinition = this.definition.Create<TField>();
+			var fieldDefinition = definition.Create<TField>();
 			var fieldDescriptor = new TreeEncoderDescriptor<TState, TNative, TField>(fieldDefinition);
 
-			return TreeEncoderDescriptor<TState, TNative, TEntity>.BindField(this.definition, name, this.fields, getter,
+			return BindField(definition, name, fields, getter,
 				fieldDescriptor);
 		}
 
 		public IEncoderDescriptor<TNative, TEntity> HasField(string name)
 		{
-			return this.HasField(name, e => e);
+			return HasField(name, e => e);
 		}
 
 		public IEncoderDescriptor<TNative, TElement> HasElements<TElement>(Func<TEntity, IEnumerable<TElement>> getter,
@@ -51,21 +51,21 @@ namespace Verse.EncoderDescriptors
 			if (!(descriptor is TreeEncoderDescriptor<TState, TNative, TElement> ancestor))
 				throw new ArgumentOutOfRangeException(nameof(descriptor), "incompatible descriptor type");
 
-			return TreeEncoderDescriptor<TState, TNative, TEntity>.BindArray(this.definition, getter, ancestor);
+			return BindArray(definition, getter, ancestor);
 		}
 
 		public IEncoderDescriptor<TNative, TElement> HasElements<TElement>(Func<TEntity, IEnumerable<TElement>> getter)
 		{
-			var elementDefinition = this.definition.Create<TElement>();
+			var elementDefinition = definition.Create<TElement>();
 			var elementDescriptor = new TreeEncoderDescriptor<TState, TNative, TElement>(elementDefinition);
 
-			return TreeEncoderDescriptor<TState, TNative, TEntity>.BindArray(this.definition, getter,
+			return BindArray(definition, getter,
 				elementDescriptor);
 		}
 
 		public void HasValue(Func<TEntity, TNative> converter)
 		{
-			this.definition.Callback = (session, state, entity) => session.WriteAsValue(state, converter(entity));
+			definition.Callback = (session, state, entity) => session.WriteAsValue(state, converter(entity));
 		}
 
 		private static IEncoderDescriptor<TNative, TElement> BindArray<TElement>(

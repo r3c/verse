@@ -132,7 +132,7 @@ namespace Verse.Resolvers
 		public static bool TryGetDecoderConverter<TNative, TEntity>(IDecoderAdapter<TNative> adapter,
 			out Setter<TEntity, TNative> getter)
 		{
-			if (!AdapterResolver.ForDecoder.TryGetValue(typeof(TEntity), out var generator))
+			if (!ForDecoder.TryGetValue(typeof(TEntity), out var generator))
 			{
 				getter = default;
 
@@ -149,7 +149,7 @@ namespace Verse.Resolvers
 		public static bool TryGetEncoderConverter<TNative, TEntity>(IEncoderAdapter<TNative> adapter,
 			out Func<TEntity, TNative> converter)
 		{
-			if (!AdapterResolver.ForEncoder.TryGetValue(typeof(TEntity), out var generator))
+			if (!ForEncoder.TryGetValue(typeof(TEntity), out var generator))
 			{
 				converter = default;
 

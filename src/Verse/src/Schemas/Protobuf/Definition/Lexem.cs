@@ -34,8 +34,8 @@ namespace Verse.Schemas.Protobuf.Definition
 
         public Lexem(LexemType type, string value)
         {
-            this.Type = type;
-            this.Value = value;
+            Type = type;
+            Value = value;
         }
 
         public static bool operator ==(Lexem lhs, Lexem rhs)
@@ -50,17 +50,17 @@ namespace Verse.Schemas.Protobuf.Definition
 
         public bool Equals(Lexem other)
         {
-            return this.Type == other.Type && this.Value == other.Value;
+            return Type == other.Type && Value == other.Value;
         }
 
         public override bool Equals(object obj)
         {
-            return (obj is Lexem lexem) && this.Equals(lexem);
+            return (obj is Lexem lexem) && Equals(lexem);
         }
 
         public override int GetHashCode()
         {
-            return this.Type.GetHashCode() ^ this.Value.GetHashCode();
+            return Type.GetHashCode() ^ Value.GetHashCode();
         }
     }
 }

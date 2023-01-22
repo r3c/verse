@@ -34,11 +34,11 @@ namespace Verse.Schemas.Protobuf.Definition
                 {
                     lexer.Next();
 
-                    Parser.ParseOption(lexer);
-                    Parser.ParseValue(lexer, LexemType.SemiColon, "semicolon");
+                    ParseOption(lexer);
+                    ParseValue(lexer, LexemType.SemiColon, "semicolon");
                 }
                 else
-                    entity.Entities.Add(Parser.ParseEntity(lexer));
+                    entity.Entities.Add(ParseEntity(lexer));
             }
 
             return entity;
@@ -52,23 +52,23 @@ namespace Verse.Schemas.Protobuf.Definition
                     lexer.Next();
 
                     if (lexer.Current.Type == LexemType.Number)
-                        return Parser.ParseNumber(lexer, -1);
+                        return ParseNumber(lexer, -1);
 
                     break;
 
                 case LexemType.Number:
-                    return Parser.ParseNumber(lexer, 1);
+                    return ParseNumber(lexer, 1);
 
                 case LexemType.Plus:
                     lexer.Next();
 
                     if (lexer.Current.Type == LexemType.Number)
-                        return Parser.ParseNumber(lexer, 1);
+                        return ParseNumber(lexer, 1);
 
                     break;
 
                 case LexemType.String:
-                    return new ProtobufValue(Parser.ParseValue(lexer, LexemType.String, string.Empty));
+                    return new ProtobufValue(ParseValue(lexer, LexemType.String, string.Empty));
 
                 case LexemType.Symbol:
                     ProtobufValue value;
@@ -97,9 +97,9 @@ namespace Verse.Schemas.Protobuf.Definition
                 lexer.Next();
 
                 if (value == "enum")
-                    return Parser.ParseEnum(lexer);
+                    return ParseEnum(lexer);
                 else if (value == "message")
-                    return Parser.ParseMessage(lexer, new string[0]);
+                    return ParseMessage(lexer, new string[0]);
             }
 
             throw new ParserException(lexer.Position, "expected enum or message definition");
@@ -107,36 +107,36 @@ namespace Verse.Schemas.Protobuf.Definition
 
         private static ProtoEntity ParseEnum(Lexer lexer)
         {
-            var entity = new ProtoEntity(ProtoContainer.Enum, Parser.ParseValue(lexer, LexemType.Symbol, "enum name"));
+            var entity = new ProtoEntity(ProtoContainer.Enum, ParseValue(lexer, LexemType.Symbol, "enum name"));
 
-            Parser.ParseValue(lexer, LexemType.BraceBegin, "opening brace");
+            ParseValue(lexer, LexemType.BraceBegin, "opening brace");
 
             while (lexer.Current.Type != LexemType.BraceEnd)
             {
-                var label = Parser.ParseValue(lexer, LexemType.Symbol, "enum label");
+                var label = ParseValue(lexer, LexemType.Symbol, "enum label");
 
                 if (label == "option")
-                    Parser.ParseOption(lexer);
+                    ParseOption(lexer);
                 else
                 {
-                    Parser.ParseValue(lexer, LexemType.Equal, "equal sign");
+                    ParseValue(lexer, LexemType.Equal, "equal sign");
 
                     int value;
-                    if (!int.TryParse(Parser.ParseValue(lexer, LexemType.Number, "enum value"), NumberStyles.Integer, CultureInfo.InvariantCulture, out value))
+                    if (!int.TryParse(ParseValue(lexer, LexemType.Number, "enum value"), NumberStyles.Integer, CultureInfo.InvariantCulture, out value))
                         throw new ParserException(lexer.Position, "invalid enum value");
 
                     if (lexer.Current.Type == LexemType.BracketBegin)
                     {
                         lexer.Next();
 
-                        Parser.ParseOptions(lexer);
-                        Parser.ParseValue(lexer, LexemType.BracketEnd, "closing bracket");
+                        ParseOptions(lexer);
+                        ParseValue(lexer, LexemType.BracketEnd, "closing bracket");
                     }
 
                     entity.Labels.Add(new ProtoLabel(value, label));
                 }
 
-                Parser.ParseValue(lexer, LexemType.SemiColon, "semicolon");
+                ParseValue(lexer, LexemType.SemiColon, "semicolon");
             }
 
             lexer.Next();
@@ -149,19 +149,19 @@ namespace Verse.Schemas.Protobuf.Definition
 
         private static ProtoField ParseField(Lexer lexer, ProtoReference reference, ProtoOccurrence occurrence)
         {
-            string name = Parser.ParseValue(lexer, LexemType.Symbol, "field name");
+            string name = ParseValue(lexer, LexemType.Symbol, "field name");
 
-            Parser.ParseValue(lexer, LexemType.Equal, "equal sign");
+            ParseValue(lexer, LexemType.Equal, "equal sign");
 
-            if (!int.TryParse(Parser.ParseValue(lexer, LexemType.Number, "field number"), NumberStyles.Integer, CultureInfo.InvariantCulture, out var number))
+            if (!int.TryParse(ParseValue(lexer, LexemType.Number, "field number"), NumberStyles.Integer, CultureInfo.InvariantCulture, out var number))
                 throw new ParserException(lexer.Position, "invalid field number");
 
             if (lexer.Current.Type == LexemType.BracketBegin)
             {
                 lexer.Next();
 
-                Parser.ParseOptions(lexer);
-                Parser.ParseValue(lexer, LexemType.BracketEnd, "closing bracket");
+                ParseOptions(lexer);
+                ParseValue(lexer, LexemType.BracketEnd, "closing bracket");
             }
 
             return new ProtoField(number, reference, name, occurrence);
@@ -176,7 +176,7 @@ namespace Verse.Schemas.Protobuf.Definition
                 if (name.Length > 0)
                     name += ".";
 
-                name += Parser.ParseValue(lexer, LexemType.Symbol, "identifier");
+                name += ParseValue(lexer, LexemType.Symbol, "identifier");
 
                 if (lexer.Current.Type != LexemType.Dot)
                     break;
@@ -192,27 +192,27 @@ namespace Verse.Schemas.Protobuf.Definition
         {
             var entity = new ProtoEntity(ProtoContainer.Message, Guid.NewGuid().ToString("N"));
 
-            Parser.ParseValue(lexer, LexemType.LowerThan, "lower than sign");
+            ParseValue(lexer, LexemType.LowerThan, "lower than sign");
 
-            entity.Fields.Add(new ProtoField(1, Parser.ParseType(lexer, parentNames), "key", ProtoOccurrence.Required));
+            entity.Fields.Add(new ProtoField(1, ParseType(lexer, parentNames), "key", ProtoOccurrence.Required));
 
-            Parser.ParseValue(lexer, LexemType.Comma, "comma");
+            ParseValue(lexer, LexemType.Comma, "comma");
 
-            entity.Fields.Add(new ProtoField(2, Parser.ParseType(lexer, parentNames), "value", ProtoOccurrence.Required));
+            entity.Fields.Add(new ProtoField(2, ParseType(lexer, parentNames), "value", ProtoOccurrence.Required));
 
-            Parser.ParseValue(lexer, LexemType.GreaterThan, "greater than sign");
+            ParseValue(lexer, LexemType.GreaterThan, "greater than sign");
 
-            return Tuple.Create(entity, Parser.ParseField(lexer, new ProtoReference(parentNames.Concat(new [] { entity.Name })), ProtoOccurrence.Required));
+            return Tuple.Create(entity, ParseField(lexer, new ProtoReference(parentNames.Concat(new [] { entity.Name })), ProtoOccurrence.Required));
         }
 
         private static ProtoEntity ParseMessage(Lexer lexer, IEnumerable<string> parentNames)
         {
-            var name = Parser.ParseValue(lexer, LexemType.Symbol, "message name");
+            var name = ParseValue(lexer, LexemType.Symbol, "message name");
 
             var currentNames = parentNames.Concat(new [] { name });
             var entity = new ProtoEntity(ProtoContainer.Message, name);
 
-            Parser.ParseValue(lexer, LexemType.BraceBegin, "opening brace");
+            ParseValue(lexer, LexemType.BraceBegin, "opening brace");
 
             while (lexer.Current.Type != LexemType.BraceEnd)
             {
@@ -220,7 +220,7 @@ namespace Verse.Schemas.Protobuf.Definition
                 {
                     lexer.Next();
 
-                    entity.Entities.Add(Parser.ParseEnum(lexer));
+                    entity.Entities.Add(ParseEnum(lexer));
                 }
                 else if (lexer.Current == Lexem.Extend)
                     throw new InvalidOperationException("extensions are not supported yet");
@@ -232,31 +232,31 @@ namespace Verse.Schemas.Protobuf.Definition
                 {
                     lexer.Next();
 
-                    var map = Parser.ParseMapField(lexer, currentNames);
+                    var map = ParseMapField(lexer, currentNames);
 
                     entity.Entities.Add(map.Item1);
                     entity.Fields.Add(map.Item2);
 
-                    Parser.ParseValue(lexer, LexemType.SemiColon, "semicolon");
+                    ParseValue(lexer, LexemType.SemiColon, "semicolon");
                 }
                 else if (lexer.Current == Lexem.Message)
                 {
                     lexer.Next();
 
-                    entity.Entities.Add(Parser.ParseMessage(lexer, currentNames));
+                    entity.Entities.Add(ParseMessage(lexer, currentNames));
                 }
                 else if (lexer.Current == Lexem.OneOf)
                 {
                     lexer.Next();
 
-                    entity.Entities.Add(Parser.ParseOneOf(lexer, currentNames));
+                    entity.Entities.Add(ParseOneOf(lexer, currentNames));
                 }
                 else if (lexer.Current == Lexem.Option)
                 {
                     lexer.Next();
 
-                    Parser.ParseOption(lexer);
-                    Parser.ParseValue(lexer, LexemType.SemiColon, "semicolon");
+                    ParseOption(lexer);
+                    ParseValue(lexer, LexemType.SemiColon, "semicolon");
                 }
                 else if (lexer.Current == Lexem.Reserved)
                     throw new InvalidOperationException("reserved fields are not supported yet");
@@ -285,9 +285,9 @@ namespace Verse.Schemas.Protobuf.Definition
                     else
                         occurrence = ProtoOccurrence.Optional;
 
-                    entity.Fields.Add(Parser.ParseField(lexer, Parser.ParseType(lexer, parentNames), occurrence));
+                    entity.Fields.Add(ParseField(lexer, ParseType(lexer, parentNames), occurrence));
 
-                    Parser.ParseValue(lexer, LexemType.SemiColon, "semicolon");
+                    ParseValue(lexer, LexemType.SemiColon, "semicolon");
                 }
             }
 
@@ -313,15 +313,15 @@ namespace Verse.Schemas.Protobuf.Definition
 
         private static ProtoEntity ParseOneOf(Lexer lexer, IEnumerable<string> parentNames)
         {
-            var entity = new ProtoEntity(ProtoContainer.OneOf, Parser.ParseValue(lexer, LexemType.Symbol, "oneof name"));
+            var entity = new ProtoEntity(ProtoContainer.OneOf, ParseValue(lexer, LexemType.Symbol, "oneof name"));
 
-            Parser.ParseValue(lexer, LexemType.BraceBegin, "opening brace");
+            ParseValue(lexer, LexemType.BraceBegin, "opening brace");
 
             while (lexer.Current.Type != LexemType.BraceEnd)
             {
-                entity.Fields.Add(Parser.ParseField(lexer, Parser.ParseType(lexer, parentNames), ProtoOccurrence.Required));
+                entity.Fields.Add(ParseField(lexer, ParseType(lexer, parentNames), ProtoOccurrence.Required));
 
-                Parser.ParseValue(lexer, LexemType.SemiColon, "semicolon");
+                ParseValue(lexer, LexemType.SemiColon, "semicolon");
             }
 
             lexer.Next();
@@ -335,21 +335,21 @@ namespace Verse.Schemas.Protobuf.Definition
             {
                 lexer.Next();
 
-                Parser.ParseFullIdent(lexer);
-                Parser.ParseValue(lexer, LexemType.ParenthesisEnd, "parenthesis end");
+                ParseFullIdent(lexer);
+                ParseValue(lexer, LexemType.ParenthesisEnd, "parenthesis end");
             }
             else
-                Parser.ParseValue(lexer, LexemType.Symbol, "option name");
+                ParseValue(lexer, LexemType.Symbol, "option name");
 
             while (lexer.Current.Type == LexemType.Dot)
             {
                 lexer.Next();
 
-                Parser.ParseValue(lexer, LexemType.Symbol, "option name");
+                ParseValue(lexer, LexemType.Symbol, "option name");
             }
 
-            Parser.ParseValue(lexer, LexemType.Equal, "equal sign");
-            Parser.ParseConstant(lexer);
+            ParseValue(lexer, LexemType.Equal, "equal sign");
+            ParseConstant(lexer);
         }
 
         private static void ParseOptions(Lexer lexer)
@@ -359,7 +359,7 @@ namespace Verse.Schemas.Protobuf.Definition
                 if (!first)
                     lexer.Next();
 
-                Parser.ParseOption(lexer);
+                ParseOption(lexer);
             }
         }
 
@@ -376,7 +376,7 @@ namespace Verse.Schemas.Protobuf.Definition
             else
                 local = true;
 
-            var ident = Parser.ParseFullIdent(lexer);
+            var ident = ParseFullIdent(lexer);
 
             if (Enum.TryParse(ident.ToLowerInvariant(), true, out ProtoType type))
                 return new ProtoReference(type);

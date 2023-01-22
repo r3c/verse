@@ -15,10 +15,10 @@ namespace Verse.Schemas
 	public sealed class QueryStringSchema<TEntity> : ISchema<string, TEntity>
 	{
 		/// <inheritdoc/>
-		public IDecoderAdapter<string> DecoderAdapter => this.decoderAdapter;
+		public IDecoderAdapter<string> DecoderAdapter => decoderAdapter;
 
 		/// <inheritdoc/>
-		public IDecoderDescriptor<string, TEntity> DecoderDescriptor => this.decoderDescriptor;
+		public IDecoderDescriptor<string, TEntity> DecoderDescriptor => decoderDescriptor;
 
 		/// <inheritdoc/>
 		public IEncoderAdapter<string> EncoderAdapter => throw new NotImplementedException("encoding not implemented");
@@ -37,8 +37,8 @@ namespace Verse.Schemas
 		{
 			var readerDefinition = new ReaderDefinition<TEntity>();
 
-			this.decoderAdapter = new QueryStringDecoderAdapter();
-			this.decoderDescriptor = new TreeDecoderDescriptor<ReaderState, string, char, TEntity>(readerDefinition);
+			decoderAdapter = new QueryStringDecoderAdapter();
+			decoderDescriptor = new TreeDecoderDescriptor<ReaderState, string, char, TEntity>(readerDefinition);
 			this.encoding = encoding;
 		}
 
@@ -50,7 +50,7 @@ namespace Verse.Schemas
 		/// <inheritdoc/>
 		public IDecoder<TEntity> CreateDecoder()
 		{
-			return this.decoderDescriptor.CreateDecoder(new Reader(this.encoding));
+			return decoderDescriptor.CreateDecoder(new Reader(encoding));
 		}
 
 		/// <inheritdoc/>

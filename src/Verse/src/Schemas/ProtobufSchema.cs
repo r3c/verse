@@ -16,16 +16,16 @@ namespace Verse.Schemas
 	public sealed class ProtobufSchema<TEntity> : ISchema<ProtobufValue, TEntity>
 	{
 		/// <inheritdoc/>
-		public IDecoderAdapter<ProtobufValue> DecoderAdapter => this.decoderAdapter;
+		public IDecoderAdapter<ProtobufValue> DecoderAdapter => decoderAdapter;
 
 		/// <inheritdoc/>
-		public IDecoderDescriptor<ProtobufValue, TEntity> DecoderDescriptor => this.decoderDescriptor;
+		public IDecoderDescriptor<ProtobufValue, TEntity> DecoderDescriptor => decoderDescriptor;
 
 		/// <inheritdoc/>
-		public IEncoderAdapter<ProtobufValue> EncoderAdapter => this.encoderAdapter;
+		public IEncoderAdapter<ProtobufValue> EncoderAdapter => encoderAdapter;
 
 		/// <inheritdoc/>
-		public IEncoderDescriptor<ProtobufValue, TEntity> EncoderDescriptor => this.encoderDescriptor;
+		public IEncoderDescriptor<ProtobufValue, TEntity> EncoderDescriptor => encoderDescriptor;
 
 		private readonly ProtobufDecoderAdapter decoderAdapter;
 
@@ -41,10 +41,10 @@ namespace Verse.Schemas
 			var reader = new ProtobufReaderDefinition<TEntity>(bindings, configuration.RejectUnknown);
 			var writer = new ProtobufWriterDefinition<TEntity>(bindings);
 
-			this.decoderAdapter = new ProtobufDecoderAdapter();
-			this.decoderDescriptor = new TreeDecoderDescriptor<ReaderState, ProtobufValue, int, TEntity>(reader);
-			this.encoderAdapter = new ProtobufEncoderAdapter();
-			this.encoderDescriptor = new TreeEncoderDescriptor<WriterState, ProtobufValue, TEntity>(writer);
+			decoderAdapter = new ProtobufDecoderAdapter();
+			decoderDescriptor = new TreeDecoderDescriptor<ReaderState, ProtobufValue, int, TEntity>(reader);
+			encoderAdapter = new ProtobufEncoderAdapter();
+			encoderDescriptor = new TreeEncoderDescriptor<WriterState, ProtobufValue, TEntity>(writer);
 		}
 
 		public ProtobufSchema(TextReader proto, string messageName)
@@ -54,12 +54,12 @@ namespace Verse.Schemas
 
 		public IDecoder<TEntity> CreateDecoder()
 		{
-			return this.decoderDescriptor.CreateDecoder(new Reader());
+			return decoderDescriptor.CreateDecoder(new Reader());
 		}
 
 		public IEncoder<TEntity> CreateEncoder()
 		{
-			return this.encoderDescriptor.CreateEncoder(new Writer());
+			return encoderDescriptor.CreateEncoder(new Writer());
 		}
 	}
 }

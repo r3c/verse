@@ -26,7 +26,7 @@ namespace Verse.Schemas.Protobuf
 
 		public IReaderDefinition<ReaderState, ProtobufValue, int, TOther> Create<TOther>()
 		{
-			return new ProtobufReaderDefinition<TOther>(this.bindings, this.rejectUnknown);
+			return new ProtobufReaderDefinition<TOther>(bindings, rejectUnknown);
 		}
 /*
 		public override TreeReader<ReaderState, TField, ProtobufValue> HasField<TField>(string name, ReaderCallback<ReaderState, TEntity> enter)

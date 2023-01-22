@@ -17,27 +17,27 @@ namespace Verse.Schemas.JSON
 	    public ReaderState(Stream stream, Encoding encoding, ErrorEvent error)
 		{
 			this.error = error;
-			this.position = 0;
-			this.reader = new StreamReader(stream, encoding, false, 1024, true);
+			position = 0;
+			reader = new StreamReader(stream, encoding, false, 1024, true);
 
-			this.Read();
+			Read();
 		}
 
 	    public void Dispose()
 	    {
-		    this.reader.Dispose();
+		    reader.Dispose();
 	    }
 
 		public void Error(string message)
 		{
-			this.error(this.position, message);
+			error(position, message);
 		}
 
 		public bool PullCharacter(out char character)
 		{
-		    var previous = this.Current;
+		    var previous = Current;
 
-			this.Read();
+			Read();
 
 			if (previous < 0)
 			{
@@ -53,9 +53,9 @@ namespace Verse.Schemas.JSON
 				return true;
 			}
 
-			previous = this.Current;
+			previous = Current;
 
-			this.Read();
+			Read();
 
 			switch (previous)
 			{
@@ -104,9 +104,9 @@ namespace Verse.Schemas.JSON
 
 					for (var i = 0; i < 4; ++i)
 					{
-						previous = this.Current;
+						previous = Current;
 
-						this.Read();
+						Read();
 
 					    int nibble;
 
@@ -118,7 +118,7 @@ namespace Verse.Schemas.JSON
 							nibble = previous - 'a' + 10;
 						else
 						{
-							this.Error("unknown character in unicode escape sequence");
+							Error("unknown character in unicode escape sequence");
 
 							character = default;
 
@@ -141,29 +141,29 @@ namespace Verse.Schemas.JSON
 
 		public bool PullExpected(char expected)
 		{
-			if (this.Current != expected)
+			if (Current != expected)
 			{
-				this.Error("expected '" + expected + "'");
+				Error("expected '" + expected + "'");
 
 				return false;
 			}
 
-			this.Read();
+			Read();
 
 			return true;
 		}
 
 		public void PullIgnored()
 		{
-		    while (this.Current >= 0 && this.Current <= ' ')
-			    this.Read();
+		    while (Current >= 0 && Current <= ' ')
+			    Read();
 		}
 
 		public void Read()
 		{
-			this.Current = this.reader.Read();
+			Current = reader.Read();
 
-			++this.position;
+			++position;
 		}
 	}
 }

@@ -6,9 +6,9 @@ namespace Verse.Schemas.Protobuf.Definition
 {
     internal class Lexer
     {
-        public Lexem Current => this.current;
+        public Lexem Current => current;
 
-        public int Position => this.position;
+        public int Position => position;
 
         private Lexem current;
 
@@ -20,11 +20,11 @@ namespace Verse.Schemas.Protobuf.Definition
 
         public Lexer(TextReader reader)
         {
-            this.pending = reader.Read();
-            this.position = 1;
+            pending = reader.Read();
+            position = 1;
             this.reader = reader;
 
-            this.Next();
+            Next();
         }
 
         public void Next()
@@ -33,201 +33,201 @@ namespace Verse.Schemas.Protobuf.Definition
             LexemType type;
 
             // Skip whitespaces
-            while (this.pending >= 0 && this.pending <= ' ')
-                this.Read();
+            while (pending >= 0 && pending <= ' ')
+                Read();
 
             // Match current character
-            if (this.pending < 0)
+            if (pending < 0)
                 type = LexemType.End;
-            else if (this.pending == '{')
+            else if (pending == '{')
                 type = LexemType.BraceBegin;
-            else if (this.pending == '}')
+            else if (pending == '}')
                 type = LexemType.BraceEnd;
-            else if (this.pending == '[')
+            else if (pending == '[')
                 type = LexemType.BracketBegin;
-            else if (this.pending == ']')
+            else if (pending == ']')
                 type = LexemType.BracketEnd;
-            else if (this.pending == ',')
+            else if (pending == ',')
                 type = LexemType.Comma;
-            else if (this.pending == '=')
+            else if (pending == '=')
                 type = LexemType.Equal;
-            else if (this.pending == '.')
+            else if (pending == '.')
                 type = LexemType.Dot;
-            else if (this.pending == '>')
+            else if (pending == '>')
                 type = LexemType.GreaterThan;
-            else if (this.pending == '<')
+            else if (pending == '<')
                 type = LexemType.LowerThan;
-            else if (this.pending == '-')
+            else if (pending == '-')
                 type = LexemType.Minus;
-            else if (this.pending == ';')
+            else if (pending == ';')
                 type = LexemType.SemiColon;
-            else if (this.pending == '(')
+            else if (pending == '(')
                 type = LexemType.ParenthesisBegin;
-            else if (this.pending == '+')
+            else if (pending == '+')
                 type = LexemType.Plus;
-            else if (this.pending == ')')
+            else if (pending == ')')
                 type = LexemType.ParenthesisEnd;
-            else if (this.pending == '/')
+            else if (pending == '/')
             {
-                this.Read();
+                Read();
 
-                if (this.pending == '/')
+                if (pending == '/')
                 {
-                    while (this.pending >= 0 && this.pending != '\n')
-                        this.Read();
+                    while (pending >= 0 && pending != '\n')
+                        Read();
 
-                    this.Next();
+                    Next();
 
                     return;
                 }
 
                 type = LexemType.Unknown;
             }
-            else if (this.pending >= '0' && this.pending <= '9')
+            else if (pending >= '0' && pending <= '9')
             {
                 builder = new StringBuilder();
 
                 do
                 {
-                    builder.Append((char)this.pending);
+                    builder.Append((char)pending);
 
-                    this.Read();
+                    Read();
                 }
-                while (this.pending >= '0' && this.pending <= '9');
+                while (pending >= '0' && pending <= '9');
 
-                this.current = new Lexem(LexemType.Number, builder.ToString());
+                current = new Lexem(LexemType.Number, builder.ToString());
 
                 return;
             }
-            else if ((this.pending >= 'A' && this.pending <= 'Z') || (this.pending >= 'a' && this.pending <= 'z') || this.pending == '_')
+            else if ((pending >= 'A' && pending <= 'Z') || (pending >= 'a' && pending <= 'z') || pending == '_')
             {
                 builder = new StringBuilder();
 
                 do
                 {
-                    builder.Append((char)this.pending);
+                    builder.Append((char)pending);
 
-                    this.Read();
+                    Read();
                 }
-                while ((this.pending >= '0' && this.pending <= '9') || (this.pending >= 'A' && this.pending <= 'Z') || (this.pending >= 'a' && this.pending <= 'z') || this.pending == '_');
+                while ((pending >= '0' && pending <= '9') || (pending >= 'A' && pending <= 'Z') || (pending >= 'a' && pending <= 'z') || pending == '_');
 
-                this.current = new Lexem(LexemType.Symbol, builder.ToString());
+                current = new Lexem(LexemType.Symbol, builder.ToString());
 
                 return;
             }
-            else if (this.pending == '\'' || this.pending == '"')
+            else if (pending == '\'' || pending == '"')
             {
-                var delimiter = this.pending;
+                var delimiter = pending;
 
                 builder = new StringBuilder();
 
                 while (true)
                 {
-                    this.pending = this.reader.Read();
+                    pending = reader.Read();
 
-                    ++this.position;
+                    ++position;
 
-                    if (this.pending == delimiter)
+                    if (pending == delimiter)
                         break;
 
-                    if (this.pending == '\\')
+                    if (pending == '\\')
                     {
-                        this.pending = this.reader.Read();
+                        pending = reader.Read();
 
-                        ++this.position;
+                        ++position;
 
-                        if (this.pending == 'X' || this.pending == 'x')
+                        if (pending == 'X' || pending == 'x')
                         {
-                            var hex1 = this.reader.Read();
-                            var hex2 = this.reader.Read();
+                            var hex1 = reader.Read();
+                            var hex2 = reader.Read();
 
-                            this.position += 2;
+                            position += 2;
 
                             if (((hex1 < '0' || hex1 > '9') && (hex1 < 'A' || hex1 > 'F') && (hex1 < 'a' || hex1 > 'f')) ||
                                 ((hex2 < '0' || hex2 > '9') && (hex2 < 'A' || hex2 > 'F') && (hex2 < 'a' || hex2 > 'f')))
                             {
-                                this.current = new Lexem(LexemType.Unknown, new string(new [] {(char)hex1, (char)hex2}));
+                                current = new Lexem(LexemType.Unknown, new string(new [] {(char)hex1, (char)hex2}));
 
                                 return;
                             }
 
                             builder.Append((char)int.Parse(string.Empty, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture));
                         }
-                        else if (this.pending == '0')
+                        else if (pending == '0')
                         {
-                            var oct1 = this.reader.Read();
-                            var oct2 = this.reader.Read();
-                            var oct3 = this.reader.Read();
+                            var oct1 = reader.Read();
+                            var oct2 = reader.Read();
+                            var oct3 = reader.Read();
 
-                            this.position += 3;
+                            position += 3;
 
                             if (oct1 < '0' || oct1 > '9' || oct2 < '0' || oct2 > '9' || oct3 < '0' || oct3 > '9')
                             {
-                                this.current = new Lexem(LexemType.Unknown, new string(new [] {(char)oct1, (char)oct2, (char)oct3}));
+                                current = new Lexem(LexemType.Unknown, new string(new [] {(char)oct1, (char)oct2, (char)oct3}));
 
                                 return;
                             }
 
                             builder.Append((char)((oct1 - '0') * 8 * 8 + (oct2 - '0') * 8 + (oct3 - '0')));
                         }
-                        else if (this.pending == 'a')
+                        else if (pending == 'a')
                             builder.Append('\a');
-                        else if (this.pending == 'b')
+                        else if (pending == 'b')
                             builder.Append('\b');
-                        else if (this.pending == 'f')
+                        else if (pending == 'f')
                             builder.Append('\f');
-                        else if (this.pending == 'n')
+                        else if (pending == 'n')
                             builder.Append('\n');
-                        else if (this.pending == 'r')
+                        else if (pending == 'r')
                             builder.Append('\r');
-                        else if (this.pending == 't')
+                        else if (pending == 't')
                             builder.Append('\t');
-                        else if (this.pending == 'v')
+                        else if (pending == 'v')
                             builder.Append('\v');
-                        else if (this.pending == '\\')
+                        else if (pending == '\\')
                             builder.Append('\\');
-                        else if (this.pending == '\'')
+                        else if (pending == '\'')
                             builder.Append('\'');
-                        else if (this.pending == '"')
+                        else if (pending == '"')
                             builder.Append('"');
                         else
                         {
-                            this.current = new Lexem(LexemType.Unknown, new string((char)this.pending, 1));
+                            current = new Lexem(LexemType.Unknown, new string((char)pending, 1));
 
                             return;
                         }
 
-                        this.Read();
+                        Read();
                     }
-                    else if (this.pending > 0 && this.pending != '\n' && this.pending != '\\')
-                        builder.Append((char)this.pending);
+                    else if (pending > 0 && pending != '\n' && pending != '\\')
+                        builder.Append((char)pending);
                     else
                     {
-                        this.current = new Lexem(LexemType.Unknown, new string((char)this.pending, 1));
+                        current = new Lexem(LexemType.Unknown, new string((char)pending, 1));
 
                         return;
                     }
                 }
 
-                this.current = new Lexem(LexemType.String, builder.ToString());
+                current = new Lexem(LexemType.String, builder.ToString());
 
-                this.Read();
+                Read();
 
                 return;
             }
             else
                 type = LexemType.Unknown;
 
-            this.current = new Lexem(type, this.pending > 0 ? new string((char)this.pending, 1) : string.Empty);
+            current = new Lexem(type, pending > 0 ? new string((char)pending, 1) : string.Empty);
 
-            this.Read();
+            Read();
         }
 
         private void Read()
         {
-            this.pending = this.reader.Read();
+            pending = reader.Read();
 
-            ++this.position;
+            ++position;
         }
     }
 }

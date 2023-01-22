@@ -19,89 +19,89 @@ namespace Verse.Schemas.JSON
 
 		private readonly StreamWriter writer;
 
-		private static readonly string[] Ascii = new string[WriterState.AsciiUpperBound];
+		private static readonly string[] Ascii = new string[AsciiUpperBound];
 
 		private static readonly char[] Hexa =
 			{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
 		public WriterState(Stream stream, Encoding encoding, bool omitNull)
 		{
-			this.isEmpty = true;
-			this.nextKey = null;
-			this.needComma = false;
+			isEmpty = true;
+			nextKey = null;
+			needComma = false;
 			this.omitNull = omitNull;
-			this.writer = new StreamWriter(stream, encoding, 1024, true);
+			writer = new StreamWriter(stream, encoding, 1024, true);
 		}
 
 		static WriterState()
 		{
 			for (var i = 0; i < 32; ++i)
-				WriterState.Ascii[i] = "\\u00" + WriterState.Hexa[(i >> 4) & 0xF] + WriterState.Hexa[(i >> 0) & 0xF];
+				Ascii[i] = "\\u00" + Hexa[(i >> 4) & 0xF] + Hexa[(i >> 0) & 0xF];
 
-			for (var i = 32; i < WriterState.AsciiUpperBound; ++i)
-				WriterState.Ascii[i] = new string((char) i, 1);
+			for (var i = 32; i < AsciiUpperBound; ++i)
+				Ascii[i] = new string((char) i, 1);
 
-			WriterState.Ascii['\b'] = "\\b";
-			WriterState.Ascii['\f'] = "\\f";
-			WriterState.Ascii['\n'] = "\\n";
-			WriterState.Ascii['\r'] = "\\r";
-			WriterState.Ascii['\t'] = "\\t";
-			WriterState.Ascii['\\'] = "\\\\";
-			WriterState.Ascii['"'] = "\\\"";
+			Ascii['\b'] = "\\b";
+			Ascii['\f'] = "\\f";
+			Ascii['\n'] = "\\n";
+			Ascii['\r'] = "\\r";
+			Ascii['\t'] = "\\t";
+			Ascii['\\'] = "\\\\";
+			Ascii['"'] = "\\\"";
 		}
 
 		public void ArrayBegin()
 		{
-			this.AppendPrefix();
-			this.writer.Write('[');
+			AppendPrefix();
+			writer.Write('[');
 
-			this.isEmpty = false;
-			this.needComma = false;
+			isEmpty = false;
+			needComma = false;
 		}
 
 		public void ArrayEnd()
 		{
-			this.writer.Write(']');
+			writer.Write(']');
 
-			this.isEmpty = false;
-			this.needComma = true;
+			isEmpty = false;
+			needComma = true;
 		}
 
 		public void Dispose()
 		{
-			this.writer.Dispose();
+			writer.Dispose();
 		}
 
 		public void Flush()
 		{
-			if (this.isEmpty)
-				this.AppendNull();
+			if (isEmpty)
+				AppendNull();
 
-			this.isEmpty = true;
-			this.nextKey = null;
-			this.needComma = false;
+			isEmpty = true;
+			nextKey = null;
+			needComma = false;
 		}
 
 		public void Key(string key)
 		{
-			this.nextKey = key;
+			nextKey = key;
 		}
 
 		public void ObjectBegin()
 		{
-			this.AppendPrefix();
-			this.writer.Write('{');
+			AppendPrefix();
+			writer.Write('{');
 
-			this.isEmpty = false;
-			this.needComma = false;
+			isEmpty = false;
+			needComma = false;
 		}
 
 		public void ObjectEnd()
 		{
-			this.writer.Write('}');
+			writer.Write('}');
 
-			this.isEmpty = false;
-			this.needComma = true;
+			isEmpty = false;
+			needComma = true;
 		}
 
 		public void Value(JSONValue value)
@@ -109,58 +109,58 @@ namespace Verse.Schemas.JSON
 			switch (value.Type)
 			{
 				case JSONType.Boolean:
-					this.AppendPrefix();
-					this.writer.Write(value.Boolean ? "true" : "false");
+					AppendPrefix();
+					writer.Write(value.Boolean ? "true" : "false");
 
 					break;
 
 				case JSONType.Number:
-					this.AppendPrefix();
-					this.writer.Write(value.Number.ToString(CultureInfo.InvariantCulture));
+					AppendPrefix();
+					writer.Write(value.Number.ToString(CultureInfo.InvariantCulture));
 
 					break;
 
 				case JSONType.String:
-					this.AppendPrefix();
-					WriterState.WriteString(this.writer, value.String);
+					AppendPrefix();
+					WriteString(writer, value.String);
 
 					break;
 
 				default:
-					if (this.omitNull)
+					if (omitNull)
 					{
-						this.nextKey = null;
+						nextKey = null;
 
 						return;
 					}
 
-					this.AppendPrefix();
-					this.AppendNull();
+					AppendPrefix();
+					AppendNull();
 
 					break;
 			}
 
-			this.isEmpty = false;
-			this.needComma = true;
+			isEmpty = false;
+			needComma = true;
 		}
 
 		private void AppendNull()
 		{
-			this.writer.Write("null");
+			writer.Write("null");
 		}
 
 		private void AppendPrefix()
 		{
-			if (this.needComma)
-				this.writer.Write(',');
+			if (needComma)
+				writer.Write(',');
 
-			if (this.nextKey == null)
+			if (nextKey == null)
 				return;
 
-			WriterState.WriteString(this.writer, this.nextKey);
+			WriteString(writer, nextKey);
 
-			this.writer.Write(':');
-			this.nextKey = null;
+			writer.Write(':');
+			nextKey = null;
 		}
 
 		private static void WriteString(TextWriter writer, string value)
@@ -169,15 +169,15 @@ namespace Verse.Schemas.JSON
 
 			foreach (var c in value)
 			{
-				if (c < WriterState.AsciiUpperBound)
-					writer.Write(WriterState.Ascii[c]);
+				if (c < AsciiUpperBound)
+					writer.Write(Ascii[c]);
 				else
 				{
 					writer.Write("\\u");
-					writer.Write(WriterState.Hexa[(c >> 12) & 0xF]);
-					writer.Write(WriterState.Hexa[(c >> 8) & 0xF]);
-					writer.Write(WriterState.Hexa[(c >> 4) & 0xF]);
-					writer.Write(WriterState.Hexa[(c >> 0) & 0xF]);
+					writer.Write(Hexa[(c >> 12) & 0xF]);
+					writer.Write(Hexa[(c >> 8) & 0xF]);
+					writer.Write(Hexa[(c >> 4) & 0xF]);
+					writer.Write(Hexa[(c >> 0) & 0xF]);
 				}
 			}
 

@@ -26,14 +26,14 @@ namespace Verse.Schemas.JSON
 			switch (state.Current)
 			{
 				case '[':
-					browserMove = this.ReadToArrayFromArray(state, callback);
+					browserMove = ReadToArrayFromArray(state, callback);
 
 					return ReaderStatus.Succeeded;
 
 				case '{':
-					if (this.readObjectValuesAsArray)
+					if (readObjectValuesAsArray)
 					{
-						browserMove = this.ReadToArrayFromObjectValues(state, callback);
+						browserMove = ReadToArrayFromObjectValues(state, callback);
 
 						return ReaderStatus.Succeeded;
 					}
@@ -43,11 +43,11 @@ namespace Verse.Schemas.JSON
 				case 'n':
 					browserMove = default;
 
-					return Reader.ExpectKeywordNull(state) ? ReaderStatus.Ignored : ReaderStatus.Failed;
+					return ExpectKeywordNull(state) ? ReaderStatus.Ignored : ReaderStatus.Failed;
 
 				default:
 					// Accept any scalar value as an array of one element
-					if (this.readScalarAsOneElementArray)
+					if (readScalarAsOneElementArray)
 					{
 						browserMove = (int index, out TElement current) =>
 						{
@@ -78,7 +78,7 @@ namespace Verse.Schemas.JSON
 							return BrowserState.Success;
 						};
 
-						return this.Skip(state) ? ReaderStatus.Succeeded : ReaderStatus.Failed;
+						return Skip(state) ? ReaderStatus.Succeeded : ReaderStatus.Failed;
 					}
 			}
 		}
@@ -91,13 +91,13 @@ namespace Verse.Schemas.JSON
 			switch (state.Current)
 			{
 				case '[':
-					return this.ReadToObjectFromArray(state, root, ref target);
+					return ReadToObjectFromArray(state, root, ref target);
 
 				case '{':
-					return this.ReadToObjectFromObject(state, root, ref target);
+					return ReadToObjectFromObject(state, root, ref target);
 
 				default:
-					return this.Skip(state) ? ReaderStatus.Ignored : ReaderStatus.Failed;
+					return Skip(state) ? ReaderStatus.Ignored : ReaderStatus.Failed;
 			}
 		}
 
@@ -108,7 +108,7 @@ namespace Verse.Schemas.JSON
 			switch (state.Current)
 			{
 				case '"':
-					return Reader.ReadToValueFromString(state, out value);
+					return ReadToValueFromString(state, out value);
 
 				case '-':
 				case '.':
@@ -122,10 +122,10 @@ namespace Verse.Schemas.JSON
 				case '7':
 				case '8':
 				case '9':
-					return Reader.ReadToValueFromNumber(state, out value);
+					return ReadToValueFromNumber(state, out value);
 
 				case 'f':
-					if (!Reader.ExpectKeywordFalse(state))
+					if (!ExpectKeywordFalse(state))
 					{
 						value = default;
 
@@ -137,7 +137,7 @@ namespace Verse.Schemas.JSON
 					return ReaderStatus.Succeeded;
 
 				case 'n':
-					if (!Reader.ExpectKeywordNull(state))
+					if (!ExpectKeywordNull(state))
 					{
 						value = default;
 
@@ -149,7 +149,7 @@ namespace Verse.Schemas.JSON
 					return ReaderStatus.Ignored;
 
 				case 't':
-					if (!Reader.ExpectKeywordTrue(state))
+					if (!ExpectKeywordTrue(state))
 					{
 						value = default;
 
@@ -163,12 +163,12 @@ namespace Verse.Schemas.JSON
 				case '[':
 					value = default;
 
-					return this.Skip(state) ? ReaderStatus.Succeeded : ReaderStatus.Failed;
+					return Skip(state) ? ReaderStatus.Succeeded : ReaderStatus.Failed;
 
 				case '{':
 					value = default;
 
-					return this.Skip(state) ? ReaderStatus.Succeeded : ReaderStatus.Failed;
+					return Skip(state) ? ReaderStatus.Succeeded : ReaderStatus.Failed;
 
 				default:
 					state.Error("expected array, object or value");
@@ -181,7 +181,7 @@ namespace Verse.Schemas.JSON
 
 		public ReaderState Start(Stream stream, ErrorEvent error)
 		{
-			return new ReaderState(stream, this.encoding, error);
+			return new ReaderState(stream, encoding, error);
 		}
 
 		public void Stop(ReaderState state)
@@ -327,7 +327,7 @@ namespace Verse.Schemas.JSON
 				var node = root.Follow(index);
 
 				// Read array value
-				if (!(node.HasValue ? node.Value(this, state, ref target) != ReaderStatus.Failed : this.Skip(state)))
+				if (!(node.HasValue ? node.Value(this, state, ref target) != ReaderStatus.Failed : Skip(state)))
 					return ReaderStatus.Failed;
 			}
 
@@ -395,7 +395,7 @@ namespace Verse.Schemas.JSON
 				}
 				else
 				{
-					if (!this.Skip(state))
+					if (!Skip(state))
 						return ReaderStatus.Failed;
 				}
 			}
@@ -591,24 +591,24 @@ namespace Verse.Schemas.JSON
 				case '7':
 				case '8':
 				case '9':
-					return Reader.ReadToValueFromNumber(state, out _) != ReaderStatus.Failed;
+					return ReadToValueFromNumber(state, out _) != ReaderStatus.Failed;
 
 				case 'f':
-					return Reader.ExpectKeywordFalse(state);
+					return ExpectKeywordFalse(state);
 
 				case 'n':
-					return Reader.ExpectKeywordNull(state);
+					return ExpectKeywordNull(state);
 
 				case 't':
-					return Reader.ExpectKeywordTrue(state);
+					return ExpectKeywordTrue(state);
 
 				case '[':
-					return this.ReadToObjectFromArray(state,
+					return ReadToObjectFromArray(state,
 						       EmptyLookupNode<int, ReaderCallback<ReaderState, JSONValue, int, bool>>.Instance,
 						       ref empty) != ReaderStatus.Failed;
 
 				case '{':
-					return this.ReadToObjectFromObject(state,
+					return ReadToObjectFromObject(state,
 						       EmptyLookupNode<int, ReaderCallback<ReaderState, JSONValue, int, bool>>.Instance,
 						       ref empty) != ReaderStatus.Failed;
 

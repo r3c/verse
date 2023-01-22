@@ -27,7 +27,7 @@ namespace Verse
 		public static IDecoder<TEntity> CreateDecoder<TNative, TEntity>(ISchema<TNative, TEntity> schema,
 			IReadOnlyDictionary<Type, object> converters, BindingFlags bindings)
 		{
-			if (!Linker.TryLinkDecoder(schema.DecoderDescriptor, schema.DecoderAdapter, converters, bindings,
+			if (!TryLinkDecoder(schema.DecoderDescriptor, schema.DecoderAdapter, converters, bindings,
 				new Dictionary<Type, object>()))
 				throw new ArgumentException($"can't link decoder for type '{typeof(TEntity)}'", nameof(schema));
 
@@ -44,7 +44,7 @@ namespace Verse
 		/// <returns>Entity decoder</returns>
 		public static IDecoder<TEntity> CreateDecoder<TNative, TEntity>(ISchema<TNative, TEntity> schema)
 		{
-			return Linker.CreateDecoder(schema, new Dictionary<Type, object>(), Linker.DefaultBindings);
+			return CreateDecoder(schema, new Dictionary<Type, object>(), DefaultBindings);
 		}
 
 		/// <summary>
@@ -60,7 +60,7 @@ namespace Verse
 		public static IEncoder<TEntity> CreateEncoder<TNative, TEntity>(ISchema<TNative, TEntity> schema,
 			IReadOnlyDictionary<Type, object> converters, BindingFlags bindings)
 		{
-			if (!Linker.TryLinkEncoder(schema.EncoderDescriptor, schema.EncoderAdapter, converters, bindings,
+			if (!TryLinkEncoder(schema.EncoderDescriptor, schema.EncoderAdapter, converters, bindings,
 				new Dictionary<Type, object>()))
 				throw new ArgumentException($"can't link encoder for type '{typeof(TEntity)}'", nameof(schema));
 
@@ -77,7 +77,7 @@ namespace Verse
 		/// <returns>Entity encoder</returns>
 		public static IEncoder<TEntity> CreateEncoder<TNative, TEntity>(ISchema<TNative, TEntity> schema)
 		{
-			return Linker.CreateEncoder(schema, new Dictionary<Type, object>(), Linker.DefaultBindings);
+			return CreateEncoder(schema, new Dictionary<Type, object>(), DefaultBindings);
 		}
 
 		private static bool TryGetDecoderConverter<TNative, TEntity>(IDecoderAdapter<TNative> adapter,
@@ -110,7 +110,7 @@ namespace Verse
 
 			parents[entityType] = descriptor;
 
-			if (Linker.TryLinkDecoderAsValue(descriptor, adapter, converters))
+			if (TryLinkDecoderAsValue(descriptor, adapter, converters))
 				return true;
 
 			// Bind descriptor as an array of target type is also array
@@ -123,7 +123,7 @@ namespace Verse
 					.SetGenericArguments(element)
 					.Invoke(null);
 
-				return Linker.TryLinkDecoderAsArray(descriptor, adapter, converters, bindings, element, converter,
+				return TryLinkDecoderAsArray(descriptor, adapter, converters, bindings, element, converter,
 					parents);
 			}
 
@@ -158,7 +158,7 @@ namespace Verse
 						.SetGenericArguments(entityType, parameterType)
 						.Invoke(null, constructor);
 
-					return Linker.TryLinkDecoderAsArray(descriptor, adapter, converters, bindings, elementType,
+					return TryLinkDecoderAsArray(descriptor, adapter, converters, bindings, elementType,
 						converter, parents);
 				}
 			}
@@ -179,7 +179,7 @@ namespace Verse
 					.SetGenericArguments(entityType, property.PropertyType)
 					.Invoke(null, property);
 
-				if (!Linker.TryLinkDecoderAsObject(objectDescriptor, adapter, converters, bindings,
+				if (!TryLinkDecoderAsObject(objectDescriptor, adapter, converters, bindings,
 					property.PropertyType, property.Name, setter, parents))
 					return false;
 			}
@@ -196,7 +196,7 @@ namespace Verse
 					.SetGenericArguments(entityType, field.FieldType)
 					.Invoke(null, field);
 
-				if (!Linker.TryLinkDecoderAsObject(objectDescriptor, adapter, converters, bindings, field.FieldType,
+				if (!TryLinkDecoderAsObject(objectDescriptor, adapter, converters, bindings, field.FieldType,
 					field.Name, setter, parents))
 					return false;
 			}
@@ -229,7 +229,7 @@ namespace Verse
 			return (bool) MethodResolver
 				.Create<Func<IDecoderDescriptor<TNative, object>, IDecoderAdapter<TNative>,
 					IReadOnlyDictionary<Type, object>, BindingFlags, Dictionary<Type, object>, bool>>(
-					(d, a, c, b, p) => Linker.TryLinkDecoder(d, a, c, b, p))
+					(d, a, c, b, p) => TryLinkDecoder(d, a, c, b, p))
 				.SetGenericArguments(typeof(TNative), type)
 				.Invoke(null, itemDescriptor, adapter, converters, bindings, parents);
 		}
@@ -261,7 +261,7 @@ namespace Verse
 			return (bool) MethodResolver
 				.Create<Func<IDecoderDescriptor<TNative, object>, IDecoderAdapter<TNative>,
 					IReadOnlyDictionary<Type, object>, BindingFlags, Dictionary<Type, object>, bool>>(
-					(d, a, c, f, p) => Linker.TryLinkDecoder(d, a, c, f, p))
+					(d, a, c, f, p) => TryLinkDecoder(d, a, c, f, p))
 				.SetGenericArguments(typeof(TNative), type)
 				.Invoke(null, fieldDescriptor, adapter, converters, bindings, parents);
 		}
@@ -271,7 +271,7 @@ namespace Verse
 			IReadOnlyDictionary<Type, object> converters)
 		{
 			// Try linking using provided entity type directly
-			if (Linker.TryGetDecoderConverter<TValue, TEntity>(adapter, converters, out var converter))
+			if (TryGetDecoderConverter<TValue, TEntity>(adapter, converters, out var converter))
 			{
 				descriptor.IsValue(converter);
 
@@ -285,7 +285,7 @@ namespace Verse
 			return (bool) MethodResolver
 				.Create<Func<IDecoderDescriptor<object, int?>, IDecoderAdapter<object>,
 					IReadOnlyDictionary<Type, object>, bool>>((d, a, c) =>
-					Linker.TryLinkDecoderAsValueNullable(d, a, c))
+					TryLinkDecoderAsValueNullable(d, a, c))
 				.SetGenericArguments(typeof(TValue), arguments[0])
 				.Invoke(null, descriptor, adapter, converters);
 		}
@@ -294,7 +294,7 @@ namespace Verse
 			IDecoderDescriptor<TValue, TEntity?> descriptor, IDecoderAdapter<TValue> adapter,
 			IReadOnlyDictionary<Type, object> converters) where TEntity : struct
 		{
-			if (!Linker.TryGetDecoderConverter<TValue, TEntity>(adapter, converters, out var converter))
+			if (!TryGetDecoderConverter<TValue, TEntity>(adapter, converters, out var converter))
 				return false;
 
 			descriptor.IsValue((ref TEntity? target, TValue source) =>
@@ -325,7 +325,7 @@ namespace Verse
 
 			parents[entityType] = descriptor;
 
-			if (Linker.TryLinkEncoderAsValue(descriptor, adapter, converters))
+			if (TryLinkEncoderAsValue(descriptor, adapter, converters))
 				return true;
 
 			// Bind descriptor as an array of target type is also array
@@ -337,7 +337,7 @@ namespace Verse
 					.SetGenericArguments(typeof(IEnumerable<>).MakeGenericType(element))
 					.Invoke(null);
 
-				return Linker.TryLinkEncoderAsArray(descriptor, adapter, converters, bindings, element, getter,
+				return TryLinkEncoderAsArray(descriptor, adapter, converters, bindings, element, getter,
 					parents);
 			}
 
@@ -354,7 +354,7 @@ namespace Verse
 					.SetGenericArguments(typeof(IEnumerable<>).MakeGenericType(elementType))
 					.Invoke(null);
 
-				return Linker.TryLinkEncoderAsArray(descriptor, adapter, converters, bindings, elementType, getter,
+				return TryLinkEncoderAsArray(descriptor, adapter, converters, bindings, elementType, getter,
 					parents);
 			}
 
@@ -371,7 +371,7 @@ namespace Verse
 					.SetGenericArguments(entityType, property.PropertyType)
 					.Invoke(null, property);
 
-				if (!Linker.TryLinkEncoderAsObject(descriptor, adapter, converters, bindings, property.PropertyType,
+				if (!TryLinkEncoderAsObject(descriptor, adapter, converters, bindings, property.PropertyType,
 					property.Name, getter, parents))
 					return false;
 			}
@@ -388,7 +388,7 @@ namespace Verse
 					.SetGenericArguments(entityType, field.FieldType)
 					.Invoke(null, field);
 
-				if (!Linker.TryLinkEncoderAsObject(descriptor, adapter, converters, bindings, field.FieldType,
+				if (!TryLinkEncoderAsObject(descriptor, adapter, converters, bindings, field.FieldType,
 					field.Name,
 					getter, parents))
 					return false;
@@ -423,7 +423,7 @@ namespace Verse
 			return (bool) MethodResolver
 				.Create<Func<IEncoderDescriptor<TNative, object>, IEncoderAdapter<TNative>,
 					IReadOnlyDictionary<Type, object>, BindingFlags, Dictionary<Type, object>, bool>>(
-					(d, a, c, b, p) => Linker.TryLinkEncoder(d, a, c, b, p))
+					(d, a, c, b, p) => TryLinkEncoder(d, a, c, b, p))
 				.SetGenericArguments(typeof(TNative), type)
 				.Invoke(null, itemDescriptor, adapter, converters, bindings, parents);
 		}
@@ -454,7 +454,7 @@ namespace Verse
 			return (bool) MethodResolver
 				.Create<Func<IEncoderDescriptor<TNative, object>, IEncoderAdapter<TNative>,
 					IReadOnlyDictionary<Type, object>, BindingFlags, Dictionary<Type, object>, bool>>((d, a, c, b, p) =>
-					Linker.TryLinkEncoder(d, a, c, b, p))
+					TryLinkEncoder(d, a, c, b, p))
 				.SetGenericArguments(typeof(TNative), type)
 				.Invoke(null, fieldDescriptor, adapter, converters, bindings, parents);
 		}
@@ -463,7 +463,7 @@ namespace Verse
 			IEncoderAdapter<TValue> adapter, IReadOnlyDictionary<Type, object> converters)
 		{
 			// Try linking using provided entity type directly
-			if (Linker.TryGetEncoderConverter<TValue, TEntity>(adapter, converters, out var converter))
+			if (TryGetEncoderConverter<TValue, TEntity>(adapter, converters, out var converter))
 			{
 				descriptor.HasValue(converter);
 
@@ -477,7 +477,7 @@ namespace Verse
 			return (bool) MethodResolver
 				.Create<Func<IEncoderDescriptor<object, int?>, IEncoderAdapter<object>,
 					IReadOnlyDictionary<Type, object>, bool>>((d, a, c) =>
-					Linker.TryLinkEncoderAsValueNullable(d, a, c))
+					TryLinkEncoderAsValueNullable(d, a, c))
 				.SetGenericArguments(typeof(TValue), arguments[0])
 				.Invoke(null, descriptor, adapter, converters);
 		}
@@ -486,7 +486,7 @@ namespace Verse
 			IEncoderDescriptor<TValue, TEntity?> descriptor, IEncoderAdapter<TValue> adapter,
 			IReadOnlyDictionary<Type, object> converters) where TEntity : struct
 		{
-			if (!Linker.TryGetEncoderConverter<TValue, TEntity>(adapter, converters, out var converter))
+			if (!TryGetEncoderConverter<TValue, TEntity>(adapter, converters, out var converter))
 				return false;
 
 			descriptor.HasValue(source => source.HasValue ? converter(source.Value) : default);

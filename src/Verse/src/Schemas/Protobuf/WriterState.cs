@@ -10,8 +10,8 @@ namespace Verse.Schemas.Protobuf
 
         public WriterState(Stream stream, ErrorEvent error)
         {
-            this.Error = error;
-            this.Stream = stream;
+            Error = error;
+            Stream = stream;
         }
     }
 }

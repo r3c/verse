@@ -60,15 +60,15 @@ namespace Verse.Schemas.JSON
 		/// <returns>JSON string value</returns>
 		public static JSONValue FromString(string value)
 		{
-			return value == null ? JSONValue.Void : new JSONValue(JSONType.String, default, default, value);
+			return value == null ? Void : new JSONValue(JSONType.String, default, default, value);
 		}
 
 		private JSONValue(JSONType type, bool boolean, double number, string str)
 		{
-			this.Boolean = boolean;
-			this.Number = number;
-			this.String = str;
-			this.Type = type;
+			Boolean = boolean;
+			Number = number;
+			String = str;
+			Type = type;
 		}
 	}
 }

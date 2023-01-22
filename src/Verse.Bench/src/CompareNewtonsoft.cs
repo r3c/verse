@@ -42,7 +42,7 @@ namespace Verse.Bench
 
 			var decoder = Linker.CreateDecoder(new JSONSchema<MyFlatStructure>());
 
-			CompareNewtonsoft.BenchDecode(decoder, source, 10000);
+			BenchDecode(decoder, source, 10000);
 		}
 
 		[Test]
@@ -80,7 +80,7 @@ namespace Verse.Bench
 
 			var decoder = schema.CreateDecoder();
 
-			CompareNewtonsoft.BenchDecode(decoder, builder.ToString(), count);
+			BenchDecode(decoder, builder.ToString(), count);
 		}
 
 		[Test]
@@ -101,7 +101,7 @@ namespace Verse.Bench
 
 			var decoder = Linker.CreateDecoder(new JSONSchema<MyNestedArray>());
 
-			CompareNewtonsoft.BenchDecode(decoder, source, 10000);
+			BenchDecode(decoder, source, 10000);
 		}
 
 		[Test]
@@ -123,7 +123,7 @@ namespace Verse.Bench
 				sit = 1.1
 			};
 
-			CompareNewtonsoft.BenchEncode(encoder, instance, 10000);
+			BenchEncode(encoder, instance, 10000);
 		}
 
 		[Test]
@@ -165,7 +165,7 @@ namespace Verse.Bench
 				value = "f"
 			};
 
-			CompareNewtonsoft.BenchEncode(encoder, instance, 10000);
+			BenchEncode(encoder, instance, 10000);
 		}
 
 		private static void BenchDecode<T>(IDecoder<T> decoder, string source, int count)
@@ -179,7 +179,7 @@ namespace Verse.Bench
 				Assert.That(candidate, Is.EqualTo(expected));
 			}
 
-			CompareNewtonsoft.Bench(new (string, Action)[]
+			Bench(new (string, Action)[]
 			{
 				("Newtonsoft", () => { JsonConvert.DeserializeObject<T>(source); }),
 				("Verse", () =>
@@ -204,7 +204,7 @@ namespace Verse.Bench
 
 			Assert.That(expected, Is.EqualTo(candidate));
 
-			CompareNewtonsoft.Bench(new (string, Action)[]
+			Bench(new (string, Action)[]
 			{
 				("Newtonsoft", () => { JsonConvert.SerializeObject(instance); }),
 				("Verse", () =>
@@ -266,17 +266,17 @@ namespace Verse.Bench
 			public bool Equals(MyFlatStructure other)
 			{
 				return
-					this.lorem == other.lorem &&
-					this.ipsum == other.ipsum &&
-					Math.Abs(this.sit - other.sit) < double.Epsilon &&
-					this.amet == other.amet &&
-					this.consectetur == other.consectetur &&
-					this.adipiscing == other.adipiscing &&
-					this.elit == other.elit &&
-					Math.Abs(this.sed - other.sed) < float.Epsilon &&
-					this.pulvinar == other.pulvinar &&
-					this.fermentum == other.fermentum &&
-					this.hendrerit == other.hendrerit;
+					lorem == other.lorem &&
+					ipsum == other.ipsum &&
+					Math.Abs(sit - other.sit) < double.Epsilon &&
+					amet == other.amet &&
+					consectetur == other.consectetur &&
+					adipiscing == other.adipiscing &&
+					elit == other.elit &&
+					Math.Abs(sed - other.sed) < float.Epsilon &&
+					pulvinar == other.pulvinar &&
+					fermentum == other.fermentum &&
+					hendrerit == other.hendrerit;
 			}
 		}
 
@@ -288,16 +288,16 @@ namespace Verse.Bench
 
 			public bool Equals(MyNestedArray other)
 			{
-				if (this.children.Length != other.children.Length)
+				if (children.Length != other.children.Length)
 					return false;
 
-				for (var i = 0; i < this.children.Length; ++i)
+				for (var i = 0; i < children.Length; ++i)
 				{
-					if (!this.children[i].Equals(other.children[i]))
+					if (!children[i].Equals(other.children[i]))
 						return false;
 				}
 
-				return this.value == other.value;
+				return value == other.value;
 			}
 		}
 	}

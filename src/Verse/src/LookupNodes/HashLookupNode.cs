@@ -28,33 +28,33 @@ namespace Verse.LookupNodes
 
 		public HashLookupNode<TKey, TValue> ConnectTo(TKey key)
 		{
-			var character = this.extractor(key);
+			var character = extractor(key);
 
 			if (character < HashLookupNode.HashThreshold)
 			{
-				if (this.indexedChildren == null)
-					this.indexedChildren = new HashLookupNode<TKey, TValue>[HashLookupNode.HashThreshold];
+				if (indexedChildren == null)
+					indexedChildren = new HashLookupNode<TKey, TValue>[HashLookupNode.HashThreshold];
 
-				if (this.indexedChildren[character] != null)
-					return this.indexedChildren[character];
+				if (indexedChildren[character] != null)
+					return indexedChildren[character];
 
-				var next = new HashLookupNode<TKey, TValue>(this.extractor);
+				var next = new HashLookupNode<TKey, TValue>(extractor);
 
-				this.indexedChildren[character] = next;
+				indexedChildren[character] = next;
 
 				return next;
 			}
 			else
 			{
-				if (this.hashedChildren == null)
-					this.hashedChildren = new Dictionary<int, HashLookupNode<TKey, TValue>>();
+				if (hashedChildren == null)
+					hashedChildren = new Dictionary<int, HashLookupNode<TKey, TValue>>();
 
-				if (this.hashedChildren.TryGetValue(character, out var next))
+				if (hashedChildren.TryGetValue(character, out var next))
 					return next;
 
-				next = new HashLookupNode<TKey, TValue>(this.extractor);
+				next = new HashLookupNode<TKey, TValue>(extractor);
 
-				this.hashedChildren[character] = next;
+				hashedChildren[character] = next;
 
 				return next;
 			}
@@ -62,20 +62,20 @@ namespace Verse.LookupNodes
 
 		public ILookupNode<TKey, TValue> Follow(TKey key)
 		{
-			var character = this.extractor(key);
+			var character = extractor(key);
 
 			if (character < HashLookupNode.HashThreshold)
 			{
-				if (this.indexedChildren != null && this.indexedChildren[character] != null)
-					return this.indexedChildren[character];
+				if (indexedChildren != null && indexedChildren[character] != null)
+					return indexedChildren[character];
 			}
 			else
 			{
-				if (this.hashedChildren != null && this.hashedChildren.TryGetValue(character, out var next))
+				if (hashedChildren != null && hashedChildren.TryGetValue(character, out var next))
 					return next;
 			}
 
-			return HashLookupNode<TKey, TValue>.Empty;
+			return Empty;
 		}
 	}
 }

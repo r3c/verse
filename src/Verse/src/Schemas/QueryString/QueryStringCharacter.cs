@@ -10,42 +10,42 @@ namespace Verse.Schemas.QueryString
 		static QueryStringCharacter()
 		{
 			for (int i = 0; i < hexadecimals.Length; ++i)
-				QueryStringCharacter.hexadecimals[i] = -1;
+				hexadecimals[i] = -1;
 
 			for (int c = '0'; c <= '9'; ++c)
-				QueryStringCharacter.hexadecimals[c] = c - '0';
+				hexadecimals[c] = c - '0';
 
 			for (int c = 'A'; c <= 'F'; ++c)
-				QueryStringCharacter.hexadecimals[c] = c - 'A' + 10;
+				hexadecimals[c] = c - 'A' + 10;
 
 			for (int c = 'a'; c <= 'f'; ++c)
-				QueryStringCharacter.hexadecimals[c] = c - 'a' + 10;
+				hexadecimals[c] = c - 'a' + 10;
 
 			for (int c = '0'; c <= '9'; ++c)
-				QueryStringCharacter.unreserved[c] = true;
+				unreserved[c] = true;
 
 			for (int c = 'A'; c <= 'Z'; ++c)
-				QueryStringCharacter.unreserved[c] = true;
+				unreserved[c] = true;
 
 			for (int c = 'a'; c <= 'z'; ++c)
-				QueryStringCharacter.unreserved[c] = true;
+				unreserved[c] = true;
 
-			QueryStringCharacter.unreserved['-'] = true;
-			QueryStringCharacter.unreserved['_'] = true;
-			QueryStringCharacter.unreserved['.'] = true;
-			QueryStringCharacter.unreserved['!'] = true;
-			QueryStringCharacter.unreserved['~'] = true;
-			QueryStringCharacter.unreserved['*'] = true;
-			QueryStringCharacter.unreserved['\''] = true;
-			QueryStringCharacter.unreserved['('] = true;
-			QueryStringCharacter.unreserved[')'] = true;
-			QueryStringCharacter.unreserved[','] = true;
-			QueryStringCharacter.unreserved['"'] = true;
-			QueryStringCharacter.unreserved['$'] = true;
-			QueryStringCharacter.unreserved[':'] = true;
-			QueryStringCharacter.unreserved['@'] = true;
-			QueryStringCharacter.unreserved['/'] = true;
-			QueryStringCharacter.unreserved['?'] = true;
+			unreserved['-'] = true;
+			unreserved['_'] = true;
+			unreserved['.'] = true;
+			unreserved['!'] = true;
+			unreserved['~'] = true;
+			unreserved['*'] = true;
+			unreserved['\''] = true;
+			unreserved['('] = true;
+			unreserved[')'] = true;
+			unreserved[','] = true;
+			unreserved['"'] = true;
+			unreserved['$'] = true;
+			unreserved[':'] = true;
+			unreserved['@'] = true;
+			unreserved['/'] = true;
+			unreserved['?'] = true;
 		}
 
 		/// <summary>
@@ -56,7 +56,7 @@ namespace Verse.Schemas.QueryString
 		/// hexadecimal digit</returns>
 		public static int HexaToDecimal(int character)
 		{
-			return character > QueryStringCharacter.hexadecimals.Length ? -1 : QueryStringCharacter.hexadecimals[character];
+			return character > hexadecimals.Length ? -1 : hexadecimals[character];
 		}
 
 		/// <summary>
@@ -78,7 +78,7 @@ namespace Verse.Schemas.QueryString
 		/// <returns>True if character is unreserved, false otherwise</returns>
 		public static bool IsUnreserved(int character)
 		{
-			return character >= 0 && character < QueryStringCharacter.unreserved.Length && QueryStringCharacter.unreserved[character];
+			return character >= 0 && character < unreserved.Length && unreserved[character];
 		}
 	}
 }

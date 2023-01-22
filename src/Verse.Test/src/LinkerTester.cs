@@ -22,7 +22,7 @@ namespace Verse.Test
 		public void LinkDecoderArrayFromArray(string json, double[] expected)
 		{
 			var encoded = Encoding.UTF8.GetBytes(json);
-			var decoded = LinkerTester.Decode(Linker.CreateDecoder(new JSONSchema<double[]>()), encoded);
+			var decoded = Decode(Linker.CreateDecoder(new JSONSchema<double[]>()), encoded);
 
 			CollectionAssert.AreEqual(expected, decoded);
 		}
@@ -33,7 +33,7 @@ namespace Verse.Test
 		public void LinkDecoderArrayFromList(string json, double[] expected)
 		{
 			var encoded = Encoding.UTF8.GetBytes(json);
-			var decoded = LinkerTester.Decode(Linker.CreateDecoder(new JSONSchema<List<double>>()), encoded);
+			var decoded = Decode(Linker.CreateDecoder(new JSONSchema<List<double>>()), encoded);
 
 			CollectionAssert.AreEqual(expected, decoded);
 		}
@@ -44,7 +44,7 @@ namespace Verse.Test
 		public void LinkDecoderField<T>(string json, T expected)
 		{
 			var encoded = Encoding.UTF8.GetBytes(json);
-			var decoded = LinkerTester.Decode(Linker.CreateDecoder(new JSONSchema<FieldContainer<T>>()), encoded);
+			var decoded = Decode(Linker.CreateDecoder(new JSONSchema<FieldContainer<T>>()), encoded);
 
 			Assert.AreEqual(expected, decoded.Field);
 		}
@@ -55,7 +55,7 @@ namespace Verse.Test
 		public void LinkDecoderProperty<T>(string json, T expected)
 		{
 			var encoded = Encoding.UTF8.GetBytes(json);
-			var decoded = LinkerTester.Decode(Linker.CreateDecoder(new JSONSchema<PropertyContainer<T>>()), encoded);
+			var decoded = Decode(Linker.CreateDecoder(new JSONSchema<PropertyContainer<T>>()), encoded);
 
 			Assert.AreEqual(expected, decoded.Property);
 		}
@@ -64,7 +64,7 @@ namespace Verse.Test
 		public void LinkDecoderRecursive()
 		{
 			var encoded = Encoding.UTF8.GetBytes("{\"r\": {\"r\": {\"v\": 42}, \"v\": 17}, \"v\": 3}");
-			var decoded = LinkerTester.Decode(Linker.CreateDecoder(new JSONSchema<Recursive>()), encoded);
+			var decoded = Decode(Linker.CreateDecoder(new JSONSchema<Recursive>()), encoded);
 
 			Assert.AreEqual(42, decoded.r.r.v);
 			Assert.AreEqual(17, decoded.r.v);
@@ -78,7 +78,7 @@ namespace Verse.Test
 		{
 			var encoded = Encoding.UTF8.GetBytes(json);
 			var decoded =
-				LinkerTester.Decode(
+				Decode(
 					Linker.CreateDecoder(new JSONSchema<Visibility>(), new Dictionary<Type, object>(), bindings),
 					encoded);
 
@@ -90,7 +90,7 @@ namespace Verse.Test
 		{
 			var schema = new JSONSchema<ReferenceType>();
 			var decoder = Linker.CreateDecoder(schema);
-			var decoded = LinkerTester.Decode(decoder, "{}"u8.ToArray());
+			var decoded = Decode(decoder, "{}"u8.ToArray());
 
 			Assert.That(decoded, Is.InstanceOf<ReferenceType>());
 		}
@@ -108,7 +108,7 @@ namespace Verse.Test
 		[TestCase(new[] { 27.5, 19 }, "[27.5,19]")]
 		public void LinkEncoderArrayFromArray(double[] value, string expected)
 		{
-			var encoded = LinkerTester.Encode(Linker.CreateEncoder(new JSONSchema<double[]>()), value);
+			var encoded = Encode(Linker.CreateEncoder(new JSONSchema<double[]>()), value);
 
 			CollectionAssert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
 		}
@@ -119,7 +119,7 @@ namespace Verse.Test
 		public void LinkEncoderArrayFromList(double[] value, string expected)
 		{
 			var decoded = new List<double>(value);
-			var encoded = LinkerTester.Encode(Linker.CreateEncoder(new JSONSchema<List<double>>()), decoded);
+			var encoded = Encode(Linker.CreateEncoder(new JSONSchema<List<double>>()), decoded);
 
 			CollectionAssert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
 		}
@@ -130,7 +130,7 @@ namespace Verse.Test
 		public void LinkEncoderField<T>(T value, string expected)
 		{
 			var decoded = new FieldContainer<T> { Field = value };
-			var encoded = LinkerTester.Encode(Linker.CreateEncoder(new JSONSchema<FieldContainer<T>>()), decoded);
+			var encoded = Encode(Linker.CreateEncoder(new JSONSchema<FieldContainer<T>>()), decoded);
 
 			Assert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
 		}
@@ -141,7 +141,7 @@ namespace Verse.Test
 		public void LinkEncoderProperty<T>(T value, string expected)
 		{
 			var decoded = new PropertyContainer<T> { Property = value };
-			var encoded = LinkerTester.Encode(Linker.CreateEncoder(new JSONSchema<PropertyContainer<T>>()), decoded);
+			var encoded = Encode(Linker.CreateEncoder(new JSONSchema<PropertyContainer<T>>()), decoded);
 
 			Assert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
 		}
@@ -152,7 +152,7 @@ namespace Verse.Test
 		public void LinkEncoderRecursive(bool omitNull, string expected)
 		{
 			var decoded = new Recursive { r = new Recursive { r = new Recursive { v = 42 }, v = 17 }, v = 3 };
-			var encoded = LinkerTester.Encode(Linker.CreateEncoder(new JSONSchema<Recursive>(new JSONConfiguration { OmitNull = omitNull })), decoded);
+			var encoded = Encode(Linker.CreateEncoder(new JSONSchema<Recursive>(new JSONConfiguration { OmitNull = omitNull })), decoded);
 
 			Assert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
 		}
@@ -164,7 +164,7 @@ namespace Verse.Test
 		{
 			var decoded = new Visibility();
 			var encoded =
-				LinkerTester.Encode(
+				Encode(
 					Linker.CreateEncoder(new JSONSchema<Visibility>(), new Dictionary<Type, object>(), bindings),
 					decoded);
 
@@ -172,28 +172,24 @@ namespace Verse.Test
 		}
 
 		private static T Decode<T>(IDecoder<T> decoder, byte[] encoded)
-		{
-			using (var stream = new MemoryStream(encoded))
-			{
-				using (var decoderStream = decoder.Open(stream))
-				{
-					Assert.IsTrue(decoderStream.TryDecode(out var decoded));
+        {
+            using var stream = new MemoryStream(encoded);
+            using var decoderStream = decoder.Open(stream);
 
-					return decoded;
-				}
-			}
-		}
+            Assert.IsTrue(decoderStream.TryDecode(out var decoded));
+
+            return decoded;
+        }
 
 		private static byte[] Encode<T>(IEncoder<T> encoder, T decoded)
-		{
-			using (var stream = new MemoryStream())
-			{
-				using (var encoderStream = encoder.Open(stream))
-					encoderStream.Encode(decoded);
+        {
+            using var stream = new MemoryStream();
 
-				return stream.ToArray();
-			}
-		}
+            using (var encoderStream = encoder.Open(stream))
+                encoderStream.Encode(decoded);
+
+            return stream.ToArray();
+        }
 
 		public class ReferenceType
 		{

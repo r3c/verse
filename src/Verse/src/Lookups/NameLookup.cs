@@ -6,18 +6,18 @@ namespace Verse.Lookups
 	{
 		public static readonly ILookup<char, TValue> Empty = new NameLookup<TValue>();
 
-		public ILookupNode<char, TValue> Root => this.root;
+		public ILookupNode<char, TValue> Root => root;
 
 		private readonly HashLookupNode<char, TValue> root;
 
 		public NameLookup()
 		{
-			this.root = new HashLookupNode<char, TValue>(k => k);
+			root = new HashLookupNode<char, TValue>(k => k);
 		}
 
 		public bool ConnectTo(string sequence, TValue value)
 		{
-			var current = this.root;
+			var current = root;
 
 			foreach (var key in sequence)
 				current = current.ConnectTo(key);

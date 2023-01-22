@@ -2,8 +2,8 @@ namespace Verse.LookupNodes
 {
 	internal class FastLookupNode<TKey, TValue> : ILookupNode<TKey, TValue>
 	{
-		public bool HasValue => this.shortcut.HasValue || this.fallback.HasValue;
-		public TValue Value => this.shortcut.HasValue ? this.shortcut.Value : this.fallback.Value;
+		public bool HasValue => shortcut.HasValue || fallback.HasValue;
+		public TValue Value => shortcut.HasValue ? shortcut.Value : fallback.Value;
 
 		private readonly ILookupNode<TKey, TValue> fallback;
 		private readonly ILookupNode<TKey, TValue> shortcut;
@@ -16,9 +16,9 @@ namespace Verse.LookupNodes
 
 		public ILookupNode<TKey, TValue> Follow(TKey key)
 		{
-			var direct = this.shortcut.Follow(key);
+			var direct = shortcut.Follow(key);
 
-			return direct.HasValue ? direct : this.fallback.Follow(key);
+			return direct.HasValue ? direct : fallback.Follow(key);
 		}
 	}
 }

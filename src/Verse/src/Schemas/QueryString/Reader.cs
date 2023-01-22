@@ -59,7 +59,7 @@ namespace Verse.Schemas.QueryString
 						state.Pull();
 						state.Location = QueryStringLocation.ValueBegin;
 
-						if (!(node.HasValue ? node.Value(this, state, ref target) == ReaderStatus.Succeeded : this.ReadToValue(state, out _) == ReaderStatus.Succeeded))
+						if (!(node.HasValue ? node.Value(this, state, ref target) == ReaderStatus.Succeeded : ReadToValue(state, out _) == ReaderStatus.Succeeded))
 							return ReaderStatus.Failed;
 
 						break;
@@ -107,11 +107,11 @@ namespace Verse.Schemas.QueryString
 
 					value = default;
 
-					return this.ReadToObject(state,
+					return ReadToObject(state,
 						EmptyLookupNode<char, ReaderCallback<ReaderState, string, char, bool>>.Instance, ref dummy);
 
 				case QueryStringLocation.ValueBegin:
-					return Reader.ReadValue(state, out value) ? ReaderStatus.Succeeded : ReaderStatus.Failed;
+					return ReadValue(state, out value) ? ReaderStatus.Succeeded : ReaderStatus.Failed;
 
 				case QueryStringLocation.ValueEnd:
 					value = string.Empty;
@@ -127,7 +127,7 @@ namespace Verse.Schemas.QueryString
 
 		public ReaderState Start(Stream stream, ErrorEvent error)
 		{
-			var state = new ReaderState(stream, this.encoding, error);
+			var state = new ReaderState(stream, encoding, error);
 
 			if (state.Current == '?')
 				state.Pull();

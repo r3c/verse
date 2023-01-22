@@ -5,7 +5,7 @@ namespace Verse.Lookups
 {
 	internal class IndexOrNameLookup<TValue> : ILookup<int, TValue>
 	{
-		public ILookupNode<int, TValue> Root => this.fastRoot;
+		public ILookupNode<int, TValue> Root => fastRoot;
 
 		private readonly FastLookupNode<int, TValue> fastRoot;
 		private readonly HashLookupNode<int, TValue> indexRoot;
@@ -16,16 +16,16 @@ namespace Verse.Lookups
 			var index = new HashLookupNode<int, TValue>(k => k);
 			var name = new HashLookupNode<int, TValue>(k => k);
 
-			this.fastRoot = new FastLookupNode<int, TValue>(index, name);
-			this.indexRoot = index;
-			this.nameRoot = name;
+			fastRoot = new FastLookupNode<int, TValue>(index, name);
+			indexRoot = index;
+			nameRoot = name;
 		}
 
 		public bool ConnectTo(string sequence, TValue value)
 		{
 			if (int.TryParse(sequence, NumberStyles.Integer, CultureInfo.InvariantCulture, out var index))
 			{
-				var indexNode = this.indexRoot.ConnectTo(index);
+				var indexNode = indexRoot.ConnectTo(index);
 
 				if (indexNode.HasValue)
 					return false;
@@ -34,7 +34,7 @@ namespace Verse.Lookups
 				indexNode.Value = value;
 			}
 
-			var current = this.nameRoot;
+			var current = nameRoot;
 
 			foreach (var key in sequence)
 				current = current.ConnectTo(key);

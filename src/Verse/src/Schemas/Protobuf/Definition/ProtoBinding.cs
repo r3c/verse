@@ -17,16 +17,16 @@ namespace Verse.Schemas.Protobuf.Definition
 
         public ProtoBinding(string name, IEnumerable<ProtoBinding> fields)
         {
-            this.Fields = fields.ToArray();
-            this.Name = name;
-            this.Type = ProtoType.Custom;
+            Fields = fields.ToArray();
+            Name = name;
+            Type = ProtoType.Custom;
         }
 
         public ProtoBinding(string name, ProtoType type)
         {
-            this.Fields = ProtoBinding.EmptyBindings;
-            this.Name = name;
-            this.Type = type;
+            Fields = EmptyBindings;
+            Name = name;
+            Type = type;
         }
     }
 }

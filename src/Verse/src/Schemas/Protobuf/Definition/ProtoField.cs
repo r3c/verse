@@ -13,10 +13,10 @@ namespace Verse.Schemas.Protobuf.Definition
 
         public ProtoField(int number, ProtoReference reference, string name, ProtoOccurrence occurrence)
         {
-            this.Occurrence = occurrence;
-            this.Number = number;
-            this.Name = name;
-            this.Reference = reference;
+            Occurrence = occurrence;
+            Number = number;
+            Name = name;
+            Reference = reference;
         }
     }
 }

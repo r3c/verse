@@ -25,12 +25,12 @@ namespace Verse.Resolvers
 
 		private PropertyResolver(PropertyInfo property)
 		{
-			this.Property = property;
+			Property = property;
 		}
 
 		public object GetGetter(object instance)
 		{
-			var method = this.Property.GetMethod;
+			var method = Property.GetMethod;
 
 			if (method == null)
 				throw new InvalidOperationException("property has no getter");
@@ -40,7 +40,7 @@ namespace Verse.Resolvers
 
 		public PropertyResolver SetCallerGenericArguments(params Type[] arguments)
 		{
-			var callerType = this.Property.DeclaringType;
+			var callerType = Property.DeclaringType;
 
 			if (!callerType.IsGenericType)
 				throw new InvalidOperationException("property caller type is not generic");
@@ -48,7 +48,7 @@ namespace Verse.Resolvers
 			if (callerType.GetGenericArguments().Length != arguments.Length)
 				throw new InvalidOperationException($"property caller type doesn't have {arguments.Length} generic argument(s)");
 
-			var metadataToken = this.Property.MetadataToken;
+			var metadataToken = Property.MetadataToken;
 			var property = callerType.GetGenericTypeDefinition().MakeGenericType(arguments)
 				.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
 				.FirstOrDefault(p => p.MetadataToken == metadataToken);

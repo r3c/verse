@@ -20,7 +20,7 @@ namespace Verse.Schemas.RawProtobuf
 
 		public WriterState Start(Stream stream, ErrorEvent error)
 		{
-			return new WriterState(stream, error, this.noZigZagEncoding);
+			return new WriterState(stream, error, noZigZagEncoding);
 		}
 
 		public void Stop(WriterState state)

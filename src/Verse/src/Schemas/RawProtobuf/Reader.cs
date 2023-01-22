@@ -86,7 +86,7 @@ namespace Verse.Schemas.RawProtobuf
 
 		public ReaderState Start(Stream stream, ErrorEvent error)
 		{
-			return new ReaderState(stream, error, this.noZigZagEncoding);
+			return new ReaderState(stream, error, noZigZagEncoding);
 		}
 
 		public void Stop(ReaderState state)

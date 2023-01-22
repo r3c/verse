@@ -24,7 +24,7 @@ namespace Verse.Schemas.JSON
 
 		public WriterState Start(Stream stream, ErrorEvent error)
 		{
-			return new WriterState(stream, this.encoding, this.omitNull);
+			return new WriterState(stream, encoding, omitNull);
 		}
 
 		public void Stop(WriterState state)
@@ -36,7 +36,7 @@ namespace Verse.Schemas.JSON
 			WriterCallback<WriterState, JSONValue, TElement> writer)
 		{
 			if (elements == null)
-				this.WriteAsValue(state, JSONValue.Void);
+				WriteAsValue(state, JSONValue.Void);
 			else
 			{
 				state.ArrayBegin();
@@ -52,7 +52,7 @@ namespace Verse.Schemas.JSON
 			IReadOnlyDictionary<string, WriterCallback<WriterState, JSONValue, TObject>> fields)
 		{
 			if (parent == null)
-				this.WriteAsValue(state, JSONValue.Void);
+				WriteAsValue(state, JSONValue.Void);
 			else
 			{
 				state.ObjectBegin();

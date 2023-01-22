@@ -18,12 +18,12 @@ namespace Verse.Schemas.Protobuf
 
 		public IWriterDefinition<WriterState, ProtobufValue, TOther> Create<TOther>()
 		{
-			return new ProtobufWriterDefinition<TOther>(this.fields);
+			return new ProtobufWriterDefinition<TOther>(fields);
 		}
 
 		protected bool TryLookup<TOther>(string name, out int index, out IWriterDefinition<WriterState, ProtobufValue, TOther> writer)
 		{
-			index = Array.FindIndex(this.fields, binding => binding.Name == name);
+			index = Array.FindIndex(fields, binding => binding.Name == name);
 
 			if (index < 0)
 			{
@@ -32,7 +32,7 @@ namespace Verse.Schemas.Protobuf
 				return false;
 			}
 
-			writer = new ProtobufWriterDefinition<TOther>(this.fields[index].Fields);
+			writer = new ProtobufWriterDefinition<TOther>(fields[index].Fields);
 
 			return true;
 		}
