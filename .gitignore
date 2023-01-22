@@ -1,12 +1,6 @@
+.idea/
 bin/
 obj/
-/.idea/
-/.vs/
-/.vscode/
 /packages/
-/tests/
-/Verse.*.nupkg
+/src/Verse.*.nupkg
 /TestResult.xml
-*.sln.sdsettings
-*.suo
-*.user
