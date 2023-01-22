@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using System.Reflection.Emit;
+using Verse.Exceptions;
 
 namespace Verse.Generators
 {
@@ -11,17 +12,16 @@ namespace Verse.Generators
 		/// </summary>
 		/// <typeparam name="TEntity">Entity type</typeparam>
 		/// <returns>Constructor function</returns>
-		public static Func<TEntity> CreateConstructor<TEntity>()
+		public static Func<TEntity> CreateConstructor<TEntity>(BindingFlags bindingFlags)
 		{
-			const BindingFlags bindings = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
-
-			var constructor = typeof(TEntity).GetConstructor(bindings, Type.DefaultBinder, Type.EmptyTypes,
+			var entityType = typeof(TEntity);
+			var constructor = entityType.GetConstructor(bindingFlags, Type.DefaultBinder, Type.EmptyTypes,
 				Array.Empty<ParameterModifier>());
 
 			if (constructor == null)
-				return () => default;
+				throw new ConstructorNotFoundException(entityType);
 
-			var method = new DynamicMethod(string.Empty, typeof(TEntity), Type.EmptyTypes, constructor.Module, true);
+			var method = new DynamicMethod(string.Empty, entityType, Type.EmptyTypes, constructor.Module, true);
 			var generator = method.GetILGenerator();
 
 			generator.Emit(OpCodes.Newobj, constructor);

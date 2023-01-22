@@ -26,7 +26,7 @@ namespace Verse
 			if (!Linker.LinkDecoder(schema.DecoderDescriptor, bindings, new Dictionary<Type, object>()))
 				throw new ArgumentException($"can't link decoder for type '{typeof(TEntity)}'", nameof(schema));
 
-			return schema.CreateDecoder(ConstructorGenerator.CreateConstructor<TEntity>());
+			return schema.CreateDecoder(ConstructorGenerator.CreateConstructor<TEntity>(bindings));
 		}
 
 		/// <summary>
@@ -167,7 +167,7 @@ namespace Verse
 			Type type, object setter, IDictionary<Type, object> parents)
 		{
 			var constructor = MethodResolver
-				.Create<Func<object>>(() => ConstructorGenerator.CreateConstructor<object>())
+				.Create<Func<object>>(() => ConstructorGenerator.CreateConstructor<object>(bindings))
 				.SetGenericArguments(type)
 				.Invoke(null);
 
@@ -201,7 +201,7 @@ namespace Verse
 			Type type, string name, object setter, IDictionary<Type, object> parents)
 		{
 			var constructor = MethodResolver
-				.Create<Func<object>>(() => ConstructorGenerator.CreateConstructor<object>())
+				.Create<Func<object>>(() => ConstructorGenerator.CreateConstructor<object>(bindings))
 				.SetGenericArguments(type)
 				.Invoke(null);
 

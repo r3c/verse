@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
 using NUnit.Framework;
+using Verse.Exceptions;
 using Verse.Schemas;
 using Verse.Schemas.JSON;
 
@@ -75,6 +77,14 @@ namespace Verse.Test
 			var decoded = LinkerTester.Decode(Linker.CreateDecoder(new JSONSchema<Visibility>(), bindings), encoded);
 
 			Assert.AreEqual(expected, decoded.ToString());
+		}
+
+		[Test]
+		public void CreateDecoder_ShouldThrowWhenNoParameterlessConstructor()
+		{
+			var schema = new JSONSchema<Uri>();
+
+			Assert.That(() => Linker.CreateDecoder(schema), Throws.InstanceOf<ConstructorNotFoundException>());
 		}
 
 		[Test]
