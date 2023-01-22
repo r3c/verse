@@ -1,7 +1,7 @@
-Verse README file
-=================
+# Verse README file
 
-[![Build Status](https://travis-ci.org/r3c/verse.svg?branch=master)](https://travis-ci.org/r3c/verse)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/r3c/verse/validate.yml?branch=master)](https://github.com/r3c/verse/actions)
+[![License](https://img.shields.io/github/license/r3c/verse.svg)](https://opensource.org/licenses/MIT)
 
 VERsatile SErializer, fast generic runtime (de)serializer.
 

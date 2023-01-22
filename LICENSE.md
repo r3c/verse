@@ -1,5 +1,4 @@
-Verse LICENSE file
-==================
+# MIT License
 
 Copyright (c) 2015 Remi Caput, http://remi.caput.fr/
 
