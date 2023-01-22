@@ -15,19 +15,32 @@ namespace Verse.Generators
 		public static Func<TEntity> CreateConstructor<TEntity>(BindingFlags bindingFlags)
 		{
 			var entityType = typeof(TEntity);
-			var constructor = entityType.GetConstructor(bindingFlags, Type.DefaultBinder, Type.EmptyTypes,
-				Array.Empty<ParameterModifier>());
 
-			if (constructor == null)
-				throw new ConstructorNotFoundException(entityType);
-
-			var method = new DynamicMethod(string.Empty, entityType, Type.EmptyTypes, constructor.Module, true);
+			var method = new DynamicMethod(string.Empty, entityType, Type.EmptyTypes, entityType.Module, true);
 			var generator = method.GetILGenerator();
 
-			generator.Emit(OpCodes.Newobj, constructor);
+			if (entityType.IsValueType)
+			{
+				var instance = generator.DeclareLocal(entityType);
+
+				generator.Emit(OpCodes.Ldloca_S, instance);
+				generator.Emit(OpCodes.Initobj, entityType);
+				generator.Emit(OpCodes.Ldloc, instance);
+			}
+			else
+			{
+				var modifiers = Array.Empty<ParameterModifier>();
+				var constructor = entityType.GetConstructor(bindingFlags, null, Type.EmptyTypes, modifiers);
+
+				if (constructor is null)
+					throw new ConstructorNotFoundException(entityType);
+
+				generator.Emit(OpCodes.Newobj, constructor);
+			}
+
 			generator.Emit(OpCodes.Ret);
 
-			return (Func<TEntity>) method.CreateDelegate(typeof(Func<TEntity>));
+			return (Func<TEntity>)method.CreateDelegate(typeof(Func<TEntity>));
 		}
 	}
 }

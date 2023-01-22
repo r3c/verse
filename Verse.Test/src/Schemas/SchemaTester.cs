@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using KellermanSoftware.CompareNetObjects;
 using NUnit.Framework;
 

@@ -8,6 +8,9 @@ using Verse.Exceptions;
 using Verse.Schemas;
 using Verse.Schemas.JSON;
 
+// ReSharper disable ClassNeverInstantiated.Global
+// ReSharper disable MemberCanBePrivate.Global
+
 namespace Verse.Test
 {
 	[TestFixture]
@@ -77,6 +80,16 @@ namespace Verse.Test
 			var decoded = LinkerTester.Decode(Linker.CreateDecoder(new JSONSchema<Visibility>(), bindings), encoded);
 
 			Assert.AreEqual(expected, decoded.ToString());
+		}
+
+		[Test]
+		public void CreateDecoder_ShouldFindParameterlessConstructorFromReference()
+		{
+			var schema = new JSONSchema<ReferenceType>();
+			var decoder = Linker.CreateDecoder(schema);
+			var decoded = LinkerTester.Decode(decoder, "{}"u8.ToArray());
+
+			Assert.That(decoded, Is.InstanceOf<ReferenceType>());
 		}
 
 		[Test]
@@ -174,6 +187,10 @@ namespace Verse.Test
 
 				return stream.ToArray();
 			}
+		}
+
+		public class ReferenceType
+		{
 		}
 
 		private class FieldContainer<T>
