@@ -444,7 +444,7 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     {
         var schema = new JSONSchema<int[]>();
 
-        schema.EncoderDescriptor.HasElements(entity => entity).HasValue(schema.EncoderAdapter.FromInteger32S);
+        schema.EncoderDescriptor.IsArray(entity => entity).IsValue(schema.EncoderAdapter.FromInteger32S);
 
         AssertEncodeAndEqual(schema, value, expected);
     }
@@ -462,12 +462,22 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     {
         var schema = new JSONSchema<string>(new JSONConfiguration {OmitNull = omitNull});
         var descriptor = schema.EncoderDescriptor;
+        var root = descriptor.IsObject();
 
-        descriptor.HasField("array", s => s).HasElements(s => nullArray ? null : new[] {1, 2})
-            .HasValue(schema.EncoderAdapter.FromInteger32S);
-        descriptor.HasField("object", s => nullObject ? null : s).HasField("f", s => s)
-            .HasValue(v => JSONValue.FromNumber(3));
-        descriptor.HasField("value", s => s).HasValue(s => nullValue ? JSONValue.Void : JSONValue.FromNumber(4));
+        root
+            .HasField("array", s => s)
+            .IsArray(_ => nullArray ? null : new[] { 1, 2 })
+            .IsValue(schema.EncoderAdapter.FromInteger32S);
+
+        root
+            .HasField("object", s => nullObject ? null : s)
+            .IsObject()
+            .HasField("f", s => s)
+            .IsValue(_ => JSONValue.FromNumber(3));
+
+        root
+            .HasField("value", s => s)
+            .IsValue(_ => nullValue ? JSONValue.Void : JSONValue.FromNumber(4));
 
         AssertEncodeAndEqual(schema, "test", expected);
     }
@@ -480,7 +490,7 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
         var schema = new JSONSchema<T>();
         var converter = SchemaHelper<JSONValue>.GetEncoderConverter<T>(schema.EncoderAdapter);
 
-        schema.EncoderDescriptor.HasField(name, v => v).HasValue(converter);
+        schema.EncoderDescriptor.IsObject().HasField(name, v => v).IsValue(converter);
 
         AssertEncodeAndEqual(schema, value, expected);
     }
@@ -489,10 +499,11 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     public void EncodeFieldFromSameEntity()
     {
         var schema = new JSONSchema<int[]>();
-        var root = schema.EncoderDescriptor;
+        var descriptor = schema.EncoderDescriptor;
+        var root = descriptor.IsObject();
 
-        root.HasField("virtual0", source => source[0]).HasValue(schema.EncoderAdapter.FromInteger32S);
-        root.HasField("virtual1", source => source[1]).HasValue(schema.EncoderAdapter.FromInteger32S);
+        root.HasField("virtual0", source => source[0]).IsValue(schema.EncoderAdapter.FromInteger32S);
+        root.HasField("virtual1", source => source[1]).IsValue(schema.EncoderAdapter.FromInteger32S);
 
         AssertEncodeAndEqual(schema, new[] {42, 17}, "{\"virtual0\":42,\"virtual1\":17}");
     }
@@ -505,8 +516,9 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
         var schema = new JSONSchema<string>(new JSONConfiguration {OmitNull = omitNull});
 
         schema.EncoderDescriptor
+            .IsObject()
             .HasField("value", v => v)
-            .HasValue(_ => JSONValue.Void);
+            .IsValue(_ => JSONValue.Void);
 
         AssertEncodeAndEqual(schema, "dummy", expected);
     }
@@ -516,9 +528,10 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     {
         var schema = new JSONSchema<RecursiveEntity>();
         var descriptor = schema.EncoderDescriptor;
+        var root = descriptor.IsObject();
 
-        descriptor.HasField("field", o => o.Field, descriptor);
-        descriptor.HasField("value", o => o.Value).HasValue(schema.EncoderAdapter.FromInteger32S);
+        root.HasField("field", o => o.Field, descriptor);
+        root.HasField("value", o => o.Value).IsValue(schema.EncoderAdapter.FromInteger32S);
 
         AssertEncodeAndEqual(schema,
             new RecursiveEntity {Field = new RecursiveEntity {Value = 1}, Value = 2},
@@ -532,7 +545,7 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     {
         var schema = new JSONSchema<Guid>();
 
-        schema.EncoderDescriptor.HasValue(v => JSONValue.FromString(v.ToString()));
+        schema.EncoderDescriptor.IsValue(v => JSONValue.FromString(v.ToString()));
 
         AssertEncodeAndEqual(schema, Guid.Parse(guid), expected);
     }
@@ -542,7 +555,7 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     {
         var schema = new JSONSchema<string>();
 
-        schema.EncoderDescriptor.HasValue(schema.EncoderAdapter.FromString);
+        schema.EncoderDescriptor.IsValue(schema.EncoderAdapter.FromString);
 
         AssertEncodeAndEqual(schema, "\f\n\r\t\x99", "\"\\f\\n\\r\\t\\u0099\"");
     }
@@ -561,7 +574,7 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
         var schema = new JSONSchema<T>();
         var converter = SchemaHelper<JSONValue>.GetEncoderConverter<T>(schema.EncoderAdapter);
 
-        schema.EncoderDescriptor.HasValue(converter);
+        schema.EncoderDescriptor.IsValue(converter);
 
         AssertEncodeAndEqual(schema, value, expected);
     }
@@ -573,7 +586,7 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     {
         var schema = new JSONSchema<string>(new JSONConfiguration {OmitNull = omitNull});
 
-        schema.EncoderDescriptor.HasValue(schema.EncoderAdapter.FromString);
+        schema.EncoderDescriptor.IsValue(schema.EncoderAdapter.FromString);
 
         AssertEncodeAndEqual(schema, null, expected);
     }

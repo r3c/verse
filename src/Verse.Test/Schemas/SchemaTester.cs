@@ -22,9 +22,11 @@ public abstract class SchemaTester<TNative>
             .IsValue(schema.DecoderAdapter.ToInteger32S);
 
         schema.EncoderDescriptor
+            .IsObject()
             .HasField("virtual")
+            .IsObject()
             .HasField("value", source => source)
-            .HasValue(schema.EncoderAdapter.FromInteger32S);
+            .IsValue(schema.EncoderAdapter.FromInteger32S);
 
         SchemaHelper<TNative>.AssertRoundTrip(schema.CreateDecoder(), schema.CreateEncoder(), 17);
     }
