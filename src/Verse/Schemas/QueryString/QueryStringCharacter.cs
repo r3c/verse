@@ -3,49 +3,49 @@ namespace Verse.Schemas.QueryString;
 
 internal static class QueryStringCharacter
 {
-    private static readonly int[] hexadecimals = new int[128];
+    private static readonly int[] Hexadecimals = new int[128];
 
-    private static readonly bool[] unreserved = new bool[128];
+    private static readonly bool[] Unreserved = new bool[128];
 
     static QueryStringCharacter()
     {
-        for (int i = 0; i < hexadecimals.Length; ++i)
-            hexadecimals[i] = -1;
+        for (int i = 0; i < Hexadecimals.Length; ++i)
+            Hexadecimals[i] = -1;
 
         for (int c = '0'; c <= '9'; ++c)
-            hexadecimals[c] = c - '0';
+            Hexadecimals[c] = c - '0';
 
         for (int c = 'A'; c <= 'F'; ++c)
-            hexadecimals[c] = c - 'A' + 10;
+            Hexadecimals[c] = c - 'A' + 10;
 
         for (int c = 'a'; c <= 'f'; ++c)
-            hexadecimals[c] = c - 'a' + 10;
+            Hexadecimals[c] = c - 'a' + 10;
 
         for (int c = '0'; c <= '9'; ++c)
-            unreserved[c] = true;
+            Unreserved[c] = true;
 
         for (int c = 'A'; c <= 'Z'; ++c)
-            unreserved[c] = true;
+            Unreserved[c] = true;
 
         for (int c = 'a'; c <= 'z'; ++c)
-            unreserved[c] = true;
+            Unreserved[c] = true;
 
-        unreserved['-'] = true;
-        unreserved['_'] = true;
-        unreserved['.'] = true;
-        unreserved['!'] = true;
-        unreserved['~'] = true;
-        unreserved['*'] = true;
-        unreserved['\''] = true;
-        unreserved['('] = true;
-        unreserved[')'] = true;
-        unreserved[','] = true;
-        unreserved['"'] = true;
-        unreserved['$'] = true;
-        unreserved[':'] = true;
-        unreserved['@'] = true;
-        unreserved['/'] = true;
-        unreserved['?'] = true;
+        Unreserved['-'] = true;
+        Unreserved['_'] = true;
+        Unreserved['.'] = true;
+        Unreserved['!'] = true;
+        Unreserved['~'] = true;
+        Unreserved['*'] = true;
+        Unreserved['\''] = true;
+        Unreserved['('] = true;
+        Unreserved[')'] = true;
+        Unreserved[','] = true;
+        Unreserved['"'] = true;
+        Unreserved['$'] = true;
+        Unreserved[':'] = true;
+        Unreserved['@'] = true;
+        Unreserved['/'] = true;
+        Unreserved['?'] = true;
     }
 
     /// <summary>
@@ -56,7 +56,7 @@ internal static class QueryStringCharacter
     /// hexadecimal digit</returns>
     public static int HexaToDecimal(int character)
     {
-        return character > hexadecimals.Length ? -1 : hexadecimals[character];
+        return character > Hexadecimals.Length ? -1 : Hexadecimals[character];
     }
 
     /// <summary>
@@ -78,6 +78,6 @@ internal static class QueryStringCharacter
     /// <returns>True if character is unreserved, false otherwise</returns>
     public static bool IsUnreserved(int character)
     {
-        return character >= 0 && character < unreserved.Length && unreserved[character];
+        return character >= 0 && character < Unreserved.Length && Unreserved[character];
     }
 }

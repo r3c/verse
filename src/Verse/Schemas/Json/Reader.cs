@@ -8,15 +8,15 @@ namespace Verse.Schemas.Json;
 
 internal class Reader : IReader<ReaderState, JsonValue, int>
 {
-    private readonly bool readObjectValuesAsArray;
-    private readonly bool readScalarAsOneElementArray;
-    private readonly Encoding encoding;
+    private readonly bool _readObjectValuesAsArray;
+    private readonly bool _readScalarAsOneElementArray;
+    private readonly Encoding _encoding;
 
     public Reader(Encoding encoding, bool readObjectValuesAsArray, bool readScalarAsOneElementArray)
     {
-        this.readObjectValuesAsArray = readObjectValuesAsArray;
-        this.readScalarAsOneElementArray = readScalarAsOneElementArray;
-        this.encoding = encoding;
+        _readObjectValuesAsArray = readObjectValuesAsArray;
+        _readScalarAsOneElementArray = readScalarAsOneElementArray;
+        _encoding = encoding;
     }
 
     public ReaderStatus ReadToArray<TElement>(ReaderState state, ReaderCallback<ReaderState, JsonValue, int, TElement> callback, out BrowserMove<TElement> browserMove)
@@ -31,7 +31,7 @@ internal class Reader : IReader<ReaderState, JsonValue, int>
                 return ReaderStatus.Succeeded;
 
             case '{':
-                if (readObjectValuesAsArray)
+                if (_readObjectValuesAsArray)
                 {
                     browserMove = ReadToArrayFromObjectValues(state, callback);
 
@@ -47,7 +47,7 @@ internal class Reader : IReader<ReaderState, JsonValue, int>
 
             default:
                 // Accept any scalar value as an array of one element
-                if (readScalarAsOneElementArray)
+                if (_readScalarAsOneElementArray)
                 {
                     browserMove = (int index, out TElement current) =>
                     {
@@ -181,7 +181,7 @@ internal class Reader : IReader<ReaderState, JsonValue, int>
 
     public ReaderState Start(Stream stream, ErrorEvent error)
     {
-        return new ReaderState(stream, encoding, error);
+        return new ReaderState(stream, _encoding, error);
     }
 
     public void Stop(ReaderState state)

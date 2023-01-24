@@ -11,22 +11,22 @@ internal class ProtobufReaderDefinition<TEntity> : IReaderDefinition<ReaderState
 
     //private static readonly Reader<TEntity> emptyReader = new Reader<TEntity>(new ProtoBinding[0], false);
 
-    private readonly ProtoBinding[] bindings;
+    private readonly ProtoBinding[] _bindings;
 
     //private readonly ReaderCallback<ReaderState, ProtobufValue, TEntity>[] fields;
 
-    private readonly bool rejectUnknown;
+    private readonly bool _rejectUnknown;
 
     public ProtobufReaderDefinition(ProtoBinding[] bindings, bool rejectUnknown)
     {
-        this.bindings = bindings;
+        _bindings = bindings;
         //this.fields = new ReaderCallback<ReaderState, ProtobufValue, TEntity>[bindings.Length];
-        this.rejectUnknown = rejectUnknown;
+        _rejectUnknown = rejectUnknown;
     }
 
     public IReaderDefinition<ReaderState, ProtobufValue, int, TOther> Create<TOther>()
     {
-        return new ProtobufReaderDefinition<TOther>(bindings, rejectUnknown);
+        return new ProtobufReaderDefinition<TOther>(_bindings, _rejectUnknown);
     }
 /*
 		public override TreeReader<ReaderState, TField, ProtobufValue> HasField<TField>(string name, ReaderCallback<ReaderState, TEntity> enter)

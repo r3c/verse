@@ -9,17 +9,17 @@ internal class ReaderState
 
     public ProtobufValue Value;
 
-    private readonly ErrorEvent error;
+    private readonly ErrorEvent _error;
 
     public ReaderState(Stream stream, ErrorEvent error)
     {
-        this.error = error;
+        _error = error;
         Stream = stream;
         Value = ProtobufValue.Empty;
     }
 
     public void RaiseError(string format, params object[] args)
     {
-        error((int)Stream.Position, string.Format(CultureInfo.InvariantCulture, format, args));
+        _error((int)Stream.Position, string.Format(CultureInfo.InvariantCulture, format, args));
     }
 }

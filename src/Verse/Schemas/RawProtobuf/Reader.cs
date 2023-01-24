@@ -6,11 +6,11 @@ namespace Verse.Schemas.RawProtobuf;
 
 internal class Reader : IReader<ReaderState, RawProtobufValue, char>
 {
-    private readonly bool noZigZagEncoding;
+    private readonly bool _noZigZagEncoding;
 
     public Reader(bool noZigZagEncoding)
     {
-        this.noZigZagEncoding = noZigZagEncoding;
+        _noZigZagEncoding = noZigZagEncoding;
     }
 
     public ReaderStatus ReadToArray<TElement>(ReaderState state,
@@ -86,7 +86,7 @@ internal class Reader : IReader<ReaderState, RawProtobufValue, char>
 
     public ReaderState Start(Stream stream, ErrorEvent error)
     {
-        return new ReaderState(stream, error, noZigZagEncoding);
+        return new ReaderState(stream, error, _noZigZagEncoding);
     }
 
     public void Stop(ReaderState state)

@@ -6,18 +6,18 @@ internal class NameLookup<TValue> : ILookup<char, TValue>
 {
     public static readonly ILookup<char, TValue> Empty = new NameLookup<TValue>();
 
-    public ILookupNode<char, TValue> Root => root;
+    public ILookupNode<char, TValue> Root => _root;
 
-    private readonly HashLookupNode<char, TValue> root;
+    private readonly HashLookupNode<char, TValue> _root;
 
     public NameLookup()
     {
-        root = new HashLookupNode<char, TValue>(k => k);
+        _root = new HashLookupNode<char, TValue>(k => k);
     }
 
     public bool ConnectTo(string sequence, TValue value)
     {
-        var current = root;
+        var current = _root;
 
         foreach (var key in sequence)
             current = current.ConnectTo(key);

@@ -6,11 +6,11 @@ namespace Verse.Schemas.RawProtobuf;
 
 internal class Writer : IWriter<WriterState, RawProtobufValue>
 {
-    private readonly bool noZigZagEncoding;
+    private readonly bool _noZigZagEncoding;
 
     public Writer(bool noZigZagEncoding)
     {
-        this.noZigZagEncoding = noZigZagEncoding;
+        _noZigZagEncoding = noZigZagEncoding;
     }
 
     public void Flush(WriterState state)
@@ -20,7 +20,7 @@ internal class Writer : IWriter<WriterState, RawProtobufValue>
 
     public WriterState Start(Stream stream, ErrorEvent error)
     {
-        return new WriterState(stream, error, noZigZagEncoding);
+        return new WriterState(stream, error, _noZigZagEncoding);
     }
 
     public void Stop(WriterState state)

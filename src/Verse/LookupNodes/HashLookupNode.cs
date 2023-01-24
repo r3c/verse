@@ -15,46 +15,46 @@ internal class HashLookupNode<TKey, TValue> : ILookupNode<TKey, TValue>
 
     private static readonly ILookupNode<TKey, TValue> Empty = new HashLookupNode<TKey, TValue>(k => default);
 
-    private readonly Func<TKey, int> extractor;
+    private readonly Func<TKey, int> _extractor;
 
-    private Dictionary<int, HashLookupNode<TKey, TValue>> hashedChildren;
+    private Dictionary<int, HashLookupNode<TKey, TValue>> _hashedChildren;
 
-    private HashLookupNode<TKey, TValue>[] indexedChildren;
+    private HashLookupNode<TKey, TValue>[] _indexedChildren;
 
     public HashLookupNode(Func<TKey, int> extractor)
     {
-        this.extractor = extractor;
+        _extractor = extractor;
     }
 
     public HashLookupNode<TKey, TValue> ConnectTo(TKey key)
     {
-        var character = extractor(key);
+        var character = _extractor(key);
 
         if (character < HashLookupNode.HashThreshold)
         {
-            if (indexedChildren == null)
-                indexedChildren = new HashLookupNode<TKey, TValue>[HashLookupNode.HashThreshold];
+            if (_indexedChildren == null)
+                _indexedChildren = new HashLookupNode<TKey, TValue>[HashLookupNode.HashThreshold];
 
-            if (indexedChildren[character] != null)
-                return indexedChildren[character];
+            if (_indexedChildren[character] != null)
+                return _indexedChildren[character];
 
-            var next = new HashLookupNode<TKey, TValue>(extractor);
+            var next = new HashLookupNode<TKey, TValue>(_extractor);
 
-            indexedChildren[character] = next;
+            _indexedChildren[character] = next;
 
             return next;
         }
         else
         {
-            if (hashedChildren == null)
-                hashedChildren = new Dictionary<int, HashLookupNode<TKey, TValue>>();
+            if (_hashedChildren == null)
+                _hashedChildren = new Dictionary<int, HashLookupNode<TKey, TValue>>();
 
-            if (hashedChildren.TryGetValue(character, out var next))
+            if (_hashedChildren.TryGetValue(character, out var next))
                 return next;
 
-            next = new HashLookupNode<TKey, TValue>(extractor);
+            next = new HashLookupNode<TKey, TValue>(_extractor);
 
-            hashedChildren[character] = next;
+            _hashedChildren[character] = next;
 
             return next;
         }
@@ -62,16 +62,16 @@ internal class HashLookupNode<TKey, TValue> : ILookupNode<TKey, TValue>
 
     public ILookupNode<TKey, TValue> Follow(TKey key)
     {
-        var character = extractor(key);
+        var character = _extractor(key);
 
         if (character < HashLookupNode.HashThreshold)
         {
-            if (indexedChildren != null && indexedChildren[character] != null)
-                return indexedChildren[character];
+            if (_indexedChildren != null && _indexedChildren[character] != null)
+                return _indexedChildren[character];
         }
         else
         {
-            if (hashedChildren != null && hashedChildren.TryGetValue(character, out var next))
+            if (_hashedChildren != null && _hashedChildren.TryGetValue(character, out var next))
                 return next;
         }
 

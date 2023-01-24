@@ -11,20 +11,20 @@ internal class ReaderState
 
     public QueryStringLocation Location;
 
-    private readonly ErrorEvent error;
+    private readonly ErrorEvent _error;
 
-    private int position;
+    private int _position;
 
-    private readonly StreamReader reader;
+    private readonly StreamReader _reader;
 
     public ReaderState(Stream stream, Encoding encoding, ErrorEvent error)
     {
         Current = 0;
         Encoding = encoding;
 
-        this.error = error;
-        position = 0;
-        reader = new StreamReader(stream, encoding);
+        _error = error;
+        _position = 0;
+        _reader = new StreamReader(stream, encoding);
 
         Pull();
 
@@ -33,13 +33,13 @@ internal class ReaderState
 
     public void Error(string message)
     {
-        error(position, message);
+        _error(_position, message);
     }
 
     public void Pull()
     {
-        Current = reader.Read();
+        Current = _reader.Read();
 
-        ++position;
+        ++_position;
     }
 }

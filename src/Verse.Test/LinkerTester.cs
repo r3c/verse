@@ -63,17 +63,17 @@ public class LinkerTester
     [Test]
     public void LinkDecoderRecursive()
     {
-        var encoded = Encoding.UTF8.GetBytes("{\"r\": {\"r\": {\"v\": 42}, \"v\": 17}, \"v\": 3}");
+        var encoded = Encoding.UTF8.GetBytes("{\"R\": {\"R\": {\"V\": 42}, \"V\": 17}, \"V\": 3}");
         var decoded = Decode(Linker.CreateDecoder(new JsonSchema<Recursive>()), encoded);
 
-        Assert.AreEqual(42, decoded.r.r.v);
-        Assert.AreEqual(17, decoded.r.v);
-        Assert.AreEqual(3, decoded.v);
+        Assert.AreEqual(42, decoded.R.R.V);
+        Assert.AreEqual(17, decoded.R.V);
+        Assert.AreEqual(3, decoded.V);
     }
 
     [Test]
-    [TestCase(BindingFlags.Instance | BindingFlags.Public, "{\"isPublic\":1}", "0:0:1")]
-    [TestCase(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, "{\"isPublic\":1,\"isProtected\":2,\"isPrivate\":3}", "3:2:1")]
+    [TestCase(BindingFlags.Instance | BindingFlags.Public, "{\"IsPublic\":1}", "0:0:1")]
+    [TestCase(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, "{\"IsPublic\":1,\"IsProtected\":2,\"_isPrivate\":3}", "3:2:1")]
     public void LinkDecoderVisibility(BindingFlags bindings, string json, string expected)
     {
         var encoded = Encoding.UTF8.GetBytes(json);
@@ -147,19 +147,19 @@ public class LinkerTester
     }
 
     [Test]
-    [TestCase(false, "{\"r\":{\"r\":{\"r\":null,\"v\":42},\"v\":17},\"v\":3}")]
-    [TestCase(true, "{\"r\":{\"r\":{\"v\":42},\"v\":17},\"v\":3}")]
+    [TestCase(false, "{\"R\":{\"R\":{\"R\":null,\"V\":42},\"V\":17},\"V\":3}")]
+    [TestCase(true, "{\"R\":{\"R\":{\"V\":42},\"V\":17},\"V\":3}")]
     public void LinkEncoderRecursive(bool omitNull, string expected)
     {
-        var decoded = new Recursive { r = new Recursive { r = new Recursive { v = 42 }, v = 17 }, v = 3 };
+        var decoded = new Recursive { R = new Recursive { R = new Recursive { V = 42 }, V = 17 }, V = 3 };
         var encoded = Encode(Linker.CreateEncoder(new JsonSchema<Recursive>(new JsonConfiguration { OmitNull = omitNull })), decoded);
 
         Assert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
     }
 
     [Test]
-    [TestCase(BindingFlags.Instance | BindingFlags.Public, "{\"isPublic\":0}")]
-    [TestCase(BindingFlags.Instance | BindingFlags.NonPublic, "{\"isProtected\":0,\"isPrivate\":0}")]
+    [TestCase(BindingFlags.Instance | BindingFlags.Public, "{\"IsPublic\":0}")]
+    [TestCase(BindingFlags.Instance | BindingFlags.NonPublic, "{\"IsProtected\":0,\"_isPrivate\":0}")]
     public void LinkEncoderVisibility(BindingFlags bindings, string expected)
     {
         var decoded = new Visibility();
@@ -211,20 +211,20 @@ public class LinkerTester
 
     private class Recursive
     {
-        public Recursive r = null;
+        public Recursive R = null;
 
-        public int v = 0;
+        public int V = 0;
     }
 
     public class Visibility
     {
-        public int isPublic = 0;
-        protected int isProtected = 0;
-        private int isPrivate = 0;
+        public int IsPublic = 0;
+        protected int IsProtected = 0;
+        private int _isPrivate = 0;
 
         public override string ToString()
         {
-            return $"{isPrivate}:{isProtected}:{isPublic}";
+            return $"{_isPrivate}:{IsProtected}:{IsPublic}";
         }
     }
 }

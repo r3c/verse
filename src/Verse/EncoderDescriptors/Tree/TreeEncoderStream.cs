@@ -3,28 +3,28 @@ namespace Verse.EncoderDescriptors.Tree;
 
 internal class TreeEncoderStream<TState, TNative, TEntity> : IEncoderStream<TEntity>
 {
-    private readonly IWriter<TState, TNative> reader;
+    private readonly IWriter<TState, TNative> _reader;
 
-    private readonly TState state;
+    private readonly TState _state;
 
-    private readonly WriterCallback<TState, TNative, TEntity> callback;
+    private readonly WriterCallback<TState, TNative, TEntity> _callback;
 
     public TreeEncoderStream(IWriter<TState, TNative> reader, WriterCallback<TState, TNative, TEntity> callback,
         TState state)
     {
-        this.callback = callback;
-        this.reader = reader;
-        this.state = state;
+        _callback = callback;
+        _reader = reader;
+        _state = state;
     }
 
     public void Dispose()
     {
-        reader.Stop(state);
+        _reader.Stop(_state);
     }
 
     public void Encode(TEntity input)
     {
-        callback(reader, state, input);
-        reader.Flush(state);
+        _callback(_reader, _state, input);
+        _reader.Flush(_state);
     }
 }

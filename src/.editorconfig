@@ -7,5 +7,42 @@ indent_style = space
 insert_final_newline = false
 
 [*.cs]
+
+# Microsoft .NET properties
+csharp_new_line_before_members_in_object_initializers = false
+csharp_preferred_modifier_order = private, protected, internal, public, file, override, unsafe, sealed, virtual, static, abstract, readonly, extern, new, volatile, async, required:suggestion
+csharp_preserve_single_line_blocks = true
+csharp_space_after_cast = true
+csharp_style_expression_bodied_accessors = true:suggestion
+csharp_style_expression_bodied_constructors = false:none
+csharp_style_expression_bodied_methods = false:none
+csharp_style_expression_bodied_properties = true:suggestion
+
 dotnet_sort_system_directives_first = true
 dotnet_style_require_accessibility_modifiers = always
+
+# ReSharper properties
+resharper_blank_lines_after_control_transfer_statements = 1
+resharper_blank_lines_before_block_statements = 1
+resharper_blank_lines_before_case = 1
+resharper_braces_for_for = required_for_multiline
+resharper_braces_for_foreach = required_for_multiline
+resharper_braces_for_ifelse = not_required
+resharper_braces_for_using = required_for_multiline
+resharper_braces_for_while = required_for_multiline
+resharper_braces_redundant = false
+resharper_csharp_blank_lines_around_invocable = 0
+resharper_csharp_blank_lines_around_single_line_invocable = 1
+resharper_csharp_max_line_length = 167
+resharper_instance_members_qualify_declared_in = base_class
+resharper_keep_existing_embedded_block_arrangement = false
+resharper_keep_existing_enum_arrangement = false
+resharper_new_line_before_while = true
+resharper_parentheses_redundancy_style = remove
+resharper_place_accessorholder_attribute_on_same_line = false
+resharper_place_expr_accessor_on_single_line = true
+resharper_place_expr_property_on_single_line = true
+resharper_place_simple_embedded_statement_on_same_line = false
+resharper_place_simple_initializer_on_single_line = false
+resharper_wrap_array_initializer_style = chop_if_long
+resharper_wrap_object_and_collection_initializer_style = chop_always

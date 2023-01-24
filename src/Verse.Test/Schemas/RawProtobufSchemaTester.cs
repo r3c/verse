@@ -409,57 +409,57 @@ internal class RawProtobufSchemaTester
     [Serializable, ProtoContract(Name = @"SubTestFieldClass")]
     public class SubTestFieldClass<T> : IExtensible
     {
-        private T value;
+        private T _value;
 
         [ProtoMember(4, IsRequired = true)]
         public T Value
         {
-            get => value;
-            set => this.value = value;
+            get => _value;
+            set => _value = value;
         }
 
-        private IExtension extensionObject;
+        private IExtension _extensionObject;
 
         IExtension IExtensible.GetExtensionObject(bool createIfMissing)
         {
-            return Extensible.GetExtensionObject(ref extensionObject, createIfMissing);
+            return Extensible.GetExtensionObject(ref _extensionObject, createIfMissing);
         }
     }
 
     [Serializable, ProtoContract(Name = @"TestFieldClass")]
     public class TestFieldClass<T> : IExtensible
     {
-        private T value;
+        private T _value;
 
         [ProtoMember(1, IsRequired = true)]
         public T Value
         {
-            get => value;
-            set => this.value = value;
+            get => _value;
+            set => _value = value;
         }
 
-        private List<T> items = new();
+        private List<T> _items = new();
 
         [ProtoMember(2, IsRequired = true, DataFormat = DataFormat.Default)]
         public List<T> Items
         {
-            get => items;
-            set => items = value;
+            get => _items;
+            set => _items = value;
         }
 
-        private SubTestFieldClass<T> subValue;
+        private SubTestFieldClass<T> _subValue;
 
         [ProtoMember(3, IsRequired = true)]
         public SubTestFieldClass<T> SubValue
         {
-            get => subValue;
-            set => subValue = value;
+            get => _subValue;
+            set => _subValue = value;
         }
 
-        private IExtension extensionObject;
+        private IExtension _extensionObject;
         IExtension IExtensible.GetExtensionObject(bool createIfMissing)
         {
-            return Extensible.GetExtensionObject(ref extensionObject, createIfMissing);
+            return Extensible.GetExtensionObject(ref _extensionObject, createIfMissing);
         }
     }
 }
