@@ -22,7 +22,7 @@ public class LinkerTester
     public void LinkDecoderArrayFromArray(string json, double[] expected)
     {
         var encoded = Encoding.UTF8.GetBytes(json);
-        var decoded = Decode(Linker.CreateDecoder(new JsonSchema<double[]>()), encoded);
+        var decoded = Decode(Linker.CreateDecoder(Schema.CreateJson<double[]>()), encoded);
 
         CollectionAssert.AreEqual(expected, decoded);
     }
@@ -33,7 +33,7 @@ public class LinkerTester
     public void LinkDecoderArrayFromList(string json, double[] expected)
     {
         var encoded = Encoding.UTF8.GetBytes(json);
-        var decoded = Decode(Linker.CreateDecoder(new JsonSchema<List<double>>()), encoded);
+        var decoded = Decode(Linker.CreateDecoder(Schema.CreateJson<List<double>>()), encoded);
 
         CollectionAssert.AreEqual(expected, decoded);
     }
@@ -44,7 +44,7 @@ public class LinkerTester
     public void LinkDecoderField<T>(string json, T expected)
     {
         var encoded = Encoding.UTF8.GetBytes(json);
-        var decoded = Decode(Linker.CreateDecoder(new JsonSchema<FieldContainer<T>>()), encoded);
+        var decoded = Decode(Linker.CreateDecoder(Schema.CreateJson<FieldContainer<T>>()), encoded);
 
         Assert.AreEqual(expected, decoded.Field);
     }
@@ -55,7 +55,7 @@ public class LinkerTester
     public void LinkDecoderProperty<T>(string json, T expected)
     {
         var encoded = Encoding.UTF8.GetBytes(json);
-        var decoded = Decode(Linker.CreateDecoder(new JsonSchema<PropertyContainer<T>>()), encoded);
+        var decoded = Decode(Linker.CreateDecoder(Schema.CreateJson<PropertyContainer<T>>()), encoded);
 
         Assert.AreEqual(expected, decoded.Property);
     }
@@ -64,7 +64,7 @@ public class LinkerTester
     public void LinkDecoderRecursive()
     {
         var encoded = Encoding.UTF8.GetBytes("{\"R\": {\"R\": {\"V\": 42}, \"V\": 17}, \"V\": 3}");
-        var decoded = Decode(Linker.CreateDecoder(new JsonSchema<Recursive>()), encoded);
+        var decoded = Decode(Linker.CreateDecoder(Schema.CreateJson<Recursive>()), encoded);
 
         Assert.AreEqual(42, decoded.R.R.V);
         Assert.AreEqual(17, decoded.R.V);
@@ -79,7 +79,7 @@ public class LinkerTester
         var encoded = Encoding.UTF8.GetBytes(json);
         var decoded =
             Decode(
-                Linker.CreateDecoder(new JsonSchema<Visibility>(), new Dictionary<Type, object>(), bindings),
+                Linker.CreateDecoder(Schema.CreateJson<Visibility>(), new Dictionary<Type, object>(), bindings),
                 encoded);
 
         Assert.AreEqual(expected, decoded.ToString());
@@ -88,7 +88,7 @@ public class LinkerTester
     [Test]
     public void CreateDecoder_ShouldFindParameterlessConstructorFromReference()
     {
-        var schema = new JsonSchema<ReferenceType>();
+        var schema = Schema.CreateJson<ReferenceType>();
         var decoder = Linker.CreateDecoder(schema);
         var decoded = Decode(decoder, "{}"u8.ToArray());
 
@@ -98,7 +98,7 @@ public class LinkerTester
     [Test]
     public void CreateDecoder_ShouldThrowWhenNoParameterlessConstructor()
     {
-        var schema = new JsonSchema<Uri>();
+        var schema = Schema.CreateJson<Uri>();
 
         Assert.That(() => Linker.CreateDecoder(schema), Throws.InstanceOf<ConstructorNotFoundException>());
     }
@@ -108,7 +108,7 @@ public class LinkerTester
     [TestCase(new[] { 27.5, 19 }, "[27.5,19]")]
     public void LinkEncoderArrayFromArray(double[] value, string expected)
     {
-        var encoded = Encode(Linker.CreateEncoder(new JsonSchema<double[]>()), value);
+        var encoded = Encode(Linker.CreateEncoder(Schema.CreateJson<double[]>()), value);
 
         CollectionAssert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
     }
@@ -119,7 +119,7 @@ public class LinkerTester
     public void LinkEncoderArrayFromList(double[] value, string expected)
     {
         var decoded = new List<double>(value);
-        var encoded = Encode(Linker.CreateEncoder(new JsonSchema<List<double>>()), decoded);
+        var encoded = Encode(Linker.CreateEncoder(Schema.CreateJson<List<double>>()), decoded);
 
         CollectionAssert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
     }
@@ -130,7 +130,7 @@ public class LinkerTester
     public void LinkEncoderField<T>(T value, string expected)
     {
         var decoded = new FieldContainer<T> { Field = value };
-        var encoded = Encode(Linker.CreateEncoder(new JsonSchema<FieldContainer<T>>()), decoded);
+        var encoded = Encode(Linker.CreateEncoder(Schema.CreateJson<FieldContainer<T>>()), decoded);
 
         Assert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
     }
@@ -141,7 +141,7 @@ public class LinkerTester
     public void LinkEncoderProperty<T>(T value, string expected)
     {
         var decoded = new PropertyContainer<T> { Property = value };
-        var encoded = Encode(Linker.CreateEncoder(new JsonSchema<PropertyContainer<T>>()), decoded);
+        var encoded = Encode(Linker.CreateEncoder(Schema.CreateJson<PropertyContainer<T>>()), decoded);
 
         Assert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
     }
@@ -152,7 +152,7 @@ public class LinkerTester
     public void LinkEncoderRecursive(bool omitNull, string expected)
     {
         var decoded = new Recursive { R = new Recursive { R = new Recursive { V = 42 }, V = 17 }, V = 3 };
-        var encoded = Encode(Linker.CreateEncoder(new JsonSchema<Recursive>(new JsonConfiguration { OmitNull = omitNull })), decoded);
+        var encoded = Encode(Linker.CreateEncoder(Schema.CreateJson<Recursive>(new JsonConfiguration { OmitNull = omitNull })), decoded);
 
         Assert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
     }
@@ -165,7 +165,7 @@ public class LinkerTester
         var decoded = new Visibility();
         var encoded =
             Encode(
-                Linker.CreateEncoder(new JsonSchema<Visibility>(), new Dictionary<Type, object>(), bindings),
+                Linker.CreateEncoder(Schema.CreateJson<Visibility>(), new Dictionary<Type, object>(), bindings),
                 decoded);
 
         Assert.AreEqual(expected, Encoding.UTF8.GetString(encoded));

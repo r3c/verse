@@ -12,7 +12,7 @@ namespace Verse.Schemas;
 /// See: https://developers.google.com/protocol-buffers/docs/encoding
 /// </summary>
 /// <typeparam name="TEntity">Entity type</typeparam>
-public sealed class ProtobufSchema<TEntity> : ISchema<ProtobufValue, TEntity>
+internal sealed class ProtobufSchema<TEntity> : ISchema<ProtobufValue, TEntity>
 {
     /// <inheritdoc/>
     public IDecoderAdapter<ProtobufValue> DecoderAdapter => _decoderAdapter;

@@ -11,7 +11,7 @@ namespace Verse.Schemas;
 /// See: https://www.json.org/
 /// </summary>
 /// <typeparam name="TEntity">Entity type</typeparam>
-public sealed class JsonSchema<TEntity> : ISchema<JsonValue, TEntity>
+internal class JsonSchema<TEntity> : ISchema<JsonValue, TEntity>
 {
     /// <inheritdoc/>
     public IDecoderAdapter<JsonValue> DecoderAdapter => _decoderAdapter;
@@ -49,14 +49,6 @@ public sealed class JsonSchema<TEntity> : ISchema<JsonValue, TEntity>
         _decoderDescriptor = new TreeDecoderDescriptor<ReaderState, JsonValue, int, TEntity>(readerDefinition);
         _encoderAdapter = new JsonEncoderAdapter();
         _encoderDescriptor = new TreeEncoderDescriptor<WriterState, JsonValue, TEntity>(writerDefinition);
-    }
-
-    /// <summary>
-    /// Create JSON schema using default UTF8 encoding.
-    /// </summary>
-    public JsonSchema()
-        : this(default)
-    {
     }
 
     /// <inheritdoc/>

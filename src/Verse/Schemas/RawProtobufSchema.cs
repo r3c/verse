@@ -10,7 +10,7 @@ namespace Verse.Schemas;
 /// See: https://developers.google.com/protocol-buffers/docs/encoding
 /// </summary>
 /// <typeparam name="TEntity">Entity type</typeparam>
-public sealed class RawProtobufSchema<TEntity> : ISchema<RawProtobufValue, TEntity>
+internal class RawProtobufSchema<TEntity> : ISchema<RawProtobufValue, TEntity>
 {
     /// <inheritdoc/>
     public IDecoderAdapter<RawProtobufValue> DecoderAdapter => _decoderAdapter;
@@ -47,11 +47,6 @@ public sealed class RawProtobufSchema<TEntity> : ISchema<RawProtobufValue, TEnti
         _encoderAdapter = new RawProtobufEncoderAdapter();
         _encoderDescriptor =
             new TreeEncoderDescriptor<WriterState, RawProtobufValue, TEntity>(writerDefinition);
-    }
-
-    public RawProtobufSchema() :
-        this(new RawProtobufConfiguration())
-    {
     }
 
     public IDecoder<TEntity> CreateDecoder()

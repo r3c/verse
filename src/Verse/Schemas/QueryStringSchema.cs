@@ -12,7 +12,7 @@ namespace Verse.Schemas;
 /// See: https://tools.ietf.org/html/rfc3986#section-3.4
 /// </summary>
 /// <typeparam name="TEntity">Entity type</typeparam>
-public sealed class QueryStringSchema<TEntity> : ISchema<string, TEntity>
+internal class QueryStringSchema<TEntity> : ISchema<string, TEntity>
 {
     /// <inheritdoc/>
     public IDecoderAdapter<string> DecoderAdapter => _decoderAdapter;
@@ -40,11 +40,6 @@ public sealed class QueryStringSchema<TEntity> : ISchema<string, TEntity>
         _decoderAdapter = new QueryStringDecoderAdapter();
         _decoderDescriptor = new TreeDecoderDescriptor<ReaderState, string, char, TEntity>(readerDefinition);
         _encoding = encoding;
-    }
-
-    public QueryStringSchema() :
-        this(new UTF8Encoding(false))
-    {
     }
 
     /// <inheritdoc/>
