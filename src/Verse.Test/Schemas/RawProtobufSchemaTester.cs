@@ -254,9 +254,10 @@ internal class RawProtobufSchemaTester
         var converter = SchemaHelper<RawProtobufValue>.GetEncoderConverter<T>(schema.EncoderAdapter);
 
         schema.EncoderDescriptor
+            .IsObject()
             .HasField("_2", v => v)
-            .HasElements(source => source)
-            .HasValue(converter);
+            .IsArray(source => source)
+            .IsValue(converter);
 
         var testFieldClass = EncodeTranscode<List<T>, TestFieldClass<T>>(schema.CreateEncoder(), new List<T>(expectedItems));
 
@@ -279,9 +280,11 @@ internal class RawProtobufSchemaTester
         var converter = SchemaHelper<RawProtobufValue>.GetEncoderConverter<T>(schema.EncoderAdapter);
 
         schema.EncoderDescriptor
+            .IsObject()
             .HasField("_3", target => target.SubValue)
+            .IsObject()
             .HasField("_4", target => target.Value)
-            .HasValue(converter);
+            .IsValue(converter);
 
         var decodedTestFieldClass = EncodeRoundTrip(schema.CreateEncoder(), testFieldClass);
 
@@ -305,8 +308,9 @@ internal class RawProtobufSchemaTester
         var converter = SchemaHelper<RawProtobufValue>.GetEncoderConverter<T>(schema.EncoderAdapter);
 
         schema.EncoderDescriptor
+            .IsObject()
             .HasField("_1", v => v)
-            .HasValue(converter);
+            .IsValue(converter);
 
         var testFieldClass =
             EncodeTranscode<T, TestFieldClass<T>>(schema.CreateEncoder(),
@@ -343,11 +347,14 @@ internal class RawProtobufSchemaTester
         }
 
         schema.EncoderDescriptor
+            .IsObject()
             .HasField("_2", v => v)
-            .HasElements(source => source.Items)
+            .IsArray(source => source.Items)
+            .IsObject()
             .HasField("_3", target => target.SubValue)
+            .IsObject()
             .HasField("_4", target => target.Value)
-            .HasValue(converter);
+            .IsValue(converter);
 
         var decodedFieldClass = EncodeRoundTrip(schema.CreateEncoder(), fieldClass);
 

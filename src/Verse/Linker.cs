@@ -358,6 +358,9 @@ public static class Linker
                 parents);
         }
 
+        // Bind descriptor as object
+        var objectDescriptor = descriptor.IsObject();
+
         // Bind readable and writable instance properties
         foreach (var property in entityType.GetProperties(bindings))
         {
@@ -371,7 +374,7 @@ public static class Linker
                 .SetGenericArguments(entityType, property.PropertyType)
                 .Invoke(null, property);
 
-            if (!TryLinkEncoderAsObject(descriptor, adapter, converters, bindings, property.PropertyType,
+            if (!TryLinkEncoderAsObject(objectDescriptor, adapter, converters, bindings, property.PropertyType,
                     property.Name, getter, parents))
                 return false;
         }
@@ -388,7 +391,7 @@ public static class Linker
                 .SetGenericArguments(entityType, field.FieldType)
                 .Invoke(null, field);
 
-            if (!TryLinkEncoderAsObject(descriptor, adapter, converters, bindings, field.FieldType,
+            if (!TryLinkEncoderAsObject(objectDescriptor, adapter, converters, bindings, field.FieldType,
                     field.Name,
                     getter, parents))
                 return false;
@@ -406,7 +409,7 @@ public static class Linker
             MethodResolver
                 .Create<Func<IEncoderDescriptor<TNative, TEntity>, Func<TEntity, IEnumerable<object>>,
                     IEncoderDescriptor<TNative, object>, IEncoderDescriptor<TNative, object>>>((d, a, p) =>
-                    d.HasElements(a, p))
+                    d.IsArray(a, p))
                 .SetGenericArguments(type)
                 .Invoke(descriptor, getter, recurse);
 
@@ -416,7 +419,7 @@ public static class Linker
         var itemDescriptor = MethodResolver
             .Create<Func<IEncoderDescriptor<TNative, TEntity>, Func<TEntity, IEnumerable<object>>,
                 IEncoderDescriptor<TNative, object>
-            >>((d, a) => d.HasElements(a))
+            >>((d, a) => d.IsArray(a))
             .SetGenericArguments(type)
             .Invoke(descriptor, getter);
 
@@ -428,14 +431,14 @@ public static class Linker
             .Invoke(null, itemDescriptor, adapter, converters, bindings, parents);
     }
 
-    private static bool TryLinkEncoderAsObject<TNative, TEntity>(IEncoderDescriptor<TNative, TEntity> descriptor,
+    private static bool TryLinkEncoderAsObject<TNative, TEntity>(IEncoderObjectDescriptor<TNative, TEntity> descriptor,
         IEncoderAdapter<TNative> adapter, IReadOnlyDictionary<Type, object> converters, BindingFlags bindings,
         Type type, string name, object getter, IDictionary<Type, object> parents)
     {
         if (parents.TryGetValue(type, out var recurse))
         {
             MethodResolver
-                .Create<Func<IEncoderDescriptor<TNative, TEntity>, string, Func<TEntity, object>,
+                .Create<Func<IEncoderObjectDescriptor<TNative, TEntity>, string, Func<TEntity, object>,
                     IEncoderDescriptor<TNative, object>,
                     IEncoderDescriptor<TNative, object>>>((d, n, a, p) => d.HasField(n, a, p))
                 .SetGenericArguments(type)
@@ -445,7 +448,7 @@ public static class Linker
         }
 
         var fieldDescriptor = MethodResolver
-            .Create<Func<IEncoderDescriptor<TNative, TEntity>, string, Func<TEntity, object>,
+            .Create<Func<IEncoderObjectDescriptor<TNative, TEntity>, string, Func<TEntity, object>,
                 IEncoderDescriptor<TNative, object>>>(
                 (d, n, a) => d.HasField(n, a))
             .SetGenericArguments(type)
@@ -465,7 +468,7 @@ public static class Linker
         // Try linking using provided entity type directly
         if (TryGetEncoderConverter<TValue, TEntity>(adapter, converters, out var converter))
         {
-            descriptor.HasValue(converter);
+            descriptor.IsValue(converter);
 
             return true;
         }
@@ -489,7 +492,7 @@ public static class Linker
         if (!TryGetEncoderConverter<TValue, TEntity>(adapter, converters, out var converter))
             return false;
 
-        descriptor.HasValue(source => source.HasValue ? converter(source.Value) : default);
+        descriptor.IsValue(source => source.HasValue ? converter(source.Value) : default);
 
         return true;
     }
