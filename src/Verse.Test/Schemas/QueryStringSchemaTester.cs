@@ -13,7 +13,7 @@ public class QueryStringSchemaTester
     [TestCase("?a&")]
     public void DecodeSuccess(string query)
     {
-        Decode(new QueryStringSchema<string>(), query);
+        Decode(Schema.CreateQueryString<string>(), query);
     }
 
     [Test]
@@ -35,7 +35,7 @@ public class QueryStringSchemaTester
     [TestCase("f1", "?f0&f1", "")]
     public void DecodeFieldValue<T>(string name, string query, T expected)
     {
-        var schema = new QueryStringSchema<T>();
+        var schema = Schema.CreateQueryString<T>();
         var converter = SchemaHelper<string>.GetDecoderConverter<T>(schema.DecoderAdapter);
 
         schema.DecoderDescriptor
@@ -56,7 +56,7 @@ public class QueryStringSchemaTester
     [TestCase("percent", "?percent=%F0%9F%91%8D", "👍")]
     public void DecodeSpecialCharacter<T>(string name, string query, T expected)
     {
-        var schema = new QueryStringSchema<T>();
+        var schema = Schema.CreateQueryString<T>();
         var converter = SchemaHelper<string>.GetDecoderConverter<T>(schema.DecoderAdapter);
 
         schema.DecoderDescriptor
@@ -75,7 +75,7 @@ public class QueryStringSchemaTester
     [TestCase("?f0==v0")]
     public void DecodeFail(string query)
     {
-        var schema = new QueryStringSchema<string>();
+        var schema = Schema.CreateQueryString<string>();
         var decoder = schema.CreateDecoder();
 
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(query));
