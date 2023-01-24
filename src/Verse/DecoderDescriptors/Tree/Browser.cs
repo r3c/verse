@@ -6,35 +6,35 @@ namespace Verse.DecoderDescriptors.Tree;
 
 internal class Browser<TEntity> : IDisposable, IEnumerable<TEntity>
 {
-    private Enumerator enumerator;
+    private Enumerator _enumerator;
 
-    private bool started;
+    private bool _started;
 
     public Browser(BrowserMove<TEntity> move)
     {
-        enumerator = new Enumerator(move);
-        started = false;
+        _enumerator = new Enumerator(move);
+        _started = false;
     }
 
     public void Dispose()
     {
-        enumerator.Dispose();
-        enumerator = null;
+        _enumerator.Dispose();
+        _enumerator = null;
     }
 
     public bool Finish()
     {
-        return enumerator.Finish();
+        return _enumerator.Finish();
     }
 
     public IEnumerator<TEntity> GetEnumerator()
     {
-        if (started)
+        if (_started)
             throw new NotSupportedException("array cannot be enumerated more than once");
 
-        started = true;
+        _started = true;
 
-        return enumerator;
+        return _enumerator;
     }
 
     IEnumerator IEnumerable.GetEnumerator()
@@ -44,49 +44,49 @@ internal class Browser<TEntity> : IDisposable, IEnumerable<TEntity>
 
     private class Enumerator : IEnumerator<TEntity>
     {
-        public TEntity Current => current;
+        public TEntity Current => _current;
 
         object IEnumerator.Current => Current;
 
-        private int index;
+        private int _index;
 
-        private BrowserMove<TEntity> move;
+        private BrowserMove<TEntity> _move;
 	
-        private TEntity current;
+        private TEntity _current;
 	
-        private BrowserState state;
+        private BrowserState _state;
 
         public Enumerator(BrowserMove<TEntity> move)
         {
-            index = 0;
-            this.move = move;
-            state = BrowserState.Continue;
+            _index = 0;
+            _move = move;
+            _state = BrowserState.Continue;
         }
 	
         public void Dispose()
         {
             Finish();
 
-            move = null;
+            _move = null;
         }
 
         public bool Finish()
         {
-            while (state == BrowserState.Continue)
+            while (_state == BrowserState.Continue)
                 MoveNext();
 	
-            return state == BrowserState.Success;
+            return _state == BrowserState.Success;
         }
 	
         public bool MoveNext()
         {
-            if (state != BrowserState.Continue)
+            if (_state != BrowserState.Continue)
                 return false;
 
-            if (move != null)
-                state = move(index++, out current);
+            if (_move != null)
+                _state = _move(_index++, out _current);
 	
-            return state == BrowserState.Continue;
+            return _state == BrowserState.Continue;
         }
 	
         public void Reset()

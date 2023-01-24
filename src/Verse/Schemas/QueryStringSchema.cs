@@ -15,10 +15,10 @@ namespace Verse.Schemas;
 public sealed class QueryStringSchema<TEntity> : ISchema<string, TEntity>
 {
     /// <inheritdoc/>
-    public IDecoderAdapter<string> DecoderAdapter => decoderAdapter;
+    public IDecoderAdapter<string> DecoderAdapter => _decoderAdapter;
 
     /// <inheritdoc/>
-    public IDecoderDescriptor<string, TEntity> DecoderDescriptor => decoderDescriptor;
+    public IDecoderDescriptor<string, TEntity> DecoderDescriptor => _decoderDescriptor;
 
     /// <inheritdoc/>
     public IEncoderAdapter<string> EncoderAdapter => throw new NotImplementedException("encoding not implemented");
@@ -27,19 +27,19 @@ public sealed class QueryStringSchema<TEntity> : ISchema<string, TEntity>
     public IEncoderDescriptor<string, TEntity> EncoderDescriptor =>
         throw new NotImplementedException("encoding not implemented");
 
-    private readonly QueryStringDecoderAdapter decoderAdapter;
+    private readonly QueryStringDecoderAdapter _decoderAdapter;
 
-    private readonly TreeDecoderDescriptor<ReaderState, string, char, TEntity> decoderDescriptor;
+    private readonly TreeDecoderDescriptor<ReaderState, string, char, TEntity> _decoderDescriptor;
 
-    private readonly Encoding encoding;
+    private readonly Encoding _encoding;
 
     public QueryStringSchema(Encoding encoding)
     {
         var readerDefinition = new ReaderDefinition<TEntity>();
 
-        decoderAdapter = new QueryStringDecoderAdapter();
-        decoderDescriptor = new TreeDecoderDescriptor<ReaderState, string, char, TEntity>(readerDefinition);
-        this.encoding = encoding;
+        _decoderAdapter = new QueryStringDecoderAdapter();
+        _decoderDescriptor = new TreeDecoderDescriptor<ReaderState, string, char, TEntity>(readerDefinition);
+        _encoding = encoding;
     }
 
     public QueryStringSchema() :
@@ -50,7 +50,7 @@ public sealed class QueryStringSchema<TEntity> : ISchema<string, TEntity>
     /// <inheritdoc/>
     public IDecoder<TEntity> CreateDecoder()
     {
-        return decoderDescriptor.CreateDecoder(new Reader(encoding));
+        return _decoderDescriptor.CreateDecoder(new Reader(_encoding));
     }
 
     /// <inheritdoc/>

@@ -7,14 +7,14 @@ namespace Verse.Schemas.Json;
 
 internal class Writer : IWriter<WriterState, JsonValue>
 {
-    private readonly Encoding encoding;
+    private readonly Encoding _encoding;
 
-    private readonly bool omitNull;
+    private readonly bool _omitNull;
 
     public Writer(Encoding encoding, bool omitNull)
     {
-        this.encoding = encoding;
-        this.omitNull = omitNull;
+        _encoding = encoding;
+        _omitNull = omitNull;
     }
 
     public void Flush(WriterState state)
@@ -24,7 +24,7 @@ internal class Writer : IWriter<WriterState, JsonValue>
 
     public WriterState Start(Stream stream, ErrorEvent error)
     {
-        return new WriterState(stream, encoding, omitNull);
+        return new WriterState(stream, _encoding, _omitNull);
     }
 
     public void Stop(WriterState state)

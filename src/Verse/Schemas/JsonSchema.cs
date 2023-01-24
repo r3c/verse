@@ -14,26 +14,26 @@ namespace Verse.Schemas;
 public sealed class JsonSchema<TEntity> : ISchema<JsonValue, TEntity>
 {
     /// <inheritdoc/>
-    public IDecoderAdapter<JsonValue> DecoderAdapter => decoderAdapter;
+    public IDecoderAdapter<JsonValue> DecoderAdapter => _decoderAdapter;
 
     /// <inheritdoc/>
-    public IDecoderDescriptor<JsonValue, TEntity> DecoderDescriptor => decoderDescriptor;
+    public IDecoderDescriptor<JsonValue, TEntity> DecoderDescriptor => _decoderDescriptor;
 
     /// <inheritdoc/>
-    public IEncoderAdapter<JsonValue> EncoderAdapter => encoderAdapter;
+    public IEncoderAdapter<JsonValue> EncoderAdapter => _encoderAdapter;
 
     /// <inheritdoc/>
-    public IEncoderDescriptor<JsonValue, TEntity> EncoderDescriptor => encoderDescriptor;
+    public IEncoderDescriptor<JsonValue, TEntity> EncoderDescriptor => _encoderDescriptor;
 
-    private readonly JsonConfiguration configuration;
+    private readonly JsonConfiguration _configuration;
 
-    private readonly JsonDecoderAdapter decoderAdapter;
+    private readonly JsonDecoderAdapter _decoderAdapter;
 
-    private readonly TreeDecoderDescriptor<ReaderState, JsonValue, int, TEntity> decoderDescriptor;
+    private readonly TreeDecoderDescriptor<ReaderState, JsonValue, int, TEntity> _decoderDescriptor;
 
-    private readonly JsonEncoderAdapter encoderAdapter;
+    private readonly JsonEncoderAdapter _encoderAdapter;
 
-    private readonly TreeEncoderDescriptor<WriterState, JsonValue, TEntity> encoderDescriptor;
+    private readonly TreeEncoderDescriptor<WriterState, JsonValue, TEntity> _encoderDescriptor;
 
     /// <summary>
     /// Create new JSON schema using given settings
@@ -44,11 +44,11 @@ public sealed class JsonSchema<TEntity> : ISchema<JsonValue, TEntity>
         var writerDefinition = new WriterDefinition<TEntity>();
         var readerDefinition = new ReaderDefinition<TEntity>();
 
-        this.configuration = configuration;
-        decoderAdapter = new JsonDecoderAdapter();
-        decoderDescriptor = new TreeDecoderDescriptor<ReaderState, JsonValue, int, TEntity>(readerDefinition);
-        encoderAdapter = new JsonEncoderAdapter();
-        encoderDescriptor = new TreeEncoderDescriptor<WriterState, JsonValue, TEntity>(writerDefinition);
+        _configuration = configuration;
+        _decoderAdapter = new JsonDecoderAdapter();
+        _decoderDescriptor = new TreeDecoderDescriptor<ReaderState, JsonValue, int, TEntity>(readerDefinition);
+        _encoderAdapter = new JsonEncoderAdapter();
+        _encoderDescriptor = new TreeEncoderDescriptor<WriterState, JsonValue, TEntity>(writerDefinition);
     }
 
     /// <summary>
@@ -62,19 +62,19 @@ public sealed class JsonSchema<TEntity> : ISchema<JsonValue, TEntity>
     /// <inheritdoc/>
     public IDecoder<TEntity> CreateDecoder()
     {
-        var configuration = this.configuration;
+        var configuration = _configuration;
         var reader = new Reader(configuration.Encoding ?? new UTF8Encoding(false),
             configuration.ReadObjectValuesAsArray, configuration.ReadScalarAsOneElementArray);
 
-        return decoderDescriptor.CreateDecoder(reader);
+        return _decoderDescriptor.CreateDecoder(reader);
     }
 
     /// <inheritdoc/>
     public IEncoder<TEntity> CreateEncoder()
     {
-        var encoding = configuration.Encoding ?? new UTF8Encoding(false);
-        var reader = new Writer(encoding, configuration.OmitNull);
+        var encoding = _configuration.Encoding ?? new UTF8Encoding(false);
+        var reader = new Writer(encoding, _configuration.OmitNull);
 
-        return encoderDescriptor.CreateEncoder(reader);
+        return _encoderDescriptor.CreateEncoder(reader);
     }
 }

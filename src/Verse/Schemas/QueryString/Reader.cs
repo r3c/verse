@@ -8,11 +8,11 @@ namespace Verse.Schemas.QueryString;
 
 internal class Reader : IReader<ReaderState, string, char>
 {
-    private readonly Encoding encoding;
+    private readonly Encoding _encoding;
 
     public Reader(Encoding encoding)
     {
-        this.encoding = encoding;
+        _encoding = encoding;
     }
 
     public ReaderStatus ReadToArray<TElement>(ReaderState state,
@@ -127,7 +127,7 @@ internal class Reader : IReader<ReaderState, string, char>
 
     public ReaderState Start(Stream stream, ErrorEvent error)
     {
-        var state = new ReaderState(stream, encoding, error);
+        var state = new ReaderState(stream, _encoding, error);
 
         if (state.Current == '?')
             state.Pull();

@@ -15,24 +15,24 @@ namespace Verse.Schemas;
 public sealed class ProtobufSchema<TEntity> : ISchema<ProtobufValue, TEntity>
 {
     /// <inheritdoc/>
-    public IDecoderAdapter<ProtobufValue> DecoderAdapter => decoderAdapter;
+    public IDecoderAdapter<ProtobufValue> DecoderAdapter => _decoderAdapter;
 
     /// <inheritdoc/>
-    public IDecoderDescriptor<ProtobufValue, TEntity> DecoderDescriptor => decoderDescriptor;
+    public IDecoderDescriptor<ProtobufValue, TEntity> DecoderDescriptor => _decoderDescriptor;
 
     /// <inheritdoc/>
-    public IEncoderAdapter<ProtobufValue> EncoderAdapter => encoderAdapter;
+    public IEncoderAdapter<ProtobufValue> EncoderAdapter => _encoderAdapter;
 
     /// <inheritdoc/>
-    public IEncoderDescriptor<ProtobufValue, TEntity> EncoderDescriptor => encoderDescriptor;
+    public IEncoderDescriptor<ProtobufValue, TEntity> EncoderDescriptor => _encoderDescriptor;
 
-    private readonly ProtobufDecoderAdapter decoderAdapter;
+    private readonly ProtobufDecoderAdapter _decoderAdapter;
 
-    private readonly TreeDecoderDescriptor<ReaderState, ProtobufValue, int, TEntity> decoderDescriptor;
+    private readonly TreeDecoderDescriptor<ReaderState, ProtobufValue, int, TEntity> _decoderDescriptor;
 
-    private readonly ProtobufEncoderAdapter encoderAdapter;
+    private readonly ProtobufEncoderAdapter _encoderAdapter;
 
-    private readonly TreeEncoderDescriptor<WriterState, ProtobufValue, TEntity> encoderDescriptor;
+    private readonly TreeEncoderDescriptor<WriterState, ProtobufValue, TEntity> _encoderDescriptor;
 
     public ProtobufSchema(TextReader proto, string messageName, ProtobufConfiguration configuration)
     {
@@ -40,10 +40,10 @@ public sealed class ProtobufSchema<TEntity> : ISchema<ProtobufValue, TEntity>
         var reader = new ProtobufReaderDefinition<TEntity>(bindings, configuration.RejectUnknown);
         var writer = new ProtobufWriterDefinition<TEntity>(bindings);
 
-        decoderAdapter = new ProtobufDecoderAdapter();
-        decoderDescriptor = new TreeDecoderDescriptor<ReaderState, ProtobufValue, int, TEntity>(reader);
-        encoderAdapter = new ProtobufEncoderAdapter();
-        encoderDescriptor = new TreeEncoderDescriptor<WriterState, ProtobufValue, TEntity>(writer);
+        _decoderAdapter = new ProtobufDecoderAdapter();
+        _decoderDescriptor = new TreeDecoderDescriptor<ReaderState, ProtobufValue, int, TEntity>(reader);
+        _encoderAdapter = new ProtobufEncoderAdapter();
+        _encoderDescriptor = new TreeEncoderDescriptor<WriterState, ProtobufValue, TEntity>(writer);
     }
 
     public ProtobufSchema(TextReader proto, string messageName)
@@ -53,11 +53,11 @@ public sealed class ProtobufSchema<TEntity> : ISchema<ProtobufValue, TEntity>
 
     public IDecoder<TEntity> CreateDecoder()
     {
-        return decoderDescriptor.CreateDecoder(new Reader());
+        return _decoderDescriptor.CreateDecoder(new Reader());
     }
 
     public IEncoder<TEntity> CreateEncoder()
     {
-        return encoderDescriptor.CreateEncoder(new Writer());
+        return _encoderDescriptor.CreateEncoder(new Writer());
     }
 }

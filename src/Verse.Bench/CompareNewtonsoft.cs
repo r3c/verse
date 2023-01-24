@@ -110,17 +110,17 @@ public class CompareNewtonsoft
         var encoder = Linker.CreateEncoder(new JsonSchema<MyFlatStructure>());
         var instance = new MyFlatStructure
         {
-            adipiscing = 64,
-            amet = "Hello, World!",
-            consectetur = 255,
-            elit = 'z',
-            fermentum = 6553,
-            hendrerit = -32768,
-            ipsum = 65464658634633,
-            lorem = 0,
-            pulvinar = "I sense a soul in search of answers",
-            sed = 53.25f,
-            sit = 1.1
+            Adipiscing = 64,
+            Amet = "Hello, World!",
+            Consectetur = 255,
+            Elit = 'z',
+            Fermentum = 6553,
+            Hendrerit = -32768,
+            Ipsum = 65464658634633,
+            Lorem = 0,
+            Pulvinar = "I sense a soul in search of answers",
+            Sed = 53.25f,
+            Sit = 1.1
         };
 
         BenchEncode(encoder, instance, 10000);
@@ -132,37 +132,37 @@ public class CompareNewtonsoft
         var encoder = Linker.CreateEncoder(new JsonSchema<MyNestedArray>());
         var instance = new MyNestedArray
         {
-            children = new[]
+            Children = new[]
             {
                 new MyNestedArray
                 {
-                    children = null,
-                    value = "a"
+                    Children = null,
+                    Value = "a"
                 },
                 new MyNestedArray
                 {
-                    children = new[]
+                    Children = new[]
                     {
                         new MyNestedArray
                         {
-                            children = null,
-                            value = "b"
+                            Children = null,
+                            Value = "b"
                         },
                         new MyNestedArray
                         {
-                            children = null,
-                            value = "c"
+                            Children = null,
+                            Value = "c"
                         }
                     },
-                    value = "d"
+                    Value = "d"
                 },
                 new MyNestedArray
                 {
-                    children = new MyNestedArray[0],
-                    value = "e"
+                    Children = new MyNestedArray[0],
+                    Value = "e"
                 }
             },
-            value = "f"
+            Value = "f"
         };
 
         BenchEncode(encoder, instance, 10000);
@@ -241,63 +241,63 @@ public class CompareNewtonsoft
 
     private struct MyFlatStructure : IEquatable<MyFlatStructure>
     {
-        public int lorem;
+        public int Lorem;
 
-        public long ipsum;
+        public long Ipsum;
 
-        public double sit;
+        public double Sit;
 
-        public string amet;
+        public string Amet;
 
-        public byte consectetur;
+        public byte Consectetur;
 
-        public ushort adipiscing;
+        public ushort Adipiscing;
 
-        public char elit;
+        public char Elit;
 
-        public float sed;
+        public float Sed;
 
-        public string pulvinar;
+        public string Pulvinar;
 
-        public uint fermentum;
+        public uint Fermentum;
 
-        public short hendrerit;
+        public short Hendrerit;
 
         public bool Equals(MyFlatStructure other)
         {
             return
-                lorem == other.lorem &&
-                ipsum == other.ipsum &&
-                Math.Abs(sit - other.sit) < double.Epsilon &&
-                amet == other.amet &&
-                consectetur == other.consectetur &&
-                adipiscing == other.adipiscing &&
-                elit == other.elit &&
-                Math.Abs(sed - other.sed) < float.Epsilon &&
-                pulvinar == other.pulvinar &&
-                fermentum == other.fermentum &&
-                hendrerit == other.hendrerit;
+                Lorem == other.Lorem &&
+                Ipsum == other.Ipsum &&
+                Math.Abs(Sit - other.Sit) < double.Epsilon &&
+                Amet == other.Amet &&
+                Consectetur == other.Consectetur &&
+                Adipiscing == other.Adipiscing &&
+                Elit == other.Elit &&
+                Math.Abs(Sed - other.Sed) < float.Epsilon &&
+                Pulvinar == other.Pulvinar &&
+                Fermentum == other.Fermentum &&
+                Hendrerit == other.Hendrerit;
         }
     }
 
     private class MyNestedArray : IEquatable<MyNestedArray>
     {
-        public MyNestedArray[] children;
+        public MyNestedArray[] Children;
 
-        public string value;
+        public string Value;
 
         public bool Equals(MyNestedArray other)
         {
-            if (children.Length != other.children.Length)
+            if (Children.Length != other.Children.Length)
                 return false;
 
-            for (var i = 0; i < children.Length; ++i)
+            for (var i = 0; i < Children.Length; ++i)
             {
-                if (!children[i].Equals(other.children[i]))
+                if (!Children[i].Equals(other.Children[i]))
                     return false;
             }
 
-            return value == other.value;
+            return Value == other.Value;
         }
     }
 }

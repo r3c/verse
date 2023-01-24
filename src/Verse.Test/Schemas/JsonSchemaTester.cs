@@ -378,7 +378,7 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
     [TestCase(double.PositiveInfinity)]
     [TestCase(double.Epsilon)]
     [TestCase(4.94065645841247E-323)]
-    public void JSONValueFromNumberTest(double value)
+    public void JsonValueFromNumberTest(double value)
     {
         var jsonValue = JsonValue.FromNumber(value);
         Assert.AreEqual(value, jsonValue.Number);

@@ -6,23 +6,23 @@ namespace Verse.Schemas.Protobuf.Definition;
 
 internal class Lexer
 {
-    public Lexem Current => current;
+    public Lexem Current => _current;
 
-    public int Position => position;
+    public int Position => _position;
 
-    private Lexem current;
+    private Lexem _current;
 
-    private int pending;
+    private int _pending;
 
-    private int position;
+    private int _position;
 
-    private readonly TextReader reader;
+    private readonly TextReader _reader;
 
     public Lexer(TextReader reader)
     {
-        pending = reader.Read();
-        position = 1;
-        this.reader = reader;
+        _pending = reader.Read();
+        _position = 1;
+        _reader = reader;
 
         Next();
     }
@@ -33,47 +33,47 @@ internal class Lexer
         LexemType type;
 
         // Skip whitespaces
-        while (pending >= 0 && pending <= ' ')
+        while (_pending >= 0 && _pending <= ' ')
             Read();
 
         // Match current character
-        if (pending < 0)
+        if (_pending < 0)
             type = LexemType.End;
-        else if (pending == '{')
+        else if (_pending == '{')
             type = LexemType.BraceBegin;
-        else if (pending == '}')
+        else if (_pending == '}')
             type = LexemType.BraceEnd;
-        else if (pending == '[')
+        else if (_pending == '[')
             type = LexemType.BracketBegin;
-        else if (pending == ']')
+        else if (_pending == ']')
             type = LexemType.BracketEnd;
-        else if (pending == ',')
+        else if (_pending == ',')
             type = LexemType.Comma;
-        else if (pending == '=')
+        else if (_pending == '=')
             type = LexemType.Equal;
-        else if (pending == '.')
+        else if (_pending == '.')
             type = LexemType.Dot;
-        else if (pending == '>')
+        else if (_pending == '>')
             type = LexemType.GreaterThan;
-        else if (pending == '<')
+        else if (_pending == '<')
             type = LexemType.LowerThan;
-        else if (pending == '-')
+        else if (_pending == '-')
             type = LexemType.Minus;
-        else if (pending == ';')
+        else if (_pending == ';')
             type = LexemType.SemiColon;
-        else if (pending == '(')
+        else if (_pending == '(')
             type = LexemType.ParenthesisBegin;
-        else if (pending == '+')
+        else if (_pending == '+')
             type = LexemType.Plus;
-        else if (pending == ')')
+        else if (_pending == ')')
             type = LexemType.ParenthesisEnd;
-        else if (pending == '/')
+        else if (_pending == '/')
         {
             Read();
 
-            if (pending == '/')
+            if (_pending == '/')
             {
-                while (pending >= 0 && pending != '\n')
+                while (_pending >= 0 && _pending != '\n')
                     Read();
 
                 Next();
@@ -83,133 +83,133 @@ internal class Lexer
 
             type = LexemType.Unknown;
         }
-        else if (pending >= '0' && pending <= '9')
+        else if (_pending >= '0' && _pending <= '9')
         {
             builder = new StringBuilder();
 
             do
             {
-                builder.Append((char)pending);
+                builder.Append((char)_pending);
 
                 Read();
             }
-            while (pending >= '0' && pending <= '9');
+            while (_pending >= '0' && _pending <= '9');
 
-            current = new Lexem(LexemType.Number, builder.ToString());
+            _current = new Lexem(LexemType.Number, builder.ToString());
 
             return;
         }
-        else if ((pending >= 'A' && pending <= 'Z') || (pending >= 'a' && pending <= 'z') || pending == '_')
+        else if ((_pending >= 'A' && _pending <= 'Z') || (_pending >= 'a' && _pending <= 'z') || _pending == '_')
         {
             builder = new StringBuilder();
 
             do
             {
-                builder.Append((char)pending);
+                builder.Append((char)_pending);
 
                 Read();
             }
-            while ((pending >= '0' && pending <= '9') || (pending >= 'A' && pending <= 'Z') || (pending >= 'a' && pending <= 'z') || pending == '_');
+            while ((_pending >= '0' && _pending <= '9') || (_pending >= 'A' && _pending <= 'Z') || (_pending >= 'a' && _pending <= 'z') || _pending == '_');
 
-            current = new Lexem(LexemType.Symbol, builder.ToString());
+            _current = new Lexem(LexemType.Symbol, builder.ToString());
 
             return;
         }
-        else if (pending == '\'' || pending == '"')
+        else if (_pending == '\'' || _pending == '"')
         {
-            var delimiter = pending;
+            var delimiter = _pending;
 
             builder = new StringBuilder();
 
             while (true)
             {
-                pending = reader.Read();
+                _pending = _reader.Read();
 
-                ++position;
+                ++_position;
 
-                if (pending == delimiter)
+                if (_pending == delimiter)
                     break;
 
-                if (pending == '\\')
+                if (_pending == '\\')
                 {
-                    pending = reader.Read();
+                    _pending = _reader.Read();
 
-                    ++position;
+                    ++_position;
 
-                    if (pending == 'X' || pending == 'x')
+                    if (_pending == 'X' || _pending == 'x')
                     {
-                        var hex1 = reader.Read();
-                        var hex2 = reader.Read();
+                        var hex1 = _reader.Read();
+                        var hex2 = _reader.Read();
 
-                        position += 2;
+                        _position += 2;
 
                         if (((hex1 < '0' || hex1 > '9') && (hex1 < 'A' || hex1 > 'F') && (hex1 < 'a' || hex1 > 'f')) ||
                             ((hex2 < '0' || hex2 > '9') && (hex2 < 'A' || hex2 > 'F') && (hex2 < 'a' || hex2 > 'f')))
                         {
-                            current = new Lexem(LexemType.Unknown, new string(new [] {(char)hex1, (char)hex2}));
+                            _current = new Lexem(LexemType.Unknown, new string(new [] {(char)hex1, (char)hex2}));
 
                             return;
                         }
 
                         builder.Append((char)int.Parse(string.Empty, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture));
                     }
-                    else if (pending == '0')
+                    else if (_pending == '0')
                     {
-                        var oct1 = reader.Read();
-                        var oct2 = reader.Read();
-                        var oct3 = reader.Read();
+                        var oct1 = _reader.Read();
+                        var oct2 = _reader.Read();
+                        var oct3 = _reader.Read();
 
-                        position += 3;
+                        _position += 3;
 
                         if (oct1 < '0' || oct1 > '9' || oct2 < '0' || oct2 > '9' || oct3 < '0' || oct3 > '9')
                         {
-                            current = new Lexem(LexemType.Unknown, new string(new [] {(char)oct1, (char)oct2, (char)oct3}));
+                            _current = new Lexem(LexemType.Unknown, new string(new [] {(char)oct1, (char)oct2, (char)oct3}));
 
                             return;
                         }
 
                         builder.Append((char)((oct1 - '0') * 8 * 8 + (oct2 - '0') * 8 + (oct3 - '0')));
                     }
-                    else if (pending == 'a')
+                    else if (_pending == 'a')
                         builder.Append('\a');
-                    else if (pending == 'b')
+                    else if (_pending == 'b')
                         builder.Append('\b');
-                    else if (pending == 'f')
+                    else if (_pending == 'f')
                         builder.Append('\f');
-                    else if (pending == 'n')
+                    else if (_pending == 'n')
                         builder.Append('\n');
-                    else if (pending == 'r')
+                    else if (_pending == 'r')
                         builder.Append('\r');
-                    else if (pending == 't')
+                    else if (_pending == 't')
                         builder.Append('\t');
-                    else if (pending == 'v')
+                    else if (_pending == 'v')
                         builder.Append('\v');
-                    else if (pending == '\\')
+                    else if (_pending == '\\')
                         builder.Append('\\');
-                    else if (pending == '\'')
+                    else if (_pending == '\'')
                         builder.Append('\'');
-                    else if (pending == '"')
+                    else if (_pending == '"')
                         builder.Append('"');
                     else
                     {
-                        current = new Lexem(LexemType.Unknown, new string((char)pending, 1));
+                        _current = new Lexem(LexemType.Unknown, new string((char)_pending, 1));
 
                         return;
                     }
 
                     Read();
                 }
-                else if (pending > 0 && pending != '\n' && pending != '\\')
-                    builder.Append((char)pending);
+                else if (_pending > 0 && _pending != '\n' && _pending != '\\')
+                    builder.Append((char)_pending);
                 else
                 {
-                    current = new Lexem(LexemType.Unknown, new string((char)pending, 1));
+                    _current = new Lexem(LexemType.Unknown, new string((char)_pending, 1));
 
                     return;
                 }
             }
 
-            current = new Lexem(LexemType.String, builder.ToString());
+            _current = new Lexem(LexemType.String, builder.ToString());
 
             Read();
 
@@ -218,15 +218,15 @@ internal class Lexer
         else
             type = LexemType.Unknown;
 
-        current = new Lexem(type, pending > 0 ? new string((char)pending, 1) : string.Empty);
+        _current = new Lexem(type, _pending > 0 ? new string((char)_pending, 1) : string.Empty);
 
         Read();
     }
 
     private void Read()
     {
-        pending = reader.Read();
+        _pending = _reader.Read();
 
-        ++position;
+        ++_position;
     }
 }

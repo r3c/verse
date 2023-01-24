@@ -13,39 +13,39 @@ namespace Verse.Schemas;
 public sealed class RawProtobufSchema<TEntity> : ISchema<RawProtobufValue, TEntity>
 {
     /// <inheritdoc/>
-    public IDecoderAdapter<RawProtobufValue> DecoderAdapter => decoderAdapter;
+    public IDecoderAdapter<RawProtobufValue> DecoderAdapter => _decoderAdapter;
 
     /// <inheritdoc/>
-    public IDecoderDescriptor<RawProtobufValue, TEntity> DecoderDescriptor => decoderDescriptor;
+    public IDecoderDescriptor<RawProtobufValue, TEntity> DecoderDescriptor => _decoderDescriptor;
 
-    private readonly RawProtobufConfiguration configuration;
-
-    /// <inheritdoc/>
-    public IEncoderAdapter<RawProtobufValue> EncoderAdapter => encoderAdapter;
+    private readonly RawProtobufConfiguration _configuration;
 
     /// <inheritdoc/>
-    public IEncoderDescriptor<RawProtobufValue, TEntity> EncoderDescriptor => encoderDescriptor;
+    public IEncoderAdapter<RawProtobufValue> EncoderAdapter => _encoderAdapter;
 
-    private readonly RawProtobufDecoderAdapter decoderAdapter;
+    /// <inheritdoc/>
+    public IEncoderDescriptor<RawProtobufValue, TEntity> EncoderDescriptor => _encoderDescriptor;
+
+    private readonly RawProtobufDecoderAdapter _decoderAdapter;
 
     private readonly TreeDecoderDescriptor<ReaderState, RawProtobufValue, char, TEntity>
-        decoderDescriptor;
+        _decoderDescriptor;
 
-    private readonly RawProtobufEncoderAdapter encoderAdapter;
+    private readonly RawProtobufEncoderAdapter _encoderAdapter;
 
-    private readonly TreeEncoderDescriptor<WriterState, RawProtobufValue, TEntity> encoderDescriptor;
+    private readonly TreeEncoderDescriptor<WriterState, RawProtobufValue, TEntity> _encoderDescriptor;
 
     public RawProtobufSchema(RawProtobufConfiguration configuration)
     {
         var readerDefinition = new ReaderDefinition<TEntity>();
         var writerDefinition = new WriterDefinition<TEntity>();
 
-        this.configuration = configuration;
-        decoderAdapter = new RawProtobufDecoderAdapter();
-        decoderDescriptor =
+        _configuration = configuration;
+        _decoderAdapter = new RawProtobufDecoderAdapter();
+        _decoderDescriptor =
             new TreeDecoderDescriptor<ReaderState, RawProtobufValue, char, TEntity>(readerDefinition);
-        encoderAdapter = new RawProtobufEncoderAdapter();
-        encoderDescriptor =
+        _encoderAdapter = new RawProtobufEncoderAdapter();
+        _encoderDescriptor =
             new TreeEncoderDescriptor<WriterState, RawProtobufValue, TEntity>(writerDefinition);
     }
 
@@ -56,11 +56,11 @@ public sealed class RawProtobufSchema<TEntity> : ISchema<RawProtobufValue, TEnti
 
     public IDecoder<TEntity> CreateDecoder()
     {
-        return decoderDescriptor.CreateDecoder(new Reader(configuration.NoZigZagEncoding));
+        return _decoderDescriptor.CreateDecoder(new Reader(_configuration.NoZigZagEncoding));
     }
 
     public IEncoder<TEntity> CreateEncoder()
     {
-        return encoderDescriptor.CreateEncoder(new Writer(configuration.NoZigZagEncoding));
+        return _encoderDescriptor.CreateEncoder(new Writer(_configuration.NoZigZagEncoding));
     }
 }

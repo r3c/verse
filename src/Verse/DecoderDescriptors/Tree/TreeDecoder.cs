@@ -6,21 +6,21 @@ internal class TreeDecoder<TState, TNative, TKey, TEntity> : IDecoder<TEntity>
 {
     public event ErrorEvent Error;
 
-    private readonly ReaderCallback<TState, TNative, TKey, TEntity> callback;
+    private readonly ReaderCallback<TState, TNative, TKey, TEntity> _callback;
 
-    private readonly IReader<TState, TNative, TKey> reader;
+    private readonly IReader<TState, TNative, TKey> _reader;
 
     public TreeDecoder(IReader<TState, TNative, TKey> reader,
         ReaderCallback<TState, TNative, TKey, TEntity> callback)
     {
-        this.callback = callback;
-        this.reader = reader;
+        _callback = callback;
+        _reader = reader;
     }
 
     public IDecoderStream<TEntity> Open(Stream input)
     {
-        var state = reader.Start(input, (p, m) => Error?.Invoke(p, m));
+        var state = _reader.Start(input, (p, m) => Error?.Invoke(p, m));
 
-        return new TreeDecoderStream<TState, TNative, TKey, TEntity>(reader, callback, state);
+        return new TreeDecoderStream<TState, TNative, TKey, TEntity>(_reader, _callback, state);
     }
 }

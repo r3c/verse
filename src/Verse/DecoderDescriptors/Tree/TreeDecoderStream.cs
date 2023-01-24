@@ -2,30 +2,30 @@
 
 internal class TreeDecoderStream<TState, TNative, TKey, TEntity> : IDecoderStream<TEntity>
 {
-    private readonly ReaderCallback<TState, TNative, TKey, TEntity> callback;
+    private readonly ReaderCallback<TState, TNative, TKey, TEntity> _callback;
 
-    private readonly IReader<TState, TNative, TKey> reader;
+    private readonly IReader<TState, TNative, TKey> _reader;
 
-    private readonly TState state;
+    private readonly TState _state;
 
     public TreeDecoderStream(IReader<TState, TNative, TKey> reader,
         ReaderCallback<TState, TNative, TKey, TEntity> callback, TState state)
     {
-        this.callback = callback;
-        this.reader = reader;
-        this.state = state;
+        _callback = callback;
+        _reader = reader;
+        _state = state;
     }
 
     public void Dispose()
     {
-        reader.Stop(state);
+        _reader.Stop(_state);
     }
 
     public bool TryDecode(out TEntity entity)
     {
         var entityValue = default(TEntity);
 
-        var result = callback(reader, state, ref entityValue);
+        var result = _callback(_reader, _state, ref entityValue);
 
         entity = result == ReaderStatus.Succeeded ? entityValue : default;
 

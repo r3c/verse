@@ -9,15 +9,15 @@ internal class WriterState : IDisposable
 {
     private const char AsciiUpperBound = (char) 128;
 
-    private bool isEmpty;
+    private bool _isEmpty;
 
-    private string nextKey;
+    private string _nextKey;
 
-    private bool needComma;
+    private bool _needComma;
 
-    private readonly bool omitNull;
+    private readonly bool _omitNull;
 
-    private readonly StreamWriter writer;
+    private readonly StreamWriter _writer;
 
     private static readonly string[] Ascii = new string[AsciiUpperBound];
 
@@ -26,11 +26,11 @@ internal class WriterState : IDisposable
 
     public WriterState(Stream stream, Encoding encoding, bool omitNull)
     {
-        isEmpty = true;
-        nextKey = null;
-        needComma = false;
-        this.omitNull = omitNull;
-        writer = new StreamWriter(stream, encoding, 1024, true);
+        _isEmpty = true;
+        _nextKey = null;
+        _needComma = false;
+        _omitNull = omitNull;
+        _writer = new StreamWriter(stream, encoding, 1024, true);
     }
 
     static WriterState()
@@ -53,55 +53,55 @@ internal class WriterState : IDisposable
     public void ArrayBegin()
     {
         AppendPrefix();
-        writer.Write('[');
+        _writer.Write('[');
 
-        isEmpty = false;
-        needComma = false;
+        _isEmpty = false;
+        _needComma = false;
     }
 
     public void ArrayEnd()
     {
-        writer.Write(']');
+        _writer.Write(']');
 
-        isEmpty = false;
-        needComma = true;
+        _isEmpty = false;
+        _needComma = true;
     }
 
     public void Dispose()
     {
-        writer.Dispose();
+        _writer.Dispose();
     }
 
     public void Flush()
     {
-        if (isEmpty)
+        if (_isEmpty)
             AppendNull();
 
-        isEmpty = true;
-        nextKey = null;
-        needComma = false;
+        _isEmpty = true;
+        _nextKey = null;
+        _needComma = false;
     }
 
     public void Key(string key)
     {
-        nextKey = key;
+        _nextKey = key;
     }
 
     public void ObjectBegin()
     {
         AppendPrefix();
-        writer.Write('{');
+        _writer.Write('{');
 
-        isEmpty = false;
-        needComma = false;
+        _isEmpty = false;
+        _needComma = false;
     }
 
     public void ObjectEnd()
     {
-        writer.Write('}');
+        _writer.Write('}');
 
-        isEmpty = false;
-        needComma = true;
+        _isEmpty = false;
+        _needComma = true;
     }
 
     public void Value(JsonValue value)
@@ -110,26 +110,26 @@ internal class WriterState : IDisposable
         {
             case JsonType.Boolean:
                 AppendPrefix();
-                writer.Write(value.Boolean ? "true" : "false");
+                _writer.Write(value.Boolean ? "true" : "false");
 
                 break;
 
             case JsonType.Number:
                 AppendPrefix();
-                writer.Write(value.Number.ToString(CultureInfo.InvariantCulture));
+                _writer.Write(value.Number.ToString(CultureInfo.InvariantCulture));
 
                 break;
 
             case JsonType.String:
                 AppendPrefix();
-                WriteString(writer, value.String);
+                WriteString(_writer, value.String);
 
                 break;
 
             default:
-                if (omitNull)
+                if (_omitNull)
                 {
-                    nextKey = null;
+                    _nextKey = null;
 
                     return;
                 }
@@ -140,27 +140,27 @@ internal class WriterState : IDisposable
                 break;
         }
 
-        isEmpty = false;
-        needComma = true;
+        _isEmpty = false;
+        _needComma = true;
     }
 
     private void AppendNull()
     {
-        writer.Write("null");
+        _writer.Write("null");
     }
 
     private void AppendPrefix()
     {
-        if (needComma)
-            writer.Write(',');
+        if (_needComma)
+            _writer.Write(',');
 
-        if (nextKey == null)
+        if (_nextKey == null)
             return;
 
-        WriteString(writer, nextKey);
+        WriteString(_writer, _nextKey);
 
-        writer.Write(':');
-        nextKey = null;
+        _writer.Write(':');
+        _nextKey = null;
     }
 
     private static void WriteString(TextWriter writer, string value)

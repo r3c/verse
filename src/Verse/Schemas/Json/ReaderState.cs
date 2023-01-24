@@ -8,29 +8,29 @@ internal class ReaderState : IDisposable
 {
     public int Current;
 
-    private readonly ErrorEvent error;
+    private readonly ErrorEvent _error;
 
-    private int position;
+    private int _position;
 
-    private readonly StreamReader reader;
+    private readonly StreamReader _reader;
 
     public ReaderState(Stream stream, Encoding encoding, ErrorEvent error)
     {
-        this.error = error;
-        position = 0;
-        reader = new StreamReader(stream, encoding, false, 1024, true);
+        _error = error;
+        _position = 0;
+        _reader = new StreamReader(stream, encoding, false, 1024, true);
 
         Read();
     }
 
     public void Dispose()
     {
-        reader.Dispose();
+        _reader.Dispose();
     }
 
     public void Error(string message)
     {
-        error(position, message);
+        _error(_position, message);
     }
 
     public bool PullCharacter(out char character)
@@ -161,8 +161,8 @@ internal class ReaderState : IDisposable
 
     public void Read()
     {
-        Current = reader.Read();
+        Current = _reader.Read();
 
-        ++position;
+        ++_position;
     }
 }

@@ -6,11 +6,11 @@ namespace Verse.Schemas.Protobuf;
 
 internal class ProtobufWriterDefinition<TEntity> : IWriterDefinition<WriterState, ProtobufValue, TEntity>
 {
-    private readonly ProtoBinding[] fields;
+    private readonly ProtoBinding[] _fields;
 
     public ProtobufWriterDefinition(ProtoBinding[] fields)
     {
-        this.fields = fields;
+        _fields = fields;
     }
 
     public WriterCallback<WriterState, ProtobufValue, TEntity> Callback { get; set; } = (reader, state, entity) =>
@@ -20,6 +20,6 @@ internal class ProtobufWriterDefinition<TEntity> : IWriterDefinition<WriterState
 
     public IWriterDefinition<WriterState, ProtobufValue, TOther> Create<TOther>()
     {
-        return new ProtobufWriterDefinition<TOther>(fields);
+        return new ProtobufWriterDefinition<TOther>(_fields);
     }
 }

@@ -6,20 +6,20 @@ internal class TreeEncoder<TState, TNative, TEntity> : IEncoder<TEntity>
 {
     public event ErrorEvent Error;
 
-    private readonly WriterCallback<TState, TNative, TEntity> callback;
+    private readonly WriterCallback<TState, TNative, TEntity> _callback;
 
-    private readonly IWriter<TState, TNative> reader;
+    private readonly IWriter<TState, TNative> _reader;
 
     public TreeEncoder(IWriter<TState, TNative> reader, WriterCallback<TState, TNative, TEntity> callback)
     {
-        this.callback = callback;
-        this.reader = reader;
+        _callback = callback;
+        _reader = reader;
     }
 
     public IEncoderStream<TEntity> Open(Stream output)
     {
-        var state = reader.Start(output, (p, m) => Error?.Invoke(p, m));
+        var state = _reader.Start(output, (p, m) => Error?.Invoke(p, m));
 
-        return new TreeEncoderStream<TState, TNative, TEntity>(reader, callback, state);
+        return new TreeEncoderStream<TState, TNative, TEntity>(_reader, _callback, state);
     }
 }
