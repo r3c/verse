@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace Verse.Schemas.JSON;
+namespace Verse.Schemas.Json;
 
 internal class ReaderState : IDisposable
 {

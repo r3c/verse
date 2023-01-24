@@ -1,10 +1,10 @@
 
-namespace Verse.Schemas.JSON;
+namespace Verse.Schemas.Json;
 
 /// <summary>
 /// JSON native value content type.
 /// </summary>
-public enum JSONType
+public enum JsonType
 {
     /// <summary>
     /// Undefined (null) value.

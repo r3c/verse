@@ -1,8 +1,8 @@
 ﻿using System.Text;
 
-namespace Verse.Schemas.JSON;
+namespace Verse.Schemas.Json;
 
-public struct JSONConfiguration
+public struct JsonConfiguration
 {
     /// <summary>
     /// Accept object value as a valid input for descriptors declared as array, producing an array with unordered

@@ -8,12 +8,12 @@ using System.Text;
 using KellermanSoftware.CompareNetObjects;
 using NUnit.Framework;
 using Verse.Schemas;
-using Verse.Schemas.JSON;
+using Verse.Schemas.Json;
 
 namespace Verse.Test.Schemas;
 
 [TestFixture]
-public class JSONSchemaTester : SchemaTester<JSONValue>
+public class JsonSchemaTester : SchemaTester<JsonValue>
 {
     [Test]
     [TestCase(false, "{\"parent\" : [ { \"child\" : 123 } ]}", new[] {123})]
@@ -24,7 +24,7 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [TestCase(true, "{\"parent\" : { \"child\" : 123 } }", new[] {123})]
     public void DecodeObjectAsArray(bool scalarAsArray, string json, int[] expected)
     {
-        var schema = new JSONSchema<int[]>(new JSONConfiguration {ReadScalarAsOneElementArray = scalarAsArray});
+        var schema = new JsonSchema<int[]>(new JsonConfiguration {ReadScalarAsOneElementArray = scalarAsArray});
 
         schema.DecoderDescriptor
             .IsObject(Array.Empty<int>)
@@ -46,21 +46,21 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [TestCase("{}", "default")]
     public void DecodeNullField(string json, string expected)
     {
-        var schema = new JSONSchema<string>();
+        var schema = new JsonSchema<string>();
 
         schema.DecoderDescriptor
             .IsObject(() => "default")
             .HasField("value1", (ref string e, string v) => e = v)
             .IsObject(() => "defaultFromValue1")
             .HasField("value2", (ref string e, string v) => e = v)
-            .IsValue((ref string target, JSONValue value) =>
+            .IsValue((ref string target, JsonValue value) =>
             {
                 target = value.Type switch
                 {
-                    JSONType.Boolean => value.Boolean.ToString(),
-                    JSONType.Number => value.Number.ToString(CultureInfo.InvariantCulture),
-                    JSONType.String => value.String,
-                    JSONType.Void => "null",
+                    JsonType.Boolean => value.Boolean.ToString(),
+                    JsonType.Number => value.Number.ToString(CultureInfo.InvariantCulture),
+                    JsonType.String => value.String,
+                    JsonType.Void => "null",
                     _ => throw new ArgumentOutOfRangeException(nameof(value.Type), value.Type, "invalid type")
                 };
             });
@@ -81,21 +81,21 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [TestCase("{}", "default")]
     public void DecodeNullFieldWithValueAssign(string json, string expected)
     {
-        var schema = new JSONSchema<string>();
+        var schema = new JsonSchema<string>();
 
         schema.DecoderDescriptor
             .IsObject(() => "default")
             .HasField("value1", (ref string e, string v) => e = v)
             .IsObject(() => "defaultFromValue1")
             .HasField("value2", (ref string e, string v) => e = v)
-            .IsValue((ref string target, JSONValue value) =>
+            .IsValue((ref string target, JsonValue value) =>
             {
                 target = value.Type switch
                 {
-                    JSONType.Boolean => value.Boolean.ToString(),
-                    JSONType.Number => value.Number.ToString(CultureInfo.InvariantCulture),
-                    JSONType.String => value.String,
-                    JSONType.Void => "null",
+                    JsonType.Boolean => value.Boolean.ToString(),
+                    JsonType.Number => value.Number.ToString(CultureInfo.InvariantCulture),
+                    JsonType.String => value.String,
+                    JsonType.Void => "null",
                     _ => throw new ArgumentOutOfRangeException(nameof(value.Type), value.Type, "invalid type")
                 };
             });
@@ -113,7 +113,7 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [TestCase("{\"field\": 1}", true)]
     public void DecodeArrayIncompatibleInObject(string json, bool expectValue)
     {
-        var schema = new JSONSchema<Container<int[]>>();
+        var schema = new JsonSchema<Container<int[]>>();
 
         schema.DecoderDescriptor
             .IsObject(() => new Container<int[]>())
@@ -130,7 +130,7 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [TestCase("1", new int[0])]
     public void DecodeArrayIncompatibleInRoot(string json, int[] expected)
     {
-        var schema = new JSONSchema<int[]>();
+        var schema = new JsonSchema<int[]>();
 
         schema.DecoderDescriptor
             .IsArray<int>(e => e.ToArray())
@@ -144,7 +144,7 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [TestCase(true, "{\"key1\": 27.5, \"key2\": 19}", new[] {27.5, 19})]
     public void DecodeValueAsArray(bool acceptAsArray, string json, double[] expected)
     {
-        var schema = new JSONSchema<double[]>(new JSONConfiguration { ReadObjectValuesAsArray = acceptAsArray});
+        var schema = new JsonSchema<double[]>(new JsonConfiguration { ReadObjectValuesAsArray = acceptAsArray});
 
         schema.DecoderDescriptor
             .IsArray<double>(e => e.ToArray())
@@ -159,7 +159,7 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [TestCase("[0, 5, 90, 23, -9, 5.32]", new[] {0, 5, 90, 23, -9, 5.32})]
     public void DecodeArrayOfIntegers(string json, double[] expected)
     {
-        var schema = new JSONSchema<double[]>();
+        var schema = new JsonSchema<double[]>();
 
         schema.DecoderDescriptor
             .IsArray<double>(e => e.ToArray())
@@ -178,7 +178,7 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [TestCase("fail", 3)]
     public void DecodeFailsWithInvalidStream(string json, int expected)
     {
-        var schema = new JSONSchema<string>();
+        var schema = new JsonSchema<string>();
 
         schema.DecoderDescriptor.IsValue(schema.DecoderAdapter.ToString);
 
@@ -198,7 +198,7 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [Test]
     public void DecodeFieldFailsWhenNameDoesNotMatch()
     {
-        var schema = new JSONSchema<int>();
+        var schema = new JsonSchema<int>();
 
         schema.DecoderDescriptor
             .IsObject(() => 0)
@@ -212,7 +212,7 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [Test]
     public void DecodeFieldFailsWhenScopeDoesNotMatch()
     {
-        var schema = new JSONSchema<int>();
+        var schema = new JsonSchema<int>();
 
         schema.DecoderDescriptor
             .IsObject(() => 0)
@@ -225,7 +225,7 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [Test]
     public void DecodeFieldFromSameEntity()
     {
-        var schema = new JSONSchema<int[]>();
+        var schema = new JsonSchema<int[]>();
         var root = schema.DecoderDescriptor.IsObject(() => new[] { 0, 0 });
 
         root.HasField("virtual0", (ref int[] target, int source) => target[0] = source)
@@ -244,8 +244,8 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [TestCase("1", "[\"hey!\", \"take me!\", \"not me!\"]", "take me!")]
     public void DecodeFieldWithinIgnoredContents<T>(string name, string json, T expected)
     {
-        var schema = new JSONSchema<T>();
-        var converter = SchemaHelper<JSONValue>.GetDecoderConverter<T>(schema.DecoderAdapter);
+        var schema = new JsonSchema<T>();
+        var converter = SchemaHelper<JsonValue>.GetDecoderConverter<T>(schema.DecoderAdapter);
 
         schema.DecoderDescriptor
             .IsObject(() => default)
@@ -258,7 +258,7 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [Test]
     public void DecodeRecursiveSchema()
     {
-        var schema = new JSONSchema<RecursiveEntity>();
+        var schema = new JsonSchema<RecursiveEntity>();
         var root = schema.DecoderDescriptor.IsObject(() => new RecursiveEntity());
 
         root
@@ -286,8 +286,8 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [TestCase(true, "\"test\"", "test")]
     public void DecodeObjectAsArray<T>(bool acceptObjectAsArray, string json, T expected)
     {
-        var schema = new JSONSchema<T>(new JSONConfiguration { ReadScalarAsOneElementArray = acceptObjectAsArray});
-        var converter = SchemaHelper<JSONValue>.GetDecoderConverter<T>(schema.DecoderAdapter);
+        var schema = new JsonSchema<T>(new JsonConfiguration { ReadScalarAsOneElementArray = acceptObjectAsArray});
+        var converter = SchemaHelper<JsonValue>.GetDecoderConverter<T>(schema.DecoderAdapter);
 
         schema.DecoderDescriptor
             .IsArray<T>(elements => elements.FirstOrDefault())
@@ -301,7 +301,7 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [TestCase("53")]
     public void DecodeValueFailsWhenTypeDoesNotMatch(string json)
     {
-        var schema = new JSONSchema<int>();
+        var schema = new JsonSchema<int>();
 
         schema.DecoderDescriptor
             .IsArray<string>(elements => elements.Count())
@@ -316,7 +316,7 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [TestCase(1000)]
     public void DecodeValueFromMultipleInput(int count)
     {
-        var schema = new JSONSchema<int>();
+        var schema = new JsonSchema<int>();
 
         schema.DecoderDescriptor.IsValue(schema.DecoderAdapter.ToInteger32S);
 
@@ -353,8 +353,8 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [TestCase("9223372036854775807", 9223372036854775807.0)]
     public void DecodeValueFromNativeConstant<T>(string json, T expected)
     {
-        var schema = new JSONSchema<T>();
-        var converter = SchemaHelper<JSONValue>.GetDecoderConverter<T>(schema.DecoderAdapter);
+        var schema = new JsonSchema<T>();
+        var converter = SchemaHelper<JsonValue>.GetDecoderConverter<T>(schema.DecoderAdapter);
 
         schema.DecoderDescriptor.IsValue(converter);
 
@@ -380,14 +380,14 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [TestCase(4.94065645841247E-323)]
     public void JSONValueFromNumberTest(double value)
     {
-        var jsonValue = JSONValue.FromNumber(value);
+        var jsonValue = JsonValue.FromNumber(value);
         Assert.AreEqual(value, jsonValue.Number);
     }
 		
     [Test]
     public void DecodeValueFromNativeDecimal()
     {
-        var schema = new JSONSchema<decimal>();
+        var schema = new JsonSchema<decimal>();
 
         schema.DecoderDescriptor.IsValue(schema.DecoderAdapter.ToDecimal);
 
@@ -399,7 +399,7 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     {
         const int fromConstructor = 17;
 
-        var schema = new JSONSchema<Tuple<int, int, int>>();
+        var schema = new JsonSchema<Tuple<int, int, int>>();
         var descriptor = schema.DecoderDescriptor;
 
         var tuple = descriptor
@@ -428,10 +428,10 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [TestCase("\"c566a1c7-d89e-4e3f-8c5f-d4bcd0b82025\"", "c566a1c7-d89e-4e3f-8c5f-d4bcd0b82025")]
     public void DecodeValueWithCustomDecoder(string json, string expected)
     {
-        var schema = new JSONSchema<Guid>();
+        var schema = new JsonSchema<Guid>();
 
         schema.DecoderDescriptor
-            .IsValue((ref Guid target, JSONValue source) => Guid.TryParse(source.String, out target));
+            .IsValue((ref Guid target, JsonValue source) => Guid.TryParse(source.String, out target));
 
         AssertDecodeAndEqual(schema, json, Guid.Parse(expected));
     }
@@ -442,7 +442,7 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [TestCase(new[] {54, 90, -3, 34, 0, 49}, "[54,90,-3,34,0,49]")]
     public void EncodeArrayOfIntegers(int[] value, string expected)
     {
-        var schema = new JSONSchema<int[]>();
+        var schema = new JsonSchema<int[]>();
 
         schema.EncoderDescriptor.IsArray(entity => entity).IsValue(schema.EncoderAdapter.FromInteger32S);
 
@@ -460,7 +460,7 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [TestCase(true, false, false, true, "{\"array\":[1,2],\"object\":{\"f\":3}}")]
     public void EncodeEntityOmitNull(bool omitNull, bool nullArray, bool nullObject, bool nullValue, string expected)
     {
-        var schema = new JSONSchema<string>(new JSONConfiguration {OmitNull = omitNull});
+        var schema = new JsonSchema<string>(new JsonConfiguration {OmitNull = omitNull});
         var descriptor = schema.EncoderDescriptor;
         var root = descriptor.IsObject();
 
@@ -473,11 +473,11 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
             .HasField("object", s => nullObject ? null : s)
             .IsObject()
             .HasField("f", s => s)
-            .IsValue(_ => JSONValue.FromNumber(3));
+            .IsValue(_ => JsonValue.FromNumber(3));
 
         root
             .HasField("value", s => s)
-            .IsValue(_ => nullValue ? JSONValue.Void : JSONValue.FromNumber(4));
+            .IsValue(_ => nullValue ? JsonValue.Void : JsonValue.FromNumber(4));
 
         AssertEncodeAndEqual(schema, "test", expected);
     }
@@ -487,8 +487,8 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [TestCase("", "pwic", "{\"\":\"pwic\"}")]
     public void EncodeField<T>(string name, T value, string expected)
     {
-        var schema = new JSONSchema<T>();
-        var converter = SchemaHelper<JSONValue>.GetEncoderConverter<T>(schema.EncoderAdapter);
+        var schema = new JsonSchema<T>();
+        var converter = SchemaHelper<JsonValue>.GetEncoderConverter<T>(schema.EncoderAdapter);
 
         schema.EncoderDescriptor.IsObject().HasField(name, v => v).IsValue(converter);
 
@@ -498,7 +498,7 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [Test]
     public void EncodeFieldFromSameEntity()
     {
-        var schema = new JSONSchema<int[]>();
+        var schema = new JsonSchema<int[]>();
         var descriptor = schema.EncoderDescriptor;
         var root = descriptor.IsObject();
 
@@ -513,12 +513,12 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [TestCase(true, "{}")]
     public void EncodeFieldWithOmitNull(bool omitNull, string expected)
     {
-        var schema = new JSONSchema<string>(new JSONConfiguration {OmitNull = omitNull});
+        var schema = new JsonSchema<string>(new JsonConfiguration {OmitNull = omitNull});
 
         schema.EncoderDescriptor
             .IsObject()
             .HasField("value", v => v)
-            .IsValue(_ => JSONValue.Void);
+            .IsValue(_ => JsonValue.Void);
 
         AssertEncodeAndEqual(schema, "dummy", expected);
     }
@@ -526,7 +526,7 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [Test]
     public void EncodeRecursiveDescriptorDefinedAfterUse()
     {
-        var schema = new JSONSchema<RecursiveEntity>();
+        var schema = new JsonSchema<RecursiveEntity>();
         var descriptor = schema.EncoderDescriptor;
         var root = descriptor.IsObject();
 
@@ -543,9 +543,9 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [TestCase("c566a1c7-d89e-4e3f-8c5f-d4bcd0b82025", "\"c566a1c7-d89e-4e3f-8c5f-d4bcd0b82025\"")]
     public void EncodeValueWithCustomEncoder(string guid, string expected)
     {
-        var schema = new JSONSchema<Guid>();
+        var schema = new JsonSchema<Guid>();
 
-        schema.EncoderDescriptor.IsValue(v => JSONValue.FromString(v.ToString()));
+        schema.EncoderDescriptor.IsValue(v => JsonValue.FromString(v.ToString()));
 
         AssertEncodeAndEqual(schema, Guid.Parse(guid), expected);
     }
@@ -553,7 +553,7 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [Test]
     public void EncodeValueWithSpecialCharacters()
     {
-        var schema = new JSONSchema<string>();
+        var schema = new JsonSchema<string>();
 
         schema.EncoderDescriptor.IsValue(schema.EncoderAdapter.FromString);
 
@@ -571,8 +571,8 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [TestCase("\\", "\"\\\\\"")]
     public void EncodeValueNative<T>(T value, string expected)
     {
-        var schema = new JSONSchema<T>();
-        var converter = SchemaHelper<JSONValue>.GetEncoderConverter<T>(schema.EncoderAdapter);
+        var schema = new JsonSchema<T>();
+        var converter = SchemaHelper<JsonValue>.GetEncoderConverter<T>(schema.EncoderAdapter);
 
         schema.EncoderDescriptor.IsValue(converter);
 
@@ -584,7 +584,7 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [TestCase(true, "null")]
     public void EncodeValueWithOmitNull(bool omitNull, string expected)
     {
-        var schema = new JSONSchema<string>(new JSONConfiguration {OmitNull = omitNull});
+        var schema = new JsonSchema<string>(new JsonConfiguration {OmitNull = omitNull});
 
         schema.EncoderDescriptor.IsValue(schema.EncoderAdapter.FromString);
 
@@ -594,13 +594,13 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
     [Test]
     public void RoundTripCustomType()
     {
-        var schema = new JSONSchema<Container<Guid>>();
+        var schema = new JsonSchema<Container<Guid>>();
 
         var decoderConverters = new Dictionary<Type, object>
         {
             {
                 typeof(Guid),
-                new Setter<Guid, JSONValue>((ref Guid target, JSONValue source) =>
+                new Setter<Guid, JsonValue>((ref Guid target, JsonValue source) =>
                     Guid.TryParse(source.String, out target))
             }
         };
@@ -609,20 +609,20 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
 
         var encoderConverters = new Dictionary<Type, object>
         {
-            {typeof(Guid), new Func<Guid, JSONValue>(g => JSONValue.FromString(g.ToString()))}
+            {typeof(Guid), new Func<Guid, JsonValue>(g => JsonValue.FromString(g.ToString()))}
         };
 
         var encoder = Linker.CreateEncoder(schema, encoderConverters, BindingFlags.Public | BindingFlags.Instance);
 
-        SchemaHelper<JSONValue>.AssertRoundTrip(decoder, encoder, new Container<Guid> { Value = Guid.NewGuid() });
+        SchemaHelper<JsonValue>.AssertRoundTrip(decoder, encoder, new Container<Guid> { Value = Guid.NewGuid() });
     }
 
-    protected override ISchema<JSONValue, TEntity> CreateSchema<TEntity>()
+    protected override ISchema<JsonValue, TEntity> CreateSchema<TEntity>()
     {
-        return new JSONSchema<TEntity>(new JSONConfiguration { OmitNull = true });
+        return new JsonSchema<TEntity>(new JsonConfiguration { OmitNull = true });
     }
 
-    private static void AssertDecodeAndEqual<TEntity>(ISchema<JSONValue, TEntity> schema, string json,
+    private static void AssertDecodeAndEqual<TEntity>(ISchema<JsonValue, TEntity> schema, string json,
         TEntity expected)
     {
         var decoder = schema.CreateDecoder();
@@ -638,7 +638,7 @@ public class JSONSchemaTester : SchemaTester<JSONValue>
         Assert.That(result.AreEqual, Is.True, result.DifferencesString);
     }
 
-    private static void AssertEncodeAndEqual<TEntity>(ISchema<JSONValue, TEntity> schema, TEntity value,
+    private static void AssertEncodeAndEqual<TEntity>(ISchema<JsonValue, TEntity> schema, TEntity value,
         string expected)
     {
         var encoder = schema.CreateEncoder();

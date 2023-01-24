@@ -3,9 +3,9 @@ using System.IO;
 using System.Text;
 using Verse.EncoderDescriptors.Tree;
 
-namespace Verse.Schemas.JSON;
+namespace Verse.Schemas.Json;
 
-internal class Writer : IWriter<WriterState, JSONValue>
+internal class Writer : IWriter<WriterState, JsonValue>
 {
     private readonly Encoding encoding;
 
@@ -33,10 +33,10 @@ internal class Writer : IWriter<WriterState, JSONValue>
     }
 
     public void WriteAsArray<TElement>(WriterState state, IEnumerable<TElement> elements,
-        WriterCallback<WriterState, JSONValue, TElement> writer)
+        WriterCallback<WriterState, JsonValue, TElement> writer)
     {
         if (elements == null)
-            WriteAsValue(state, JSONValue.Void);
+            WriteAsValue(state, JsonValue.Void);
         else
         {
             state.ArrayBegin();
@@ -49,10 +49,10 @@ internal class Writer : IWriter<WriterState, JSONValue>
     }
 
     public void WriteAsObject<TObject>(WriterState state, TObject parent,
-        IReadOnlyDictionary<string, WriterCallback<WriterState, JSONValue, TObject>> fields)
+        IReadOnlyDictionary<string, WriterCallback<WriterState, JsonValue, TObject>> fields)
     {
         if (parent == null)
-            WriteAsValue(state, JSONValue.Void);
+            WriteAsValue(state, JsonValue.Void);
         else
         {
             state.ObjectBegin();
@@ -67,7 +67,7 @@ internal class Writer : IWriter<WriterState, JSONValue>
         }
     }
 
-    public void WriteAsValue(WriterState state, JSONValue value)
+    public void WriteAsValue(WriterState state, JsonValue value)
     {
         state.Value(value);
     }
