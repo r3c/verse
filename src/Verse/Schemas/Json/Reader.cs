@@ -4,9 +4,9 @@ using System.Text;
 using Verse.DecoderDescriptors.Tree;
 using Verse.LookupNodes;
 
-namespace Verse.Schemas.JSON;
+namespace Verse.Schemas.Json;
 
-internal class Reader : IReader<ReaderState, JSONValue, int>
+internal class Reader : IReader<ReaderState, JsonValue, int>
 {
     private readonly bool readObjectValuesAsArray;
     private readonly bool readScalarAsOneElementArray;
@@ -19,7 +19,7 @@ internal class Reader : IReader<ReaderState, JSONValue, int>
         this.encoding = encoding;
     }
 
-    public ReaderStatus ReadToArray<TElement>(ReaderState state, ReaderCallback<ReaderState, JSONValue, int, TElement> callback, out BrowserMove<TElement> browserMove)
+    public ReaderStatus ReadToArray<TElement>(ReaderState state, ReaderCallback<ReaderState, JsonValue, int, TElement> callback, out BrowserMove<TElement> browserMove)
     {
         state.PullIgnored();
 
@@ -84,7 +84,7 @@ internal class Reader : IReader<ReaderState, JSONValue, int>
     }
 
     public ReaderStatus ReadToObject<TObject>(ReaderState state,
-        ILookupNode<int, ReaderCallback<ReaderState, JSONValue, int, TObject>> root, ref TObject target)
+        ILookupNode<int, ReaderCallback<ReaderState, JsonValue, int, TObject>> root, ref TObject target)
     {
         state.PullIgnored();
 
@@ -101,7 +101,7 @@ internal class Reader : IReader<ReaderState, JSONValue, int>
         }
     }
 
-    public ReaderStatus ReadToValue(ReaderState state, out JSONValue value)
+    public ReaderStatus ReadToValue(ReaderState state, out JsonValue value)
     {
         state.PullIgnored();
 
@@ -132,7 +132,7 @@ internal class Reader : IReader<ReaderState, JSONValue, int>
                     return ReaderStatus.Failed;
                 }
 
-                value = JSONValue.FromBoolean(false);
+                value = JsonValue.FromBoolean(false);
 
                 return ReaderStatus.Succeeded;
 
@@ -144,7 +144,7 @@ internal class Reader : IReader<ReaderState, JSONValue, int>
                     return ReaderStatus.Failed;
                 }
 
-                value = JSONValue.Void;
+                value = JsonValue.Void;
 
                 return ReaderStatus.Ignored;
 
@@ -156,7 +156,7 @@ internal class Reader : IReader<ReaderState, JSONValue, int>
                     return ReaderStatus.Failed;
                 }
 
-                value = JSONValue.FromBoolean(true);
+                value = JsonValue.FromBoolean(true);
 
                 return ReaderStatus.Succeeded;
 
@@ -190,7 +190,7 @@ internal class Reader : IReader<ReaderState, JSONValue, int>
     }
 
     private BrowserMove<TElement> ReadToArrayFromArray<TElement>(ReaderState state,
-        ReaderCallback<ReaderState, JSONValue, int, TElement> callback)
+        ReaderCallback<ReaderState, JsonValue, int, TElement> callback)
     {
         state.Read();
 
@@ -228,7 +228,7 @@ internal class Reader : IReader<ReaderState, JSONValue, int>
     }
 
     private BrowserMove<TElement> ReadToArrayFromObjectValues<TElement>(ReaderState state,
-        ReaderCallback<ReaderState, JSONValue, int, TElement> callback)
+        ReaderCallback<ReaderState, JsonValue, int, TElement> callback)
     {
         state.Read();
 
@@ -303,7 +303,7 @@ internal class Reader : IReader<ReaderState, JSONValue, int>
     }
 
     private ReaderStatus ReadToObjectFromArray<TObject>(ReaderState state,
-        ILookupNode<int, ReaderCallback<ReaderState, JSONValue, int, TObject>> root, ref TObject target)
+        ILookupNode<int, ReaderCallback<ReaderState, JsonValue, int, TObject>> root, ref TObject target)
     {
         state.Read();
 
@@ -337,7 +337,7 @@ internal class Reader : IReader<ReaderState, JSONValue, int>
     }
 
     private ReaderStatus ReadToObjectFromObject<TObject>(ReaderState state,
-        ILookupNode<int, ReaderCallback<ReaderState, JSONValue, int, TObject>> root, ref TObject target)
+        ILookupNode<int, ReaderCallback<ReaderState, JsonValue, int, TObject>> root, ref TObject target)
     {
         state.Read();
 
@@ -423,7 +423,7 @@ internal class Reader : IReader<ReaderState, JSONValue, int>
                state.PullExpected('e');
     }
 
-    private static ReaderStatus ReadToValueFromNumber(ReaderState state, out JSONValue value)
+    private static ReaderStatus ReadToValueFromNumber(ReaderState state, out JsonValue value)
     {
         unchecked
         {
@@ -523,13 +523,13 @@ internal class Reader : IReader<ReaderState, JSONValue, int>
             var number = (long) ((numberMantissa ^ numberMantissaMask) + numberMantissaPlus) *
                          Math.Pow(10, numberPower);
 
-            value = JSONValue.FromNumber(number);
+            value = JsonValue.FromNumber(number);
 
             return ReaderStatus.Succeeded;
         }
     }
 
-    private static ReaderStatus ReadToValueFromString(ReaderState state, out JSONValue value)
+    private static ReaderStatus ReadToValueFromString(ReaderState state, out JsonValue value)
     {
         state.Read();
 
@@ -551,7 +551,7 @@ internal class Reader : IReader<ReaderState, JSONValue, int>
 
         state.Read();
 
-        value = JSONValue.FromString(buffer.ToString());
+        value = JsonValue.FromString(buffer.ToString());
 
         return ReaderStatus.Succeeded;
     }
@@ -604,12 +604,12 @@ internal class Reader : IReader<ReaderState, JSONValue, int>
 
             case '[':
                 return ReadToObjectFromArray(state,
-                    EmptyLookupNode<int, ReaderCallback<ReaderState, JSONValue, int, bool>>.Instance,
+                    EmptyLookupNode<int, ReaderCallback<ReaderState, JsonValue, int, bool>>.Instance,
                     ref empty) != ReaderStatus.Failed;
 
             case '{':
                 return ReadToObjectFromObject(state,
-                    EmptyLookupNode<int, ReaderCallback<ReaderState, JSONValue, int, bool>>.Instance,
+                    EmptyLookupNode<int, ReaderCallback<ReaderState, JsonValue, int, bool>>.Instance,
                     ref empty) != ReaderStatus.Failed;
 
             default:

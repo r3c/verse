@@ -3,7 +3,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 
-namespace Verse.Schemas.JSON;
+namespace Verse.Schemas.Json;
 
 internal class WriterState : IDisposable
 {
@@ -104,23 +104,23 @@ internal class WriterState : IDisposable
         needComma = true;
     }
 
-    public void Value(JSONValue value)
+    public void Value(JsonValue value)
     {
         switch (value.Type)
         {
-            case JSONType.Boolean:
+            case JsonType.Boolean:
                 AppendPrefix();
                 writer.Write(value.Boolean ? "true" : "false");
 
                 break;
 
-            case JSONType.Number:
+            case JsonType.Number:
                 AppendPrefix();
                 writer.Write(value.Number.ToString(CultureInfo.InvariantCulture));
 
                 break;
 
-            case JSONType.String:
+            case JsonType.String:
                 AppendPrefix();
                 WriteString(writer, value.String);
 

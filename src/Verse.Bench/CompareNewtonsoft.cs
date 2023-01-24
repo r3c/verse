@@ -40,7 +40,7 @@ public class CompareNewtonsoft
                               "\"hendrerit\":-32768" +
                               "}";
 
-        var decoder = Linker.CreateDecoder(new JSONSchema<MyFlatStructure>());
+        var decoder = Linker.CreateDecoder(new JsonSchema<MyFlatStructure>());
 
         BenchDecode(decoder, source, 10000);
     }
@@ -72,7 +72,7 @@ public class CompareNewtonsoft
 
         builder.Append("]");
 
-        var schema = new JSONSchema<long[]>();
+        var schema = new JsonSchema<long[]>();
 
         schema.DecoderDescriptor
             .IsArray<long>(elements => elements.ToArray())
@@ -99,7 +99,7 @@ public class CompareNewtonsoft
             "\"value\":\"f\"" +
             "}";
 
-        var decoder = Linker.CreateDecoder(new JSONSchema<MyNestedArray>());
+        var decoder = Linker.CreateDecoder(new JsonSchema<MyNestedArray>());
 
         BenchDecode(decoder, source, 10000);
     }
@@ -107,7 +107,7 @@ public class CompareNewtonsoft
     [Test]
     public void EncodeFlatStructure()
     {
-        var encoder = Linker.CreateEncoder(new JSONSchema<MyFlatStructure>());
+        var encoder = Linker.CreateEncoder(new JsonSchema<MyFlatStructure>());
         var instance = new MyFlatStructure
         {
             adipiscing = 64,
@@ -129,7 +129,7 @@ public class CompareNewtonsoft
     [Test]
     public void EncodeNestedArray()
     {
-        var encoder = Linker.CreateEncoder(new JSONSchema<MyNestedArray>());
+        var encoder = Linker.CreateEncoder(new JsonSchema<MyNestedArray>());
         var instance = new MyNestedArray
         {
             children = new[]

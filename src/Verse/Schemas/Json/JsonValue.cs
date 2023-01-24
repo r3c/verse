@@ -1,10 +1,10 @@
 
-namespace Verse.Schemas.JSON;
+namespace Verse.Schemas.Json;
 
 /// <summary>
 /// Native JSON value.
 /// </summary>
-public readonly struct JSONValue
+public readonly struct JsonValue
 {
     /// <summary>
     /// Boolean value (only set if type is boolean).
@@ -24,21 +24,21 @@ public readonly struct JSONValue
     /// <summary>
     /// Value content type.
     /// </summary>
-    public readonly JSONType Type;
+    public readonly JsonType Type;
 
     /// <summary>
     /// Static instance of undefined value.
     /// </summary>
-    public static readonly JSONValue Void = new JSONValue();
+    public static readonly JsonValue Void = new JsonValue();
 
     /// <summary>
     /// Create a new boolean JSON value.
     /// </summary>
     /// <param name="value">Boolean value</param>
     /// <returns>JSON boolean value</returns>
-    public static JSONValue FromBoolean(bool value)
+    public static JsonValue FromBoolean(bool value)
     {
-        return new JSONValue(JSONType.Boolean, value, default, default);
+        return new JsonValue(JsonType.Boolean, value, default, default);
     }
 
     /// <summary>
@@ -46,9 +46,9 @@ public readonly struct JSONValue
     /// </summary>
     /// <param name="value">Number value</param>
     /// <returns>JSON number value</returns>
-    public static JSONValue FromNumber(double value)
+    public static JsonValue FromNumber(double value)
     {
-        return new JSONValue(JSONType.Number, default, value, default);
+        return new JsonValue(JsonType.Number, default, value, default);
     }
 
     /// <summary>
@@ -56,12 +56,12 @@ public readonly struct JSONValue
     /// </summary>
     /// <param name="value">String value</param>
     /// <returns>JSON string value</returns>
-    public static JSONValue FromString(string value)
+    public static JsonValue FromString(string value)
     {
-        return value == null ? Void : new JSONValue(JSONType.String, default, default, value);
+        return value == null ? Void : new JsonValue(JsonType.String, default, default, value);
     }
 
-    private JSONValue(JSONType type, bool boolean, double number, string str)
+    private JsonValue(JsonType type, bool boolean, double number, string str)
     {
         Boolean = boolean;
         Number = number;
