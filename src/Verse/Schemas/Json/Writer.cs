@@ -36,7 +36,7 @@ internal class Writer : IWriter<WriterState, JsonValue>
         WriterCallback<WriterState, JsonValue, TElement> writer)
     {
         if (elements == null)
-            WriteAsValue(state, JsonValue.Void);
+            WriteAsValue(state, JsonValue.Undefined);
         else
         {
             state.ArrayBegin();
@@ -52,7 +52,7 @@ internal class Writer : IWriter<WriterState, JsonValue>
         IReadOnlyDictionary<string, WriterCallback<WriterState, JsonValue, TObject>> fields)
     {
         if (parent == null)
-            WriteAsValue(state, JsonValue.Void);
+            WriteAsValue(state, JsonValue.Undefined);
         else
         {
             state.ObjectBegin();

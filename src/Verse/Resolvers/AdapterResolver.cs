@@ -130,9 +130,26 @@ internal static class AdapterResolver
     };
 
     public static bool TryGetDecoderConverter<TNative, TEntity>(IDecoderAdapter<TNative> adapter,
-        out Setter<TEntity, TNative> getter)
+        out Setter<TEntity, TNative> setter)
     {
         if (!ForDecoder.TryGetValue(typeof(TEntity), out var generator))
+        {
+            setter = default;
+
+            return false;
+        }
+
+        var untyped = generator.SetCallerGenericArguments(typeof(TNative)).GetGetter(adapter);
+
+        setter = (Setter<TEntity, TNative>) untyped;
+
+        return true;
+    }
+
+    public static bool TryGetEncoderConverter<TNative, TEntity>(IEncoderAdapter<TNative> adapter,
+        out Func<TEntity, TNative> getter)
+    {
+        if (!ForEncoder.TryGetValue(typeof(TEntity), out var generator))
         {
             getter = default;
 
@@ -141,24 +158,7 @@ internal static class AdapterResolver
 
         var untyped = generator.SetCallerGenericArguments(typeof(TNative)).GetGetter(adapter);
 
-        getter = (Setter<TEntity, TNative>) untyped;
-
-        return true;
-    }
-
-    public static bool TryGetEncoderConverter<TNative, TEntity>(IEncoderAdapter<TNative> adapter,
-        out Func<TEntity, TNative> converter)
-    {
-        if (!ForEncoder.TryGetValue(typeof(TEntity), out var generator))
-        {
-            converter = default;
-
-            return false;
-        }
-
-        var untyped = generator.SetCallerGenericArguments(typeof(TNative)).GetGetter(adapter);
-
-        converter = (Func<TEntity, TNative>) untyped;
+        getter = (Func<TEntity, TNative>) untyped;
 
         return true;
     }

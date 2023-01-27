@@ -60,7 +60,7 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
                     JsonType.Boolean => value.Boolean.ToString(),
                     JsonType.Number => value.Number.ToString(CultureInfo.InvariantCulture),
                     JsonType.String => value.String,
-                    JsonType.Void => "null",
+                    JsonType.Undefined => "null",
                     _ => throw new ArgumentOutOfRangeException(nameof(value.Type), value.Type, "invalid type")
                 };
             });
@@ -95,7 +95,7 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
                     JsonType.Boolean => value.Boolean.ToString(),
                     JsonType.Number => value.Number.ToString(CultureInfo.InvariantCulture),
                     JsonType.String => value.String,
-                    JsonType.Void => "null",
+                    JsonType.Undefined => "null",
                     _ => throw new ArgumentOutOfRangeException(nameof(value.Type), value.Type, "invalid type")
                 };
             });
@@ -477,7 +477,7 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
 
         root
             .HasField("value", s => s)
-            .IsValue(_ => nullValue ? JsonValue.Void : JsonValue.FromNumber(4));
+            .IsValue(_ => nullValue ? JsonValue.Undefined : JsonValue.FromNumber(4));
 
         AssertEncodeAndEqual(schema, "test", expected);
     }
@@ -518,7 +518,7 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
         schema.EncoderDescriptor
             .IsObject()
             .HasField("value", v => v)
-            .IsValue(_ => JsonValue.Void);
+            .IsValue(_ => JsonValue.Undefined);
 
         AssertEncodeAndEqual(schema, "dummy", expected);
     }

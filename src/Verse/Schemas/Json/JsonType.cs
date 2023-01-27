@@ -1,4 +1,3 @@
-
 namespace Verse.Schemas.Json;
 
 /// <summary>
@@ -7,9 +6,9 @@ namespace Verse.Schemas.Json;
 public enum JsonType
 {
     /// <summary>
-    /// Undefined (null) value.
+    /// Undefined value.
     /// </summary>
-    Void,
+    Undefined,
 
     /// <summary>
     /// Boolean value.

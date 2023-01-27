@@ -144,7 +144,7 @@ internal class Reader : IReader<ReaderState, JsonValue, int>
                     return ReaderStatus.Failed;
                 }
 
-                value = JsonValue.Void;
+                value = JsonValue.Undefined;
 
                 return ReaderStatus.Ignored;
 
@@ -465,9 +465,7 @@ internal class Reader : IReader<ReaderState, JsonValue, int>
             // Read decimal part if any
             if (state.Current == '.')
             {
-                state.Read();
-
-                for (; state.Current >= (int) '0' && state.Current <= (int) '9'; state.Read())
+                for (state.Read(); state.Current is >= '0' and <= '9'; state.Read())
                 {
                     if (numberMantissa > mantissaMax)
                         continue;
@@ -479,7 +477,7 @@ internal class Reader : IReader<ReaderState, JsonValue, int>
             }
 
             // Read exponent if any
-            if (state.Current == 'E' || state.Current == 'e')
+            if (state.Current is 'E' or 'e')
             {
                 uint numberExponentMask;
                 uint numberExponentPlus;
@@ -513,7 +511,7 @@ internal class Reader : IReader<ReaderState, JsonValue, int>
 
                 uint numberExponent;
 
-                for (numberExponent = 0; state.Current >= (int) '0' && state.Current <= (int) '9'; state.Read())
+                for (numberExponent = 0; state.Current is >= '0' and <= '9'; state.Read())
                     numberExponent = numberExponent * 10 + (uint) (state.Current - '0');
 
                 numberPower += (int) ((numberExponent ^ numberExponentMask) + numberExponentPlus);
@@ -531,11 +529,9 @@ internal class Reader : IReader<ReaderState, JsonValue, int>
 
     private static ReaderStatus ReadToValueFromString(ReaderState state, out JsonValue value)
     {
-        state.Read();
-
         var buffer = new StringBuilder(32);
 
-        while (state.Current != '"')
+        for (state.Read(); state.Current != '"';)
         {
             if (!state.PullCharacter(out var character))
             {

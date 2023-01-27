@@ -1,4 +1,3 @@
-
 namespace Verse.Schemas.Json;
 
 /// <summary>
@@ -29,7 +28,7 @@ public readonly struct JsonValue
     /// <summary>
     /// Static instance of undefined value.
     /// </summary>
-    public static readonly JsonValue Void = new JsonValue();
+    public static readonly JsonValue Undefined = new();
 
     /// <summary>
     /// Create a new boolean JSON value.
@@ -58,7 +57,7 @@ public readonly struct JsonValue
     /// <returns>JSON string value</returns>
     public static JsonValue FromString(string value)
     {
-        return value == null ? Void : new JsonValue(JsonType.String, default, default, value);
+        return value == null ? Undefined : new JsonValue(JsonType.String, default, default, value);
     }
 
     private JsonValue(JsonType type, bool boolean, double number, string str)
