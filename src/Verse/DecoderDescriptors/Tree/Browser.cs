@@ -6,7 +6,7 @@ namespace Verse.DecoderDescriptors.Tree;
 
 internal class Browser<TEntity> : IDisposable, IEnumerable<TEntity>
 {
-    private Enumerator _enumerator;
+    private readonly Enumerator _enumerator;
 
     private bool _started;
 
@@ -19,7 +19,6 @@ internal class Browser<TEntity> : IDisposable, IEnumerable<TEntity>
     public void Dispose()
     {
         _enumerator.Dispose();
-        _enumerator = null;
     }
 
     public bool Finish()
@@ -46,11 +45,11 @@ internal class Browser<TEntity> : IDisposable, IEnumerable<TEntity>
     {
         public TEntity Current => _current;
 
-        object IEnumerator.Current => Current;
+        object? IEnumerator.Current => Current;
 
         private int _index;
 
-        private BrowserMove<TEntity> _move;
+        private readonly BrowserMove<TEntity> _move;
 	
         private TEntity _current;
 	
@@ -58,6 +57,7 @@ internal class Browser<TEntity> : IDisposable, IEnumerable<TEntity>
 
         public Enumerator(BrowserMove<TEntity> move)
         {
+            _current = default!;
             _index = 0;
             _move = move;
             _state = BrowserState.Continue;
@@ -66,8 +66,6 @@ internal class Browser<TEntity> : IDisposable, IEnumerable<TEntity>
         public void Dispose()
         {
             Finish();
-
-            _move = null;
         }
 
         public bool Finish()
@@ -83,8 +81,7 @@ internal class Browser<TEntity> : IDisposable, IEnumerable<TEntity>
             if (_state != BrowserState.Continue)
                 return false;
 
-            if (_move != null)
-                _state = _move(_index++, out _current);
+            _state = _move(_index++, out _current);
 	
             return _state == BrowserState.Continue;
         }

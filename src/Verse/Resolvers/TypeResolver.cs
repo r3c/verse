@@ -4,7 +4,7 @@ namespace Verse.Resolvers;
 
 internal readonly struct TypeResolver
 {
-    public readonly Type Type;
+    private readonly Type _type;
 
     public static TypeResolver Create(Type type)
     {
@@ -13,7 +13,7 @@ internal readonly struct TypeResolver
 
     private TypeResolver(Type type)
     {
-        Type = type;
+        _type = type;
     }
 
     /// <Summary>
@@ -34,14 +34,14 @@ internal readonly struct TypeResolver
 
         var definition = expected.GetGenericTypeDefinition();
 
-        if (!Type.IsGenericType || Type.GetGenericTypeDefinition() != definition)
+        if (!_type.IsGenericType || _type.GetGenericTypeDefinition() != definition)
         {
-            arguments = default;
+            arguments = Array.Empty<Type>();
 
             return false;
         }
 
-        arguments = Type.GetGenericArguments();
+        arguments = _type.GetGenericArguments();
 
         return true;
     }

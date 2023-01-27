@@ -45,9 +45,9 @@ internal static class SetterGenerator
         if (property.PropertyType != typeof(TProperty))
             throw new ArgumentException($"property type is not {typeof(TProperty)}", nameof(property));
 
-        var setter = property.GetSetMethod();
+        var setter = property.SetMethod;
 
-        if (setter == null)
+        if (setter is null)
             throw new ArgumentException("property has no setter", nameof(property));
 
         var parentType = typeof(TEntity);
@@ -61,7 +61,7 @@ internal static class SetterGenerator
             generator.Emit(OpCodes.Ldind_Ref);
 
         generator.Emit(OpCodes.Ldarg_1);
-        generator.Emit(OpCodes.Call, property.GetSetMethod());
+        generator.Emit(OpCodes.Call, setter);
         generator.Emit(OpCodes.Ret);
 
         return (Setter<TEntity, TProperty>) method.CreateDelegate(typeof(Setter<TEntity, TProperty>));

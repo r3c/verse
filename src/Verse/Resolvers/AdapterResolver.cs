@@ -134,14 +134,14 @@ internal static class AdapterResolver
     {
         if (!ForDecoder.TryGetValue(typeof(TEntity), out var generator))
         {
-            setter = default;
+            setter = default!;
 
             return false;
         }
 
         var untyped = generator.SetCallerGenericArguments(typeof(TNative)).GetGetter(adapter);
 
-        setter = (Setter<TEntity, TNative>) untyped;
+        setter = (Setter<TEntity, TNative>) untyped!;
 
         return true;
     }
@@ -151,14 +151,14 @@ internal static class AdapterResolver
     {
         if (!ForEncoder.TryGetValue(typeof(TEntity), out var generator))
         {
-            getter = default;
+            getter = default!;
 
             return false;
         }
 
         var untyped = generator.SetCallerGenericArguments(typeof(TNative)).GetGetter(adapter);
 
-        getter = (Func<TEntity, TNative>) untyped;
+        getter = (Func<TEntity, TNative>) untyped!;
 
         return true;
     }

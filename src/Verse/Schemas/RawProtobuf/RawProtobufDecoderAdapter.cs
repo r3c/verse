@@ -364,7 +364,7 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
                 break;
 
             default:
-                target = default;
+                target = string.Empty;
 
                 break;
         }

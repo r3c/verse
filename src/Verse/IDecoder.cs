@@ -12,7 +12,7 @@ public interface IDecoder<TEntity>
     /// <summary>
     /// Decoding error event.
     /// </summary>
-    event ErrorEvent Error;
+    event ErrorEvent? Error;
 
     /// <summary>
     /// Open read-enabled stream for decoding entities out of it.

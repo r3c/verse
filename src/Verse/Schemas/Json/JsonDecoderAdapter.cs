@@ -370,7 +370,7 @@ internal class JsonDecoderAdapter : IDecoderAdapter<JsonValue>
                 break;
 
             default:
-                target = default;
+                target = string.Empty;
 
                 break;
         }

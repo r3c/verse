@@ -53,7 +53,7 @@ internal struct Lexem : IEquatable<Lexem>
         return Type == other.Type && Value == other.Value;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return (obj is Lexem lexem) && Equals(lexem);
     }

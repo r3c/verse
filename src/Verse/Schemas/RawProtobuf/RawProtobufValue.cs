@@ -12,7 +12,7 @@ public readonly struct RawProtobufValue
     {
         Number = number;
         Storage = storage;
-        String = default;
+        String = string.Empty;
     }
 
     public RawProtobufValue(string value, RawProtobufWireType storage)

@@ -580,7 +580,7 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
                 break;
 
             default:
-                target = default;
+                target = string.Empty;
 
                 break;
         }

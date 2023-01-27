@@ -13,7 +13,7 @@ internal readonly struct MethodResolver
     /// </Summary>
     public static MethodResolver Create<TMethod>(Expression<TMethod> lambda)
     {
-        if (!(lambda.Body is MethodCallExpression expression))
+        if (lambda.Body is not MethodCallExpression expression)
             throw new ArgumentException("can't get method information from expression", nameof(lambda));
 
         return new MethodResolver(expression.Method);
@@ -27,7 +27,7 @@ internal readonly struct MethodResolver
     /// <Summary>
     /// Invoke method with given caller instance and arguments.
     /// </Summary>
-    public object Invoke(object caller, params object[] arguments)
+    public object? Invoke(object caller, params object[] arguments)
     {
         return Method.Invoke(caller, arguments);
     }

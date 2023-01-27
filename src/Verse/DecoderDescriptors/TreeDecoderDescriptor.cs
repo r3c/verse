@@ -89,7 +89,7 @@ internal class TreeDecoderDescriptor<TState, TNative, TKey, TEntity> : IDecoderD
                     return ReaderStatus.Ignored;
 
                 default:
-                    entity = default;
+                    entity = default!;
 
                     return ReaderStatus.Failed;
             }
@@ -178,7 +178,7 @@ internal class TreeDecoderDescriptor<TState, TNative, TKey, TEntity> : IDecoderD
             var success = parentLookup.ConnectTo(name,
                 (IReader<TState, TNative, TKey> reader, TState state, ref TEntity entity) =>
                 {
-                    TField field = default;
+                    TField field = default!;
 
                     switch (fieldDefinition.Callback(reader, state, ref field))
                     {

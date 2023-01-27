@@ -28,7 +28,7 @@ internal readonly struct PropertyResolver
         Property = property;
     }
 
-    public object GetGetter(object instance)
+    public object? GetGetter(object instance)
     {
         var method = Property.GetMethod;
 
@@ -40,7 +40,7 @@ internal readonly struct PropertyResolver
 
     public PropertyResolver SetCallerGenericArguments(params Type[] arguments)
     {
-        var callerType = Property.DeclaringType;
+        var callerType = Property.DeclaringType ?? throw new InvalidOperationException("property has no declaring type");
 
         if (!callerType.IsGenericType)
             throw new InvalidOperationException("property caller type is not generic");

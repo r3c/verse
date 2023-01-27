@@ -37,7 +37,7 @@ public readonly struct JsonValue
     /// <returns>JSON boolean value</returns>
     public static JsonValue FromBoolean(bool value)
     {
-        return new JsonValue(JsonType.Boolean, value, default, default);
+        return new JsonValue(JsonType.Boolean, value, default, string.Empty);
     }
 
     /// <summary>
@@ -47,7 +47,7 @@ public readonly struct JsonValue
     /// <returns>JSON number value</returns>
     public static JsonValue FromNumber(double value)
     {
-        return new JsonValue(JsonType.Number, default, value, default);
+        return new JsonValue(JsonType.Number, default, value, string.Empty);
     }
 
     /// <summary>
@@ -55,9 +55,9 @@ public readonly struct JsonValue
     /// </summary>
     /// <param name="value">String value</param>
     /// <returns>JSON string value</returns>
-    public static JsonValue FromString(string value)
+    public static JsonValue FromString(string? value)
     {
-        return value == null ? Undefined : new JsonValue(JsonType.String, default, default, value);
+        return value is null ? Undefined : new JsonValue(JsonType.String, default, default, value);
     }
 
     private JsonValue(JsonType type, bool boolean, double number, string str)

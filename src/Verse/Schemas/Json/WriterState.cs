@@ -11,7 +11,7 @@ internal class WriterState : IDisposable
 
     private bool _isEmpty;
 
-    private string _nextKey;
+    private string? _nextKey;
 
     private bool _needComma;
 

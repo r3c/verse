@@ -12,7 +12,7 @@ public interface IEncoder<in TEntity>
     /// <summary>
     /// Encoding error event.
     /// </summary>
-    event ErrorEvent Error;
+    event ErrorEvent? Error;
 
     /// <summary>
     /// Open write-enabled stream for encoding entities to it.

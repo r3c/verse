@@ -4,7 +4,7 @@ namespace Verse.EncoderDescriptors.Tree;
 
 internal class TreeEncoder<TState, TNative, TEntity> : IEncoder<TEntity>
 {
-    public event ErrorEvent Error;
+    public event ErrorEvent? Error;
 
     private readonly WriterCallback<TState, TNative, TEntity> _callback;
 

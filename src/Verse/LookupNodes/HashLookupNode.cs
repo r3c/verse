@@ -13,13 +13,13 @@ internal class HashLookupNode<TKey, TValue> : ILookupNode<TKey, TValue>
     public bool HasValue { get; set; }
     public TValue Value { get; set; }
 
-    private static readonly ILookupNode<TKey, TValue> Empty = new HashLookupNode<TKey, TValue>(k => default);
+    private static readonly ILookupNode<TKey, TValue> Empty = new HashLookupNode<TKey, TValue>(_ => default);
 
     private readonly Func<TKey, int> _extractor;
 
-    private Dictionary<int, HashLookupNode<TKey, TValue>> _hashedChildren;
+    private Dictionary<int, HashLookupNode<TKey, TValue>>? _hashedChildren;
 
-    private HashLookupNode<TKey, TValue>[] _indexedChildren;
+    private HashLookupNode<TKey, TValue>?[]? _indexedChildren;
 
     public HashLookupNode(Func<TKey, int> extractor)
     {
@@ -32,11 +32,12 @@ internal class HashLookupNode<TKey, TValue> : ILookupNode<TKey, TValue>
 
         if (character < HashLookupNode.HashThreshold)
         {
-            if (_indexedChildren == null)
-                _indexedChildren = new HashLookupNode<TKey, TValue>[HashLookupNode.HashThreshold];
+            _indexedChildren ??= new HashLookupNode<TKey, TValue>[HashLookupNode.HashThreshold];
 
-            if (_indexedChildren[character] != null)
-                return _indexedChildren[character];
+            var indexedChild = _indexedChildren[character];
+
+            if (indexedChild != null)
+                return indexedChild;
 
             var next = new HashLookupNode<TKey, TValue>(_extractor);
 
@@ -46,8 +47,7 @@ internal class HashLookupNode<TKey, TValue> : ILookupNode<TKey, TValue>
         }
         else
         {
-            if (_hashedChildren == null)
-                _hashedChildren = new Dictionary<int, HashLookupNode<TKey, TValue>>();
+            _hashedChildren ??= new Dictionary<int, HashLookupNode<TKey, TValue>>();
 
             if (_hashedChildren.TryGetValue(character, out var next))
                 return next;
@@ -66,8 +66,10 @@ internal class HashLookupNode<TKey, TValue> : ILookupNode<TKey, TValue>
 
         if (character < HashLookupNode.HashThreshold)
         {
-            if (_indexedChildren != null && _indexedChildren[character] != null)
-                return _indexedChildren[character];
+            var indexedChild = _indexedChildren?[character];
+
+            if (indexedChild != null)
+                return indexedChild;
         }
         else
         {

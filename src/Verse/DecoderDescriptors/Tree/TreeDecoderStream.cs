@@ -21,10 +21,9 @@ internal class TreeDecoderStream<TState, TNative, TKey, TEntity> : IDecoderStrea
         _reader.Stop(_state);
     }
 
-    public bool TryDecode(out TEntity entity)
+    public bool TryDecode(out TEntity? entity)
     {
-        var entityValue = default(TEntity);
-
+        var entityValue = default(TEntity)!;
         var result = _callback(_reader, _state, ref entityValue);
 
         entity = result == ReaderStatus.Succeeded ? entityValue : default;

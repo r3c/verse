@@ -1,23 +1,24 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Verse.Schemas.Protobuf.Definition;
 
 internal struct ProtoReference
 {
-    public readonly string[] Names;
+    public readonly IReadOnlyList<string> Names;
 
     public readonly ProtoType Type;
 
     public ProtoReference(IEnumerable<string> names)
     {
-        Names = names.ToArray();
+        Names = names.ToList();
         Type = ProtoType.Custom;
     }
 
     public ProtoReference(ProtoType type)
     {
-        Names = null;
+        Names = Array.Empty<string>();
         Type = type;
     }
 }

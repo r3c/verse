@@ -39,9 +39,9 @@ internal static class GetterGenerator
         if (property.PropertyType != typeof(TProperty))
             throw new ArgumentException($"property type is not {typeof(TProperty)}", nameof(property));
 
-        var getter = property.GetGetMethod();
+        var getter = property.GetMethod;
 
-        if (getter == null)
+        if (getter is null)
             throw new ArgumentException("property has no getter", nameof(property));
 
         return (Func<TEntity, TProperty>) Delegate.CreateDelegate(typeof(Func<TEntity, TProperty>), getter);
