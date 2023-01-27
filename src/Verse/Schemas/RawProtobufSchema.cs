@@ -26,6 +26,9 @@ internal class RawProtobufSchema<TEntity> : ISchema<RawProtobufValue, TEntity>
     /// <inheritdoc/>
     public IEncoderDescriptor<RawProtobufValue, TEntity> EncoderDescriptor => _encoderDescriptor;
 
+    /// <inheritdoc/>
+    public RawProtobufValue NullValue => new(0, RawProtobufWireType.VarInt);
+
     private readonly RawProtobufDecoderAdapter _decoderAdapter;
 
     private readonly TreeDecoderDescriptor<ReaderState, RawProtobufValue, char, TEntity>

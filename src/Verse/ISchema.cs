@@ -31,6 +31,11 @@ public interface ISchema<TNative, TEntity>
     IEncoderDescriptor<TNative, TEntity> EncoderDescriptor { get; }
 
     /// <summary>
+    /// Native value considered as null for this schema.
+    /// </summary>
+    TNative NullValue { get; }
+
+    /// <summary>
     /// Create an entity decoder based on instructions passed to the
     /// decoder descriptor associated to this schema.
     /// </summary>

@@ -25,6 +25,9 @@ internal class JsonSchema<TEntity> : ISchema<JsonValue, TEntity>
     /// <inheritdoc/>
     public IEncoderDescriptor<JsonValue, TEntity> EncoderDescriptor => _encoderDescriptor;
 
+    /// <inheritdoc/>
+    public JsonValue NullValue => JsonValue.Undefined;
+
     private readonly JsonConfiguration _configuration;
 
     private readonly JsonDecoderAdapter _decoderAdapter;

@@ -26,6 +26,9 @@ internal sealed class ProtobufSchema<TEntity> : ISchema<ProtobufValue, TEntity>
     /// <inheritdoc/>
     public IEncoderDescriptor<ProtobufValue, TEntity> EncoderDescriptor => _encoderDescriptor;
 
+    /// <inheritdoc/>
+    public ProtobufValue NullValue => ProtobufValue.Empty;
+
     private readonly ProtobufDecoderAdapter _decoderAdapter;
 
     private readonly TreeDecoderDescriptor<ReaderState, ProtobufValue, int, TEntity> _decoderDescriptor;
