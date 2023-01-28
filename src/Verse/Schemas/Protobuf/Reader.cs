@@ -53,7 +53,7 @@ internal static class ReaderHelper
 internal class Reader : IReader<ReaderState, ProtobufValue, int>
 {
     public ReaderStatus ReadToArray<TElement>(ReaderState state,
-        ReaderCallback<ReaderState, ProtobufValue, int, TElement> callback, out BrowserMove<TElement> browserMove)
+        ReaderCallback<ReaderState, ProtobufValue, int, TElement> callback, out ArrayReader<TElement> arrayReader)
     {
         throw new NotImplementedException();
     }

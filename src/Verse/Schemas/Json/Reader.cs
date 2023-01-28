@@ -19,21 +19,21 @@ internal class Reader : IReader<ReaderState, JsonValue, int>
         _encoding = encoding;
     }
 
-    public ReaderStatus ReadToArray<TElement>(ReaderState state, ReaderCallback<ReaderState, JsonValue, int, TElement> callback, out BrowserMove<TElement> browserMove)
+    public ReaderStatus ReadToArray<TElement>(ReaderState state, ReaderCallback<ReaderState, JsonValue, int, TElement> callback, out ArrayReader<TElement> arrayReader)
     {
         state.PullIgnored();
 
         switch (state.Current)
         {
             case '[':
-                browserMove = ReadToArrayFromArray(state, callback);
+                arrayReader = ReadToArrayFromArray(state, callback);
 
                 return ReaderStatus.Succeeded;
 
             case '{':
                 if (_readObjectValuesAsArray)
                 {
-                    browserMove = ReadToArrayFromObjectValues(state, callback);
+                    arrayReader = ReadToArrayFromObjectValues(state, callback);
 
                     return ReaderStatus.Succeeded;
                 }
@@ -41,7 +41,7 @@ internal class Reader : IReader<ReaderState, JsonValue, int>
                 goto default;
 
             case 'n':
-                browserMove = default;
+                arrayReader = default!;
 
                 return ExpectKeywordNull(state) ? ReaderStatus.Ignored : ReaderStatus.Failed;
 
@@ -49,20 +49,16 @@ internal class Reader : IReader<ReaderState, JsonValue, int>
                 // Accept any scalar value as an array of one element
                 if (_readScalarAsOneElementArray)
                 {
-                    browserMove = (int index, out TElement current) =>
+                    arrayReader = index =>
                     {
                         if (index > 0)
-                        {
-                            current = default;
+                            return ArrayResult<TElement>.EndOfArray;
 
-                            return BrowserState.Success;
-                        }
-
-                        current = default;
+                        TElement current = default!;
 
                         return callback(this, state, ref current) != ReaderStatus.Failed
-                            ? BrowserState.Continue
-                            : BrowserState.Failure;
+                            ? ArrayResult.NextElement(current)
+                            : ArrayResult<TElement>.Failure;
                     };
 
                     return ReaderStatus.Succeeded;
@@ -71,12 +67,7 @@ internal class Reader : IReader<ReaderState, JsonValue, int>
                 // Ignore array when not supported by current descriptor
                 else
                 {
-                    browserMove = (int index, out TElement current) =>
-                    {
-                        current = default;
-
-                        return BrowserState.Success;
-                    };
+                    arrayReader = _ => ArrayResult<TElement>.EndOfArray;
 
                     return Skip(state) ? ReaderStatus.Succeeded : ReaderStatus.Failed;
                 }
@@ -189,12 +180,12 @@ internal class Reader : IReader<ReaderState, JsonValue, int>
         state.Dispose();
     }
 
-    private BrowserMove<TElement> ReadToArrayFromArray<TElement>(ReaderState state,
+    private ArrayReader<TElement> ReadToArrayFromArray<TElement>(ReaderState state,
         ReaderCallback<ReaderState, JsonValue, int, TElement> callback)
     {
         state.Read();
 
-        return (int index, out TElement current) =>
+        return index =>
         {
             state.PullIgnored();
 
@@ -202,37 +193,33 @@ internal class Reader : IReader<ReaderState, JsonValue, int>
             {
                 state.Read();
 
-                current = default;
-
-                return BrowserState.Success;
+                return ArrayResult<TElement>.EndOfArray;
             }
 
             // Read comma separator if any
             if (index > 0)
             {
                 if (!state.PullExpected(','))
-                {
-                    current = default;
-
-                    return BrowserState.Failure;
-                }
+                    return ArrayResult<TElement>.Failure;
 
                 state.PullIgnored();
             }
 
             // Read array value
-            current = default;
+            TElement current = default!;
 
-            return callback(this, state, ref current) != ReaderStatus.Failed ? BrowserState.Continue : BrowserState.Failure;
+            return callback(this, state, ref current) != ReaderStatus.Failed
+                ? ArrayResult.NextElement(current)
+                : ArrayResult<TElement>.Failure;
         };
     }
 
-    private BrowserMove<TElement> ReadToArrayFromObjectValues<TElement>(ReaderState state,
+    private ArrayReader<TElement> ReadToArrayFromObjectValues<TElement>(ReaderState state,
         ReaderCallback<ReaderState, JsonValue, int, TElement> callback)
     {
         state.Read();
 
-        return (int index, out TElement current) =>
+        return index =>
         {
             state.PullIgnored();
 
@@ -240,30 +227,20 @@ internal class Reader : IReader<ReaderState, JsonValue, int>
             {
                 state.Read();
 
-                current = default;
-
-                return BrowserState.Success;
+                return ArrayResult<TElement>.EndOfArray;
             }
 
             // Read comma separator if any
             if (index > 0)
             {
                 if (!state.PullExpected(','))
-                {
-                    current = default;
-
-                    return BrowserState.Failure;
-                }
+                    return ArrayResult<TElement>.Failure;
 
                 state.PullIgnored();
             }
 
             if (!state.PullExpected('"'))
-            {
-                current = default;
-
-                return BrowserState.Failure;
-            }
+                return ArrayResult<TElement>.Failure;
 
             // Read and move to object key
             while (state.Current != '"')
@@ -272,9 +249,7 @@ internal class Reader : IReader<ReaderState, JsonValue, int>
                 {
                     state.Error("invalid character in object key");
 
-                    current = default;
-
-                    return BrowserState.Failure;
+                    return ArrayResult<TElement>.Failure;
                 }
             }
 
@@ -284,21 +259,17 @@ internal class Reader : IReader<ReaderState, JsonValue, int>
             state.PullIgnored();
 
             if (!state.PullExpected(':'))
-            {
-                current = default;
-
-                return BrowserState.Failure;
-            }
+                return ArrayResult<TElement>.Failure;
 
             // Read object value
             state.PullIgnored();
 
             // Read array value
-            current = default;
+            TElement current = default!;
 
             return callback(this, state, ref current) != ReaderStatus.Failed
-                ? BrowserState.Continue
-                : BrowserState.Failure;
+                ? ArrayResult.NextElement(current)
+                : ArrayResult<TElement>.Failure;
         };
     }
 
@@ -450,7 +421,7 @@ internal class Reader : IReader<ReaderState, JsonValue, int>
             }
 
             // Read integral part
-            for (; state.Current >= (int) '0' && state.Current <= (int) '9'; state.Read())
+            for (; state.Current is >= '0' and <= '9'; state.Read())
             {
                 if (numberMantissa > mantissaMax)
                 {
