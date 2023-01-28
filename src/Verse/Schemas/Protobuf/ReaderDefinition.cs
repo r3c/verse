@@ -19,6 +19,9 @@ internal class ProtobufReaderDefinition<TEntity> : IReaderDefinition<ReaderState
 
     public ProtobufReaderDefinition(ProtoBinding[] bindings, bool rejectUnknown)
     {
+        Callback = (IReader<ReaderState, ProtobufValue, int> _, ReaderState _, ref TEntity _) => ReaderStatus.Failed;
+        Lookup = default!; // FIXME
+
         _bindings = bindings;
         //this.fields = new ReaderCallback<ReaderState, ProtobufValue, TEntity>[bindings.Length];
         _rejectUnknown = rejectUnknown;

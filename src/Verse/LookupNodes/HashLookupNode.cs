@@ -11,7 +11,7 @@ internal static class HashLookupNode
 internal class HashLookupNode<TKey, TValue> : ILookupNode<TKey, TValue>
 {
     public bool HasValue { get; set; }
-    public TValue Value { get; set; }
+    public TValue? Value { get; set; }
 
     private static readonly ILookupNode<TKey, TValue> Empty = new HashLookupNode<TKey, TValue>(_ => default);
 
