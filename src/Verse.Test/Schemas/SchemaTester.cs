@@ -32,6 +32,28 @@ public abstract class SchemaTester<TNative>
     }
 
     [Test]
+    [Ignore("Enum types are not handled by linker yet.")]
+    public void RoundTripMixedTypes()
+    {
+        var schema = CreateSchema<MixedContainer>();
+        var decoder = Linker.CreateDecoder(schema);
+        var encoder = Linker.CreateEncoder(schema);
+
+        SchemaHelper<TNative>.AssertRoundTrip(decoder, encoder, new MixedContainer
+        {
+            Floats = new[] {1.1f, 2.2f, 3.3f},
+            Integer = 17,
+            Option = SomeEnum.B,
+            Pairs = new Dictionary<string, string>
+            {
+                {"a", "aaa"},
+                {"b", "bbb"}
+            },
+            Text = "Hello, World!"
+        });
+    }
+
+    [Test]
     public void RoundTripNestedArray()
     {
         var schema = CreateSchema<NestedArray>();
@@ -71,28 +93,6 @@ public abstract class SchemaTester<TNative>
                 }
             },
             Value = "f"
-        });
-    }
-
-    [Test]
-    [Ignore("Enum types are not handled by linker yet.")]
-    public void RoundTripMixedTypes()
-    {
-        var schema = CreateSchema<MixedContainer>();
-        var decoder = Linker.CreateDecoder(schema);
-        var encoder = Linker.CreateEncoder(schema);
-
-        SchemaHelper<TNative>.AssertRoundTrip(decoder, encoder, new MixedContainer
-        {
-            Floats = new[] {1.1f, 2.2f, 3.3f},
-            Integer = 17,
-            Option = SomeEnum.B,
-            Pairs = new Dictionary<string, string>
-            {
-                {"a", "aaa"},
-                {"b", "bbb"}
-            },
-            Text = "Hello, World!"
         });
     }
 

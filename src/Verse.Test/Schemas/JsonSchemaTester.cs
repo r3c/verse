@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Text;
 using KellermanSoftware.CompareNetObjects;
 using NUnit.Framework;
-using Verse.Schemas;
 using Verse.Schemas.Json;
 
 namespace Verse.Test.Schemas;
@@ -24,7 +23,7 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
     [TestCase(true, "{\"parent\" : { \"child\" : 123 } }", new[] {123})]
     public void DecodeObjectAsArray(bool scalarAsArray, string json, int[] expected)
     {
-        var schema = Schema.CreateJson<int[]>(new JsonConfiguration {ReadScalarAsOneElementArray = scalarAsArray});
+        var schema = Schema.CreateJson<int[]>(new JsonConfiguration { ReadScalarAsOneElementArray = scalarAsArray });
 
         schema.DecoderDescriptor
             .IsObject(Array.Empty<int>)
@@ -35,6 +34,29 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
             .IsValue(schema.NativeTo.Integer32S);
 
         AssertDecodeAndEqual(schema, json, expected);
+    }
+
+    [Test]
+    [TestCase("{\"a\": 1, \"b\": 2}", 1, 2)]
+    [TestCase("{\"a\": 42, \"b\": 17}", 42, 17)]
+    [TestCase("{\"a\": 42}", 42, 0)]
+    [TestCase("{\"b\": 17}", 0, 17)]
+    [TestCase("{}", 0, 0)]
+    public void DecodeObjectUsingConverter(string json, int expected1, int expected2)
+    {
+        var schema = Schema.CreateJson<(int, int)>();
+        var obj = schema.DecoderDescriptor
+            .IsObject(() => new int[2], intermediate => (intermediate[0], intermediate[1]));
+
+        obj
+            .HasField("a", (ref int[] entity, int value) => entity[0] = value)
+            .IsValue(schema.NativeTo.Integer32S);
+
+        obj
+            .HasField("b", (ref int[] entity, int value) => entity[1] = value)
+            .IsValue(schema.NativeTo.Integer32S);
+
+        AssertDecodeAndEqual(schema, json, (expected1, expected2));
     }
 
     [Test]
@@ -515,6 +537,28 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
             .IsValue(_ => JsonValue.Undefined);
 
         AssertEncodeAndEqual(schema, "dummy", expected);
+    }
+
+    [Test]
+    [TestCase(1, 2, "{\"a\":1,\"b\":2}")]
+    [TestCase(42, 17, "{\"a\":42,\"b\":17}")]
+    [TestCase(42, null, "{\"a\":42}")]
+    [TestCase(null, 17, "{\"b\":17}")]
+    public void EncodeObjectUsingConverter(int? value1, int? value2, string expected)
+    {
+        var schema = Schema.CreateJson<(int?, int?)>(new JsonConfiguration { OmitNull = true });
+        var obj = schema.EncoderDescriptor
+            .IsObject(intermediate => new[] { intermediate.Item1, intermediate.Item2 });
+
+        obj
+            .HasField("a", entity => entity[0])
+            .IsValue(v => v.HasValue ? schema.NativeFrom.Integer32S(v.Value) : JsonValue.Undefined);
+
+        obj
+            .HasField("b", entity => entity[1])
+            .IsValue(v => v.HasValue ? schema.NativeFrom.Integer32S(v.Value) : JsonValue.Undefined);
+
+        AssertEncodeAndEqual(schema, (value1, value2), expected);
     }
 
     [Test]
