@@ -16,9 +16,9 @@ internal class Reader : IReader<ReaderState, string, char>
     }
 
     public ReaderStatus ReadToArray<TElement>(ReaderState state,
-        ReaderCallback<ReaderState, string, char, TElement> callback, out BrowserMove<TElement> browserMove)
+        ReaderCallback<ReaderState, string, char, TElement> callback, out ArrayReader<TElement> arrayReader)
     {
-        browserMove = default;
+        arrayReader = default;
 
         return ReaderStatus.Ignored;
     }

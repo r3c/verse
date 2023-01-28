@@ -5,7 +5,7 @@ namespace Verse.DecoderDescriptors.Tree;
 internal interface IReader<TState, TNative, TKey>
 {
     ReaderStatus ReadToArray<TElement>(TState state,
-        ReaderCallback<TState, TNative, TKey, TElement> callback, out BrowserMove<TElement> browserMove);
+        ReaderCallback<TState, TNative, TKey, TElement> callback, out ArrayReader<TElement> arrayReader);
 
     ReaderStatus ReadToObject<TObject>(TState state,
         ILookupNode<TKey, ReaderCallback<TState, TNative, TKey, TObject>> root, ref TObject target);

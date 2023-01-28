@@ -105,17 +105,16 @@ internal class TreeDecoderDescriptor<TState, TNative, TKey, TEntity> : IDecoderD
 
         parentDefinition.Callback = (IReader<TState, TNative, TKey> reader, TState state, ref TEntity entity) =>
         {
-            var status = reader.ReadToArray(state, elementDefinition.Callback, out var browserMove);
+            var status = reader.ReadToArray(state, elementDefinition.Callback, out var arrayReader);
 
             if (status != ReaderStatus.Succeeded)
                 return status;
 
-            using (var browser = new Browser<TElement>(browserMove))
-            {
-                entity = converter(browser);
+            using var iterator = new ArrayIterator<TElement>(arrayReader);
 
-                return browser.Finish() ? ReaderStatus.Succeeded : ReaderStatus.Failed;
-            }
+            entity = converter(iterator);
+
+            return iterator.Flush() ? ReaderStatus.Succeeded : ReaderStatus.Failed;
         };
 
         return elementDescriptor;

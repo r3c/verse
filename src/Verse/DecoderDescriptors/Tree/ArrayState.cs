@@ -1,8 +1,8 @@
 namespace Verse.DecoderDescriptors.Tree;
 
-internal enum BrowserState
+internal enum ArrayState
 {
-    Continue,
     Failure,
-    Success
+    NextElement,
+    EndOfArray
 }
