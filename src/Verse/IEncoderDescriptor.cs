@@ -33,8 +33,19 @@ public interface IEncoderDescriptor<TNative, out TEntity>
     /// <returns>Element encoder descriptor</returns>
     IEncoderDescriptor<TNative, TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> getter);
 
+    /// <summary>
+    /// Declare entity as an object with fields, using an intermediate object as buffer for extracting field values.
+    /// Resulting descriptor defines how these fields should be encoded.
+    /// </summary>
+    /// <param name="converter">Entity to intermediate object converter</param>
+    /// <typeparam name="TObject">Type of intermediate object</typeparam>
+    /// <returns>Object decoder descriptor</returns>
     IEncoderObjectDescriptor<TNative, TObject> IsObject<TObject>(Func<TEntity, TObject> converter);
 
+    /// <summary>
+    /// Declare entity as an object with fields. Resulting descriptor defines how these fields should be encoded.
+    /// </summary>
+    /// <returns>Object decoder descriptor</returns>
     IEncoderObjectDescriptor<TNative, TEntity> IsObject();
 
     /// <summary>

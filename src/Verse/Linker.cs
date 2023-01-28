@@ -20,8 +20,8 @@ public static class Linker
     /// <typeparam name="TNative">Schema native value type</typeparam>
     /// <typeparam name="TEntity">Entity type</typeparam>
     /// <param name="schema">Entity schema</param>
-    /// <param name="converters">Custom type converters for given schema, values must have
-    /// DecoderConverter&lt;T, TNative&gt; for each key = typeof(T)</param>
+    /// <param name="converters">Custom type converters for given schema, values must have type
+    /// Func&lt;TNative, TEntity&gt; for each TEntity = Type</param>
     /// <param name="bindings">Binding flags used to filter bound fields and properties</param>
     /// <returns>Entity decoder</returns>
     public static IDecoder<TEntity> CreateDecoder<TNative, TEntity>(ISchema<TNative, TEntity> schema,
@@ -85,10 +85,18 @@ public static class Linker
     }
 
     private static bool TryGetDecoderConverter<TNative, TEntity>(IDecoderAdapter<TNative> adapter,
-        IReadOnlyDictionary<Type, object> converters, out Setter<TEntity, TNative> converter)
+        IReadOnlyDictionary<Type, object> converters, out Func<TNative, TEntity> converter)
     {
         if (converters.TryGetValue(typeof(TEntity), out var untyped))
-            converter = (Setter<TEntity, TNative>) untyped;
+        {
+            if (untyped is not Func<TNative, TEntity> typed)
+            {
+                throw new InvalidOperationException(
+                    $"invalid decoder converter for type {typeof(TEntity)}: {untyped.GetType()} (should be {typeof(Func<TNative, TEntity>)})");
+            }
+
+            converter = typed;
+        }
         else if (!AdapterResolver.TryGetDecoderConverter(adapter, out converter))
             return false;
 
@@ -99,7 +107,15 @@ public static class Linker
         IReadOnlyDictionary<Type, object> converters, out Func<TEntity, TNative> converter)
     {
         if (converters.TryGetValue(typeof(TEntity), out var untyped))
-            converter = (Func<TEntity, TNative>) untyped;
+        {
+            if (untyped is not Func<TEntity, TNative> typed)
+            {
+                throw new InvalidOperationException(
+                    $"invalid encoder converter for type {typeof(TEntity)}: {untyped.GetType()} (should be {typeof(Func<TEntity, TNative>)})");
+            }
+
+            converter = typed;
+        }
         else if (!AdapterResolver.TryGetEncoderConverter(adapter, out converter))
             return false;
 
@@ -282,8 +298,7 @@ public static class Linker
         DecoderSchema<TNative, TEntity> decoder)
     {
         // Try linking using provided entity type directly
-        if (TryGetDecoderConverter<TNative, TEntity>(decoder.Adapter, decoder.Converters,
-                out var converter))
+        if (TryGetDecoderConverter<TNative, TEntity>(decoder.Adapter, decoder.Converters, out var converter))
         {
             decoder.Descriptor.IsValue(converter);
 
@@ -304,28 +319,16 @@ public static class Linker
     private static bool TryLinkDecoderAsValueNullable<TNative, TEntity>(
         DecoderSchema<TNative, TEntity?> decoder) where TEntity : struct
     {
-        if (!TryGetDecoderConverter<TNative, TEntity>(decoder.Adapter, decoder.Converters,
-                out var converter))
+        if (!TryGetDecoderConverter<TNative, TEntity>(decoder.Adapter, decoder.Converters, out var converter))
             return false;
 
         var nullValue = decoder.NullValue;
 
-        decoder.Descriptor.IsValue((ref TEntity? target, TNative source) =>
-        {
+        decoder.Descriptor.IsValue(source => Equals(nullValue, source)
             // Assume that default TNative is equivalent to null entity
-            if (Equals(nullValue, source))
-                target = default;
-
+            ? default(TEntity?)
             // Otherwise use underlying converter to retreive non-null entity
-            else
-            {
-                var entity = target.GetValueOrDefault();
-
-                converter(ref entity, source);
-
-                target = entity;
-            }
-        });
+            : converter(source));
 
         return true;
     }

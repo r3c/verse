@@ -33,9 +33,22 @@ public interface IDecoderDescriptor<TNative, TEntity>
     /// <returns>Element decoder descriptor</returns>
     IDecoderDescriptor<TNative, TElement> IsArray<TElement>(Func<IEnumerable<TElement>, TEntity> converter);
 
+    /// <summary>
+    /// Declare entity as an object with fields, using an intermediate object as storage before creating the finalized
+    /// decoded entity. Resulting descriptor defines how these fields should be decoded.
+    /// </summary>
+    /// <param name="constructor">Intermediate object constructor</param>
+    /// <param name="converter">Intermediate object to entity converter</param>
+    /// <typeparam name="TObject">Type of intermediate object</typeparam>
+    /// <returns>Object decoder descriptor</returns>
     IDecoderObjectDescriptor<TNative, TObject> IsObject<TObject>(Func<TObject> constructor,
         Func<TObject, TEntity> converter);
 
+    /// <summary>
+    /// Decoare entity as an object with fields. Resulting descriptor defines how these fields should be decoded.
+    /// </summary>
+    /// <param name="constructor">Object constructor</param>
+    /// <returns>Object decoder descriptor</returns>
     IDecoderObjectDescriptor<TNative, TEntity> IsObject(Func<TEntity> constructor);
 
     /// <summary>
@@ -44,5 +57,5 @@ public interface IDecoderDescriptor<TNative, TEntity>
     /// custom decoder declared.
     /// </summary>
     /// <param name="converter">Entity converter from native type</param>
-    void IsValue(Setter<TEntity, TNative> converter);
+    void IsValue(Func<TNative, TEntity> converter);
 }

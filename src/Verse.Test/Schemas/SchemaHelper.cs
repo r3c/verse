@@ -44,7 +44,7 @@ internal static class SchemaHelper<TNative>
         CollectionAssert.AreEqual(encoded1, encoded2);
     }
 
-    public static Setter<TEntity, TNative> GetDecoderConverter<TEntity>(IDecoderAdapter<TNative> decoderAdapter)
+    public static Func<TNative, TEntity> GetDecoderConverter<TEntity>(IDecoderAdapter<TNative> decoderAdapter)
     {
         var result = AdapterResolver.TryGetDecoderConverter<TNative, TEntity>(decoderAdapter, out var converter);
 

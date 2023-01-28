@@ -5,374 +5,188 @@ namespace Verse.Schemas.Json;
 
 internal class JsonDecoderAdapter : IDecoderAdapter<JsonValue>
 {
-    public Setter<bool, JsonValue> Boolean => (ref bool target, JsonValue source) =>
+    public Func<JsonValue, bool> Boolean => source =>
     {
-        switch (source.Type)
+        return source.Type switch
         {
-            case JsonType.Boolean:
-                target = source.Boolean;
-
-                break;
-
-            case JsonType.Number:
-                target = Math.Abs(source.Number) >= double.Epsilon;
-
-                break;
-
-            case JsonType.String:
-                target = !string.IsNullOrEmpty(source.String);
-
-                break;
-
-            default:
-                target = default;
-
-                break;
-        }
+            JsonType.Boolean => source.Boolean,
+            JsonType.Number => Math.Abs(source.Number) >= double.Epsilon,
+            JsonType.String => !string.IsNullOrEmpty(source.String),
+            JsonType.Undefined => default,
+            _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
+        };
     };
 
-    public Setter<char, JsonValue> Character => (ref char target, JsonValue source) =>
+    public Func<JsonValue, char> Character => source =>
     {
-        switch (source.Type)
+        return source.Type switch
         {
-            case JsonType.Boolean:
-                target = source.Boolean ? '1' : '\0';
-
-                break;
-
-            case JsonType.Number:
-                target = Math.Abs(source.Number) >= double.Epsilon ? '1' : '\0';
-
-                break;
-
-            case JsonType.String:
-                if (source.String.Length > 0)
-                {
-                    target = source.String[0];
-
-                    break;
-                }
-
-                target = default;
-
-                break;
-
-            default:
-                target = default;
-
-                break;
-        }
+            JsonType.Boolean => source.Boolean ? '1' : '\0',
+            JsonType.Number => Math.Abs(source.Number) >= double.Epsilon ? '1' : '\0',
+            JsonType.String => source.String.Length > 0 ? source.String[0] : default,
+            JsonType.Undefined => default,
+            _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
+        };
     };
 
-    public Setter<decimal, JsonValue> Decimal => (ref decimal target, JsonValue source) =>
+    public Func<JsonValue, decimal> Decimal => source =>
     {
-        switch (source.Type)
+        return source.Type switch
         {
-            case JsonType.Boolean:
-                target = source.Boolean ? 1 : 0;
-
-                break;
-
-            case JsonType.Number:
-                target = (decimal)source.Number;
-
-                break;
-
-            case JsonType.String:
-                decimal.TryParse(source.String, NumberStyles.Float, CultureInfo.InvariantCulture, out target);
-
-                break;
-
-            default:
-                target = default;
-
-                break;
-        }
+            JsonType.Boolean => source.Boolean ? 1 : 0,
+            JsonType.Number => (decimal) source.Number,
+            JsonType.String => decimal.TryParse(source.String, NumberStyles.Float, CultureInfo.InvariantCulture, out var target)
+                ? target
+                : default,
+            JsonType.Undefined => default,
+            _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
+        };
     };
 
-    public Setter<float, JsonValue> Float32 => (ref float target, JsonValue source) =>
+    public Func<JsonValue, float> Float32 => source =>
     {
-        switch (source.Type)
+        return source.Type switch
         {
-            case JsonType.Boolean:
-                target = source.Boolean ? 1 : 0;
-
-                break;
-
-            case JsonType.Number:
-                target = (float) source.Number;
-
-                break;
-
-            case JsonType.String:
-                float.TryParse(source.String, NumberStyles.Float, CultureInfo.InvariantCulture, out target);
-
-                break;
-
-            default:
-                target = default;
-
-                break;
-        }
+            JsonType.Boolean => source.Boolean ? 1 : 0,
+            JsonType.Number => (float) source.Number,
+            JsonType.String => float.TryParse(source.String, NumberStyles.Float, CultureInfo.InvariantCulture, out var target)
+                ? target
+                : default,
+            JsonType.Undefined => default,
+            _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
+        };
     };
 
-    public Setter<double, JsonValue> Float64 => (ref double target, JsonValue source) =>
+    public Func<JsonValue, double> Float64 => source =>
     {
-        switch (source.Type)
+        return source.Type switch
         {
-            case JsonType.Boolean:
-                target = source.Boolean ? 1 : 0;
-
-                break;
-
-            case JsonType.Number:
-                target = source.Number;
-
-                break;
-
-            case JsonType.String:
-                double.TryParse(source.String, NumberStyles.Float, CultureInfo.InvariantCulture, out target);
-
-                break;
-
-            default:
-                target = default;
-
-                break;
-        }
+            JsonType.Boolean => source.Boolean ? 1 : 0,
+            JsonType.Number => source.Number,
+            JsonType.String => double.TryParse(source.String, NumberStyles.Float, CultureInfo.InvariantCulture, out var target)
+                ? target
+                : default,
+            JsonType.Undefined => default,
+            _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
+        };
     };
 
-    public Setter<sbyte, JsonValue> Integer8S => (ref sbyte target, JsonValue source) =>
+    public Func<JsonValue, sbyte> Integer8S => source =>
     {
-        switch (source.Type)
+        return source.Type switch
         {
-            case JsonType.Boolean:
-                target = source.Boolean ? (sbyte) 1 : (sbyte) 0;
-
-                break;
-
-            case JsonType.Number:
-                target = (sbyte) source.Number;
-
-                break;
-
-            case JsonType.String:
-                sbyte.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
-
-                break;
-
-            default:
-                target = default;
-
-                break;
-        }
+            JsonType.Boolean => source.Boolean ? (sbyte) 1 : (sbyte) 0,
+            JsonType.Number => (sbyte) source.Number,
+            JsonType.String => sbyte.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+                ? target
+                : default,
+            JsonType.Undefined => default,
+            _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
+        };
     };
 
-    public Setter<byte, JsonValue> Integer8U => (ref byte target, JsonValue source) =>
+    public Func<JsonValue, byte> Integer8U => source =>
     {
-        switch (source.Type)
+        return source.Type switch
         {
-            case JsonType.Boolean:
-                target = source.Boolean ? (byte) 1 : (byte) 0;
-
-                break;
-
-            case JsonType.Number:
-                target = (byte) source.Number;
-
-                break;
-
-            case JsonType.String:
-                byte.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
-
-                break;
-
-            default:
-                target = default;
-
-                break;
-        }
+            JsonType.Boolean => source.Boolean ? (byte) 1 : (byte) 0,
+            JsonType.Number => (byte) source.Number,
+            JsonType.String => byte.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+                ? target
+                : default,
+            _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
+        };
     };
 
-    public Setter<short, JsonValue> Integer16S => (ref short target, JsonValue source) =>
+    public Func<JsonValue, short> Integer16S => source =>
     {
-        switch (source.Type)
+        return source.Type switch
         {
-            case JsonType.Boolean:
-                target = source.Boolean ? (short) 1 : (short) 0;
-
-                break;
-
-            case JsonType.Number:
-                target = (short) source.Number;
-
-                break;
-
-            case JsonType.String:
-                short.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
-
-                break;
-
-            default:
-                target = default;
-
-                break;
-        }
+            JsonType.Boolean => source.Boolean ? (short) 1 : (short) 0,
+            JsonType.Number => (short) source.Number,
+            JsonType.String => short.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+                ? target
+                : default,
+            JsonType.Undefined => default,
+            _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
+        };
     };
 
-    public Setter<ushort, JsonValue> Integer16U => (ref ushort target, JsonValue source) =>
+    public Func<JsonValue, ushort> Integer16U => source =>
     {
-        switch (source.Type)
+        return source.Type switch
         {
-            case JsonType.Boolean:
-                target = source.Boolean ? (ushort) 1 : (ushort) 0;
-
-                break;
-
-            case JsonType.Number:
-                target = (ushort) source.Number;
-
-                break;
-
-            case JsonType.String:
-                ushort.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
-
-                break;
-
-            default:
-                target = default;
-
-                break;
-        }
+            JsonType.Boolean => source.Boolean ? (ushort) 1 : (ushort) 0,
+            JsonType.Number => (ushort) source.Number,
+            JsonType.String => ushort.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+                ? target
+                : default,
+            JsonType.Undefined => default,
+            _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
+        };
     };
 
-    public Setter<int, JsonValue> Integer32S => (ref int target, JsonValue source) =>
+    public Func<JsonValue, int> Integer32S => source =>
     {
-        switch (source.Type)
+        return source.Type switch
         {
-            case JsonType.Boolean:
-                target = source.Boolean ? 1 : 0;
-
-                break;
-
-            case JsonType.Number:
-                target = (int) source.Number;
-
-                break;
-
-            case JsonType.String:
-                int.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
-
-                break;
-
-            default:
-                target = default;
-
-                break;
-        }
+            JsonType.Boolean => source.Boolean ? 1 : 0,
+            JsonType.Number => (int) source.Number,
+            JsonType.String => int.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+                ? target
+                : default,
+            JsonType.Undefined => default,
+            _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
+        };
     };
 
-    public Setter<uint, JsonValue> Integer32U => (ref uint target, JsonValue source) =>
+    public Func<JsonValue, uint> Integer32U => source =>
     {
-        switch (source.Type)
+        return source.Type switch
         {
-            case JsonType.Boolean:
-                target = source.Boolean ? 1u : 0;
-
-                break;
-
-            case JsonType.Number:
-                target = (uint) source.Number;
-
-                break;
-
-            case JsonType.String:
-                uint.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
-
-                break;
-
-            default:
-                target = default;
-
-                break;
-        }
+            JsonType.Boolean => source.Boolean ? 1u : 0,
+            JsonType.Number => (uint) source.Number,
+            JsonType.String => uint.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+                ? target
+                : default,
+            _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
+        };
     };
 
-    public Setter<long, JsonValue> Integer64S => (ref long target, JsonValue source) =>
+    public Func<JsonValue, long> Integer64S => source =>
     {
-        switch (source.Type)
+        return source.Type switch
         {
-            case JsonType.Boolean:
-                target = source.Boolean ? 1 : 0;
-
-                break;
-
-            case JsonType.Number:
-                target = (long) source.Number;
-
-                break;
-
-            case JsonType.String:
-                long.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
-
-                break;
-
-            default:
-                target = default;
-
-                break;
-        }
+            JsonType.Boolean => source.Boolean ? 1 : 0,
+            JsonType.Number => (long) source.Number,
+            JsonType.String => long.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+                ? target
+                : default,
+            _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
+        };
     };
 
-    public Setter<ulong, JsonValue> Integer64U => (ref ulong target, JsonValue source) =>
+    public Func<JsonValue, ulong> Integer64U => source =>
     {
-        switch (source.Type)
+        return source.Type switch
         {
-            case JsonType.Boolean:
-                target = source.Boolean ? 1u : 0;
-
-                break;
-
-            case JsonType.Number:
-                target = (ulong) source.Number;
-
-                break;
-
-            case JsonType.String:
-                ulong.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
-
-                break;
-
-            default:
-                target = default;
-
-                break;
-        }
+            JsonType.Boolean => source.Boolean ? 1u : 0,
+            JsonType.Number => (ulong) source.Number,
+            JsonType.String => ulong.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+                ? target
+                : default,
+            _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
+        };
     };
 
-    public Setter<string, JsonValue> String => (ref string target, JsonValue source) =>
+    public Func<JsonValue, string> String => source =>
     {
-        switch (source.Type)
+        return source.Type switch
         {
-            case JsonType.Boolean:
-                target = source.Boolean ? "1" : string.Empty;
-
-                break;
-
-            case JsonType.Number:
-                target = source.Number.ToString(CultureInfo.InvariantCulture);
-
-                break;
-
-            case JsonType.String:
-                target = source.String;
-
-                break;
-
-            default:
-                target = string.Empty;
-
-                break;
-        }
+            JsonType.Boolean => source.Boolean ? "1" : string.Empty,
+            JsonType.Number => source.Number.ToString(CultureInfo.InvariantCulture),
+            JsonType.String => source.String,
+            _ => string.Empty
+        };
     };
 }

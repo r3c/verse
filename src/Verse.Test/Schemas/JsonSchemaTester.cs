@@ -53,16 +53,13 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
             .HasField("value1", (ref string e, string v) => e = v)
             .IsObject(() => "defaultFromValue1")
             .HasField("value2", (ref string e, string v) => e = v)
-            .IsValue((ref string target, JsonValue value) =>
+            .IsValue(value => value.Type switch
             {
-                target = value.Type switch
-                {
-                    JsonType.Boolean => value.Boolean.ToString(),
-                    JsonType.Number => value.Number.ToString(CultureInfo.InvariantCulture),
-                    JsonType.String => value.String,
-                    JsonType.Undefined => "null",
-                    _ => throw new ArgumentOutOfRangeException(nameof(value.Type), value.Type, "invalid type")
-                };
+                JsonType.Boolean => value.Boolean.ToString(),
+                JsonType.Number => value.Number.ToString(CultureInfo.InvariantCulture),
+                JsonType.String => value.String,
+                JsonType.Undefined => "null",
+                _ => throw new ArgumentOutOfRangeException(nameof(value.Type), value.Type, "invalid type")
             });
 
         var parser = schema.CreateDecoder();
@@ -88,16 +85,13 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
             .HasField("value1", (ref string e, string v) => e = v)
             .IsObject(() => "defaultFromValue1")
             .HasField("value2", (ref string e, string v) => e = v)
-            .IsValue((ref string target, JsonValue value) =>
+            .IsValue(value => value.Type switch
             {
-                target = value.Type switch
-                {
-                    JsonType.Boolean => value.Boolean.ToString(),
-                    JsonType.Number => value.Number.ToString(CultureInfo.InvariantCulture),
-                    JsonType.String => value.String,
-                    JsonType.Undefined => "null",
-                    _ => throw new ArgumentOutOfRangeException(nameof(value.Type), value.Type, "invalid type")
-                };
+                JsonType.Boolean => value.Boolean.ToString(),
+                JsonType.Number => value.Number.ToString(CultureInfo.InvariantCulture),
+                JsonType.String => value.String,
+                JsonType.Undefined => "null",
+                _ => throw new ArgumentOutOfRangeException(nameof(value.Type), value.Type, "invalid type")
             });
 
         var parser = schema.CreateDecoder();
@@ -431,7 +425,7 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
         var schema = Schema.CreateJson<Guid>();
 
         schema.DecoderDescriptor
-            .IsValue((ref Guid target, JsonValue source) => Guid.TryParse(source.String, out target));
+            .IsValue(source => Guid.TryParse(source.String, out var target) ? target : Guid.Empty);
 
         AssertDecodeAndEqual(schema, json, Guid.Parse(expected));
     }
@@ -600,8 +594,7 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
         {
             {
                 typeof(Guid),
-                new Setter<Guid, JsonValue>((ref Guid target, JsonValue source) =>
-                    Guid.TryParse(source.String, out target))
+                new Func<JsonValue, Guid>(source => Guid.TryParse(source.String, out var target) ? target : Guid.Empty)
             }
         };
 

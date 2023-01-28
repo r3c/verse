@@ -73,15 +73,14 @@ internal class TreeDecoderDescriptor<TState, TNative, TKey, TEntity> : IDecoderD
         return IsObject(constructor, e => e);
     }
 
-    public void IsValue(Setter<TEntity, TNative> converter)
+    public void IsValue(Func<TNative, TEntity> converter)
     {
         _definition.Callback = (IReader<TState, TNative, TKey> reader, TState state, ref TEntity entity) =>
         {
             switch (reader.ReadToValue(state, out var value))
             {
                 case ReaderStatus.Succeeded:
-                    // FIXME: support conversion failures
-                    converter(ref entity, value);
+                    entity = converter(value);
 
                     return ReaderStatus.Succeeded;
 

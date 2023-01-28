@@ -1,45 +1,61 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 
 namespace Verse.Schemas.QueryString;
 
 internal class QueryStringDecoderAdapter : IDecoderAdapter<string>
 {
-    public Setter<bool, string> Boolean => (ref bool target, string source) => bool.TryParse(source, out target);
+    public Func<string, bool> Boolean => source => bool.TryParse(source, out var target)
+        ? target
+        : default;
 
-    public Setter<char, string> Character => (ref char target, string source) =>
-        target = source.Length > 0 ? source[0] : default;
+    public Func<string, char> Character => source => source.Length > 0
+        ? source[0]
+        : default;
 
-    public Setter<decimal, string> Decimal => (ref decimal target, string source) =>
-        decimal.TryParse(source, NumberStyles.Number, CultureInfo.InvariantCulture, out target);
+    public Func<string, decimal> Decimal => source => decimal.TryParse(source, NumberStyles.Number, CultureInfo.InvariantCulture, out var target)
+        ? target
+        : default;
 
-    public Setter<float, string> Float32 => (ref float target, string source) =>
-        float.TryParse(source, NumberStyles.Number, CultureInfo.InvariantCulture, out target);
+    public Func<string, float> Float32 => source => float.TryParse(source, NumberStyles.Number, CultureInfo.InvariantCulture, out var target)
+        ? target
+        : default;
 
-    public Setter<double, string> Float64 => (ref double target, string source) =>
-        double.TryParse(source, NumberStyles.Number, CultureInfo.InvariantCulture, out target);
+    public Func<string, double> Float64 => source => double.TryParse(source, NumberStyles.Number, CultureInfo.InvariantCulture, out var target)
+        ? target
+        : default;
 
-    public Setter<sbyte, string> Integer8S => (ref sbyte target, string source) =>
-        sbyte.TryParse(source, out target);
+    public Func<string, sbyte> Integer8S => source => sbyte.TryParse(source, out var target)
+        ? target
+        : default;
 
-    public Setter<byte, string> Integer8U =>
-        (ref byte target, string source) => byte.TryParse(source, out target);
+    public Func<string, byte> Integer8U => source => byte.TryParse(source, out var target)
+        ? target
+        : default;
 
-    public Setter<short, string> Integer16S => (ref short target, string source) =>
-        short.TryParse(source, out target);
+    public Func<string, short> Integer16S => source => short.TryParse(source, out var target)
+        ? target
+        : default;
 
-    public Setter<ushort, string> Integer16U => (ref ushort target, string source) =>
-        ushort.TryParse(source, out target);
+    public Func<string, ushort> Integer16U => source => ushort.TryParse(source, out var target)
+        ? target
+        : default;
 
-    public Setter<int, string> Integer32S => (ref int target, string source) => int.TryParse(source, out target);
+    public Func<string, int> Integer32S => source => int.TryParse(source, out var target)
+        ? target
+        : default;
 
-    public Setter<uint, string> Integer32U => (ref uint target, string source) =>
-        uint.TryParse(source, out target);
+    public Func<string, uint> Integer32U => source => uint.TryParse(source, out var target)
+        ? target
+        : default;
 
-    public Setter<long, string> Integer64S => (ref long target, string source) =>
-        long.TryParse(source, out target);
+    public Func<string, long> Integer64S => source => long.TryParse(source, out var target)
+        ? target
+        : default;
 
-    public Setter<ulong, string> Integer64U => (ref ulong target, string source) =>
-        ulong.TryParse(source, out target);
+    public Func<string, ulong> Integer64U => source => ulong.TryParse(source, out var target)
+        ? target
+        : default;
 
-    public Setter<string, string> String => (ref string target, string source) => target = source;
+    public Func<string, string> String => source => source;
 }

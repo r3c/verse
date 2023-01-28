@@ -1,3 +1,4 @@
+using System;
 using System.Globalization;
 
 namespace Verse.Schemas.RawProtobuf;
@@ -9,364 +10,193 @@ namespace Verse.Schemas.RawProtobuf;
 /// </summary>
 internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
 {
-    public Setter<bool, RawProtobufValue> Boolean => (ref bool target, RawProtobufValue source) =>
+    public Func<RawProtobufValue, bool> Boolean => source =>
     {
-        switch (source.Storage)
+        return source.Storage switch
         {
-            case RawProtobufWireType.Fixed32:
-            case RawProtobufWireType.Fixed64:
-            case RawProtobufWireType.VarInt:
-                target = source.Number != 0;
-
-                break;
-
-            case RawProtobufWireType.String:
-                target = !string.IsNullOrEmpty(source.String);
-
-                break;
-
-            default:
-                target = default;
-
-                break;
-        }
+            RawProtobufWireType.Fixed32 => source.Number != 0,
+            RawProtobufWireType.Fixed64 => source.Number != 0,
+            RawProtobufWireType.VarInt => source.Number != 0,
+            RawProtobufWireType.String => !string.IsNullOrEmpty(source.String),
+            _ => throw new ArgumentOutOfRangeException(nameof(source.Storage), source.Storage, "invalid storage")
+        };
     };
 
-    public Setter<char, RawProtobufValue> Character => (ref char target, RawProtobufValue source) =>
+    public Func<RawProtobufValue, char> Character => source =>
     {
-        switch (source.Storage)
+        return source.Storage switch
         {
-            case RawProtobufWireType.Fixed32:
-            case RawProtobufWireType.Fixed64:
-            case RawProtobufWireType.VarInt:
-                target = (char) source.Number;
-
-                break;
-
-            case RawProtobufWireType.String:
-                if (source.String.Length > 0)
-                {
-                    target = source.String[0];
-
-                    break;
-                }
-
-                target = default;
-
-                break;
-
-            default:
-                target = default;
-
-                break;
-        }
+            RawProtobufWireType.Fixed32 => (char) source.Number,
+            RawProtobufWireType.Fixed64 => (char) source.Number,
+            RawProtobufWireType.VarInt => (char) source.Number,
+            RawProtobufWireType.String => source.String.Length > 0 ? source.String[0] : default,
+            _ => throw new ArgumentOutOfRangeException(nameof(source.Storage), source.Storage, "invalid storage")
+        };
     };
 
-    public unsafe Setter<decimal, RawProtobufValue> Decimal => (ref decimal target, RawProtobufValue source) =>
+    public unsafe Func<RawProtobufValue, decimal> Decimal => source =>
     {
-        switch (source.Storage)
+        return source.Storage switch
         {
-            case RawProtobufWireType.Fixed32:
-                target = (decimal) *(float*) &source.Number;
-
-                break;
-
-            case RawProtobufWireType.Fixed64:
-                target = (decimal) *(double*) &source.Number;
-
-                break;
-
-            case RawProtobufWireType.VarInt:
-                target = source.Number;
-
-                break;
-
-            case RawProtobufWireType.String:
-                decimal.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
-
-                break;
-
-            default:
-                target = default;
-
-                break;
-        }
+            RawProtobufWireType.Fixed32 => (decimal) *(float*) &source.Number,
+            RawProtobufWireType.Fixed64 => (decimal) *(double*) &source.Number,
+            RawProtobufWireType.VarInt => source.Number,
+            RawProtobufWireType.String => decimal.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+                ? target
+                : default,
+            _ => throw new ArgumentOutOfRangeException(nameof(source.Storage), source.Storage, "invalid storage")
+        };
     };
 
-    public unsafe Setter<float, RawProtobufValue> Float32 => (ref float target, RawProtobufValue source) =>
+    public unsafe Func<RawProtobufValue, float> Float32 => source =>
     {
-        switch (source.Storage)
+        return source.Storage switch
         {
-            case RawProtobufWireType.Fixed32:
-                target = *(float*) &source.Number;
-
-                break;
-
-            case RawProtobufWireType.Fixed64:
-                target = (float) *(double*) &source.Number;
-
-                break;
-
-            case RawProtobufWireType.VarInt:
-                target = source.Number;
-
-                break;
-
-            case RawProtobufWireType.String:
-                float.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
-
-                break;
-
-            default:
-                target = default;
-
-                break;
-        }
+            RawProtobufWireType.Fixed32 => *(float*) &source.Number,
+            RawProtobufWireType.Fixed64 => (float) *(double*) &source.Number,
+            RawProtobufWireType.VarInt => source.Number,
+            RawProtobufWireType.String => float.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+                ? target
+                : default,
+            _ => throw new ArgumentOutOfRangeException(nameof(source.Storage), source.Storage, "invalid storage")
+        };
     };
 
-    public unsafe Setter<double, RawProtobufValue> Float64 => (ref double target, RawProtobufValue source) =>
+    public unsafe Func<RawProtobufValue, double> Float64 => source =>
     {
-        switch (source.Storage)
+        return source.Storage switch
         {
-            case RawProtobufWireType.Fixed32:
-                target = *(float*) &source.Number;
-
-                break;
-
-            case RawProtobufWireType.Fixed64:
-                target = *(double*) &source.Number;
-
-                break;
-
-            case RawProtobufWireType.VarInt:
-                target = source.Number;
-
-                break;
-
-            case RawProtobufWireType.String:
-                double.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
-
-                break;
-
-            default:
-                target = default;
-
-                break;
-        }
+            RawProtobufWireType.Fixed32 => *(float*) &source.Number,
+            RawProtobufWireType.Fixed64 => *(double*) &source.Number,
+            RawProtobufWireType.VarInt => source.Number,
+            RawProtobufWireType.String => double.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+                ? target
+                : default,
+            _ => throw new ArgumentOutOfRangeException(nameof(source.Storage), source.Storage, "invalid storage")
+        };
     };
 
-    public Setter<sbyte, RawProtobufValue> Integer8S => (ref sbyte target, RawProtobufValue source) =>
+    public Func<RawProtobufValue, sbyte> Integer8S => source =>
     {
-        switch (source.Storage)
+        return source.Storage switch
         {
-            case RawProtobufWireType.Fixed32:
-            case RawProtobufWireType.Fixed64:
-            case RawProtobufWireType.VarInt:
-                target = (sbyte) source.Number;
-
-                break;
-
-            case RawProtobufWireType.String:
-                sbyte.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
-
-                break;
-
-            default:
-                target = default;
-
-                break;
-        }
+            RawProtobufWireType.Fixed32 => (sbyte) source.Number,
+            RawProtobufWireType.Fixed64 => (sbyte) source.Number,
+            RawProtobufWireType.VarInt => (sbyte) source.Number,
+            RawProtobufWireType.String => sbyte.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+                ? target
+                : default,
+            _ => throw new ArgumentOutOfRangeException(nameof(source.Storage), source.Storage, "invalid storage")
+        };
     };
 
-    public Setter<byte, RawProtobufValue> Integer8U => (ref byte target, RawProtobufValue source) =>
+    public Func<RawProtobufValue, byte> Integer8U => source =>
     {
-        switch (source.Storage)
+        return source.Storage switch
         {
-            case RawProtobufWireType.Fixed32:
-            case RawProtobufWireType.Fixed64:
-            case RawProtobufWireType.VarInt:
-                target = (byte) source.Number;
-
-                break;
-
-            case RawProtobufWireType.String:
-                byte.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
-
-                break;
-
-            default:
-                target = default;
-
-                break;
-        }
+            RawProtobufWireType.Fixed32 => (byte) source.Number,
+            RawProtobufWireType.Fixed64 => (byte) source.Number,
+            RawProtobufWireType.VarInt => (byte) source.Number,
+            RawProtobufWireType.String => byte.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+                ? target
+                : default,
+            _ => throw new ArgumentOutOfRangeException(nameof(source.Storage), source.Storage, "invalid storage")
+        };
     };
 
-    public Setter<short, RawProtobufValue> Integer16S => (ref short target, RawProtobufValue source) =>
+    public Func<RawProtobufValue, short> Integer16S => source =>
     {
-        switch (source.Storage)
+        return source.Storage switch
         {
-            case RawProtobufWireType.Fixed32:
-            case RawProtobufWireType.Fixed64:
-            case RawProtobufWireType.VarInt:
-                target = (short) source.Number;
-
-                break;
-
-            case RawProtobufWireType.String:
-                short.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
-
-                break;
-
-            default:
-                target = default;
-
-                break;
-        }
+            RawProtobufWireType.Fixed32 => (short) source.Number,
+            RawProtobufWireType.Fixed64 => (short) source.Number,
+            RawProtobufWireType.VarInt => (short) source.Number,
+            RawProtobufWireType.String => short.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+                ? target
+                : default,
+            _ => throw new ArgumentOutOfRangeException(nameof(source.Storage), source.Storage, "invalid storage")
+        };
     };
 
-    public Setter<ushort, RawProtobufValue> Integer16U => (ref ushort target, RawProtobufValue source) =>
+    public Func<RawProtobufValue, ushort> Integer16U => source =>
     {
-        switch (source.Storage)
+        return source.Storage switch
         {
-            case RawProtobufWireType.Fixed32:
-            case RawProtobufWireType.Fixed64:
-            case RawProtobufWireType.VarInt:
-                target = (ushort) source.Number;
-
-                break;
-
-            case RawProtobufWireType.String:
-                ushort.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
-
-                break;
-
-            default:
-                target = default;
-
-                break;
-        }
+            RawProtobufWireType.Fixed32 => (ushort) source.Number,
+            RawProtobufWireType.Fixed64 => (ushort) source.Number,
+            RawProtobufWireType.VarInt => (ushort) source.Number,
+            RawProtobufWireType.String => ushort.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+                ? target
+                : default,
+            _ => throw new ArgumentOutOfRangeException(nameof(source.Storage), source.Storage, "invalid storage")
+        };
     };
 
-    public Setter<int, RawProtobufValue> Integer32S => (ref int target, RawProtobufValue source) =>
+    public Func<RawProtobufValue, int> Integer32S => source =>
     {
-        switch (source.Storage)
+        return source.Storage switch
         {
-            case RawProtobufWireType.Fixed32:
-            case RawProtobufWireType.Fixed64:
-            case RawProtobufWireType.VarInt:
-                target = (int) source.Number;
-
-                break;
-
-            case RawProtobufWireType.String:
-                int.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
-
-                break;
-
-            default:
-                target = default;
-
-                break;
-        }
+            RawProtobufWireType.Fixed32 => (int) source.Number,
+            RawProtobufWireType.Fixed64 => (int) source.Number,
+            RawProtobufWireType.VarInt => (int) source.Number,
+            RawProtobufWireType.String => int.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+                ? target
+                : default,
+            _ => throw new ArgumentOutOfRangeException(nameof(source.Storage), source.Storage, "invalid storage")
+        };
     };
 
-    public Setter<uint, RawProtobufValue> Integer32U => (ref uint target, RawProtobufValue source) =>
+    public Func<RawProtobufValue, uint> Integer32U => source =>
     {
-        switch (source.Storage)
+        return source.Storage switch
         {
-            case RawProtobufWireType.Fixed32:
-            case RawProtobufWireType.Fixed64:
-            case RawProtobufWireType.VarInt:
-                target = (uint) source.Number;
-
-                break;
-
-            case RawProtobufWireType.String:
-                uint.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
-
-                break;
-
-            default:
-                target = default;
-
-                break;
-        }
+            RawProtobufWireType.Fixed32 => (uint) source.Number,
+            RawProtobufWireType.Fixed64 => (uint) source.Number,
+            RawProtobufWireType.VarInt => (uint) source.Number,
+            RawProtobufWireType.String => uint.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+                ? target
+                : default,
+            _ => throw new ArgumentOutOfRangeException(nameof(source.Storage), source.Storage, "invalid storage")
+        };
     };
 
-    public Setter<long, RawProtobufValue> Integer64S => (ref long target, RawProtobufValue source) =>
+    public Func<RawProtobufValue, long> Integer64S => source =>
     {
-        switch (source.Storage)
+        return source.Storage switch
         {
-            case RawProtobufWireType.Fixed32:
-            case RawProtobufWireType.Fixed64:
-            case RawProtobufWireType.VarInt:
-                target = source.Number;
-
-                break;
-
-            case RawProtobufWireType.String:
-                long.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
-
-                break;
-
-            default:
-                target = default;
-
-                break;
-        }
+            RawProtobufWireType.Fixed32 => source.Number,
+            RawProtobufWireType.Fixed64 => source.Number,
+            RawProtobufWireType.VarInt => source.Number,
+            RawProtobufWireType.String => long.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+                ? target
+                : default,
+            _ => throw new ArgumentOutOfRangeException(nameof(source.Storage), source.Storage, "invalid storage")
+        };
     };
 
-    public unsafe Setter<ulong, RawProtobufValue> Integer64U => (ref ulong target, RawProtobufValue source) =>
+    public unsafe Func<RawProtobufValue, ulong> Integer64U => source =>
     {
-        switch (source.Storage)
+        return source.Storage switch
         {
-            case RawProtobufWireType.Fixed32:
-                target = *(uint*) source.Number;
-
-                break;
-
-            case RawProtobufWireType.Fixed64:
-                target = *(ulong*) source.Number;
-
-                break;
-
-            case RawProtobufWireType.VarInt:
-                target = (ulong) source.Number;
-
-                break;
-
-            case RawProtobufWireType.String:
-                ulong.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out target);
-
-                break;
-
-            default:
-                target = default;
-
-                break;
-        }
+            RawProtobufWireType.Fixed32 => *(uint*) source.Number,
+            RawProtobufWireType.Fixed64 => *(ulong*) source.Number,
+            RawProtobufWireType.VarInt => (ulong) source.Number,
+            RawProtobufWireType.String => ulong.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+                ? target
+                : default,
+            _ => throw new ArgumentOutOfRangeException(nameof(source.Storage), source.Storage, "invalid storage")
+        };
     };
 
-    public Setter<string, RawProtobufValue> String => (ref string target, RawProtobufValue source) =>
+    public Func<RawProtobufValue, string> String => source =>
     {
-        switch (source.Storage)
+        return source.Storage switch
         {
-            case RawProtobufWireType.Fixed32:
-            case RawProtobufWireType.Fixed64:
-            case RawProtobufWireType.VarInt:
-                target = source.Number.ToString(CultureInfo.InvariantCulture);
-
-                break;
-
-            case RawProtobufWireType.String:
-                target = source.String;
-
-                break;
-
-            default:
-                target = string.Empty;
-
-                break;
-        }
+            RawProtobufWireType.Fixed32 => source.Number.ToString(CultureInfo.InvariantCulture),
+            RawProtobufWireType.Fixed64 => source.Number.ToString(CultureInfo.InvariantCulture),
+            RawProtobufWireType.VarInt => source.Number.ToString(CultureInfo.InvariantCulture),
+            RawProtobufWireType.String => source.String,
+            _ => string.Empty
+        };
     };
 }

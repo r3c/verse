@@ -1,3 +1,5 @@
+using System;
+
 namespace Verse;
 
 /// <summary>
@@ -7,31 +9,31 @@ namespace Verse;
 /// <typeparam name="TNative">Schema native value type</typeparam>
 public interface IDecoderAdapter<in TNative>
 {
-    Setter<bool, TNative> Boolean { get; }
+    Func<TNative, bool> Boolean { get; }
 
-    Setter<char, TNative> Character { get; }
+    Func<TNative, char> Character { get; }
 
-    Setter<decimal, TNative> Decimal { get; }
+    Func<TNative, decimal> Decimal { get; }
 
-    Setter<float, TNative> Float32 { get; }
+    Func<TNative, float> Float32 { get; }
 
-    Setter<double, TNative> Float64 { get; }
+    Func<TNative, double> Float64 { get; }
 
-    Setter<sbyte, TNative> Integer8S { get; }
+    Func<TNative, sbyte> Integer8S { get; }
 
-    Setter<byte, TNative> Integer8U { get; }
+    Func<TNative, byte> Integer8U { get; }
 
-    Setter<short, TNative> Integer16S { get; }
+    Func<TNative, short> Integer16S { get; }
 
-    Setter<ushort, TNative> Integer16U { get; }
+    Func<TNative, ushort> Integer16U { get; }
 
-    Setter<int, TNative> Integer32S { get; }
+    Func<TNative, int> Integer32S { get; }
 
-    Setter<uint, TNative> Integer32U { get; }
+    Func<TNative, uint> Integer32U { get; }
 
-    Setter<long, TNative> Integer64S { get; }
+    Func<TNative, long> Integer64S { get; }
 
-    Setter<ulong, TNative> Integer64U { get; }
+    Func<TNative, ulong> Integer64U { get; }
 
-    Setter<string, TNative> String { get; }
+    Func<TNative, string> String { get; }
 }

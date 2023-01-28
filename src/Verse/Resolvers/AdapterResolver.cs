@@ -13,59 +13,59 @@ internal static class AdapterResolver
     {
         {
             typeof(bool),
-            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<bool, object>>>(a => a.Boolean)
+            PropertyResolver.Create<Func<IDecoderAdapter<object>, Func<object, bool>>>(a => a.Boolean)
         },
         {
             typeof(char),
-            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<char, object>>>(a => a.Character)
+            PropertyResolver.Create<Func<IDecoderAdapter<object>, Func<object, char>>>(a => a.Character)
         },
         {
             typeof(decimal),
-            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<decimal, object>>>(a => a.Decimal)
+            PropertyResolver.Create<Func<IDecoderAdapter<object>, Func<object, decimal>>>(a => a.Decimal)
         },
         {
             typeof(float),
-            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<float, object>>>(a => a.Float32)
+            PropertyResolver.Create<Func<IDecoderAdapter<object>, Func<object, float>>>(a => a.Float32)
         },
         {
             typeof(double),
-            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<double, object>>>(a => a.Float64)
+            PropertyResolver.Create<Func<IDecoderAdapter<object>, Func<object, double>>>(a => a.Float64)
         },
         {
             typeof(sbyte),
-            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<sbyte, object>>>(a => a.Integer8S)
+            PropertyResolver.Create<Func<IDecoderAdapter<object>, Func<object, sbyte>>>(a => a.Integer8S)
         },
         {
             typeof(byte),
-            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<byte, object>>>(a => a.Integer8U)
+            PropertyResolver.Create<Func<IDecoderAdapter<object>, Func<object, byte>>>(a => a.Integer8U)
         },
         {
             typeof(short),
-            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<short, object>>>(a => a.Integer16S)
+            PropertyResolver.Create<Func<IDecoderAdapter<object>, Func<object, short>>>(a => a.Integer16S)
         },
         {
             typeof(ushort),
-            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<ushort, object>>>(a => a.Integer16U)
+            PropertyResolver.Create<Func<IDecoderAdapter<object>, Func<object, ushort>>>(a => a.Integer16U)
         },
         {
             typeof(int),
-            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<int, object>>>(a => a.Integer32S)
+            PropertyResolver.Create<Func<IDecoderAdapter<object>, Func<object, int>>>(a => a.Integer32S)
         },
         {
             typeof(uint),
-            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<uint, object>>>(a => a.Integer32U)
+            PropertyResolver.Create<Func<IDecoderAdapter<object>, Func<object, uint>>>(a => a.Integer32U)
         },
         {
             typeof(long),
-            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<long, object>>>(a => a.Integer64S)
+            PropertyResolver.Create<Func<IDecoderAdapter<object>, Func<object, long>>>(a => a.Integer64S)
         },
         {
             typeof(ulong),
-            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<ulong, object>>>(a => a.Integer64U)
+            PropertyResolver.Create<Func<IDecoderAdapter<object>, Func<object, ulong>>>(a => a.Integer64U)
         },
         {
             typeof(string),
-            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<string, object>>>(a => a.String)
+            PropertyResolver.Create<Func<IDecoderAdapter<object>, Func<object, string>>>(a => a.String)
         }
     };
 
@@ -130,35 +130,35 @@ internal static class AdapterResolver
     };
 
     public static bool TryGetDecoderConverter<TNative, TEntity>(IDecoderAdapter<TNative> adapter,
-        out Setter<TEntity, TNative> setter)
+        out Func<TNative, TEntity> converter)
     {
         if (!ForDecoder.TryGetValue(typeof(TEntity), out var generator))
         {
-            setter = default!;
+            converter = default!;
 
             return false;
         }
 
         var untyped = generator.SetCallerGenericArguments(typeof(TNative)).GetGetter(adapter);
 
-        setter = (Setter<TEntity, TNative>) untyped!;
+        converter = (Func<TNative, TEntity>) untyped!;
 
         return true;
     }
 
     public static bool TryGetEncoderConverter<TNative, TEntity>(IEncoderAdapter<TNative> adapter,
-        out Func<TEntity, TNative> getter)
+        out Func<TEntity, TNative> converter)
     {
         if (!ForEncoder.TryGetValue(typeof(TEntity), out var generator))
         {
-            getter = default!;
+            converter = default!;
 
             return false;
         }
 
         var untyped = generator.SetCallerGenericArguments(typeof(TNative)).GetGetter(adapter);
 
-        getter = (Func<TEntity, TNative>) untyped!;
+        converter = (Func<TEntity, TNative>) untyped!;
 
         return true;
     }
