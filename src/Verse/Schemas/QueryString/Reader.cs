@@ -18,7 +18,7 @@ internal class Reader : IReader<ReaderState, string, char>
     public ReaderStatus ReadToArray<TElement>(ReaderState state,
         ReaderCallback<ReaderState, string, char, TElement> callback, out ArrayReader<TElement> arrayReader)
     {
-        arrayReader = default;
+        arrayReader = _ => ArrayResult<TElement>.Failure;
 
         return ReaderStatus.Ignored;
     }
@@ -105,7 +105,7 @@ internal class Reader : IReader<ReaderState, string, char>
             case QueryStringLocation.Sequence:
                 var dummy = false;
 
-                value = default;
+                value = default!;
 
                 return ReadToObject(state,
                     EmptyLookupNode<char, ReaderCallback<ReaderState, string, char, bool>>.Instance, ref dummy);
@@ -119,7 +119,7 @@ internal class Reader : IReader<ReaderState, string, char>
                 return ReaderStatus.Succeeded;
 
             default:
-                value = default;
+                value = default!;
 
                 return ReaderStatus.Failed;
         }
@@ -146,7 +146,7 @@ internal class Reader : IReader<ReaderState, string, char>
 
         while (true)
         {
-            int current = state.Current;
+            var current = state.Current;
 
             if (QueryStringCharacter.IsUnreserved(current))
             {
@@ -168,7 +168,7 @@ internal class Reader : IReader<ReaderState, string, char>
                 {
                     if (count >= buffer.Length)
                     {
-                        value = default;
+                        value = default!;
 
                         return false;
                     }
@@ -177,7 +177,7 @@ internal class Reader : IReader<ReaderState, string, char>
 
                     if (state.Current == -1)
                     {
-                        value = default;
+                        value = default!;
 
                         return false;
                     }
@@ -188,7 +188,7 @@ internal class Reader : IReader<ReaderState, string, char>
 
                     if (state.Current == -1)
                     {
-                        value = default;
+                        value = default!;
 
                         return false;
                     }
@@ -199,7 +199,7 @@ internal class Reader : IReader<ReaderState, string, char>
 
                     if (hex1 < 0 || hex2 < 0)
                     {
-                        value = default;
+                        value = default!;
 
                         return false;
                     }

@@ -77,7 +77,7 @@ internal class Reader : IReader<ReaderState, ProtobufValue, int>
         }
 
         // Decode value
-        ProtoBinding field;
+        var field = ProtoBinding.Empty;
 /*
 			if (index >= 0 && index < this.bindings.Length && this.bindings[index].Type != ProtoType.Undefined)
 				field = this.bindings[index];
@@ -90,7 +90,6 @@ internal class Reader : IReader<ReaderState, ProtobufValue, int>
 				return false;
 			}
 */
-        field = default;
 
         switch (wire)
         {
