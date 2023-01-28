@@ -76,7 +76,7 @@ public class CompareNewtonsoft
 
         schema.DecoderDescriptor
             .IsArray<long>(elements => elements.ToArray())
-            .IsValue(schema.DecoderAdapter.ToInteger64S);
+            .IsValue(schema.NativeTo.Integer64S);
 
         var decoder = schema.CreateDecoder();
 

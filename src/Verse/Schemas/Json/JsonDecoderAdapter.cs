@@ -5,7 +5,7 @@ namespace Verse.Schemas.Json;
 
 internal class JsonDecoderAdapter : IDecoderAdapter<JsonValue>
 {
-    public Setter<bool, JsonValue> ToBoolean => (ref bool target, JsonValue source) =>
+    public Setter<bool, JsonValue> Boolean => (ref bool target, JsonValue source) =>
     {
         switch (source.Type)
         {
@@ -31,7 +31,7 @@ internal class JsonDecoderAdapter : IDecoderAdapter<JsonValue>
         }
     };
 
-    public Setter<char, JsonValue> ToCharacter => (ref char target, JsonValue source) =>
+    public Setter<char, JsonValue> Character => (ref char target, JsonValue source) =>
     {
         switch (source.Type)
         {
@@ -64,7 +64,7 @@ internal class JsonDecoderAdapter : IDecoderAdapter<JsonValue>
         }
     };
 
-    public Setter<decimal, JsonValue> ToDecimal => (ref decimal target, JsonValue source) =>
+    public Setter<decimal, JsonValue> Decimal => (ref decimal target, JsonValue source) =>
     {
         switch (source.Type)
         {
@@ -90,7 +90,7 @@ internal class JsonDecoderAdapter : IDecoderAdapter<JsonValue>
         }
     };
 
-    public Setter<float, JsonValue> ToFloat32 => (ref float target, JsonValue source) =>
+    public Setter<float, JsonValue> Float32 => (ref float target, JsonValue source) =>
     {
         switch (source.Type)
         {
@@ -116,7 +116,7 @@ internal class JsonDecoderAdapter : IDecoderAdapter<JsonValue>
         }
     };
 
-    public Setter<double, JsonValue> ToFloat64 => (ref double target, JsonValue source) =>
+    public Setter<double, JsonValue> Float64 => (ref double target, JsonValue source) =>
     {
         switch (source.Type)
         {
@@ -142,7 +142,7 @@ internal class JsonDecoderAdapter : IDecoderAdapter<JsonValue>
         }
     };
 
-    public Setter<sbyte, JsonValue> ToInteger8S => (ref sbyte target, JsonValue source) =>
+    public Setter<sbyte, JsonValue> Integer8S => (ref sbyte target, JsonValue source) =>
     {
         switch (source.Type)
         {
@@ -168,7 +168,7 @@ internal class JsonDecoderAdapter : IDecoderAdapter<JsonValue>
         }
     };
 
-    public Setter<byte, JsonValue> ToInteger8U => (ref byte target, JsonValue source) =>
+    public Setter<byte, JsonValue> Integer8U => (ref byte target, JsonValue source) =>
     {
         switch (source.Type)
         {
@@ -194,7 +194,7 @@ internal class JsonDecoderAdapter : IDecoderAdapter<JsonValue>
         }
     };
 
-    public Setter<short, JsonValue> ToInteger16S => (ref short target, JsonValue source) =>
+    public Setter<short, JsonValue> Integer16S => (ref short target, JsonValue source) =>
     {
         switch (source.Type)
         {
@@ -220,7 +220,7 @@ internal class JsonDecoderAdapter : IDecoderAdapter<JsonValue>
         }
     };
 
-    public Setter<ushort, JsonValue> ToInteger16U => (ref ushort target, JsonValue source) =>
+    public Setter<ushort, JsonValue> Integer16U => (ref ushort target, JsonValue source) =>
     {
         switch (source.Type)
         {
@@ -246,7 +246,7 @@ internal class JsonDecoderAdapter : IDecoderAdapter<JsonValue>
         }
     };
 
-    public Setter<int, JsonValue> ToInteger32S => (ref int target, JsonValue source) =>
+    public Setter<int, JsonValue> Integer32S => (ref int target, JsonValue source) =>
     {
         switch (source.Type)
         {
@@ -272,7 +272,7 @@ internal class JsonDecoderAdapter : IDecoderAdapter<JsonValue>
         }
     };
 
-    public Setter<uint, JsonValue> ToInteger32U => (ref uint target, JsonValue source) =>
+    public Setter<uint, JsonValue> Integer32U => (ref uint target, JsonValue source) =>
     {
         switch (source.Type)
         {
@@ -298,7 +298,7 @@ internal class JsonDecoderAdapter : IDecoderAdapter<JsonValue>
         }
     };
 
-    public Setter<long, JsonValue> ToInteger64S => (ref long target, JsonValue source) =>
+    public Setter<long, JsonValue> Integer64S => (ref long target, JsonValue source) =>
     {
         switch (source.Type)
         {
@@ -324,7 +324,7 @@ internal class JsonDecoderAdapter : IDecoderAdapter<JsonValue>
         }
     };
 
-    public Setter<ulong, JsonValue> ToInteger64U => (ref ulong target, JsonValue source) =>
+    public Setter<ulong, JsonValue> Integer64U => (ref ulong target, JsonValue source) =>
     {
         switch (source.Type)
         {
@@ -350,7 +350,7 @@ internal class JsonDecoderAdapter : IDecoderAdapter<JsonValue>
         }
     };
 
-    public new Setter<string, JsonValue> ToString => (ref string target, JsonValue source) =>
+    public Setter<string, JsonValue> String => (ref string target, JsonValue source) =>
     {
         switch (source.Type)
         {

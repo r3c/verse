@@ -28,7 +28,7 @@ public static class Linker
         IReadOnlyDictionary<Type, object> converters, BindingFlags bindings)
     {
         var decoder = new DecoderSchema<TNative, TEntity>(schema.DecoderDescriptor,
-            schema.DecoderAdapter, schema.NullValue, converters);
+            schema.NativeTo, schema.DefaultValue, converters);
 
         if (!TryLinkDecoder(decoder, bindings, new Dictionary<Type, object>()))
             throw new ArgumentException($"can't link decoder for type '{typeof(TEntity)}'", nameof(schema));
@@ -63,7 +63,7 @@ public static class Linker
         IReadOnlyDictionary<Type, object> converters, BindingFlags bindings)
     {
         var encoder = new EncoderSchema<TNative, TEntity>(schema.EncoderDescriptor,
-            schema.EncoderAdapter, schema.NullValue, converters);
+            schema.NativeFrom, schema.DefaultValue, converters);
 
         if (!TryLinkEncoder(encoder, bindings, new Dictionary<Type, object>()))
             throw new ArgumentException($"can't link encoder for type '{typeof(TEntity)}'", nameof(schema));

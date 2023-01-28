@@ -5,7 +5,7 @@ namespace Verse.Schemas.Protobuf;
 
 internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
 {
-    public Setter<bool, ProtobufValue> ToBoolean => (ref bool target, ProtobufValue source) =>
+    public Setter<bool, ProtobufValue> Boolean => (ref bool target, ProtobufValue source) =>
     {
         switch (source.Type)
         {
@@ -46,7 +46,7 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
         }
     };
 
-    public Setter<char, ProtobufValue> ToCharacter => (ref char target, ProtobufValue source) =>
+    public Setter<char, ProtobufValue> Character => (ref char target, ProtobufValue source) =>
     {
         switch (source.Type)
         {
@@ -94,7 +94,7 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
         }
     };
 
-    public Setter<decimal, ProtobufValue> ToDecimal => (ref decimal target, ProtobufValue source) =>
+    public Setter<decimal, ProtobufValue> Decimal => (ref decimal target, ProtobufValue source) =>
     {
         switch (source.Type)
         {
@@ -135,7 +135,7 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
         }
     };
 
-    public Setter<float, ProtobufValue> ToFloat32 => (ref float target, ProtobufValue source) =>
+    public Setter<float, ProtobufValue> Float32 => (ref float target, ProtobufValue source) =>
     {
         switch (source.Type)
         {
@@ -176,7 +176,7 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
         }
     };
 
-    public Setter<double, ProtobufValue> ToFloat64 => (ref double target, ProtobufValue source) =>
+    public Setter<double, ProtobufValue> Float64 => (ref double target, ProtobufValue source) =>
     {
         switch (source.Type)
         {
@@ -217,7 +217,7 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
         }
     };
 
-    public Setter<sbyte, ProtobufValue> ToInteger8S => (ref sbyte target, ProtobufValue source) =>
+    public Setter<sbyte, ProtobufValue> Integer8S => (ref sbyte target, ProtobufValue source) =>
     {
         switch (source.Type)
         {
@@ -258,7 +258,7 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
         }
     };
 
-    public Setter<byte, ProtobufValue> ToInteger8U => (ref byte target, ProtobufValue source) =>
+    public Setter<byte, ProtobufValue> Integer8U => (ref byte target, ProtobufValue source) =>
     {
         switch (source.Type)
         {
@@ -299,7 +299,7 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
         }
     };
 
-    public Setter<short, ProtobufValue> ToInteger16S => (ref short target, ProtobufValue source) =>
+    public Setter<short, ProtobufValue> Integer16S => (ref short target, ProtobufValue source) =>
     {
         switch (source.Type)
         {
@@ -340,7 +340,7 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
         }
     };
 
-    public Setter<ushort, ProtobufValue> ToInteger16U => (ref ushort target, ProtobufValue source) =>
+    public Setter<ushort, ProtobufValue> Integer16U => (ref ushort target, ProtobufValue source) =>
     {
         switch (source.Type)
         {
@@ -381,7 +381,7 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
         }
     };
 
-    public Setter<int, ProtobufValue> ToInteger32S => (ref int target, ProtobufValue source) =>
+    public Setter<int, ProtobufValue> Integer32S => (ref int target, ProtobufValue source) =>
     {
         switch (source.Type)
         {
@@ -422,7 +422,7 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
         }
     };
 
-    public Setter<uint, ProtobufValue> ToInteger32U => (ref uint target, ProtobufValue source) =>
+    public Setter<uint, ProtobufValue> Integer32U => (ref uint target, ProtobufValue source) =>
     {
         switch (source.Type)
         {
@@ -463,7 +463,7 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
         }
     };
 
-    public Setter<long, ProtobufValue> ToInteger64S => (ref long target, ProtobufValue source) =>
+    public Setter<long, ProtobufValue> Integer64S => (ref long target, ProtobufValue source) =>
     {
         switch (source.Type)
         {
@@ -504,7 +504,7 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
         }
     };
 
-    public Setter<ulong, ProtobufValue> ToInteger64U => (ref ulong target, ProtobufValue source) =>
+    public Setter<ulong, ProtobufValue> Integer64U => (ref ulong target, ProtobufValue source) =>
     {
         switch (source.Type)
         {
@@ -545,7 +545,7 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
         }
     };
 
-    public new Setter<string, ProtobufValue> ToString => (ref string target, ProtobufValue source) =>
+    public Setter<string, ProtobufValue> String => (ref string target, ProtobufValue source) =>
     {
         switch (source.Type)
         {

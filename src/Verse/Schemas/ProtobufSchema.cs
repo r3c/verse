@@ -15,19 +15,19 @@ namespace Verse.Schemas;
 internal sealed class ProtobufSchema<TEntity> : ISchema<ProtobufValue, TEntity>
 {
     /// <inheritdoc/>
-    public IDecoderAdapter<ProtobufValue> DecoderAdapter => _decoderAdapter;
-
-    /// <inheritdoc/>
     public IDecoderDescriptor<ProtobufValue, TEntity> DecoderDescriptor => _decoderDescriptor;
-
-    /// <inheritdoc/>
-    public IEncoderAdapter<ProtobufValue> EncoderAdapter => _encoderAdapter;
 
     /// <inheritdoc/>
     public IEncoderDescriptor<ProtobufValue, TEntity> EncoderDescriptor => _encoderDescriptor;
 
     /// <inheritdoc/>
-    public ProtobufValue NullValue => ProtobufValue.Empty;
+    public ProtobufValue DefaultValue => ProtobufValue.Empty;
+
+    /// <inheritdoc/>
+    public IEncoderAdapter<ProtobufValue> NativeFrom => _encoderAdapter;
+
+    /// <inheritdoc/>
+    public IDecoderAdapter<ProtobufValue> NativeTo => _decoderAdapter;
 
     private readonly ProtobufDecoderAdapter _decoderAdapter;
 

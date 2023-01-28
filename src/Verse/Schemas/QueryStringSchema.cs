@@ -15,20 +15,19 @@ namespace Verse.Schemas;
 internal class QueryStringSchema<TEntity> : ISchema<string, TEntity>
 {
     /// <inheritdoc/>
-    public IDecoderAdapter<string> DecoderAdapter => _decoderAdapter;
-
-    /// <inheritdoc/>
     public IDecoderDescriptor<string, TEntity> DecoderDescriptor => _decoderDescriptor;
 
     /// <inheritdoc/>
-    public IEncoderAdapter<string> EncoderAdapter => throw new NotImplementedException("encoding not implemented");
+    public IEncoderDescriptor<string, TEntity> EncoderDescriptor => throw new NotImplementedException("encoding not implemented");
 
     /// <inheritdoc/>
-    public IEncoderDescriptor<string, TEntity> EncoderDescriptor =>
-        throw new NotImplementedException("encoding not implemented");
+    public string DefaultValue => string.Empty;
 
     /// <inheritdoc/>
-    public string NullValue => string.Empty;
+    public IEncoderAdapter<string> NativeFrom => throw new NotImplementedException("encoding not implemented");
+
+    /// <inheritdoc/>
+    public IDecoderAdapter<string> NativeTo => _decoderAdapter;
 
     private readonly QueryStringDecoderAdapter _decoderAdapter;
 

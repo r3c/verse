@@ -13,26 +13,25 @@ namespace Verse.Schemas;
 internal class RawProtobufSchema<TEntity> : ISchema<RawProtobufValue, TEntity>
 {
     /// <inheritdoc/>
-    public IDecoderAdapter<RawProtobufValue> DecoderAdapter => _decoderAdapter;
-
-    /// <inheritdoc/>
     public IDecoderDescriptor<RawProtobufValue, TEntity> DecoderDescriptor => _decoderDescriptor;
-
-    private readonly RawProtobufConfiguration _configuration;
-
-    /// <inheritdoc/>
-    public IEncoderAdapter<RawProtobufValue> EncoderAdapter => _encoderAdapter;
 
     /// <inheritdoc/>
     public IEncoderDescriptor<RawProtobufValue, TEntity> EncoderDescriptor => _encoderDescriptor;
 
     /// <inheritdoc/>
-    public RawProtobufValue NullValue => new(0, RawProtobufWireType.VarInt);
+    public RawProtobufValue DefaultValue => new(0, RawProtobufWireType.VarInt);
+
+    /// <inheritdoc/>
+    public IEncoderAdapter<RawProtobufValue> NativeFrom => _encoderAdapter;
+
+    /// <inheritdoc/>
+    public IDecoderAdapter<RawProtobufValue> NativeTo => _decoderAdapter;
+
+    private readonly RawProtobufConfiguration _configuration;
 
     private readonly RawProtobufDecoderAdapter _decoderAdapter;
 
-    private readonly TreeDecoderDescriptor<ReaderState, RawProtobufValue, char, TEntity>
-        _decoderDescriptor;
+    private readonly TreeDecoderDescriptor<ReaderState, RawProtobufValue, char, TEntity> _decoderDescriptor;
 
     private readonly RawProtobufEncoderAdapter _encoderAdapter;
 

@@ -7,31 +7,31 @@ namespace Verse;
 /// <typeparam name="TNative">Schema native value type</typeparam>
 public interface IDecoderAdapter<in TNative>
 {
-    Setter<bool, TNative> ToBoolean { get; }
+    Setter<bool, TNative> Boolean { get; }
 
-    Setter<char, TNative> ToCharacter { get; }
+    Setter<char, TNative> Character { get; }
 
-    Setter<decimal, TNative> ToDecimal { get; }
+    Setter<decimal, TNative> Decimal { get; }
 
-    Setter<float, TNative> ToFloat32 { get; }
+    Setter<float, TNative> Float32 { get; }
 
-    Setter<double, TNative> ToFloat64 { get; }
+    Setter<double, TNative> Float64 { get; }
 
-    Setter<sbyte, TNative> ToInteger8S { get; }
+    Setter<sbyte, TNative> Integer8S { get; }
 
-    Setter<byte, TNative> ToInteger8U { get; }
+    Setter<byte, TNative> Integer8U { get; }
 
-    Setter<short, TNative> ToInteger16S { get; }
+    Setter<short, TNative> Integer16S { get; }
 
-    Setter<ushort, TNative> ToInteger16U { get; }
+    Setter<ushort, TNative> Integer16U { get; }
 
-    Setter<int, TNative> ToInteger32S { get; }
+    Setter<int, TNative> Integer32S { get; }
 
-    Setter<uint, TNative> ToInteger32U { get; }
+    Setter<uint, TNative> Integer32U { get; }
 
-    Setter<long, TNative> ToInteger64S { get; }
+    Setter<long, TNative> Integer64S { get; }
 
-    Setter<ulong, TNative> ToInteger64U { get; }
+    Setter<ulong, TNative> Integer64U { get; }
 
-    Setter<string, TNative> ToString { get; }
+    Setter<string, TNative> String { get; }
 }

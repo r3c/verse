@@ -11,19 +11,9 @@ namespace Verse;
 public interface ISchema<TNative, TEntity>
 {
     /// <summary>
-    /// Get value adapter for decoding schema values to native C# types.
-    /// </summary>
-    IDecoderAdapter<TNative> DecoderAdapter { get; }
-
-    /// <summary>
     /// Get decoder descriptor for this schema and entity type.
     /// </summary>
     IDecoderDescriptor<TNative, TEntity> DecoderDescriptor { get; }
-
-    /// <summary>
-    /// Get value adapter for encoding native C# types to schema values.
-    /// </summary>
-    IEncoderAdapter<TNative> EncoderAdapter { get; }
 
     /// <summary>
     /// Get encoder descriptor for this schema and entity type.
@@ -31,9 +21,19 @@ public interface ISchema<TNative, TEntity>
     IEncoderDescriptor<TNative, TEntity> EncoderDescriptor { get; }
 
     /// <summary>
-    /// Native value considered as null for this schema.
+    /// Native value considered as default for this schema.
     /// </summary>
-    TNative NullValue { get; }
+    TNative DefaultValue { get; }
+
+    /// <summary>
+    /// Get value adapter for encoding native C# types to schema values.
+    /// </summary>
+    IEncoderAdapter<TNative> NativeFrom { get; }
+
+    /// <summary>
+    /// Get value adapter for decoding schema values to native C# types.
+    /// </summary>
+    IDecoderAdapter<TNative> NativeTo { get; }
 
     /// <summary>
     /// Create an entity decoder based on instructions passed to the

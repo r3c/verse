@@ -9,31 +9,31 @@ namespace Verse;
 /// <typeparam name="TNative">Schema native value type</typeparam>
 public interface IEncoderAdapter<out TNative>
 {
-    Func<bool, TNative> FromBoolean { get; }
+    Func<bool, TNative> Boolean { get; }
 
-    Func<char, TNative> FromCharacter { get; }
+    Func<char, TNative> Character { get; }
 
-    Func<decimal, TNative> FromDecimal { get; }
+    Func<decimal, TNative> Decimal { get; }
 
-    Func<float, TNative> FromFloat32 { get; }
+    Func<float, TNative> Float32 { get; }
 
-    Func<double, TNative> FromFloat64 { get; }
+    Func<double, TNative> Float64 { get; }
 
-    Func<sbyte, TNative> FromInteger8S { get; }
+    Func<sbyte, TNative> Integer8S { get; }
 
-    Func<byte, TNative> FromInteger8U { get; }
+    Func<byte, TNative> Integer8U { get; }
 
-    Func<short, TNative> FromInteger16S { get; }
+    Func<short, TNative> Integer16S { get; }
 
-    Func<ushort, TNative> FromInteger16U { get; }
+    Func<ushort, TNative> Integer16U { get; }
 
-    Func<int, TNative> FromInteger32S { get; }
+    Func<int, TNative> Integer32S { get; }
 
-    Func<uint, TNative> FromInteger32U { get; }
+    Func<uint, TNative> Integer32U { get; }
 
-    Func<long, TNative> FromInteger64S { get; }
+    Func<long, TNative> Integer64S { get; }
 
-    Func<ulong, TNative> FromInteger64U { get; }
+    Func<ulong, TNative> Integer64U { get; }
 
-    Func<string, TNative> FromString { get; }
+    Func<string, TNative> String { get; }
 }

@@ -14,19 +14,19 @@ namespace Verse.Schemas;
 internal class JsonSchema<TEntity> : ISchema<JsonValue, TEntity>
 {
     /// <inheritdoc/>
-    public IDecoderAdapter<JsonValue> DecoderAdapter => _decoderAdapter;
-
-    /// <inheritdoc/>
     public IDecoderDescriptor<JsonValue, TEntity> DecoderDescriptor => _decoderDescriptor;
-
-    /// <inheritdoc/>
-    public IEncoderAdapter<JsonValue> EncoderAdapter => _encoderAdapter;
 
     /// <inheritdoc/>
     public IEncoderDescriptor<JsonValue, TEntity> EncoderDescriptor => _encoderDescriptor;
 
     /// <inheritdoc/>
-    public JsonValue NullValue => JsonValue.Undefined;
+    public JsonValue DefaultValue => JsonValue.Undefined;
+
+    /// <inheritdoc/>
+    public IEncoderAdapter<JsonValue> NativeFrom => _encoderAdapter;
+
+    /// <inheritdoc/>
+    public IDecoderAdapter<JsonValue> NativeTo => _decoderAdapter;
 
     private readonly JsonConfiguration _configuration;
 

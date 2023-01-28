@@ -9,7 +9,7 @@ namespace Verse.Schemas.RawProtobuf;
 /// </summary>
 internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
 {
-    public Setter<bool, RawProtobufValue> ToBoolean => (ref bool target, RawProtobufValue source) =>
+    public Setter<bool, RawProtobufValue> Boolean => (ref bool target, RawProtobufValue source) =>
     {
         switch (source.Storage)
         {
@@ -32,7 +32,7 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
         }
     };
 
-    public Setter<char, RawProtobufValue> ToCharacter => (ref char target, RawProtobufValue source) =>
+    public Setter<char, RawProtobufValue> Character => (ref char target, RawProtobufValue source) =>
     {
         switch (source.Storage)
         {
@@ -62,7 +62,7 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
         }
     };
 
-    public unsafe Setter<decimal, RawProtobufValue> ToDecimal => (ref decimal target, RawProtobufValue source) =>
+    public unsafe Setter<decimal, RawProtobufValue> Decimal => (ref decimal target, RawProtobufValue source) =>
     {
         switch (source.Storage)
         {
@@ -93,7 +93,7 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
         }
     };
 
-    public unsafe Setter<float, RawProtobufValue> ToFloat32 => (ref float target, RawProtobufValue source) =>
+    public unsafe Setter<float, RawProtobufValue> Float32 => (ref float target, RawProtobufValue source) =>
     {
         switch (source.Storage)
         {
@@ -124,7 +124,7 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
         }
     };
 
-    public unsafe Setter<double, RawProtobufValue> ToFloat64 => (ref double target, RawProtobufValue source) =>
+    public unsafe Setter<double, RawProtobufValue> Float64 => (ref double target, RawProtobufValue source) =>
     {
         switch (source.Storage)
         {
@@ -155,7 +155,7 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
         }
     };
 
-    public Setter<sbyte, RawProtobufValue> ToInteger8S => (ref sbyte target, RawProtobufValue source) =>
+    public Setter<sbyte, RawProtobufValue> Integer8S => (ref sbyte target, RawProtobufValue source) =>
     {
         switch (source.Storage)
         {
@@ -178,7 +178,7 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
         }
     };
 
-    public Setter<byte, RawProtobufValue> ToInteger8U => (ref byte target, RawProtobufValue source) =>
+    public Setter<byte, RawProtobufValue> Integer8U => (ref byte target, RawProtobufValue source) =>
     {
         switch (source.Storage)
         {
@@ -201,7 +201,7 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
         }
     };
 
-    public Setter<short, RawProtobufValue> ToInteger16S => (ref short target, RawProtobufValue source) =>
+    public Setter<short, RawProtobufValue> Integer16S => (ref short target, RawProtobufValue source) =>
     {
         switch (source.Storage)
         {
@@ -224,7 +224,7 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
         }
     };
 
-    public Setter<ushort, RawProtobufValue> ToInteger16U => (ref ushort target, RawProtobufValue source) =>
+    public Setter<ushort, RawProtobufValue> Integer16U => (ref ushort target, RawProtobufValue source) =>
     {
         switch (source.Storage)
         {
@@ -247,7 +247,7 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
         }
     };
 
-    public Setter<int, RawProtobufValue> ToInteger32S => (ref int target, RawProtobufValue source) =>
+    public Setter<int, RawProtobufValue> Integer32S => (ref int target, RawProtobufValue source) =>
     {
         switch (source.Storage)
         {
@@ -270,7 +270,7 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
         }
     };
 
-    public Setter<uint, RawProtobufValue> ToInteger32U => (ref uint target, RawProtobufValue source) =>
+    public Setter<uint, RawProtobufValue> Integer32U => (ref uint target, RawProtobufValue source) =>
     {
         switch (source.Storage)
         {
@@ -293,7 +293,7 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
         }
     };
 
-    public Setter<long, RawProtobufValue> ToInteger64S => (ref long target, RawProtobufValue source) =>
+    public Setter<long, RawProtobufValue> Integer64S => (ref long target, RawProtobufValue source) =>
     {
         switch (source.Storage)
         {
@@ -316,7 +316,7 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
         }
     };
 
-    public unsafe Setter<ulong, RawProtobufValue> ToInteger64U => (ref ulong target, RawProtobufValue source) =>
+    public unsafe Setter<ulong, RawProtobufValue> Integer64U => (ref ulong target, RawProtobufValue source) =>
     {
         switch (source.Storage)
         {
@@ -347,7 +347,7 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
         }
     };
 
-    public new Setter<string, RawProtobufValue> ToString => (ref string target, RawProtobufValue source) =>
+    public Setter<string, RawProtobufValue> String => (ref string target, RawProtobufValue source) =>
     {
         switch (source.Storage)
         {

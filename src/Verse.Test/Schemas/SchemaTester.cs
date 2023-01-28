@@ -19,14 +19,14 @@ public abstract class SchemaTester<TNative>
             .HasField("virtual")
             .IsObject(() => 0)
             .HasField("value", (ref int target, int source) => target = source)
-            .IsValue(schema.DecoderAdapter.ToInteger32S);
+            .IsValue(schema.NativeTo.Integer32S);
 
         schema.EncoderDescriptor
             .IsObject()
             .HasField("virtual")
             .IsObject()
             .HasField("value", source => source)
-            .IsValue(schema.EncoderAdapter.FromInteger32S);
+            .IsValue(schema.NativeFrom.Integer32S);
 
         SchemaHelper<TNative>.AssertRoundTrip(schema.CreateDecoder(), schema.CreateEncoder(), 17);
     }

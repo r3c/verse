@@ -13,59 +13,59 @@ internal static class AdapterResolver
     {
         {
             typeof(bool),
-            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<bool, object>>>(a => a.ToBoolean)
+            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<bool, object>>>(a => a.Boolean)
         },
         {
             typeof(char),
-            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<char, object>>>(a => a.ToCharacter)
+            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<char, object>>>(a => a.Character)
         },
         {
             typeof(decimal),
-            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<decimal, object>>>(a => a.ToDecimal)
+            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<decimal, object>>>(a => a.Decimal)
         },
         {
             typeof(float),
-            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<float, object>>>(a => a.ToFloat32)
+            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<float, object>>>(a => a.Float32)
         },
         {
             typeof(double),
-            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<double, object>>>(a => a.ToFloat64)
+            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<double, object>>>(a => a.Float64)
         },
         {
             typeof(sbyte),
-            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<sbyte, object>>>(a => a.ToInteger8S)
+            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<sbyte, object>>>(a => a.Integer8S)
         },
         {
             typeof(byte),
-            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<byte, object>>>(a => a.ToInteger8U)
+            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<byte, object>>>(a => a.Integer8U)
         },
         {
             typeof(short),
-            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<short, object>>>(a => a.ToInteger16S)
+            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<short, object>>>(a => a.Integer16S)
         },
         {
             typeof(ushort),
-            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<ushort, object>>>(a => a.ToInteger16U)
+            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<ushort, object>>>(a => a.Integer16U)
         },
         {
             typeof(int),
-            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<int, object>>>(a => a.ToInteger32S)
+            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<int, object>>>(a => a.Integer32S)
         },
         {
             typeof(uint),
-            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<uint, object>>>(a => a.ToInteger32U)
+            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<uint, object>>>(a => a.Integer32U)
         },
         {
             typeof(long),
-            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<long, object>>>(a => a.ToInteger64S)
+            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<long, object>>>(a => a.Integer64S)
         },
         {
             typeof(ulong),
-            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<ulong, object>>>(a => a.ToInteger64U)
+            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<ulong, object>>>(a => a.Integer64U)
         },
         {
             typeof(string),
-            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<string, object>>>(a => a.ToString)
+            PropertyResolver.Create<Func<IDecoderAdapter<object>, Setter<string, object>>>(a => a.String)
         }
     };
 
@@ -73,59 +73,59 @@ internal static class AdapterResolver
     {
         {
             typeof(bool),
-            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<bool, object>>>(a => a.FromBoolean)
+            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<bool, object>>>(a => a.Boolean)
         },
         {
             typeof(char),
-            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<char, object>>>(a => a.FromCharacter)
+            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<char, object>>>(a => a.Character)
         },
         {
             typeof(decimal),
-            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<decimal, object>>>(a => a.FromDecimal)
+            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<decimal, object>>>(a => a.Decimal)
         },
         {
             typeof(float),
-            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<float, object>>>(a => a.FromFloat32)
+            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<float, object>>>(a => a.Float32)
         },
         {
             typeof(double),
-            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<double, object>>>(a => a.FromFloat64)
+            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<double, object>>>(a => a.Float64)
         },
         {
             typeof(sbyte),
-            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<sbyte, object>>>(a => a.FromInteger8S)
+            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<sbyte, object>>>(a => a.Integer8S)
         },
         {
             typeof(byte),
-            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<byte, object>>>(a => a.FromInteger8U)
+            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<byte, object>>>(a => a.Integer8U)
         },
         {
             typeof(short),
-            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<short, object>>>(a => a.FromInteger16S)
+            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<short, object>>>(a => a.Integer16S)
         },
         {
             typeof(ushort),
-            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<ushort, object>>>(a => a.FromInteger16U)
+            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<ushort, object>>>(a => a.Integer16U)
         },
         {
             typeof(int),
-            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<int, object>>>(a => a.FromInteger32S)
+            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<int, object>>>(a => a.Integer32S)
         },
         {
             typeof(uint),
-            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<uint, object>>>(a => a.FromInteger32U)
+            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<uint, object>>>(a => a.Integer32U)
         },
         {
             typeof(long),
-            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<long, object>>>(a => a.FromInteger64S)
+            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<long, object>>>(a => a.Integer64S)
         },
         {
             typeof(ulong),
-            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<ulong, object>>>(a => a.FromInteger64U)
+            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<ulong, object>>>(a => a.Integer64U)
         },
         {
             typeof(string),
-            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<string, object>>>(a => a.FromString)
+            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<string, object>>>(a => a.String)
         }
     };
 
