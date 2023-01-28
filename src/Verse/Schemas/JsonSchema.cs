@@ -57,9 +57,10 @@ internal class JsonSchema<TEntity> : ISchema<JsonValue, TEntity>
     /// <inheritdoc/>
     public IDecoder<TEntity> CreateDecoder()
     {
-        var configuration = _configuration;
-        var reader = new Reader(configuration.Encoding ?? new UTF8Encoding(false),
-            configuration.ReadObjectValuesAsArray, configuration.ReadScalarAsOneElementArray);
+        var reader = new Reader(
+            _configuration.Encoding ?? new UTF8Encoding(false),
+            _configuration.ReadObjectValuesAsArray,
+            _configuration.ReadScalarAsOneElementArray);
 
         return _decoderDescriptor.CreateDecoder(reader);
     }
@@ -67,8 +68,9 @@ internal class JsonSchema<TEntity> : ISchema<JsonValue, TEntity>
     /// <inheritdoc/>
     public IEncoder<TEntity> CreateEncoder()
     {
-        var encoding = _configuration.Encoding ?? new UTF8Encoding(false);
-        var reader = new Writer(encoding, _configuration.OmitNull);
+        var reader = new Writer(
+            _configuration.Encoding ?? new UTF8Encoding(false),
+            _configuration.OmitNull);
 
         return _encoderDescriptor.CreateEncoder(reader);
     }
