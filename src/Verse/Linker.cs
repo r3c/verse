@@ -191,7 +191,7 @@ public static class Linker
                 continue;
 
             var setter = MethodResolver
-                .Create<Func<PropertyInfo, Setter<object, object>>>(p =>
+                .Create<Func<PropertyInfo, Func<object, object, object>>>(p =>
                     SetterGenerator.CreateFromProperty<object, object>(p))
                 .SetGenericArguments(entityType, property.PropertyType)
                 .Invoke(null!, property)!;
@@ -208,7 +208,7 @@ public static class Linker
                 continue;
 
             var setter = MethodResolver
-                .Create<Func<FieldInfo, Setter<object, object>>>(f =>
+                .Create<Func<FieldInfo, Func<object, object, object>>>(f =>
                     SetterGenerator.CreateFromField<object, object>(f))
                 .SetGenericArguments(entityType, field.FieldType)
                 .Invoke(null!, field)!;
@@ -265,7 +265,7 @@ public static class Linker
         if (parents.TryGetValue(type, out var parent))
         {
             MethodResolver
-                .Create<Func<IDecoderObjectDescriptor<TNative, TEntity>, string, Setter<TEntity, object>,
+                .Create<Func<IDecoderObjectDescriptor<TNative, TEntity>, string, Func<TEntity, object, TEntity>,
                     IDecoderDescriptor<TNative, object>,
                     IDecoderDescriptor<TNative, object>>>((d, n, s, p) =>
                     d.HasField(n, s, p))
@@ -276,7 +276,7 @@ public static class Linker
         }
 
         var fieldDescriptor = MethodResolver
-            .Create<Func<IDecoderObjectDescriptor<TNative, TEntity>, string, Setter<TEntity, object>,
+            .Create<Func<IDecoderObjectDescriptor<TNative, TEntity>, string, Func<TEntity, object, TEntity>,
                 IDecoderDescriptor<TNative, object>>>((d, n, s) => d.HasField(n, s))
             .SetGenericArguments(type)
             .Invoke(objectDescriptor, name, setter)!;

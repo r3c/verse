@@ -18,7 +18,7 @@ public abstract class SchemaTester<TNative>
             .IsObject(() => 0)
             .HasField("virtual")
             .IsObject(() => 0)
-            .HasField("value", (ref int target, int source) => target = source)
+            .HasField<int>("value", (_, source) => source)
             .IsValue(schema.NativeTo.Integer32S);
 
         schema.EncoderDescriptor

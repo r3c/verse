@@ -27,10 +27,10 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
 
         schema.DecoderDescriptor
             .IsObject(Array.Empty<int>)
-            .HasField("parent", (ref int[] entity, int[] value) => entity = value)
+            .HasField<int[]>("parent", (_, value) => value)
             .IsArray<int>(e => e.ToArray())
             .IsObject(() => 0)
-            .HasField("child", (ref int entity, int value) => entity = value)
+            .HasField<int>("child", (_, value) => value)
             .IsValue(schema.NativeTo.Integer32S);
 
         AssertDecodeAndEqual(schema, json, expected);
@@ -49,11 +49,11 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
             .IsObject(() => new int[2], intermediate => (intermediate[0], intermediate[1]));
 
         obj
-            .HasField("a", (ref int[] entity, int value) => entity[0] = value)
+            .HasField("a", SetterHelper.Mutation((int[] entity, int value) => entity[0] = value))
             .IsValue(schema.NativeTo.Integer32S);
 
         obj
-            .HasField("b", (ref int[] entity, int value) => entity[1] = value)
+            .HasField("b", SetterHelper.Mutation((int[] entity, int value) => entity[1] = value))
             .IsValue(schema.NativeTo.Integer32S);
 
         AssertDecodeAndEqual(schema, json, (expected1, expected2));
@@ -72,9 +72,9 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
 
         schema.DecoderDescriptor
             .IsObject(() => "default")
-            .HasField("value1", (ref string e, string v) => e = v)
+            .HasField<string>("value1", (_, v) => v)
             .IsObject(() => "defaultFromValue1")
-            .HasField("value2", (ref string e, string v) => e = v)
+            .HasField<string>("value2", (_, v) => v)
             .IsValue(value => value.Type switch
             {
                 JsonType.Boolean => value.Boolean.ToString(),
@@ -104,9 +104,9 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
 
         schema.DecoderDescriptor
             .IsObject(() => "default")
-            .HasField("value1", (ref string e, string v) => e = v)
+            .HasField<string>("value1", (_, v) => v)
             .IsObject(() => "defaultFromValue1")
-            .HasField("value2", (ref string e, string v) => e = v)
+            .HasField<string>("value2", (_, v) => v)
             .IsValue(value => value.Type switch
             {
                 JsonType.Boolean => value.Boolean.ToString(),
@@ -133,7 +133,7 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
 
         schema.DecoderDescriptor
             .IsObject(() => new Container<int[]>())
-            .HasField("field", (ref Container<int[]> parent, int[] field) => parent.Value = field)
+            .HasField("field", SetterHelper.Mutation((Container<int[]> parent, int[] field) => parent.Value = field))
             .IsArray<int>(e => e.ToArray())
             .IsValue(schema.NativeTo.Integer32S);
 
@@ -218,7 +218,7 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
 
         schema.DecoderDescriptor
             .IsObject(() => 0)
-            .HasField("match", (ref int target, int value) => target = value)
+            .HasField<int>("match", (_, value) => value)
             .IsValue(schema.NativeTo.Integer32S);
 
         AssertDecodeAndEqual(schema, "{\"match1\": 17}", 0);
@@ -232,7 +232,7 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
 
         schema.DecoderDescriptor
             .IsObject(() => 0)
-            .HasField("match", (ref int o, int v) => o = v)
+            .HasField<int>("match", (_, v) => v)
             .IsValue(schema.NativeTo.Integer32S);
 
         AssertDecodeAndEqual(schema, "{\"unknown\": {\"match\": 17}}", 0);
@@ -244,9 +244,12 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
         var schema = Schema.CreateJson<int[]>();
         var root = schema.DecoderDescriptor.IsObject(() => new[] { 0, 0 });
 
-        root.HasField("virtual0", (ref int[] target, int source) => target[0] = source)
+        root
+            .HasField("virtual0", SetterHelper.Mutation((int[] target, int source) => target[0] = source))
             .IsValue(schema.NativeTo.Integer32S);
-        root.HasField("virtual1", (ref int[] target, int source) => target[1] = source)
+
+        root
+            .HasField("virtual1", SetterHelper.Mutation((int[] target, int source) => target[1] = source))
             .IsValue(schema.NativeTo.Integer32S);
 
         AssertDecodeAndEqual(schema, "{\"virtual0\": 42, \"virtual1\": 17}", new[] { 42, 17 });
@@ -265,7 +268,7 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
 
         schema.DecoderDescriptor
             .IsObject(() => default)
-            .HasField(name, (ref T o, T v) => o = v)
+            .HasField<T>(name, (_, v) => v)
             .IsValue(converter);
 
         AssertDecodeAndEqual(schema, json, expected);
@@ -278,10 +281,10 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
         var root = schema.DecoderDescriptor.IsObject(() => new RecursiveEntity());
 
         root
-            .HasField("f", (ref RecursiveEntity r, RecursiveEntity v) => r.Field = v, schema.DecoderDescriptor);
+            .HasField("f", SetterHelper.Mutation((RecursiveEntity r, RecursiveEntity v) => r.Field = v), schema.DecoderDescriptor);
 
         root
-            .HasField("v", (ref RecursiveEntity r, int v) => r.Value = v)
+            .HasField("v", SetterHelper.Mutation((RecursiveEntity r, int v) => r.Value = v))
             .IsValue(schema.NativeTo.Integer32S);
 
         var decoder = schema.CreateDecoder();
@@ -420,19 +423,17 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
 
         var tuple = descriptor
             .IsObject(() => Tuple.Create(0, 0, fromConstructor))
-            .HasField(
-                "tuple",
-                (ref Tuple<int, int, int> target, Tuple<int, int> field) => target = Tuple.Create(field.Item1, field.Item2, target.Item3));
+            .HasField<Tuple<int, int>>("tuple", (target, field) => Tuple.Create(field.Item1, field.Item2, target.Item3));
 
         var tupleObject = tuple
             .IsObject(() => Tuple.Create(0, 0));
 
-        tupleObject.HasField("a",
-                (ref Tuple<int, int> target, int value) => target = Tuple.Create(value, target.Item2))
+        tupleObject
+            .HasField<int>("a", (target, value) => Tuple.Create(value, target.Item2))
             .IsValue(schema.NativeTo.Integer32S);
 
-        tupleObject.HasField("b",
-                (ref Tuple<int, int> target, int value) => target = Tuple.Create(target.Item1, value))
+        tupleObject
+            .HasField<int>("b", (target, value) => Tuple.Create(target.Item1, value))
             .IsValue(schema.NativeTo.Integer32S);
 
         AssertDecodeAndEqual(schema, "{\"tuple\": {\"a\": 5, \"b\": 7}}",

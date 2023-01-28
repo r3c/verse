@@ -128,7 +128,7 @@ internal class TreeDecoderDescriptor<TState, TNative, TKey, TEntity> : IDecoderD
             _definition = definition;
         }
 
-        public IDecoderDescriptor<TNative, TField> HasField<TField>(string name, Setter<TEntity, TField> setter,
+        public IDecoderDescriptor<TNative, TField> HasField<TField>(string name, Func<TEntity, TField, TEntity> setter,
             IDecoderDescriptor<TNative, TField> descriptor)
         {
             if (descriptor is not TreeDecoderDescriptor<TState, TNative, TKey, TField> ancestor)
@@ -137,7 +137,7 @@ internal class TreeDecoderDescriptor<TState, TNative, TKey, TEntity> : IDecoderD
             return BindField(_definition, name, setter, ancestor);
         }
 
-        public IDecoderDescriptor<TNative, TField> HasField<TField>(string name, Setter<TEntity, TField> setter)
+        public IDecoderDescriptor<TNative, TField> HasField<TField>(string name, Func<TEntity, TField, TEntity> setter)
         {
             var fieldDefinition = _definition.Create<TField>();
             var fieldDescriptor = new TreeDecoderDescriptor<TState, TNative, TKey, TField>(fieldDefinition);
@@ -167,7 +167,8 @@ internal class TreeDecoderDescriptor<TState, TNative, TKey, TEntity> : IDecoderD
 
         private static TreeDecoderDescriptor<TState, TNative, TKey, TField> BindField<TField>(
             IReaderDefinition<TState, TNative, TKey, TEntity> parentDefinition, string name,
-            Setter<TEntity, TField> setter, TreeDecoderDescriptor<TState, TNative, TKey, TField> fieldDescriptor)
+            Func<TEntity, TField, TEntity> setter,
+            TreeDecoderDescriptor<TState, TNative, TKey, TField> fieldDescriptor)
         {
             var fieldDefinition = fieldDescriptor._definition;
             var parentLookup = parentDefinition.Lookup;
@@ -184,7 +185,7 @@ internal class TreeDecoderDescriptor<TState, TNative, TKey, TEntity> : IDecoderD
                             return ReaderStatus.Failed;
 
                         case ReaderStatus.Succeeded:
-                            setter(ref entity, field);
+                            entity = setter(entity, field);
 
                             break;
                     }

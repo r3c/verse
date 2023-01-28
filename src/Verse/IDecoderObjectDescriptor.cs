@@ -1,3 +1,5 @@
+using System;
+
 namespace Verse;
 
 public interface IDecoderObjectDescriptor<TNative, TObject>
@@ -12,7 +14,7 @@ public interface IDecoderObjectDescriptor<TNative, TObject>
     /// <param name="setter">Field setter to current entity</param>
     /// <param name="descriptor">Existing decoder descriptor</param>
     /// <returns>Object decoder field descriptor</returns>
-    IDecoderDescriptor<TNative, TField> HasField<TField>(string name, Setter<TObject, TField> setter,
+    IDecoderDescriptor<TNative, TField> HasField<TField>(string name, Func<TObject, TField, TObject> setter,
         IDecoderDescriptor<TNative, TField> descriptor);
 
     /// <summary>
@@ -23,7 +25,7 @@ public interface IDecoderObjectDescriptor<TNative, TObject>
     /// <param name="name">Field name</param>
     /// <param name="setter">Field setter to current entity</param>
     /// <returns>Object decoder field descriptor</returns>
-    IDecoderDescriptor<TNative, TField> HasField<TField>(string name, Setter<TObject, TField> setter);
+    IDecoderDescriptor<TNative, TField> HasField<TField>(string name, Func<TObject, TField, TObject> setter);
 
     /// <summary>
     /// Declare new named field on current object entity without creating a

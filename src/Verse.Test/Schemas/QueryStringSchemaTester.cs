@@ -1,7 +1,6 @@
 using System.IO;
 using System.Text;
 using NUnit.Framework;
-using Verse.Schemas;
 
 namespace Verse.Test.Schemas;
 
@@ -40,7 +39,7 @@ public class QueryStringSchemaTester
 
         schema.DecoderDescriptor
             .IsObject(() => default!)
-            .HasField(name, (ref T t, T v) => t = v)
+            .HasField<T>(name, (_, v) => v)
             .IsValue(converter);
 
         var value = Decode(schema, query);
@@ -61,7 +60,7 @@ public class QueryStringSchemaTester
 
         schema.DecoderDescriptor
             .IsObject(() => default!)
-            .HasField(name, (ref T t, T v) => t = v)
+            .HasField<T>(name, (_, v) => v)
             .IsValue(converter);
 
         var value = Decode(schema, query);

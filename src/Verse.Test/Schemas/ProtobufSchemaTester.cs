@@ -34,11 +34,11 @@ internal class ProtobufSchemaTester
         var schema = new ProtobufSchema<Person>(new StringReader(proto), "Person");
         var root = schema.DecoderDescriptor.IsObject(() => new Person());
 
-        root.HasField("email", (ref Person p, string v) => p.Email = v)
+        root.HasField("email", SetterHelper.Mutation((Person p, string v) => p.Email = v))
             .IsValue(schema.NativeTo.String);
-        root.HasField("id", (ref Person p, int v) => p.Id = v)
+        root.HasField("id", SetterHelper.Mutation((Person p, int v) => p.Id = v))
             .IsValue(schema.NativeTo.Integer32S);
-        root.HasField("name", (ref Person p, string v) => p.Name = v)
+        root.HasField<string>("name", SetterHelper.Mutation((Person p, string v) => p.Name = v))
             .IsValue(schema.NativeTo.String);
 
         var decoder = schema.CreateDecoder();

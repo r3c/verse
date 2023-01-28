@@ -39,7 +39,7 @@ internal class RawProtobufSchemaTester
 
         schema.DecoderDescriptor
             .IsObject(() => new List<T>())
-            .HasField("_2", (ref List<T> target, T[] values) => target.AddRange(values))
+            .HasField("_2", SetterHelper.Mutation((List<T> target, T[] values) => target.AddRange(values)))
             .IsArray<T>(elements => elements.ToArray())
             .IsValue(converter);
 
@@ -61,14 +61,13 @@ internal class RawProtobufSchemaTester
     {
         var schema = CreateSchema<T>();
         var converter = SchemaHelper<RawProtobufValue>.GetDecoderConverter<T>(schema.NativeTo);
-        var testFieldClass = new TestFieldClass<T>
-            { SubValue = new SubTestFieldClass<T> { Value = expectedValue } };
+        var testFieldClass = new TestFieldClass<T> { SubValue = new SubTestFieldClass<T> { Value = expectedValue } };
 
         schema.DecoderDescriptor
             .IsObject(() => default!)
-            .HasField("_3", (ref T t, T v) => t = v)
+            .HasField<T>("_3", (_, v) => v)
             .IsObject(() => default!)
-            .HasField("_4", (ref T t, T v) => t = v)
+            .HasField<T>("_4", (_, v) => v)
             .IsValue(converter);
 
         var value = DecodeTranscode(schema.CreateDecoder(), testFieldClass);
@@ -95,7 +94,7 @@ internal class RawProtobufSchemaTester
 
         schema.DecoderDescriptor
             .IsObject(() => default!)
-            .HasField("_1", (ref T obj, T v) => obj = v)
+            .HasField<T>("_1", (_, v) => v)
             .IsValue(converter);
 
         var decodedValue = DecodeTranscode(schema.CreateDecoder(), testFieldClass);
@@ -133,12 +132,12 @@ internal class RawProtobufSchemaTester
 
         schema.DecoderDescriptor
             .IsObject(() => new TestFieldClass<TestFieldClass<T>>())
-            .HasField("_2", (ref TestFieldClass<TestFieldClass<T>> t, TestFieldClass<T>[] v) => t.Items.AddRange(v))
+            .HasField("_2", SetterHelper.Mutation((TestFieldClass<TestFieldClass<T>> t, TestFieldClass<T>[] v) => t.Items.AddRange(v)))
             .IsArray<TestFieldClass<T>>(elements => elements.ToArray())
             .IsObject(() => new TestFieldClass<T>())
-            .HasField("_3", (ref TestFieldClass<T> target, SubTestFieldClass<T> value) => target.SubValue = value)
+            .HasField("_3", SetterHelper.Mutation((TestFieldClass<T> target, SubTestFieldClass<T> value) => target.SubValue = value))
             .IsObject(() => new SubTestFieldClass<T>())
-            .HasField("_4", (ref SubTestFieldClass<T> target, T value) => target.Value = value)
+            .HasField("_4", SetterHelper.Mutation((SubTestFieldClass<T> target, T value) => target.Value = value))
             .IsValue(converter);
 
         var decodedValue = DecodeRoundTrip(schema.CreateDecoder(), testFieldClass);
@@ -208,29 +207,29 @@ internal class RawProtobufSchemaTester
 
         var descriptor = schema.DecoderDescriptor
             .IsObject(() => default!)
-            .HasField("_2", (ref int t, int v) => t = v);
+            .HasField<int>("_2", (_, v) => v);
 
         if (index0.HasValue)
         {
             descriptor = descriptor
                 .IsObject(() => default!)
-                .HasField(index0.Value.ToString(CultureInfo.InvariantCulture), (ref int t, int v) => t = v);
+                .HasField<int>(index0.Value.ToString(CultureInfo.InvariantCulture), (_, v) => v);
         }
 
         descriptor = descriptor
             .IsObject(() => default!)
-            .HasField("_2", (ref int t, int v) => t = v);
+            .HasField<int>("_2", (_, v) => v);
 
         if (index1.HasValue)
         {
             descriptor = descriptor
                 .IsObject(() => default!)
-                .HasField(index1.Value.ToString(CultureInfo.InvariantCulture), (ref int t, int v) => t = v);
+                .HasField<int>(index1.Value.ToString(CultureInfo.InvariantCulture), (_, v) => v);
         }
 
         descriptor
             .IsObject(() => 0)
-            .HasField("_4", (ref int t, int v) => t = v)
+            .HasField<int>("_4", (_, v) => v)
             .IsValue(schema.NativeTo.Integer32S);
 
         var value = DecodeTranscode(schema.CreateDecoder(), testFieldClass);
