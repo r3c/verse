@@ -44,43 +44,42 @@ public struct ProtobufValue
     public readonly string String;
 
     public ProtobufValue(bool value)
-        : this()
     {
         Boolean = value;
+        String = string.Empty;
         Type = ProtobufType.Boolean;
     }
 
     public ProtobufValue(double value)
-        : this()
     {
         Float64 = value;
+        String = string.Empty;
         Type = ProtobufType.Float64;
     }
 
     public ProtobufValue(float value)
-        : this()
     {
         Float32 = value;
+        String = string.Empty;
         Type = ProtobufType.Float32;
     }
 
     public ProtobufValue(long value)
-        : this()
     {
         Signed = value;
+        String = string.Empty;
         Type = ProtobufType.Signed;
     }
 
     public ProtobufValue(string value)
-        : this()
     {
         String = value;
         Type = ProtobufType.String;
     }
 
     public ProtobufValue(ulong value)
-        : this()
     {
+        String = string.Empty;
         Type = ProtobufType.Unsigned;
         Unsigned = value;
     }
