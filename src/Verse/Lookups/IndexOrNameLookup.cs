@@ -5,9 +5,9 @@ namespace Verse.Lookups;
 
 internal class IndexOrNameLookup<TValue> : ILookup<int, TValue>
 {
-    public ILookupNode<int, TValue> Root => _fastRoot;
+    public ILookupNode<int, TValue> Root => _dualRoot;
 
-    private readonly FastLookupNode<int, TValue> _fastRoot;
+    private readonly DualLookupNode<int, TValue> _dualRoot;
     private readonly HashLookupNode<int, TValue> _indexRoot;
     private readonly HashLookupNode<int, TValue> _nameRoot;
 
@@ -16,7 +16,7 @@ internal class IndexOrNameLookup<TValue> : ILookup<int, TValue>
         var index = new HashLookupNode<int, TValue>(k => k);
         var name = new HashLookupNode<int, TValue>(k => k);
 
-        _fastRoot = new FastLookupNode<int, TValue>(index, name);
+        _dualRoot = new DualLookupNode<int, TValue>(index, name);
         _indexRoot = index;
         _nameRoot = name;
     }

@@ -2,7 +2,7 @@ using System;
 
 namespace Verse.LookupNodes;
 
-internal class FastLookupNode<TKey, TValue> : ILookupNode<TKey, TValue>
+internal class DualLookupNode<TKey, TValue> : ILookupNode<TKey, TValue>
 {
     public bool HasValue => _shortcut.HasValue || _fallback.HasValue;
 
@@ -23,7 +23,7 @@ internal class FastLookupNode<TKey, TValue> : ILookupNode<TKey, TValue>
     private readonly ILookupNode<TKey, TValue> _fallback;
     private readonly ILookupNode<TKey, TValue> _shortcut;
 
-    public FastLookupNode(ILookupNode<TKey, TValue> shortcut, ILookupNode<TKey, TValue> fallback)
+    public DualLookupNode(ILookupNode<TKey, TValue> shortcut, ILookupNode<TKey, TValue> fallback)
     {
         _fallback = fallback;
         _shortcut = shortcut;

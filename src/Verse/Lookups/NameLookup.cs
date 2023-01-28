@@ -4,8 +4,6 @@ namespace Verse.Lookups;
 
 internal class NameLookup<TValue> : ILookup<char, TValue>
 {
-    public static readonly ILookup<char, TValue> Empty = new NameLookup<TValue>();
-
     public ILookupNode<char, TValue> Root => _root;
 
     private readonly HashLookupNode<char, TValue> _root;
