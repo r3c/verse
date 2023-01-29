@@ -4,9 +4,7 @@ Verse TODO list
 TODO
 ----
 
-- [ ] Move entity constructors at object definition instead of parent
-  - [ ] Restore "IsObject<TObject>" and "IsObject" methods in descriptors
-  - [ ] Bypass object construction on JSON "null" to ensure symmetric schema
+- [ ] Implement automatic intermediate object for immutable entities in linker
 - [ ] Implement "ignore case" option for name-based schemas
   - [ ] Support option in NameLookup
 - [ ] Implement support for proto-based Protobuf schema
