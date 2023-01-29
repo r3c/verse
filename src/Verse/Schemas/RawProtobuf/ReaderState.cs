@@ -138,13 +138,13 @@ internal class ReaderState
                 var fixed64 = 0L;
 
                 fixed64 += _stream.ReadByte();
-                fixed64 += (long) _stream.ReadByte() << 8;
-                fixed64 += (long) _stream.ReadByte() << 16;
-                fixed64 += (long) _stream.ReadByte() << 24;
-                fixed64 += (long) _stream.ReadByte() << 32;
-                fixed64 += (long) _stream.ReadByte() << 40;
-                fixed64 += (long) _stream.ReadByte() << 48;
-                fixed64 += (long) _stream.ReadByte() << 56;
+                fixed64 += (long)_stream.ReadByte() << 8;
+                fixed64 += (long)_stream.ReadByte() << 16;
+                fixed64 += (long)_stream.ReadByte() << 24;
+                fixed64 += (long)_stream.ReadByte() << 32;
+                fixed64 += (long)_stream.ReadByte() << 40;
+                fixed64 += (long)_stream.ReadByte() << 48;
+                fixed64 += (long)_stream.ReadByte() << 56;
 
                 _position += 8;
 
@@ -269,14 +269,14 @@ internal class ReaderState
 
         do
         {
-            current = (byte) _stream.ReadByte();
+            current = (byte)_stream.ReadByte();
 
             _position += 1;
 
-            value += (ulong) (current & 127u) << shift;
+            value += (ulong)(current & 127u) << shift;
             shift += 7;
         } while ((current & 128) != 0);
 
-        return *(long*) &value;
+        return *(long*)&value;
     }
 }

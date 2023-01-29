@@ -14,14 +14,14 @@ internal class RawProtobufEncoderAdapter : IEncoderAdapter<RawProtobufValue>
     {
         var number = (double)v;
 
-        return new RawProtobufValue(*(long*) &number, RawProtobufWireType.Fixed64);
+        return new RawProtobufValue(*(long*)&number, RawProtobufWireType.Fixed64);
     };
 
     public unsafe Func<float, RawProtobufValue> Float32 =>
-        v => new RawProtobufValue(*(int*) &v, RawProtobufWireType.Fixed32);
+        v => new RawProtobufValue(*(int*)&v, RawProtobufWireType.Fixed32);
 
     public unsafe Func<double, RawProtobufValue> Float64 => v =>
-        new RawProtobufValue(*(long*) &v, RawProtobufWireType.Fixed64);
+        new RawProtobufValue(*(long*)&v, RawProtobufWireType.Fixed64);
 
     public Func<sbyte, RawProtobufValue> Integer8S => v => new RawProtobufValue(v, RawProtobufWireType.VarInt);
 
@@ -39,7 +39,7 @@ internal class RawProtobufEncoderAdapter : IEncoderAdapter<RawProtobufValue>
     public Func<long, RawProtobufValue> Integer64S => v => new RawProtobufValue(v, RawProtobufWireType.VarInt);
 
     public unsafe Func<ulong, RawProtobufValue> Integer64U =>
-        v => new RawProtobufValue(*(long*) v, RawProtobufWireType.VarInt);
+        v => new RawProtobufValue(*(long*)v, RawProtobufWireType.VarInt);
 
     public Func<string, RawProtobufValue> String => v => new RawProtobufValue(v, RawProtobufWireType.String);
 }

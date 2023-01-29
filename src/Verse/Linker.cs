@@ -428,7 +428,7 @@ public static class Linker
         }
 
         var itemDescriptor = MethodResolver
-            .Create<Func<IEncoderDescriptor<TNative, TEntity>, Func<TEntity, IEnumerable<object>>,IEncoderDescriptor<TNative, object>>>((d, a) => d.IsArray(a))
+            .Create<Func<IEncoderDescriptor<TNative, TEntity>, Func<TEntity, IEnumerable<object>>, IEncoderDescriptor<TNative, object>>>((d, a) => d.IsArray(a))
             .SetGenericArguments(type)
             .Invoke(encoder.Descriptor, getter);
 

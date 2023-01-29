@@ -31,17 +31,17 @@ internal class ProtobufReaderDefinition<TEntity> : IReaderDefinition<ReaderState
     {
         return new ProtobufReaderDefinition<TOther>(_bindings, _rejectUnknown);
     }
-/*
-		public override TreeReader<ReaderState, TField, ProtobufValue> HasField<TField>(string name, ReaderCallback<ReaderState, TEntity> enter)
-		{
-			int index = Array.FindIndex(this.bindings, binding => binding.Name == name);
+    /*
+            public override TreeReader<ReaderState, TField, ProtobufValue> HasField<TField>(string name, ReaderCallback<ReaderState, TEntity> enter)
+            {
+                int index = Array.FindIndex(this.bindings, binding => binding.Name == name);
 
-			if (index < 0)
-				throw new ArgumentOutOfRangeException("name", name, "field doesn't exist in proto definition");
+                if (index < 0)
+                    throw new ArgumentOutOfRangeException("name", name, "field doesn't exist in proto definition");
 
-			this.fields[index] = enter;
+                this.fields[index] = enter;
 
-			return new Reader<TField>(this.bindings[index].Fields, this.rejectUnknown);
-		}
-*/
+                return new Reader<TField>(this.bindings[index].Fields, this.rejectUnknown);
+            }
+    */
 }

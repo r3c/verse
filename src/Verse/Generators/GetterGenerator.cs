@@ -17,7 +17,7 @@ internal static class GetterGenerator
         if (field.FieldType != typeof(TField))
             throw new ArgumentException($"field type is not {typeof(TField)}", nameof(field));
 
-        var parameterTypes = new[] {typeof(TEntity)};
+        var parameterTypes = new[] { typeof(TEntity) };
         var method = new DynamicMethod(string.Empty, field.FieldType, parameterTypes, field.Module, true);
         var generator = method.GetILGenerator();
 
@@ -25,7 +25,7 @@ internal static class GetterGenerator
         generator.Emit(OpCodes.Ldfld, field);
         generator.Emit(OpCodes.Ret);
 
-        return (Func<TEntity, TField>) method.CreateDelegate(typeof(Func<TEntity, TField>));
+        return (Func<TEntity, TField>)method.CreateDelegate(typeof(Func<TEntity, TField>));
     }
 
     /// <Summary>
@@ -44,7 +44,7 @@ internal static class GetterGenerator
         if (getter is null)
             throw new ArgumentException("property has no getter", nameof(property));
 
-        return (Func<TEntity, TProperty>) Delegate.CreateDelegate(typeof(Func<TEntity, TProperty>), getter);
+        return (Func<TEntity, TProperty>)Delegate.CreateDelegate(typeof(Func<TEntity, TProperty>), getter);
     }
 
     /// <summary>

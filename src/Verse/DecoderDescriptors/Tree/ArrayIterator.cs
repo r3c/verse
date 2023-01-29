@@ -46,9 +46,9 @@ internal class ArrayIterator<TElement> : IDisposable, IEnumerable<TElement>
         public TElement Current => _current;
 
         object? IEnumerator.Current => _current;
-	
+
         private TElement _current;
-	
+
         private int _index;
 
         private readonly ArrayReader<TElement> _reader;
@@ -62,7 +62,7 @@ internal class ArrayIterator<TElement> : IDisposable, IEnumerable<TElement>
             _reader = reader;
             _state = ArrayState.NextElement;
         }
-	
+
         public void Dispose()
         {
             Flush();
@@ -72,10 +72,10 @@ internal class ArrayIterator<TElement> : IDisposable, IEnumerable<TElement>
         {
             while (_state == ArrayState.NextElement)
                 MoveNext();
-	
+
             return _state == ArrayState.EndOfArray;
         }
-	
+
         public bool MoveNext()
         {
             if (_state != ArrayState.NextElement)
@@ -85,10 +85,10 @@ internal class ArrayIterator<TElement> : IDisposable, IEnumerable<TElement>
 
             _current = result.Current!;
             _state = result.State;
-	
+
             return _state == ArrayState.NextElement;
         }
-	
+
         public void Reset()
         {
             throw new NotSupportedException("array enumeration cannot be reset");

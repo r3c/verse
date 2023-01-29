@@ -68,7 +68,7 @@ internal class Reader : IReader<ReaderState, ProtobufValue, int>
 
         // Read field number and wire type
         var index = (current >> 3) & 15;
-        var wire = (WireType) (current & 7);
+        var wire = (WireType)(current & 7);
 
         while ((current & 128) != 0)
         {
@@ -78,18 +78,18 @@ internal class Reader : IReader<ReaderState, ProtobufValue, int>
 
         // Decode value
         var field = ProtoBinding.Empty;
-/*
-			if (index >= 0 && index < this.bindings.Length && this.bindings[index].Type != ProtoType.Undefined)
-				field = this.bindings[index];
-			else if (!this.rejectUnknown)
-				field = ProtoBinding.Empty;
-			else
-			{
-				state.RaiseError("field {0} with wire type {1} is unknown", index, wire);
+        /*
+                    if (index >= 0 && index < this.bindings.Length && this.bindings[index].Type != ProtoType.Undefined)
+                        field = this.bindings[index];
+                    else if (!this.rejectUnknown)
+                        field = ProtoBinding.Empty;
+                    else
+                    {
+                        state.RaiseError("field {0} with wire type {1} is unknown", index, wire);
 
-				return false;
-			}
-*/
+                        return false;
+                    }
+        */
 
         switch (wire)
         {
@@ -106,7 +106,7 @@ internal class Reader : IReader<ReaderState, ProtobufValue, int>
                     case ProtoType.Float:
                         unsafe
                         {
-                            state.Value = new ProtobufValue(*((float*) &u32));
+                            state.Value = new ProtobufValue(*((float*)&u32));
                         }
 
                         break;
@@ -135,7 +135,7 @@ internal class Reader : IReader<ReaderState, ProtobufValue, int>
                     case ProtoType.Double:
                         unsafe
                         {
-                            state.Value = new ProtobufValue(*((double*) &u64));
+                            state.Value = new ProtobufValue(*((double*)&u64));
                         }
 
                         break;
@@ -189,14 +189,14 @@ internal class Reader : IReader<ReaderState, ProtobufValue, int>
 
                     case ProtoType.String:
                         var length = ReaderHelper.ReadVarInt(state);
-/*
-							if (length > this.maximumLength)
-							{
-								state.RaiseError("number of bytes in field {0} ({1}) exceeds allowed maximum ({2})", field.Name, length, this.maximumLength);
+                        /*
+                                                    if (length > this.maximumLength)
+                                                    {
+                                                        state.RaiseError("number of bytes in field {0} ({1}) exceeds allowed maximum ({2})", field.Name, length, this.maximumLength);
 
-								return false;
-							}
-*/
+                                                        return false;
+                                                    }
+                        */
                         var buffer = new byte[length];
 
                         if (state.Stream.Read(buffer, 0, (int)length) != (int)length)
@@ -239,7 +239,7 @@ internal class Reader : IReader<ReaderState, ProtobufValue, int>
 
                     case ProtoType.SInt32:
                     case ProtoType.SInt64:
-                        state.Value = new ProtobufValue((-(long) (varint & 1)) ^ (long) (varint >> 1));
+                        state.Value = new ProtobufValue((-(long)(varint & 1)) ^ (long)(varint >> 1));
 
                         break;
 
@@ -266,11 +266,11 @@ internal class Reader : IReader<ReaderState, ProtobufValue, int>
                 return ReaderStatus.Failed;
         }
 
-/*
-			return this.fields[index] != null
-				? this.fields[index](state, ref entity)
-				: Reader<TObject>.Ignore(state);
-*/
+        /*
+                    return this.fields[index] != null
+                        ? this.fields[index](state, ref entity)
+                        : Reader<TObject>.Ignore(state);
+        */
         return ReaderStatus.Failed;
     }
 

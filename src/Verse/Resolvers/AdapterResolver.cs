@@ -141,7 +141,7 @@ internal static class AdapterResolver
 
         var untyped = generator.SetCallerGenericArguments(typeof(TNative)).GetGetter(adapter);
 
-        converter = (Func<TNative, TEntity>) untyped!;
+        converter = (Func<TNative, TEntity>)untyped!;
 
         return true;
     }
@@ -158,7 +158,7 @@ internal static class AdapterResolver
 
         var untyped = generator.SetCallerGenericArguments(typeof(TNative)).GetGetter(adapter);
 
-        converter = (Func<TEntity, TNative>) untyped!;
+        converter = (Func<TEntity, TNative>)untyped!;
 
         return true;
     }

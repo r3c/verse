@@ -17,7 +17,7 @@ internal class TreeDecoderDescriptor<TState, TNative, TKey, TEntity> : IDecoderD
     {
         return new TreeDecoder<TState, TNative, TKey, TEntity>(reader, _definition.Callback);
     }
-    
+
     public IDecoderDescriptor<TNative, TElement> IsArray<TElement>(Func<IEnumerable<TElement>, TEntity> converter,
         IDecoderDescriptor<TNative, TElement> descriptor)
     {

@@ -32,7 +32,7 @@ internal static class SetterGenerator
         generator.Emit(OpCodes.Ldarg_0);
         generator.Emit(OpCodes.Ret);
 
-        return (Func<TEntity, TField, TEntity>) method.CreateDelegate(typeof(Func<TEntity, TField, TEntity>));
+        return (Func<TEntity, TField, TEntity>)method.CreateDelegate(typeof(Func<TEntity, TField, TEntity>));
     }
 
     /// <Summary>
@@ -66,6 +66,6 @@ internal static class SetterGenerator
         generator.Emit(OpCodes.Ldarg_0);
         generator.Emit(OpCodes.Ret);
 
-        return (Func<TEntity, TProperty, TEntity>) method.CreateDelegate(typeof(Func<TEntity, TProperty, TEntity>));
+        return (Func<TEntity, TProperty, TEntity>)method.CreateDelegate(typeof(Func<TEntity, TProperty, TEntity>));
     }
 }

@@ -217,6 +217,6 @@ internal class Reader : IReader<ReaderState, string, char>
 
                 return true;
             }
-        }	
+        }
     }
 }

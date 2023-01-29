@@ -48,5 +48,5 @@ internal class ProtobufSchemaTester
 
         Assert.True(decoderStream.TryDecode(out var entity));
         Assert.AreEqual(17, entity.Id);
-    }	
+    }
 }
