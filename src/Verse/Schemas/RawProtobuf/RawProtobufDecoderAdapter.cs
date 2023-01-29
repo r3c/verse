@@ -38,8 +38,8 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
     {
         return source.Storage switch
         {
-            RawProtobufWireType.Fixed32 => (decimal) *(float*) &source.Number,
-            RawProtobufWireType.Fixed64 => (decimal) *(double*) &source.Number,
+            RawProtobufWireType.Fixed32 => (decimal)*(float*)&source.Number,
+            RawProtobufWireType.Fixed64 => (decimal)*(double*)&source.Number,
             RawProtobufWireType.VarInt => source.Number,
             RawProtobufWireType.String => decimal.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
                 ? target
@@ -52,8 +52,8 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
     {
         return source.Storage switch
         {
-            RawProtobufWireType.Fixed32 => *(float*) &source.Number,
-            RawProtobufWireType.Fixed64 => (float) *(double*) &source.Number,
+            RawProtobufWireType.Fixed32 => *(float*)&source.Number,
+            RawProtobufWireType.Fixed64 => (float)*(double*)&source.Number,
             RawProtobufWireType.VarInt => source.Number,
             RawProtobufWireType.String => float.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
                 ? target
@@ -66,8 +66,8 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
     {
         return source.Storage switch
         {
-            RawProtobufWireType.Fixed32 => *(float*) &source.Number,
-            RawProtobufWireType.Fixed64 => *(double*) &source.Number,
+            RawProtobufWireType.Fixed32 => *(float*)&source.Number,
+            RawProtobufWireType.Fixed64 => *(double*)&source.Number,
             RawProtobufWireType.VarInt => source.Number,
             RawProtobufWireType.String => double.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
                 ? target
@@ -178,8 +178,8 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
     {
         return source.Storage switch
         {
-            RawProtobufWireType.Fixed32 => *(uint*) source.Number,
-            RawProtobufWireType.Fixed64 => *(ulong*) source.Number,
+            RawProtobufWireType.Fixed32 => *(uint*)source.Number,
+            RawProtobufWireType.Fixed64 => *(ulong*)source.Number,
             RawProtobufWireType.VarInt => (ulong)source.Number,
             RawProtobufWireType.String => ulong.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
                 ? target

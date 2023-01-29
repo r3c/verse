@@ -6,7 +6,7 @@ internal class WriterState
 {
     public readonly ErrorEvent Error;
 
-    public readonly Stream Stream;        
+    public readonly Stream Stream;
 
     public WriterState(Stream stream, ErrorEvent error)
     {

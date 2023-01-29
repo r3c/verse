@@ -36,7 +36,7 @@ internal static class ConverterGenerator
         generator.Emit(OpCodes.Newobj, constructor);
         generator.Emit(OpCodes.Ret);
 
-        return (Func<TParameter, TEntity>) method.CreateDelegate(typeof(Func<TParameter, TEntity>));
+        return (Func<TParameter, TEntity>)method.CreateDelegate(typeof(Func<TParameter, TEntity>));
     }
 
     /// <summary>

@@ -68,7 +68,7 @@ internal class Reader : IReader<ReaderState, RawProtobufValue, char>
                     node = node.Follow(digit);
             }
             else
-                node = node.Follow((char) ('0' + state.FieldIndex));
+                node = node.Follow((char)('0' + state.FieldIndex));
 
             if (!(node.HasValue ? node.Value(this, state, ref target) == ReaderStatus.Succeeded : state.TrySkipValue()))
                 return ReaderStatus.Failed;

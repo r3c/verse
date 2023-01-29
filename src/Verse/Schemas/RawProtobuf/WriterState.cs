@@ -149,7 +149,7 @@ internal class WriterState
 
     private void Error(string message)
     {
-        _error((int) _buffer.Position, message);
+        _error((int)_buffer.Position, message);
     }
 
     private void WriteHeader(int fieldIndex, RawProtobufWireType fieldType)
@@ -157,14 +157,14 @@ internal class WriterState
         // Write field type and first 4 bits of field index
         var wireType = (int)fieldType & 7;
 
-        _buffer.WriteByte((byte) (wireType | ((fieldIndex & 15) << 3) | (fieldIndex >= 16 ? 128 : 0)));
+        _buffer.WriteByte((byte)(wireType | ((fieldIndex & 15) << 3) | (fieldIndex >= 16 ? 128 : 0)));
 
         fieldIndex >>= 4;
 
         // Write remaining part of field index if any
         while (fieldIndex > 0)
         {
-            _buffer.WriteByte((byte) ((fieldIndex & 127) | (fieldIndex >= 128 ? 128 : 0)));
+            _buffer.WriteByte((byte)((fieldIndex & 127) | (fieldIndex >= 128 ? 128 : 0)));
 
             fieldIndex >>= 7;
         }
@@ -172,11 +172,11 @@ internal class WriterState
 
     private unsafe void WriteVarInt(long value)
     {
-        var number = *(ulong*) &value;
+        var number = *(ulong*)&value;
 
         do
         {
-            _buffer.WriteByte((byte) ((number & 127) | (number >= 128 ? 128u : 0u)));
+            _buffer.WriteByte((byte)((number & 127) | (number >= 128 ? 128u : 0u)));
 
             number >>= 7;
         } while (number > 0);

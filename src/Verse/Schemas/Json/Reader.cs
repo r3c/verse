@@ -278,7 +278,7 @@ internal class Reader : IReader<ReaderState, JsonValue, int>
     {
         state.Read();
 
-        for (var index = 0;; ++index)
+        for (var index = 0; ; ++index)
         {
             state.PullIgnored();
 
@@ -312,7 +312,7 @@ internal class Reader : IReader<ReaderState, JsonValue, int>
     {
         state.Read();
 
-        for (var index = 0;; ++index)
+        for (var index = 0; ; ++index)
         {
             state.PullIgnored();
 
@@ -430,7 +430,7 @@ internal class Reader : IReader<ReaderState, JsonValue, int>
                     continue;
                 }
 
-                numberMantissa = numberMantissa * 10 + (ulong) (state.Current - '0');
+                numberMantissa = numberMantissa * 10 + (ulong)(state.Current - '0');
             }
 
             // Read decimal part if any
@@ -441,7 +441,7 @@ internal class Reader : IReader<ReaderState, JsonValue, int>
                     if (numberMantissa > mantissaMax)
                         continue;
 
-                    numberMantissa = numberMantissa * 10 + (ulong) (state.Current - '0');
+                    numberMantissa = numberMantissa * 10 + (ulong)(state.Current - '0');
 
                     --numberPower;
                 }
@@ -483,13 +483,13 @@ internal class Reader : IReader<ReaderState, JsonValue, int>
                 uint numberExponent;
 
                 for (numberExponent = 0; state.Current is >= '0' and <= '9'; state.Read())
-                    numberExponent = numberExponent * 10 + (uint) (state.Current - '0');
+                    numberExponent = numberExponent * 10 + (uint)(state.Current - '0');
 
-                numberPower += (int) ((numberExponent ^ numberExponentMask) + numberExponentPlus);
+                numberPower += (int)((numberExponent ^ numberExponentMask) + numberExponentPlus);
             }
 
             // Compute result number and store as JSON value
-            var number = (long) ((numberMantissa ^ numberMantissaMask) + numberMantissaPlus) *
+            var number = (long)((numberMantissa ^ numberMantissaMask) + numberMantissaPlus) *
                          Math.Pow(10, numberPower);
 
             value = JsonValue.FromNumber(number);

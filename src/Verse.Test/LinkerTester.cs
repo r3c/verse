@@ -18,7 +18,7 @@ public class LinkerTester
 {
     [Test]
     [TestCase("[]", new double[0])]
-    [TestCase("[0, 5, 90, 23, -9, 5.32]", new[] {0, 5, 90, 23, -9, 5.32})]
+    [TestCase("[0, 5, 90, 23, -9, 5.32]", new[] { 0, 5, 90, 23, -9, 5.32 })]
     public void LinkDecoderArrayFromArray(string json, double[] expected)
     {
         var encoded = Encoding.UTF8.GetBytes(json);

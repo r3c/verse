@@ -146,7 +146,7 @@ internal class Lexer
                         if (((hex1 < '0' || hex1 > '9') && (hex1 < 'A' || hex1 > 'F') && (hex1 < 'a' || hex1 > 'f')) ||
                             ((hex2 < '0' || hex2 > '9') && (hex2 < 'A' || hex2 > 'F') && (hex2 < 'a' || hex2 > 'f')))
                         {
-                            _current = new Lexem(LexemType.Unknown, new string(new [] {(char)hex1, (char)hex2}));
+                            _current = new Lexem(LexemType.Unknown, new string(new[] { (char)hex1, (char)hex2 }));
 
                             return;
                         }
@@ -163,7 +163,7 @@ internal class Lexer
 
                         if (oct1 < '0' || oct1 > '9' || oct2 < '0' || oct2 > '9' || oct3 < '0' || oct3 > '9')
                         {
-                            _current = new Lexem(LexemType.Unknown, new string(new [] {(char)oct1, (char)oct2, (char)oct3}));
+                            _current = new Lexem(LexemType.Unknown, new string(new[] { (char)oct1, (char)oct2, (char)oct3 }));
 
                             return;
                         }

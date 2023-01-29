@@ -33,7 +33,7 @@ internal struct ProtoEntity
 
         var entity = Entities[index];
 
-        return ResolveEntity(entity, new [] { this, entity });
+        return ResolveEntity(entity, new[] { this, entity });
     }
 
     private ProtoBinding[] ResolveEntity(ProtoEntity entity, IEnumerable<ProtoEntity> parents)
@@ -81,7 +81,7 @@ internal struct ProtoEntity
             {
                 if (entity.Container == ProtoContainer.Enum)
                     return new ProtoBinding(field.Name, ProtoType.Int32);
-        
+
                 return new ProtoBinding(field.Name, ResolveEntity(entity, match));
             }
         }

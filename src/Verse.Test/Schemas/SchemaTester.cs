@@ -41,7 +41,7 @@ public abstract class SchemaTester<TNative>
 
         SchemaHelper<TNative>.AssertRoundTrip(decoder, encoder, new MixedContainer
         {
-            Floats = new[] {1.1f, 2.2f, 3.3f},
+            Floats = new[] { 1.1f, 2.2f, 3.3f },
             Integer = 17,
             Option = SomeEnum.B,
             Pairs = new Dictionary<string, string>
@@ -138,7 +138,7 @@ public abstract class SchemaTester<TNative>
         var encoder = Linker.CreateEncoder(schema);
 
         SchemaHelper<TNative>.AssertRoundTrip(decoder, encoder, new Container<double?>());
-        SchemaHelper<TNative>.AssertRoundTrip(decoder, encoder, new Container<double?> {Value = 42});
+        SchemaHelper<TNative>.AssertRoundTrip(decoder, encoder, new Container<double?> { Value = 42 });
     }
 
     [Test]

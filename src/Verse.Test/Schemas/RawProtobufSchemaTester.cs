@@ -275,7 +275,7 @@ internal class RawProtobufSchemaTester
     public void EncodeScalarToNestedObject<T>(T expectedValue)
     {
         var schema = CreateSchema<TestFieldClass<T>>();
-        var testFieldClass = new TestFieldClass<T> {SubValue = new SubTestFieldClass<T> {Value = expectedValue}};
+        var testFieldClass = new TestFieldClass<T> { SubValue = new SubTestFieldClass<T> { Value = expectedValue } };
         var converter = SchemaHelper<RawProtobufValue>.GetEncoderConverter<T>(schema.NativeFrom);
 
         schema.EncoderDescriptor
@@ -365,7 +365,7 @@ internal class RawProtobufSchemaTester
 
     private static ISchema<RawProtobufValue, TEntity> CreateSchema<TEntity>()
     {
-        return new RawProtobufSchema<TEntity>(new RawProtobufConfiguration {NoZigZagEncoding = true});
+        return new RawProtobufSchema<TEntity>(new RawProtobufConfiguration { NoZigZagEncoding = true });
     }
 
     private static T DecodeRoundTrip<T>(IDecoder<T> decoder, T input)

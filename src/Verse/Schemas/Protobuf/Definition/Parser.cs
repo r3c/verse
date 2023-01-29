@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.IO;
+using System.Linq;
 
 namespace Verse.Schemas.Protobuf.Definition;
 
@@ -202,14 +202,14 @@ internal static class Parser
 
         ParseValue(lexer, LexemType.GreaterThan, "greater than sign");
 
-        return Tuple.Create(entity, ParseField(lexer, new ProtoReference(parentNames.Concat(new [] { entity.Name })), ProtoOccurrence.Required));
+        return Tuple.Create(entity, ParseField(lexer, new ProtoReference(parentNames.Concat(new[] { entity.Name })), ProtoOccurrence.Required));
     }
 
     private static ProtoEntity ParseMessage(Lexer lexer, IEnumerable<string> parentNames)
     {
         var name = ParseValue(lexer, LexemType.Symbol, "message name");
 
-        var currentNames = parentNames.Concat(new [] { name });
+        var currentNames = parentNames.Concat(new[] { name });
         var entity = new ProtoEntity(ProtoContainer.Message, name);
 
         ParseValue(lexer, LexemType.BraceBegin, "opening brace");
@@ -382,9 +382,9 @@ internal static class Parser
             return new ProtoReference(type);
 
         if (local)
-            return new ProtoReference(parentNames.Concat(new [] { ident }));
+            return new ProtoReference(parentNames.Concat(new[] { ident }));
 
-        return new ProtoReference(new [] { ident });
+        return new ProtoReference(new[] { ident });
     }
 
     private static string ParseValue(Lexer lexer, LexemType type, string expected)

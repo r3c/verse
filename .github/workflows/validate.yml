@@ -33,6 +33,17 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
       - run: dotnet build --framework ${{ matrix.dotnet.framework }} src/Verse.sln
 
+  check:
+    name: Check code style
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - run: dotnet format --no-restore --verify-no-changes src/Verse.sln
+
   test:
     name: Run tests
     runs-on: ubuntu-latest

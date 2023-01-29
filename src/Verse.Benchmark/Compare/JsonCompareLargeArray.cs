@@ -10,6 +10,6 @@ public class JsonCompareLargeArray : JsonCompare<IReadOnlyList<int>>
     public int Length { get; set; }
 
     protected override IReadOnlyList<int> Instance => Enumerable.Range(0, Length)
-        .Select(i => (int) ((ulong)i * 65563UL % int.MaxValue))
+        .Select(i => (int)((ulong)i * 65563UL % int.MaxValue))
         .ToList();
 }
