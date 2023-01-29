@@ -59,7 +59,9 @@ internal class Reader : IReader<ReaderState, string, char>
                     state.Pull();
                     state.Location = QueryStringLocation.ValueBegin;
 
-                    if (!(node.HasValue ? node.Value(this, state, ref target) == ReaderStatus.Succeeded : ReadToValue(state, out _) == ReaderStatus.Succeeded))
+                    if (!(node.HasValue
+                            ? node.Value(this, state, ref target) == ReaderStatus.Succeeded
+                            : ReadToValue(state, out _) == ReaderStatus.Succeeded))
                         return ReaderStatus.Failed;
 
                     break;

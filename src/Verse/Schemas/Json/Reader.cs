@@ -19,7 +19,8 @@ internal class Reader : IReader<ReaderState, JsonValue, int>
         _encoding = encoding;
     }
 
-    public ReaderStatus ReadToArray<TElement>(ReaderState state, ReaderCallback<ReaderState, JsonValue, int, TElement> callback, out ArrayReader<TElement> arrayReader)
+    public ReaderStatus ReadToArray<TElement>(ReaderState state,
+        ReaderCallback<ReaderState, JsonValue, int, TElement> callback, out ArrayReader<TElement> arrayReader)
     {
         state.PullIgnored();
 

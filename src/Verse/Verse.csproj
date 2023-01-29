@@ -1,34 +1,34 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyName>Verse</AssemblyName>
-    <AssemblyTitle>Fast Generic Runtime (de)serializer</AssemblyTitle>
-    <Authors>Remi Caput</Authors>
-    <LangVersion>latest</LangVersion>
-    <PackageIconUrl>https://raw.github.com/r3c/verse/master/icon.png</PackageIconUrl>
-    <PackageId>Verse</PackageId>
-    <PackageLicenseUrl>https://raw.github.com/r3c/verse/master/LICENSE.md</PackageLicenseUrl>
-    <PackageProjectUrl>http://r3c.github.io/verse/</PackageProjectUrl>
-    <PackageTags>Verse;Generic;Serialization;JSON;Protobuf</PackageTags>
-    <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>git://github.com/r3c/verse</RepositoryUrl>
-    <TargetFrameworks>net7.0;net6.0;net472</TargetFrameworks>
-    <Title>Verse: Versatile (de)Serializer</Title>
-    <Version>0.6.0</Version>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+    <PropertyGroup>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <AssemblyName>Verse</AssemblyName>
+        <AssemblyTitle>Fast Generic Runtime (de)serializer</AssemblyTitle>
+        <Authors>Remi Caput</Authors>
+        <LangVersion>latest</LangVersion>
+        <PackageIconUrl>https://raw.github.com/r3c/verse/master/icon.png</PackageIconUrl>
+        <PackageId>Verse</PackageId>
+        <PackageLicenseUrl>https://raw.github.com/r3c/verse/master/LICENSE.md</PackageLicenseUrl>
+        <PackageProjectUrl>http://r3c.github.io/verse/</PackageProjectUrl>
+        <PackageTags>Verse;Generic;Serialization;JSON;Protobuf</PackageTags>
+        <RepositoryType>git</RepositoryType>
+        <RepositoryUrl>git://github.com/r3c/verse</RepositoryUrl>
+        <TargetFrameworks>net7.0;net6.0;net472</TargetFrameworks>
+        <Title>Verse: Versatile (de)Serializer</Title>
+        <Version>0.6.0</Version>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' ">
-    <PackageReference Include="System.Collections" Version="4.3.0" />
-    <PackageReference Include="System.Reflection.Emit" Version="4.7.0" />
-    <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.7.0" />
-    <PackageReference Include="System.Reflection.TypeExtensions" Version="4.7.0" />
-  </ItemGroup>
+    <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' ">
+        <PackageReference Include="System.Collections" Version="4.3.0"/>
+        <PackageReference Include="System.Reflection.Emit" Version="4.7.0"/>
+        <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.7.0"/>
+        <PackageReference Include="System.Reflection.TypeExtensions" Version="4.7.0"/>
+    </ItemGroup>
 
-  <ItemGroup>
-	<InternalsVisibleTo Include="$(MSBuildProjectName).Test" />
-  </ItemGroup>
+    <ItemGroup>
+        <InternalsVisibleTo Include="$(MSBuildProjectName).Test"/>
+    </ItemGroup>
 
 </Project>

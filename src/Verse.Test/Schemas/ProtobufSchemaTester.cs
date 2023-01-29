@@ -30,7 +30,8 @@ internal class ProtobufSchemaTester
     [Ignore("Proto messages are not supported yet")]
     public void DecodeAssign()
     {
-        var proto = File.ReadAllText(Path.Combine(TestContext.CurrentContext.TestDirectory, "res/Protobuf/Person.proto"));
+        var proto = File.ReadAllText(
+            Path.Combine(TestContext.CurrentContext.TestDirectory, "res/Protobuf/Person.proto"));
         var schema = new ProtobufSchema<Person>(new StringReader(proto), "Person");
         var root = schema.DecoderDescriptor.IsObject(() => new Person());
 

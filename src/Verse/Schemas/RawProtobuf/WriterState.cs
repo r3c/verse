@@ -179,6 +179,7 @@ internal class WriterState
             _buffer.WriteByte((byte)((number & 127) | (number >= 128 ? 128u : 0u)));
 
             number >>= 7;
-        } while (number > 0);
+        }
+        while (number > 0);
     }
 }

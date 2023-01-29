@@ -132,10 +132,14 @@ internal class RawProtobufSchemaTester
 
         schema.DecoderDescriptor
             .IsObject(() => new TestFieldClass<TestFieldClass<T>>())
-            .HasField("_2", SetterHelper.Mutation((TestFieldClass<TestFieldClass<T>> t, TestFieldClass<T>[] v) => t.Items.AddRange(v)))
+            .HasField("_2",
+                SetterHelper.Mutation((TestFieldClass<TestFieldClass<T>> t, TestFieldClass<T>[] v) =>
+                    t.Items.AddRange(v)))
             .IsArray<TestFieldClass<T>>(elements => elements.ToArray())
             .IsObject(() => new TestFieldClass<T>())
-            .HasField("_3", SetterHelper.Mutation((TestFieldClass<T> target, SubTestFieldClass<T> value) => target.SubValue = value))
+            .HasField("_3",
+                SetterHelper.Mutation((TestFieldClass<T> target, SubTestFieldClass<T> value) =>
+                    target.SubValue = value))
             .IsObject(() => new SubTestFieldClass<T>())
             .HasField("_4", SetterHelper.Mutation((SubTestFieldClass<T> target, T value) => target.Value = value))
             .IsValue(converter);
@@ -258,7 +262,8 @@ internal class RawProtobufSchemaTester
             .IsArray(source => source)
             .IsValue(converter);
 
-        var testFieldClass = EncodeTranscode<List<T>, TestFieldClass<T>>(schema.CreateEncoder(), new List<T>(expectedItems));
+        var testFieldClass =
+            EncodeTranscode<List<T>, TestFieldClass<T>>(schema.CreateEncoder(), new List<T>(expectedItems));
 
         CollectionAssert.AreEqual(expectedItems, testFieldClass.Items);
     }

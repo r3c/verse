@@ -275,7 +275,8 @@ internal class ReaderState
 
             value += (ulong)(current & 127u) << shift;
             shift += 7;
-        } while ((current & 128) != 0);
+        }
+        while ((current & 128) != 0);
 
         return *(long*)&value;
     }

@@ -8,7 +8,8 @@ namespace Verse.Test.Schemas;
 
 internal static class SchemaHelper<TNative>
 {
-    public static void AssertRoundTripWithCustom<TEntity>(IDecoder<TEntity> decoder, IEncoder<TEntity> encoder, TEntity instance)
+    public static void AssertRoundTripWithCustom<TEntity>(IDecoder<TEntity> decoder, IEncoder<TEntity> encoder,
+        TEntity instance)
     {
         TEntity decoded;
         byte[] encoded1;

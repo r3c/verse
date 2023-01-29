@@ -18,7 +18,8 @@ internal class QueryStringSchema<TEntity> : ISchema<string, TEntity>
     public IDecoderDescriptor<string, TEntity> DecoderDescriptor => _decoderDescriptor;
 
     /// <inheritdoc/>
-    public IEncoderDescriptor<string, TEntity> EncoderDescriptor => throw new NotImplementedException("encoding not implemented");
+    public IEncoderDescriptor<string, TEntity> EncoderDescriptor =>
+        throw new NotImplementedException("encoding not implemented");
 
     /// <inheritdoc/>
     public string DefaultValue => string.Empty;

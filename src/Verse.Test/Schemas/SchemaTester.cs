@@ -85,8 +85,8 @@ public abstract class SchemaTester<TNative>
             Option = SomeEnum.B,
             Pairs = new Dictionary<string, string>
             {
-                {"a", "aaa"},
-                {"b", "bbb"}
+                { "a", "aaa" },
+                { "b", "bbb" }
             },
             Text = "Hello, World!"
         });

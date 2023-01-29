@@ -1,4 +1,3 @@
-
 namespace Verse.Schemas.QueryString;
 
 internal static class QueryStringCharacter

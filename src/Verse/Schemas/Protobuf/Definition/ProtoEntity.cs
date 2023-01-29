@@ -86,6 +86,7 @@ internal struct ProtoEntity
             }
         }
 
-        throw new ResolverException("field '{0}' has undefined type '{1}'", field.Name, string.Join(".", field.Reference.Names));
+        throw new ResolverException("field '{0}' has undefined type '{1}'", field.Name,
+            string.Join(".", field.Reference.Names));
     }
 }

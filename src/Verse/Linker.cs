@@ -137,9 +137,11 @@ public static class Linker
         // Bind descriptor as an array of target type is also array
         if (entityType.IsArray)
         {
-            var element = entityType.GetElementType() ?? throw new InvalidOperationException("array has no element type");
+            var element = entityType.GetElementType() ??
+                          throw new InvalidOperationException("array has no element type");
             var converter = MethodResolver
-                .Create<Func<Func<IEnumerable<object>, object[]>>>(() => ConverterGenerator.CreateFromEnumerable<object>())
+                .Create<Func<Func<IEnumerable<object>, object[]>>>(() =>
+                    ConverterGenerator.CreateFromEnumerable<object>())
                 .SetGenericArguments(element)
                 .Invoke(NoCaller);
 
@@ -172,7 +174,8 @@ public static class Linker
                     continue;
 
                 var converter = MethodResolver
-                    .Create<Func<ConstructorInfo, Func<object, object>>>(c => ConverterGenerator.CreateFromConstructor<object, object>(c))
+                    .Create<Func<ConstructorInfo, Func<object, object>>>(c =>
+                        ConverterGenerator.CreateFromConstructor<object, object>(c))
                     .SetGenericArguments(entityType, parameterType)
                     .Invoke(NoCaller, constructor);
 
@@ -191,11 +194,13 @@ public static class Linker
                 continue;
 
             var setter = MethodResolver
-                .Create<Func<PropertyInfo, Func<object, object, object>>>(p => SetterGenerator.CreateFromProperty<object, object>(p))
+                .Create<Func<PropertyInfo, Func<object, object, object>>>(p =>
+                    SetterGenerator.CreateFromProperty<object, object>(p))
                 .SetGenericArguments(entityType, property.PropertyType)
                 .Invoke(NoCaller, property);
 
-            if (!TryLinkDecoderAsObject(decoder, objectDescriptor, bindings, property.PropertyType, property.Name, setter, parents))
+            if (!TryLinkDecoderAsObject(decoder, objectDescriptor, bindings, property.PropertyType, property.Name,
+                    setter, parents))
                 return false;
         }
 
@@ -206,11 +211,13 @@ public static class Linker
                 continue;
 
             var setter = MethodResolver
-                .Create<Func<FieldInfo, Func<object, object, object>>>(f => SetterGenerator.CreateFromField<object, object>(f))
+                .Create<Func<FieldInfo, Func<object, object, object>>>(f =>
+                    SetterGenerator.CreateFromField<object, object>(f))
                 .SetGenericArguments(entityType, field.FieldType)
                 .Invoke(NoCaller, field);
 
-            if (!TryLinkDecoderAsObject(decoder, objectDescriptor, bindings, field.FieldType, field.Name, setter, parents))
+            if (!TryLinkDecoderAsObject(decoder, objectDescriptor, bindings, field.FieldType, field.Name, setter,
+                    parents))
                 return false;
         }
 
@@ -224,7 +231,8 @@ public static class Linker
         if (parents.TryGetValue(type, out var recurse))
         {
             MethodResolver
-                .Create<Func<IDecoderDescriptor<TNative, TEntity>, Func<IEnumerable<object>, TEntity>, IDecoderDescriptor<TNative, object>,
+                .Create<Func<IDecoderDescriptor<TNative, TEntity>, Func<IEnumerable<object>, TEntity>,
+                    IDecoderDescriptor<TNative, object>,
                     IDecoderDescriptor<TNative, object>>>(
                     (d, c, p) => d.IsArray(c, p))
                 .SetGenericArguments(type)
@@ -234,13 +242,15 @@ public static class Linker
         }
 
         var itemDescriptor = MethodResolver
-            .Create<Func<IDecoderDescriptor<TNative, TEntity>, Func<IEnumerable<object>, TEntity>, IDecoderDescriptor<TNative, object>>>(
+            .Create<Func<IDecoderDescriptor<TNative, TEntity>, Func<IEnumerable<object>, TEntity>,
+                IDecoderDescriptor<TNative, object>>>(
                 (d, c) => d.IsArray(c))
             .SetGenericArguments(type)
             .Invoke(decoder.Descriptor, converter);
 
         var itemDecoder = MethodResolver
-            .Create<Func<DecoderSchema<TNative, TEntity>, IDecoderDescriptor<TNative, object>, DecoderSchema<TNative, object>>>(
+            .Create<Func<DecoderSchema<TNative, TEntity>, IDecoderDescriptor<TNative, object>,
+                DecoderSchema<TNative, object>>>(
                 (d, o) => d.TurnInto(o))
             .SetGenericArguments(type)
             .Invoke(decoder, itemDescriptor);
@@ -341,7 +351,8 @@ public static class Linker
         // Bind descriptor as an array of target type is also array
         if (entityType.IsArray)
         {
-            var element = entityType.GetElementType() ?? throw new InvalidOperationException("array has no element type");
+            var element = entityType.GetElementType() ??
+                          throw new InvalidOperationException("array has no element type");
             var getter = MethodResolver
                 .Create<Func<Func<object, object>>>(() => GetterGenerator.CreateIdentity<object>())
                 .SetGenericArguments(typeof(IEnumerable<>).MakeGenericType(element))
@@ -378,11 +389,13 @@ public static class Linker
                 continue;
 
             var getter = MethodResolver
-                .Create<Func<PropertyInfo, Func<object, object>>>(p => GetterGenerator.CreateFromProperty<object, object>(p))
+                .Create<Func<PropertyInfo, Func<object, object>>>(p =>
+                    GetterGenerator.CreateFromProperty<object, object>(p))
                 .SetGenericArguments(entityType, property.PropertyType)
                 .Invoke(NoCaller, property);
 
-            if (!TryLinkEncoderAsObject(encoder, objectDescriptor, bindings, property.PropertyType, property.Name, getter, parents))
+            if (!TryLinkEncoderAsObject(encoder, objectDescriptor, bindings, property.PropertyType, property.Name,
+                    getter, parents))
                 return false;
         }
 
@@ -397,7 +410,8 @@ public static class Linker
                 .SetGenericArguments(entityType, field.FieldType)
                 .Invoke(NoCaller, field);
 
-            if (!TryLinkEncoderAsObject(encoder, objectDescriptor, bindings, field.FieldType, field.Name, getter, parents))
+            if (!TryLinkEncoderAsObject(encoder, objectDescriptor, bindings, field.FieldType, field.Name, getter,
+                    parents))
                 return false;
         }
 
@@ -411,7 +425,8 @@ public static class Linker
         if (parents.TryGetValue(type, out var recurse))
         {
             MethodResolver
-                .Create<Func<IEncoderDescriptor<TNative, TEntity>, Func<TEntity, IEnumerable<object>>, IEncoderDescriptor<TNative, object>,
+                .Create<Func<IEncoderDescriptor<TNative, TEntity>, Func<TEntity, IEnumerable<object>>,
+                    IEncoderDescriptor<TNative, object>,
                     IEncoderDescriptor<TNative, object>>>((d, a, p) => d.IsArray(a, p))
                 .SetGenericArguments(type)
                 .Invoke(encoder.Descriptor, getter, recurse);
@@ -420,13 +435,15 @@ public static class Linker
         }
 
         var itemDescriptor = MethodResolver
-            .Create<Func<IEncoderDescriptor<TNative, TEntity>, Func<TEntity, IEnumerable<object>>, IEncoderDescriptor<TNative, object>>>(
+            .Create<Func<IEncoderDescriptor<TNative, TEntity>, Func<TEntity, IEnumerable<object>>,
+                IEncoderDescriptor<TNative, object>>>(
                 (d, a) => d.IsArray(a))
             .SetGenericArguments(type)
             .Invoke(encoder.Descriptor, getter);
 
         var itemEncoder = MethodResolver
-            .Create<Func<EncoderSchema<TNative, TEntity>, IEncoderDescriptor<TNative, object>, EncoderSchema<TNative, object>>>(
+            .Create<Func<EncoderSchema<TNative, TEntity>, IEncoderDescriptor<TNative, object>,
+                EncoderSchema<TNative, object>>>(
                 (e, o) => e.TurnInto(o))
             .SetGenericArguments(type)
             .Invoke(encoder, itemDescriptor);
@@ -445,7 +462,8 @@ public static class Linker
         if (parents.TryGetValue(type, out var recurse))
         {
             MethodResolver
-                .Create<Func<IEncoderObjectDescriptor<TNative, TEntity>, string, Func<TEntity, object>, IEncoderDescriptor<TNative, object>,
+                .Create<Func<IEncoderObjectDescriptor<TNative, TEntity>, string, Func<TEntity, object>,
+                    IEncoderDescriptor<TNative, object>,
                     IEncoderDescriptor<TNative, object>>>((d, n, a, p) => d.HasField(n, a, p))
                 .SetGenericArguments(type)
                 .Invoke(objectDescriptor, name, getter, recurse);
@@ -454,13 +472,15 @@ public static class Linker
         }
 
         var fieldDescriptor = MethodResolver
-            .Create<Func<IEncoderObjectDescriptor<TNative, TEntity>, string, Func<TEntity, object>, IEncoderDescriptor<TNative, object>>>(
+            .Create<Func<IEncoderObjectDescriptor<TNative, TEntity>, string, Func<TEntity, object>,
+                IEncoderDescriptor<TNative, object>>>(
                 (d, n, a) => d.HasField(n, a))
             .SetGenericArguments(type)
             .Invoke(objectDescriptor, name, getter);
 
         var fieldEncoder = MethodResolver
-            .Create<Func<EncoderSchema<TNative, TEntity>, IEncoderDescriptor<TNative, object>, EncoderSchema<TNative, object>>>(
+            .Create<Func<EncoderSchema<TNative, TEntity>, IEncoderDescriptor<TNative, object>,
+                EncoderSchema<TNative, object>>>(
                 (e, o) => e.TurnInto(o))
             .SetGenericArguments(type)
             .Invoke(encoder, fieldDescriptor);
@@ -492,7 +512,8 @@ public static class Linker
             .Invoke(NoCaller, encoder);
     }
 
-    private static bool TryLinkEncoderAsValueNullable<TNative, TEntity>(EncoderSchema<TNative, TEntity?> encoder) where TEntity : struct
+    private static bool TryLinkEncoderAsValueNullable<TNative, TEntity>(EncoderSchema<TNative, TEntity?> encoder)
+        where TEntity : struct
     {
         if (!TryGetEncoderConverter<TNative, TEntity>(encoder.Adapter, encoder.Converters, out var converter))
             return false;

@@ -1,4 +1,3 @@
-
 namespace Verse.EncoderDescriptors.Tree;
 
 internal class TreeEncoderStream<TState, TNative, TEntity> : IEncoderStream<TEntity>

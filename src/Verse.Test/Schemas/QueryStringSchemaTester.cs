@@ -51,7 +51,8 @@ public class QueryStringSchemaTester
     [TestCase("f0", "?f0=v0+v1", "v0 v1")]
     [TestCase("f0", "?f0=v0%3Dv1", "v0=v1")]
     [TestCase("f0", "?f0=v0%3dv1", "v0=v1")]
-    [TestCase("f0", "?f0=http%3a%2f%2fwww.pokewiki.de%2fSchillern+de_Pok%c3%a9mon", "http://www.pokewiki.de/Schillern de_Pokémon")]
+    [TestCase("f0", "?f0=http%3a%2f%2fwww.pokewiki.de%2fSchillern+de_Pok%c3%a9mon",
+        "http://www.pokewiki.de/Schillern de_Pokémon")]
     [TestCase("percent", "?percent=%F0%9F%91%8D", "👍")]
     public void DecodeSpecialCharacter<T>(string name, string query, T expected)
     {

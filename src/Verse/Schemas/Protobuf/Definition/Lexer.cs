@@ -109,7 +109,8 @@ internal class Lexer
 
                 Read();
             }
-            while ((_pending >= '0' && _pending <= '9') || (_pending >= 'A' && _pending <= 'Z') || (_pending >= 'a' && _pending <= 'z') || _pending == '_');
+            while ((_pending >= '0' && _pending <= '9') || (_pending >= 'A' && _pending <= 'Z') ||
+                   (_pending >= 'a' && _pending <= 'z') || _pending == '_');
 
             _current = new Lexem(LexemType.Symbol, builder.ToString());
 
@@ -151,7 +152,8 @@ internal class Lexer
                             return;
                         }
 
-                        builder.Append((char)int.Parse(string.Empty, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture));
+                        builder.Append((char)int.Parse(string.Empty, NumberStyles.AllowHexSpecifier,
+                            CultureInfo.InvariantCulture));
                     }
                     else if (_pending == '0')
                     {
@@ -163,7 +165,8 @@ internal class Lexer
 
                         if (oct1 < '0' || oct1 > '9' || oct2 < '0' || oct2 > '9' || oct3 < '0' || oct3 > '9')
                         {
-                            _current = new Lexem(LexemType.Unknown, new string(new[] { (char)oct1, (char)oct2, (char)oct3 }));
+                            _current = new Lexem(LexemType.Unknown,
+                                new string(new[] { (char)oct1, (char)oct2, (char)oct3 }));
 
                             return;
                         }

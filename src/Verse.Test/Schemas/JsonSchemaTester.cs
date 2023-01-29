@@ -281,7 +281,8 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
         var root = schema.DecoderDescriptor.IsObject(() => new RecursiveEntity());
 
         root
-            .HasField("f", SetterHelper.Mutation((RecursiveEntity r, RecursiveEntity v) => r.Field = v), schema.DecoderDescriptor);
+            .HasField("f", SetterHelper.Mutation((RecursiveEntity r, RecursiveEntity v) => r.Field = v),
+                schema.DecoderDescriptor);
 
         root
             .HasField("v", SetterHelper.Mutation((RecursiveEntity r, int v) => r.Value = v))
@@ -423,7 +424,8 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
 
         var tuple = descriptor
             .IsObject(() => Tuple.Create(0, 0, fromConstructor))
-            .HasField<Tuple<int, int>>("tuple", (target, field) => Tuple.Create(field.Item1, field.Item2, target.Item3));
+            .HasField<Tuple<int, int>>("tuple",
+                (target, field) => Tuple.Create(field.Item1, field.Item2, target.Item3));
 
         var tupleObject = tuple
             .IsObject(() => Tuple.Create(0, 0));
@@ -647,12 +649,13 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
 
         var encoderConverters = new Dictionary<Type, object>
         {
-            {typeof(Guid), new Func<Guid, JsonValue>(g => JsonValue.FromString(g.ToString()))}
+            { typeof(Guid), new Func<Guid, JsonValue>(g => JsonValue.FromString(g.ToString())) }
         };
 
         var encoder = Linker.CreateEncoder(schema, encoderConverters, BindingFlags.Public | BindingFlags.Instance);
 
-        SchemaHelper<JsonValue>.AssertRoundTripWithCustom(decoder, encoder, new Container<Guid> { Value = Guid.NewGuid() });
+        SchemaHelper<JsonValue>.AssertRoundTripWithCustom(decoder, encoder,
+            new Container<Guid> { Value = Guid.NewGuid() });
     }
 
     protected override ISchema<JsonValue, TEntity> CreateSchema<TEntity>()

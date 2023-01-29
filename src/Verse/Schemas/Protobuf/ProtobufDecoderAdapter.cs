@@ -43,7 +43,8 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
             ProtobufType.Float32 => (decimal)source.Float32,
             ProtobufType.Float64 => (decimal)source.Float64,
             ProtobufType.Signed => source.Signed,
-            ProtobufType.String => decimal.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+            ProtobufType.String => decimal.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
+                out var target)
                 ? target
                 : default,
             ProtobufType.Unsigned => source.Unsigned,
@@ -60,7 +61,8 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
             ProtobufType.Float32 => source.Float32,
             ProtobufType.Float64 => (float)source.Float64,
             ProtobufType.Signed => source.Signed,
-            ProtobufType.String => float.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+            ProtobufType.String => float.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
+                out var target)
                 ? target
                 : default,
             ProtobufType.Unsigned => source.Unsigned,
@@ -77,7 +79,8 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
             ProtobufType.Float32 => source.Float32,
             ProtobufType.Float64 => source.Float64,
             ProtobufType.Signed => source.Signed,
-            ProtobufType.String => double.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+            ProtobufType.String => double.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
+                out var target)
                 ? target
                 : default,
             ProtobufType.Unsigned => source.Unsigned,
@@ -94,7 +97,8 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
             ProtobufType.Float32 => (sbyte)source.Float32,
             ProtobufType.Float64 => (sbyte)source.Float64,
             ProtobufType.Signed => (sbyte)source.Signed,
-            ProtobufType.String => sbyte.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+            ProtobufType.String => sbyte.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
+                out var target)
                 ? target
                 : default,
             ProtobufType.Unsigned => (sbyte)source.Unsigned,
@@ -111,7 +115,8 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
             ProtobufType.Float32 => (byte)source.Float32,
             ProtobufType.Float64 => (byte)source.Float64,
             ProtobufType.Signed => (byte)source.Signed,
-            ProtobufType.String => byte.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+            ProtobufType.String => byte.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
+                out var target)
                 ? target
                 : default,
             ProtobufType.Unsigned => (byte)source.Unsigned,
@@ -128,7 +133,8 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
             ProtobufType.Float32 => (short)source.Float32,
             ProtobufType.Float64 => (short)source.Float64,
             ProtobufType.Signed => (short)source.Signed,
-            ProtobufType.String => short.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+            ProtobufType.String => short.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
+                out var target)
                 ? target
                 : default,
             ProtobufType.Unsigned => (short)source.Unsigned,
@@ -145,7 +151,8 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
             ProtobufType.Float32 => (ushort)source.Float32,
             ProtobufType.Float64 => (ushort)source.Float64,
             ProtobufType.Signed => (ushort)source.Signed,
-            ProtobufType.String => ushort.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+            ProtobufType.String => ushort.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
+                out var target)
                 ? target
                 : default,
             ProtobufType.Unsigned => (ushort)source.Unsigned,
@@ -162,7 +169,8 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
             ProtobufType.Float32 => (int)source.Float32,
             ProtobufType.Float64 => (int)source.Float64,
             ProtobufType.Signed => (int)source.Signed,
-            ProtobufType.String => int.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+            ProtobufType.String => int.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
+                out var target)
                 ? target
                 : default,
             ProtobufType.Unsigned => (int)source.Unsigned,
@@ -179,7 +187,8 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
             ProtobufType.Float32 => (uint)source.Float32,
             ProtobufType.Float64 => (uint)source.Float64,
             ProtobufType.Signed => (uint)source.Signed,
-            ProtobufType.String => uint.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+            ProtobufType.String => uint.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
+                out var target)
                 ? target
                 : default,
             ProtobufType.Unsigned => (uint)source.Unsigned,
@@ -196,7 +205,8 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
             ProtobufType.Float32 => (long)source.Float32,
             ProtobufType.Float64 => (long)source.Float64,
             ProtobufType.Signed => source.Signed,
-            ProtobufType.String => long.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+            ProtobufType.String => long.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
+                out var target)
                 ? target
                 : default,
             ProtobufType.Unsigned => (long)source.Unsigned,
@@ -213,7 +223,8 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
             ProtobufType.Float32 => (ulong)source.Float32,
             ProtobufType.Float64 => (ulong)source.Float64,
             ProtobufType.Signed => (ulong)source.Signed,
-            ProtobufType.String => ulong.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
+            ProtobufType.String => ulong.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
+                out var target)
                 ? target
                 : default,
             ProtobufType.Unsigned => source.Unsigned,

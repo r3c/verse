@@ -13,17 +13,20 @@ internal class QueryStringDecoderAdapter : IDecoderAdapter<string>
         ? source[0]
         : default;
 
-    public Func<string, decimal> Decimal => source => decimal.TryParse(source, NumberStyles.Number, CultureInfo.InvariantCulture, out var target)
-        ? target
-        : default;
+    public Func<string, decimal> Decimal => source =>
+        decimal.TryParse(source, NumberStyles.Number, CultureInfo.InvariantCulture, out var target)
+            ? target
+            : default;
 
-    public Func<string, float> Float32 => source => float.TryParse(source, NumberStyles.Number, CultureInfo.InvariantCulture, out var target)
-        ? target
-        : default;
+    public Func<string, float> Float32 => source =>
+        float.TryParse(source, NumberStyles.Number, CultureInfo.InvariantCulture, out var target)
+            ? target
+            : default;
 
-    public Func<string, double> Float64 => source => double.TryParse(source, NumberStyles.Number, CultureInfo.InvariantCulture, out var target)
-        ? target
-        : default;
+    public Func<string, double> Float64 => source =>
+        double.TryParse(source, NumberStyles.Number, CultureInfo.InvariantCulture, out var target)
+            ? target
+            : default;
 
     public Func<string, sbyte> Integer8S => source => sbyte.TryParse(source, out var target)
         ? target

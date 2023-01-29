@@ -1,5 +1,4 @@
-﻿
-namespace Verse.Schemas.Protobuf;
+﻿namespace Verse.Schemas.Protobuf;
 
 public struct ProtobufConfiguration
 {

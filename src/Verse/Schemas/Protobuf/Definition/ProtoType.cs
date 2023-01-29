@@ -1,5 +1,4 @@
-﻿
-namespace Verse.Schemas.Protobuf.Definition;
+﻿namespace Verse.Schemas.Protobuf.Definition;
 
 internal enum ProtoType
 {

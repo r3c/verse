@@ -73,7 +73,8 @@ public class LinkerTester
 
     [Test]
     [TestCase(BindingFlags.Instance | BindingFlags.Public, "{\"IsPublic\":1}", "0:0:1")]
-    [TestCase(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, "{\"IsPublic\":1,\"IsProtected\":2,\"_isPrivate\":3}", "3:2:1")]
+    [TestCase(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+        "{\"IsPublic\":1,\"IsProtected\":2,\"_isPrivate\":3}", "3:2:1")]
     public void LinkDecoderVisibility(BindingFlags bindings, string json, string expected)
     {
         var encoded = Encoding.UTF8.GetBytes(json);
@@ -152,7 +153,9 @@ public class LinkerTester
     public void LinkEncoderRecursive(bool omitNull, string expected)
     {
         var decoded = new Recursive { R = new Recursive { R = new Recursive { V = 42 }, V = 17 }, V = 3 };
-        var encoded = Encode(Linker.CreateEncoder(Schema.CreateJson<Recursive>(new JsonConfiguration { OmitNull = omitNull })), decoded);
+        var encoded =
+            Encode(Linker.CreateEncoder(Schema.CreateJson<Recursive>(new JsonConfiguration { OmitNull = omitNull })),
+                decoded);
 
         Assert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
     }

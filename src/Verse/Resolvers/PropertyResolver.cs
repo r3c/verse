@@ -40,13 +40,15 @@ internal readonly struct PropertyResolver
 
     public PropertyResolver SetCallerGenericArguments(params Type[] arguments)
     {
-        var callerType = Property.DeclaringType ?? throw new InvalidOperationException("property has no declaring type");
+        var callerType = Property.DeclaringType ??
+                         throw new InvalidOperationException("property has no declaring type");
 
         if (!callerType.IsGenericType)
             throw new InvalidOperationException("property caller type is not generic");
 
         if (callerType.GetGenericArguments().Length != arguments.Length)
-            throw new InvalidOperationException($"property caller type doesn't have {arguments.Length} generic argument(s)");
+            throw new InvalidOperationException(
+                $"property caller type doesn't have {arguments.Length} generic argument(s)");
 
         var metadataToken = Property.MetadataToken;
         var property = callerType.GetGenericTypeDefinition().MakeGenericType(arguments)

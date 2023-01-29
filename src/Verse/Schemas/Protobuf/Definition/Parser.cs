@@ -122,7 +122,8 @@ internal static class Parser
                 ParseValue(lexer, LexemType.Equal, "equal sign");
 
                 int value;
-                if (!int.TryParse(ParseValue(lexer, LexemType.Number, "enum value"), NumberStyles.Integer, CultureInfo.InvariantCulture, out value))
+                if (!int.TryParse(ParseValue(lexer, LexemType.Number, "enum value"), NumberStyles.Integer,
+                        CultureInfo.InvariantCulture, out value))
                     throw new ParserException(lexer.Position, "invalid enum value");
 
                 if (lexer.Current.Type == LexemType.BracketBegin)
@@ -153,7 +154,8 @@ internal static class Parser
 
         ParseValue(lexer, LexemType.Equal, "equal sign");
 
-        if (!int.TryParse(ParseValue(lexer, LexemType.Number, "field number"), NumberStyles.Integer, CultureInfo.InvariantCulture, out var number))
+        if (!int.TryParse(ParseValue(lexer, LexemType.Number, "field number"), NumberStyles.Integer,
+                CultureInfo.InvariantCulture, out var number))
             throw new ParserException(lexer.Position, "invalid field number");
 
         if (lexer.Current.Type == LexemType.BracketBegin)
@@ -202,7 +204,8 @@ internal static class Parser
 
         ParseValue(lexer, LexemType.GreaterThan, "greater than sign");
 
-        return Tuple.Create(entity, ParseField(lexer, new ProtoReference(parentNames.Concat(new[] { entity.Name })), ProtoOccurrence.Required));
+        return Tuple.Create(entity,
+            ParseField(lexer, new ProtoReference(parentNames.Concat(new[] { entity.Name })), ProtoOccurrence.Required));
     }
 
     private static ProtoEntity ParseMessage(Lexer lexer, IEnumerable<string> parentNames)
