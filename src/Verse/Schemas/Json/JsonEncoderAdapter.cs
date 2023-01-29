@@ -8,7 +8,7 @@ internal class JsonEncoderAdapter : IEncoderAdapter<JsonValue>
 
     public Func<char, JsonValue> Character => v => JsonValue.FromString(new string(v, 1));
 
-    public Func<decimal, JsonValue> Decimal => v => JsonValue.FromNumber((double) v);
+    public Func<decimal, JsonValue> Decimal => v => JsonValue.FromNumber((double)v);
 
     public Func<float, JsonValue> Float32 => v => JsonValue.FromNumber(v);
 

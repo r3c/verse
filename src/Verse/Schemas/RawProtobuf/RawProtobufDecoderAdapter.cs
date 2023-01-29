@@ -26,9 +26,9 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
     {
         return source.Storage switch
         {
-            RawProtobufWireType.Fixed32 => (char) source.Number,
-            RawProtobufWireType.Fixed64 => (char) source.Number,
-            RawProtobufWireType.VarInt => (char) source.Number,
+            RawProtobufWireType.Fixed32 => (char)source.Number,
+            RawProtobufWireType.Fixed64 => (char)source.Number,
+            RawProtobufWireType.VarInt => (char)source.Number,
             RawProtobufWireType.String => source.String.Length > 0 ? source.String[0] : default,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Storage), source.Storage, "invalid storage")
         };
@@ -80,9 +80,9 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
     {
         return source.Storage switch
         {
-            RawProtobufWireType.Fixed32 => (sbyte) source.Number,
-            RawProtobufWireType.Fixed64 => (sbyte) source.Number,
-            RawProtobufWireType.VarInt => (sbyte) source.Number,
+            RawProtobufWireType.Fixed32 => (sbyte)source.Number,
+            RawProtobufWireType.Fixed64 => (sbyte)source.Number,
+            RawProtobufWireType.VarInt => (sbyte)source.Number,
             RawProtobufWireType.String => sbyte.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
                 ? target
                 : default,
@@ -94,9 +94,9 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
     {
         return source.Storage switch
         {
-            RawProtobufWireType.Fixed32 => (byte) source.Number,
-            RawProtobufWireType.Fixed64 => (byte) source.Number,
-            RawProtobufWireType.VarInt => (byte) source.Number,
+            RawProtobufWireType.Fixed32 => (byte)source.Number,
+            RawProtobufWireType.Fixed64 => (byte)source.Number,
+            RawProtobufWireType.VarInt => (byte)source.Number,
             RawProtobufWireType.String => byte.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
                 ? target
                 : default,
@@ -108,9 +108,9 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
     {
         return source.Storage switch
         {
-            RawProtobufWireType.Fixed32 => (short) source.Number,
-            RawProtobufWireType.Fixed64 => (short) source.Number,
-            RawProtobufWireType.VarInt => (short) source.Number,
+            RawProtobufWireType.Fixed32 => (short)source.Number,
+            RawProtobufWireType.Fixed64 => (short)source.Number,
+            RawProtobufWireType.VarInt => (short)source.Number,
             RawProtobufWireType.String => short.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
                 ? target
                 : default,
@@ -122,9 +122,9 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
     {
         return source.Storage switch
         {
-            RawProtobufWireType.Fixed32 => (ushort) source.Number,
-            RawProtobufWireType.Fixed64 => (ushort) source.Number,
-            RawProtobufWireType.VarInt => (ushort) source.Number,
+            RawProtobufWireType.Fixed32 => (ushort)source.Number,
+            RawProtobufWireType.Fixed64 => (ushort)source.Number,
+            RawProtobufWireType.VarInt => (ushort)source.Number,
             RawProtobufWireType.String => ushort.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
                 ? target
                 : default,
@@ -136,9 +136,9 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
     {
         return source.Storage switch
         {
-            RawProtobufWireType.Fixed32 => (int) source.Number,
-            RawProtobufWireType.Fixed64 => (int) source.Number,
-            RawProtobufWireType.VarInt => (int) source.Number,
+            RawProtobufWireType.Fixed32 => (int)source.Number,
+            RawProtobufWireType.Fixed64 => (int)source.Number,
+            RawProtobufWireType.VarInt => (int)source.Number,
             RawProtobufWireType.String => int.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
                 ? target
                 : default,
@@ -150,9 +150,9 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
     {
         return source.Storage switch
         {
-            RawProtobufWireType.Fixed32 => (uint) source.Number,
-            RawProtobufWireType.Fixed64 => (uint) source.Number,
-            RawProtobufWireType.VarInt => (uint) source.Number,
+            RawProtobufWireType.Fixed32 => (uint)source.Number,
+            RawProtobufWireType.Fixed64 => (uint)source.Number,
+            RawProtobufWireType.VarInt => (uint)source.Number,
             RawProtobufWireType.String => uint.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
                 ? target
                 : default,
@@ -180,7 +180,7 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
         {
             RawProtobufWireType.Fixed32 => *(uint*) source.Number,
             RawProtobufWireType.Fixed64 => *(ulong*) source.Number,
-            RawProtobufWireType.VarInt => (ulong) source.Number,
+            RawProtobufWireType.VarInt => (ulong)source.Number,
             RawProtobufWireType.String => ulong.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture, out var target)
                 ? target
                 : default,

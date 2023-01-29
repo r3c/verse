@@ -112,7 +112,7 @@ internal class Reader : IReader<ReaderState, ProtobufValue, int>
                         break;
 
                     case ProtoType.SFixed32:
-                        state.Value = new ProtobufValue((int) u32);
+                        state.Value = new ProtobufValue((int)u32);
 
                         break;
 
@@ -146,7 +146,7 @@ internal class Reader : IReader<ReaderState, ProtobufValue, int>
                         break;
 
                     case ProtoType.SFixed64:
-                        state.Value = new ProtobufValue((long) u64);
+                        state.Value = new ProtobufValue((long)u64);
 
                         break;
 
@@ -199,7 +199,7 @@ internal class Reader : IReader<ReaderState, ProtobufValue, int>
 */
                         var buffer = new byte[length];
 
-                        if (state.Stream.Read(buffer, 0, (int) length) != (int) length)
+                        if (state.Stream.Read(buffer, 0, (int)length) != (int)length)
                             return ReaderStatus.Failed;
 
                         state.Value = new ProtobufValue(Encoding.UTF8.GetString(buffer));
@@ -228,12 +228,12 @@ internal class Reader : IReader<ReaderState, ProtobufValue, int>
                         break;
 
                     case ProtoType.Int32:
-                        state.Value = new ProtobufValue((int) varint);
+                        state.Value = new ProtobufValue((int)varint);
 
                         break;
 
                     case ProtoType.Int64:
-                        state.Value = new ProtobufValue((long) varint);
+                        state.Value = new ProtobufValue((long)varint);
 
                         break;
 

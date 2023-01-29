@@ -251,7 +251,7 @@ public static class Linker
             .SetGenericArguments(type)
             .Invoke(decoder, itemDescriptor);
 
-        return (bool) MethodResolver
+        return (bool)MethodResolver
             .Create<Func<DecoderSchema<TNative, object>, BindingFlags, Dictionary<Type, object>, bool>>(
                 (d, b, p) => TryLinkDecoder(d, b, p))
             .SetGenericArguments(typeof(TNative), type)
@@ -289,7 +289,7 @@ public static class Linker
             .SetGenericArguments(type)
             .Invoke(decoder, fieldDescriptor);
 
-        return (bool) MethodResolver
+        return (bool)MethodResolver
             .Create<Func<DecoderSchema<TNative, object>, BindingFlags, Dictionary<Type, object>, bool>>(
                 (d, f, p) => TryLinkDecoder(d, f, p))
             .SetGenericArguments(typeof(TNative), type)
@@ -311,7 +311,7 @@ public static class Linker
         if (!TypeResolver.Create(typeof(TEntity)).HasSameDefinitionThan<int?>(out var arguments))
             return false;
 
-        return (bool) MethodResolver
+        return (bool)MethodResolver
             .Create<Func<DecoderSchema<object, int?>, bool>>((d) =>
                 TryLinkDecoderAsValueNullable(d))
             .SetGenericArguments(typeof(TNative), arguments[0])
@@ -437,7 +437,7 @@ public static class Linker
             .SetGenericArguments(type)
             .Invoke(encoder, itemDescriptor);
 
-        return (bool) MethodResolver
+        return (bool)MethodResolver
             .Create<Func<EncoderSchema<TNative, object>, BindingFlags, Dictionary<Type, object>, bool>>((e, b, p) => TryLinkEncoder(e, b, p))
             .SetGenericArguments(typeof(TNative), type)
             .Invoke(NoCaller, itemEncoder, bindings, parents);
@@ -469,7 +469,7 @@ public static class Linker
             .SetGenericArguments(type)
             .Invoke(encoder, fieldDescriptor);
 
-        return (bool) MethodResolver
+        return (bool)MethodResolver
             .Create<Func<EncoderSchema<TNative, object>, BindingFlags, Dictionary<Type, object>, bool>>((e, b, p) => TryLinkEncoder(e, b, p))
             .SetGenericArguments(typeof(TNative), type)
             .Invoke(NoCaller, fieldEncoder, bindings, parents);
@@ -489,7 +489,7 @@ public static class Linker
         if (!TypeResolver.Create(typeof(TEntity)).HasSameDefinitionThan<int?>(out var arguments))
             return false;
 
-        return (bool) MethodResolver
+        return (bool)MethodResolver
             .Create<Func<EncoderSchema<object, int?>, bool>>(d => TryLinkEncoderAsValueNullable(d))
             .SetGenericArguments(typeof(TNative), arguments[0])
             .Invoke(NoCaller, encoder);

@@ -12,7 +12,7 @@ internal class RawProtobufEncoderAdapter : IEncoderAdapter<RawProtobufValue>
 
     public unsafe Func<decimal, RawProtobufValue> Decimal => v =>
     {
-        var number = (double) v;
+        var number = (double)v;
 
         return new RawProtobufValue(*(long*) &number, RawProtobufWireType.Fixed64);
     };

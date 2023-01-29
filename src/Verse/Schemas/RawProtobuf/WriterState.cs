@@ -76,12 +76,12 @@ internal class WriterState
         var length = position - marker.Value - 1;
 
         // Number of bytes required to encode "length" as a varint
-        var bytes = (int) Math.Max(Math.Ceiling(Math.Log(length + 1, 128)), 1);
+        var bytes = (int)Math.Max(Math.Ceiling(Math.Log(length + 1, 128)), 1);
 
         // If length requires more than 1 byte to be written we need to shift data to make room for it
         if (bytes > 1)
         {
-            _buffer.Capacity = Math.Max((int) position + bytes - 1, _buffer.Capacity);
+            _buffer.Capacity = Math.Max((int)position + bytes - 1, _buffer.Capacity);
             _buffer.SetLength(position + bytes - 1);
 
             fixed (byte* cursor = &_buffer.GetBuffer()[marker.Value + 1])
@@ -155,7 +155,7 @@ internal class WriterState
     private void WriteHeader(int fieldIndex, RawProtobufWireType fieldType)
     {
         // Write field type and first 4 bits of field index
-        var wireType = (int) fieldType & 7;
+        var wireType = (int)fieldType & 7;
 
         _buffer.WriteByte((byte) (wireType | ((fieldIndex & 15) << 3) | (fieldIndex >= 16 ? 128 : 0)));
 

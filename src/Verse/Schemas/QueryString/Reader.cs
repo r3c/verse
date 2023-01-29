@@ -40,7 +40,7 @@ internal class Reader : IReader<ReaderState, string, char>
             while (QueryStringCharacter.IsUnreserved(state.Current))
             {
                 empty = false;
-                node = node.Follow((char) state.Current);
+                node = node.Follow((char)state.Current);
 
                 state.Pull();
             }

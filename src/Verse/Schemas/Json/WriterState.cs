@@ -7,7 +7,7 @@ namespace Verse.Schemas.Json;
 
 internal class WriterState : IDisposable
 {
-    private const char AsciiUpperBound = (char) 128;
+    private const char AsciiUpperBound = (char)128;
 
     private bool _isEmpty;
 
@@ -39,7 +39,7 @@ internal class WriterState : IDisposable
             Ascii[i] = "\\u00" + Hexa[(i >> 4) & 0xF] + Hexa[(i >> 0) & 0xF];
 
         for (var i = 32; i < AsciiUpperBound; ++i)
-            Ascii[i] = new string((char) i, 1);
+            Ascii[i] = new string((char)i, 1);
 
         Ascii['\b'] = "\\b";
         Ascii['\f'] = "\\f";

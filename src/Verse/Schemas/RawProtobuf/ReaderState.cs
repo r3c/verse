@@ -60,7 +60,7 @@ internal class ReaderState
         {
             backup = _boundary;
 
-            _boundary = _position + (int) ReadVarInt();
+            _boundary = _position + (int)ReadVarInt();
         }
         else
             backup = null;
@@ -153,7 +153,7 @@ internal class ReaderState
                 return true;
 
             case RawProtobufWireType.String:
-                var length = (int) ReadVarInt();
+                var length = (int)ReadVarInt();
 
                 if (length > StringMaxLength)
                 {
@@ -227,7 +227,7 @@ internal class ReaderState
                 return true;
 
             case RawProtobufWireType.String:
-                var length = (int) ReadVarInt();
+                var length = (int)ReadVarInt();
 
                 if (length > StringMaxLength)
                 {

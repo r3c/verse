@@ -6,7 +6,7 @@ internal class ProtobufEncoderAdapter : IEncoderAdapter<ProtobufValue>
 {
     public Func<bool, ProtobufValue> Boolean => v => new ProtobufValue(v);
     public Func<char, ProtobufValue> Character => v => new ProtobufValue(new string(v, 1));
-    public Func<decimal, ProtobufValue> Decimal => v => new ProtobufValue((double) v);
+    public Func<decimal, ProtobufValue> Decimal => v => new ProtobufValue((double)v);
     public Func<float, ProtobufValue> Float32 => v => new ProtobufValue(v);
     public Func<double, ProtobufValue> Float64 => v => new ProtobufValue(v);
     public Func<sbyte, ProtobufValue> Integer8S => v => new ProtobufValue(v);
