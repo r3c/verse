@@ -10,57 +10,11 @@ namespace Verse.Test.Schemas;
 public abstract class SchemaTester<TNative>
 {
     [Test]
-    public void RoundTripFieldFlatten()
-    {
-        var schema = CreateSchema<int>();
-
-        schema.DecoderDescriptor
-            .IsObject(() => 0)
-            .HasField("virtual")
-            .IsObject(() => 0)
-            .HasField<int>("value", (_, source) => source)
-            .IsValue(schema.NativeTo.Integer32S);
-
-        schema.EncoderDescriptor
-            .IsObject()
-            .HasField("virtual")
-            .IsObject()
-            .HasField("value", source => source)
-            .IsValue(schema.NativeFrom.Integer32S);
-
-        SchemaHelper<TNative>.AssertRoundTrip(schema.CreateDecoder(), schema.CreateEncoder(), 17);
-    }
-
-    [Test]
-    [Ignore("Enum types are not handled by linker yet.")]
-    public void RoundTripMixedTypes()
-    {
-        var schema = CreateSchema<MixedContainer>();
-        var decoder = Linker.CreateDecoder(schema);
-        var encoder = Linker.CreateEncoder(schema);
-
-        SchemaHelper<TNative>.AssertRoundTrip(decoder, encoder, new MixedContainer
-        {
-            Floats = new[] { 1.1f, 2.2f, 3.3f },
-            Integer = 17,
-            Option = SomeEnum.B,
-            Pairs = new Dictionary<string, string>
-            {
-                {"a", "aaa"},
-                {"b", "bbb"}
-            },
-            Text = "Hello, World!"
-        });
-    }
-
-    [Test]
-    public void RoundTripNestedArray()
+    public void RoundTripArrayNested()
     {
         var schema = CreateSchema<NestedArray>();
-        var decoder = Linker.CreateDecoder(schema);
-        var encoder = Linker.CreateEncoder(schema);
 
-        SchemaHelper<TNative>.AssertRoundTrip(decoder, encoder, new NestedArray
+        SchemaHelper<TNative>.AssertRoundTripWithLinker(schema, new NestedArray
         {
             Children = new[]
             {
@@ -97,13 +51,73 @@ public abstract class SchemaTester<TNative>
     }
 
     [Test]
-    public void RoundTripNestedValue()
+    public void RoundTripObjectFlattenField()
+    {
+        var schema = CreateSchema<int>();
+
+        schema.DecoderDescriptor
+            .IsObject(() => 0)
+            .HasField("virtual")
+            .IsObject(() => 0)
+            .HasField<int>("value", (_, source) => source)
+            .IsValue(schema.NativeTo.Integer32S);
+
+        schema.EncoderDescriptor
+            .IsObject()
+            .HasField("virtual")
+            .IsObject()
+            .HasField("value", source => source)
+            .IsValue(schema.NativeFrom.Integer32S);
+
+        SchemaHelper<TNative>.AssertRoundTripWithCustom(schema.CreateDecoder(), schema.CreateEncoder(), 17);
+    }
+
+    [Test]
+    [Ignore("Enum types are not handled by linker yet.")]
+    public void RoundTripObjectMixedFieldTypes()
+    {
+        var schema = CreateSchema<MixedContainer>();
+
+        SchemaHelper<TNative>.AssertRoundTripWithLinker(schema, new MixedContainer
+        {
+            Floats = new[] { 1.1f, 2.2f, 3.3f },
+            Integer = 17,
+            Option = SomeEnum.B,
+            Pairs = new Dictionary<string, string>
+            {
+                {"a", "aaa"},
+                {"b", "bbb"}
+            },
+            Text = "Hello, World!"
+        });
+    }
+
+    [Test]
+    [TestCase(null)]
+    [TestCase(42d)]
+    public void RoundTripObjectNullableField(double? value)
+    {
+        var schema = CreateSchema<Container<double?>>();
+
+        SchemaHelper<TNative>.AssertRoundTripWithLinker(schema, new Container<double?> { Value = value });
+    }
+
+    [Test]
+    [TestCase("Hello")]
+    [TestCase(25.5)]
+    public void RoundTripValueNative<T>(T instance)
+    {
+        var schema = CreateSchema<T>();
+
+        SchemaHelper<TNative>.AssertRoundTripWithLinker(schema, instance);
+    }
+
+    [Test]
+    public void RoundTripValueNested()
     {
         var schema = CreateSchema<NestedValue>();
-        var decoder = Linker.CreateDecoder(schema);
-        var encoder = Linker.CreateEncoder(schema);
 
-        SchemaHelper<TNative>.AssertRoundTrip(decoder, encoder, new NestedValue
+        SchemaHelper<TNative>.AssertRoundTripWithLinker(schema, new NestedValue
         {
             Child = new NestedValue
             {
@@ -119,37 +133,13 @@ public abstract class SchemaTester<TNative>
     }
 
     [Test]
-    [TestCase("Hello")]
-    [TestCase(25.5)]
-    public void RoundTripValueNative<T>(T instance)
-    {
-        var schema = CreateSchema<T>();
-        var decoder = Linker.CreateDecoder(schema);
-        var encoder = Linker.CreateEncoder(schema);
-
-        SchemaHelper<TNative>.AssertRoundTrip(decoder, encoder, instance);
-    }
-
-    [Test]
-    public void RoundTripValueNullableField()
-    {
-        var schema = CreateSchema<Container<double?>>();
-        var decoder = Linker.CreateDecoder(schema);
-        var encoder = Linker.CreateEncoder(schema);
-
-        SchemaHelper<TNative>.AssertRoundTrip(decoder, encoder, new Container<double?>());
-        SchemaHelper<TNative>.AssertRoundTrip(decoder, encoder, new Container<double?> { Value = 42 });
-    }
-
-    [Test]
-    public void RoundTripValueNullableValue()
+    [TestCase(null)]
+    [TestCase(42d)]
+    public void RoundTripValueNullable(double? value)
     {
         var schema = CreateSchema<double?>();
-        var decoder = Linker.CreateDecoder(schema);
-        var encoder = Linker.CreateEncoder(schema);
 
-        SchemaHelper<TNative>.AssertRoundTrip(decoder, encoder, null);
-        SchemaHelper<TNative>.AssertRoundTrip(decoder, encoder, 42);
+        SchemaHelper<TNative>.AssertRoundTripWithLinker(schema, value);
     }
 
     protected abstract ISchema<TNative, TEntity> CreateSchema<TEntity>();

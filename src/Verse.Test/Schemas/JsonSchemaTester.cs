@@ -652,7 +652,7 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
 
         var encoder = Linker.CreateEncoder(schema, encoderConverters, BindingFlags.Public | BindingFlags.Instance);
 
-        SchemaHelper<JsonValue>.AssertRoundTrip(decoder, encoder, new Container<Guid> { Value = Guid.NewGuid() });
+        SchemaHelper<JsonValue>.AssertRoundTripWithCustom(decoder, encoder, new Container<Guid> { Value = Guid.NewGuid() });
     }
 
     protected override ISchema<JsonValue, TEntity> CreateSchema<TEntity>()

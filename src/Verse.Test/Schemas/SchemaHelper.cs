@@ -8,7 +8,7 @@ namespace Verse.Test.Schemas;
 
 internal static class SchemaHelper<TNative>
 {
-    public static void AssertRoundTrip<TEntity>(IDecoder<TEntity> decoder, IEncoder<TEntity> encoder, TEntity instance)
+    public static void AssertRoundTripWithCustom<TEntity>(IDecoder<TEntity> decoder, IEncoder<TEntity> encoder, TEntity instance)
     {
         TEntity decoded;
         byte[] encoded1;
@@ -42,6 +42,11 @@ internal static class SchemaHelper<TNative>
         }
 
         CollectionAssert.AreEqual(encoded1, encoded2);
+    }
+
+    public static void AssertRoundTripWithLinker<TEntity>(ISchema<TNative, TEntity> schema, TEntity instance)
+    {
+        AssertRoundTripWithCustom(Linker.CreateDecoder(schema), Linker.CreateEncoder(schema), instance);
     }
 
     public static Func<TNative, TEntity> GetDecoderConverter<TEntity>(IDecoderAdapter<TNative> decoderAdapter)
