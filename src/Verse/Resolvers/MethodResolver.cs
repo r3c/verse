@@ -27,9 +27,9 @@ internal readonly struct MethodResolver
     /// <Summary>
     /// Invoke method with given caller instance and arguments.
     /// </Summary>
-    public object? Invoke(object caller, params object[] arguments)
+    public object Invoke(object caller, params object[] arguments)
     {
-        return Method.Invoke(caller, arguments);
+        return Method.Invoke(caller, arguments) ?? new InvalidOperationException("invoked method didn't return any result");
     }
 
     /// <Summary>
