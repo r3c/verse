@@ -47,7 +47,9 @@ internal static class SchemaHelper<TNative>
 
     public static void AssertRoundTripWithLinker<TEntity>(ISchema<TNative, TEntity> schema, TEntity instance)
     {
-        AssertRoundTripWithCustom(Linker.CreateDecoder(schema), Linker.CreateEncoder(schema), instance);
+        var linker = Linker.CreateReflection<TNative>();
+
+        AssertRoundTripWithCustom(linker.CreateDecoder(schema), linker.CreateEncoder(schema), instance);
     }
 
     public static Func<TNative, TEntity> GetDecoderConverter<TEntity>(IDecoderAdapter<TNative> decoderAdapter)

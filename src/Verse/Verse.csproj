@@ -21,14 +21,14 @@
     </PropertyGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' ">
-        <PackageReference Include="System.Collections" Version="4.3.0"/>
-        <PackageReference Include="System.Reflection.Emit" Version="4.7.0"/>
-        <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.7.0"/>
-        <PackageReference Include="System.Reflection.TypeExtensions" Version="4.7.0"/>
+        <PackageReference Include="System.Collections" Version="4.3.0" />
+        <PackageReference Include="System.Reflection.Emit" Version="4.7.0" />
+        <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.7.0" />
+        <PackageReference Include="System.Reflection.TypeExtensions" Version="4.7.0" />
     </ItemGroup>
 
     <ItemGroup>
-        <InternalsVisibleTo Include="$(MSBuildProjectName).Test"/>
+        <InternalsVisibleTo Include="$(MSBuildProjectName).Test" />
     </ItemGroup>
 
 </Project>

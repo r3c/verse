@@ -635,27 +635,18 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
     [Test]
     public void RoundTripCustomType()
     {
+        var linker = Linker.CreateReflection<JsonValue>();
+
+        linker.SetBindingFlags(BindingFlags.Public | BindingFlags.Instance);
+        linker.SetDecoderDescriptor<Guid>(d => d.IsValue(v => Guid.TryParse(v.String, out var g) ? g : Guid.Empty));
+        linker.SetEncoderDescriptor<Guid>(d => d.IsValue(g => JsonValue.FromString(g.ToString())));
+
         var schema = Schema.CreateJson<Container<Guid>>();
+        var decoder = linker.CreateDecoder(schema);
+        var encoder = linker.CreateEncoder(schema);
+        var value = new Container<Guid> { Value = Guid.NewGuid() };
 
-        var decoderConverters = new Dictionary<Type, object>
-        {
-            {
-                typeof(Guid),
-                new Func<JsonValue, Guid>(source => Guid.TryParse(source.String, out var target) ? target : Guid.Empty)
-            }
-        };
-
-        var decoder = Linker.CreateDecoder(schema, decoderConverters, BindingFlags.Public | BindingFlags.Instance);
-
-        var encoderConverters = new Dictionary<Type, object>
-        {
-            { typeof(Guid), new Func<Guid, JsonValue>(g => JsonValue.FromString(g.ToString())) }
-        };
-
-        var encoder = Linker.CreateEncoder(schema, encoderConverters, BindingFlags.Public | BindingFlags.Instance);
-
-        SchemaHelper<JsonValue>.AssertRoundTripWithCustom(decoder, encoder,
-            new Container<Guid> { Value = Guid.NewGuid() });
+        SchemaHelper<JsonValue>.AssertRoundTripWithCustom(decoder, encoder, value);
     }
 
     protected override ISchema<JsonValue, TEntity> CreateSchema<TEntity>()
