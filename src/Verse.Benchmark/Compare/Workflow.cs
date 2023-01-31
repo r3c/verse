@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using KellermanSoftware.CompareNetObjects;
 using Newtonsoft.Json;
+using Verse.Schemas.Json;
 
 namespace Verse.Benchmark.Compare;
 
@@ -13,10 +14,11 @@ internal static class Workflow
         var compareLogic = new CompareLogic();
         var source = JsonConvert.SerializeObject(instance);
 
+        var linker = Linker.CreateReflection<JsonValue>();
         var schema = Schema.CreateJson<T>();
-        var decoder = Linker.CreateDecoder(schema);
+        var decoder = linker.CreateDecoder(schema);
         var decoderMemoryStream = new MemoryStream(Encoding.UTF8.GetBytes(source));
-        var encoder = Linker.CreateEncoder(schema);
+        var encoder = linker.CreateEncoder(schema);
         var encoderMemoryStream = new MemoryStream(1024);
 
         using (var decoderStream = decoder.Open(decoderMemoryStream))
