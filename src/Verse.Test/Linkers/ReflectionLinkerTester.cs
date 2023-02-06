@@ -11,10 +11,10 @@ using Verse.Schemas.Json;
 // ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable MemberCanBePrivate.Global
 
-namespace Verse.Test;
+namespace Verse.Test.Linkers;
 
 [TestFixture]
-public class LinkerTester
+public class ReflectionLinkerTester
 {
     [Test]
     [TestCase("[]", new double[0])]
