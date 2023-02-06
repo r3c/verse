@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Verse.EncoderDescriptors.Tree;
+using Verse.Formats.Json;
 
 namespace Verse.Schemas.Json;
 

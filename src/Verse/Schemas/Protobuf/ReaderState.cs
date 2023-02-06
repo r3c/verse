@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.IO;
+using Verse.Formats.Protobuf;
 
 namespace Verse.Schemas.Protobuf;
 

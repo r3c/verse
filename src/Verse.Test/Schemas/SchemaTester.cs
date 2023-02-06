@@ -14,7 +14,7 @@ public abstract class SchemaTester<TNative>
     {
         var schema = CreateSchema<NestedArray>();
 
-        SchemaHelper<TNative>.AssertRoundTripWithLinker(schema, new NestedArray
+        SchemaHelper<TNative>.AssertRoundTripWithLinker(Format, schema, new NestedArray
         {
             Children = new[]
             {
@@ -60,14 +60,14 @@ public abstract class SchemaTester<TNative>
             .HasField("virtual")
             .IsObject(() => 0)
             .HasField<int>("value", (_, source) => source)
-            .IsValue(schema.NativeTo.Integer32S);
+            .IsValue(Format.To.Integer32S);
 
         schema.EncoderDescriptor
             .IsObject()
             .HasField("virtual")
             .IsObject()
             .HasField("value", source => source)
-            .IsValue(schema.NativeFrom.Integer32S);
+            .IsValue(Format.From.Integer32S);
 
         SchemaHelper<TNative>.AssertRoundTripWithCustom(schema.CreateDecoder(), schema.CreateEncoder(), 17);
     }
@@ -78,7 +78,7 @@ public abstract class SchemaTester<TNative>
     {
         var schema = CreateSchema<MixedContainer>();
 
-        SchemaHelper<TNative>.AssertRoundTripWithLinker(schema, new MixedContainer
+        SchemaHelper<TNative>.AssertRoundTripWithLinker(Format, schema, new MixedContainer
         {
             Floats = new[] { 1.1f, 2.2f, 3.3f },
             Integer = 17,
@@ -99,7 +99,7 @@ public abstract class SchemaTester<TNative>
     {
         var schema = CreateSchema<Container<double?>>();
 
-        SchemaHelper<TNative>.AssertRoundTripWithLinker(schema, new Container<double?> { Value = value });
+        SchemaHelper<TNative>.AssertRoundTripWithLinker(Format, schema, new Container<double?> { Value = value });
     }
 
     [Test]
@@ -109,7 +109,7 @@ public abstract class SchemaTester<TNative>
     {
         var schema = CreateSchema<T>();
 
-        SchemaHelper<TNative>.AssertRoundTripWithLinker(schema, instance);
+        SchemaHelper<TNative>.AssertRoundTripWithLinker(Format, schema, instance);
     }
 
     [Test]
@@ -117,7 +117,7 @@ public abstract class SchemaTester<TNative>
     {
         var schema = CreateSchema<NestedValue>();
 
-        SchemaHelper<TNative>.AssertRoundTripWithLinker(schema, new NestedValue
+        SchemaHelper<TNative>.AssertRoundTripWithLinker(Format, schema, new NestedValue
         {
             Child = new NestedValue
             {
@@ -139,10 +139,12 @@ public abstract class SchemaTester<TNative>
     {
         var schema = CreateSchema<double?>();
 
-        SchemaHelper<TNative>.AssertRoundTripWithLinker(schema, value);
+        SchemaHelper<TNative>.AssertRoundTripWithLinker(Format, schema, value);
     }
 
     protected abstract ISchema<TNative, TEntity> CreateSchema<TEntity>();
+
+    protected abstract IFormat<TNative> Format { get; }
 
     private struct Container<T>
     {

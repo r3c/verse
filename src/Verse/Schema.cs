@@ -1,4 +1,6 @@
 using System.Text;
+using Verse.Formats.Json;
+using Verse.Formats.RawProtobuf;
 using Verse.Schemas;
 using Verse.Schemas.Json;
 using Verse.Schemas.RawProtobuf;

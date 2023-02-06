@@ -5,4 +5,4 @@ using System.Reflection;
 namespace Verse.Linkers.Reflection;
 
 internal record struct EncodeContext<TNative>(IEncodeLinker<TNative> Automatic, BindingFlags BindingFlags,
-    IEncoderAdapter<TNative> Adapter, TNative DefaultValue, IDictionary<Type, object> Parents);
+    IFormat<TNative> Format, IDictionary<Type, object> Parents);

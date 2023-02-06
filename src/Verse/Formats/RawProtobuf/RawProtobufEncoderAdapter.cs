@@ -1,9 +1,11 @@
 ﻿using System;
 
-namespace Verse.Schemas.RawProtobuf;
+namespace Verse.Formats.RawProtobuf;
 
 internal class RawProtobufEncoderAdapter : IEncoderAdapter<RawProtobufValue>
 {
+    public static readonly RawProtobufEncoderAdapter Instance = new();
+
     public Func<bool, RawProtobufValue> Boolean =>
         v => new RawProtobufValue(v ? 1 : 0, RawProtobufWireType.VarInt);
 

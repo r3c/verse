@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using Verse.DecoderDescriptors.Tree;
+using Verse.Formats.Protobuf;
 using Verse.Schemas.Protobuf.Definition;
 
 namespace Verse.Schemas.Protobuf;

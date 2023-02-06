@@ -1,4 +1,4 @@
-namespace Verse.Schemas.Json;
+namespace Verse.Formats.Json;
 
 /// <summary>
 /// Native JSON value.

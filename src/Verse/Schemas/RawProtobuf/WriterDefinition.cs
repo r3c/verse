@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Verse.EncoderDescriptors.Tree;
+using Verse.Formats.RawProtobuf;
 
 namespace Verse.Schemas.RawProtobuf;
 

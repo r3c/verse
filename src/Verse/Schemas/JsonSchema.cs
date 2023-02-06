@@ -1,6 +1,7 @@
 using System.Text;
 using Verse.DecoderDescriptors;
 using Verse.EncoderDescriptors;
+using Verse.Formats.Json;
 using Verse.Schemas.Json;
 
 namespace Verse.Schemas;
@@ -19,22 +20,9 @@ internal class JsonSchema<TEntity> : ISchema<JsonValue, TEntity>
     /// <inheritdoc/>
     public IEncoderDescriptor<JsonValue, TEntity> EncoderDescriptor => _encoderDescriptor;
 
-    /// <inheritdoc/>
-    public JsonValue DefaultValue => JsonValue.Undefined;
-
-    /// <inheritdoc/>
-    public IEncoderAdapter<JsonValue> NativeFrom => _encoderAdapter;
-
-    /// <inheritdoc/>
-    public IDecoderAdapter<JsonValue> NativeTo => _decoderAdapter;
-
     private readonly JsonConfiguration _configuration;
 
-    private readonly JsonDecoderAdapter _decoderAdapter;
-
     private readonly TreeDecoderDescriptor<ReaderState, JsonValue, int, TEntity> _decoderDescriptor;
-
-    private readonly JsonEncoderAdapter _encoderAdapter;
 
     private readonly TreeEncoderDescriptor<WriterState, JsonValue, TEntity> _encoderDescriptor;
 
@@ -48,9 +36,7 @@ internal class JsonSchema<TEntity> : ISchema<JsonValue, TEntity>
         var readerDefinition = new ReaderDefinition<TEntity>();
 
         _configuration = configuration;
-        _decoderAdapter = new JsonDecoderAdapter();
         _decoderDescriptor = new TreeDecoderDescriptor<ReaderState, JsonValue, int, TEntity>(readerDefinition);
-        _encoderAdapter = new JsonEncoderAdapter();
         _encoderDescriptor = new TreeEncoderDescriptor<WriterState, JsonValue, TEntity>(writerDefinition);
     }
 

@@ -45,11 +45,12 @@ internal static class SchemaHelper<TNative>
         CollectionAssert.AreEqual(encoded1, encoded2);
     }
 
-    public static void AssertRoundTripWithLinker<TEntity>(ISchema<TNative, TEntity> schema, TEntity instance)
+    public static void AssertRoundTripWithLinker<TEntity>(IFormat<TNative> format, ISchema<TNative, TEntity> schema,
+        TEntity instance)
     {
         var linker = Linker.CreateReflection<TNative>();
 
-        AssertRoundTripWithCustom(linker.CreateDecoder(schema), linker.CreateEncoder(schema), instance);
+        AssertRoundTripWithCustom(linker.CreateDecoder(format, schema), linker.CreateEncoder(format, schema), instance);
     }
 
     public static Func<TNative, TEntity> GetDecoderConverter<TEntity>(IDecoderAdapter<TNative> decoderAdapter)

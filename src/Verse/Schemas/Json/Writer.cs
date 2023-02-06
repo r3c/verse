@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using Verse.EncoderDescriptors.Tree;
+using Verse.Formats.Json;
 
 namespace Verse.Schemas.Json;
 

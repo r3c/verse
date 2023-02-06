@@ -21,17 +21,6 @@ internal class QueryStringSchema<TEntity> : ISchema<string, TEntity>
     public IEncoderDescriptor<string, TEntity> EncoderDescriptor =>
         throw new NotImplementedException("encoding not implemented");
 
-    /// <inheritdoc/>
-    public string DefaultValue => string.Empty;
-
-    /// <inheritdoc/>
-    public IEncoderAdapter<string> NativeFrom => throw new NotImplementedException("encoding not implemented");
-
-    /// <inheritdoc/>
-    public IDecoderAdapter<string> NativeTo => _decoderAdapter;
-
-    private readonly QueryStringDecoderAdapter _decoderAdapter;
-
     private readonly TreeDecoderDescriptor<ReaderState, string, char, TEntity> _decoderDescriptor;
 
     private readonly Encoding _encoding;
@@ -40,7 +29,6 @@ internal class QueryStringSchema<TEntity> : ISchema<string, TEntity>
     {
         var readerDefinition = new ReaderDefinition<TEntity>();
 
-        _decoderAdapter = new QueryStringDecoderAdapter();
         _decoderDescriptor = new TreeDecoderDescriptor<ReaderState, string, char, TEntity>(readerDefinition);
         _encoding = encoding;
     }

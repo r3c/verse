@@ -15,11 +15,10 @@ internal class ReflectionLinker<TNative> : ILinker<TNative>
 
     private BindingFlags _bindingFlags = BindingFlags.Instance | BindingFlags.Public;
 
-    public IDecoder<TEntity> CreateDecoder<TEntity>(ISchema<TNative, TEntity> schema)
+    public IDecoder<TEntity> CreateDecoder<TEntity>(IFormat<TNative> format, ISchema<TNative, TEntity> schema)
     {
         var automatic = new AutomaticDecodeLinker<TNative>(_decodeLinkers.Values);
-        var context = new DecodeContext<TNative>(automatic, _bindingFlags, schema.NativeTo, schema.DefaultValue,
-            new Dictionary<Type, object>());
+        var context = new DecodeContext<TNative>(automatic, _bindingFlags, format, new Dictionary<Type, object>());
 
         if (!automatic.TryDescribe(context, schema.DecoderDescriptor))
             throw new ArgumentException($"can't link decoder for type '{typeof(TEntity)}'", nameof(schema));
@@ -27,11 +26,10 @@ internal class ReflectionLinker<TNative> : ILinker<TNative>
         return schema.CreateDecoder();
     }
 
-    public IEncoder<TEntity> CreateEncoder<TEntity>(ISchema<TNative, TEntity> schema)
+    public IEncoder<TEntity> CreateEncoder<TEntity>(IFormat<TNative> format, ISchema<TNative, TEntity> schema)
     {
         var automatic = new AutomaticEncodeLinker<TNative>(_encodeLinkers.Values);
-        var context = new EncodeContext<TNative>(automatic, _bindingFlags, schema.NativeFrom, schema.DefaultValue,
-            new Dictionary<Type, object>());
+        var context = new EncodeContext<TNative>(automatic, _bindingFlags, format, new Dictionary<Type, object>());
 
         if (!automatic.TryDescribe(context, schema.EncoderDescriptor))
             throw new ArgumentException($"can't link encoder for type '{typeof(TEntity)}'", nameof(schema));

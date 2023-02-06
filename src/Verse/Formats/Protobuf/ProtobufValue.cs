@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace Verse.Schemas.Protobuf;
+namespace Verse.Formats.Protobuf;
 #if !__MonoCS__
 [StructLayout(LayoutKind.Explicit, Size = sizeof(ProtobufType) + sizeof(double))]
 #endif

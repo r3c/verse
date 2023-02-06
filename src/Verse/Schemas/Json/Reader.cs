@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using Verse.DecoderDescriptors.Tree;
+using Verse.Formats.Json;
 using Verse.LookupNodes;
 
 namespace Verse.Schemas.Json;

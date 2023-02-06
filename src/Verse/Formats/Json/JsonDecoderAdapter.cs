@@ -1,10 +1,12 @@
 using System;
 using System.Globalization;
 
-namespace Verse.Schemas.Json;
+namespace Verse.Formats.Json;
 
 internal class JsonDecoderAdapter : IDecoderAdapter<JsonValue>
 {
+    public static readonly JsonDecoderAdapter Instance = new();
+
     public Func<JsonValue, bool> Boolean => source =>
     {
         return source.Type switch

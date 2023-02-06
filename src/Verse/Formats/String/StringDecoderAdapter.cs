@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Globalization;
 
-namespace Verse.Schemas.QueryString;
+namespace Verse.Formats.String;
 
-internal class QueryStringDecoderAdapter : IDecoderAdapter<string>
+internal class StringDecoderAdapter : IDecoderAdapter<string>
 {
+    public static readonly StringDecoderAdapter Instance = new();
+
     public Func<string, bool> Boolean => source => bool.TryParse(source, out var target)
         ? target
         : default;
