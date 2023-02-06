@@ -1,4 +1,4 @@
-﻿namespace Verse.Schemas.Protobuf;
+﻿namespace Verse.Formats.Protobuf;
 
 public enum ProtobufType
 {

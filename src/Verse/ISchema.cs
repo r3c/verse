@@ -21,21 +21,6 @@ public interface ISchema<TNative, TEntity>
     IEncoderDescriptor<TNative, TEntity> EncoderDescriptor { get; }
 
     /// <summary>
-    /// Native value considered as default for this schema.
-    /// </summary>
-    TNative DefaultValue { get; }
-
-    /// <summary>
-    /// Get value adapter for encoding native C# types to schema values.
-    /// </summary>
-    IEncoderAdapter<TNative> NativeFrom { get; }
-
-    /// <summary>
-    /// Get value adapter for decoding schema values to native C# types.
-    /// </summary>
-    IDecoderAdapter<TNative> NativeTo { get; }
-
-    /// <summary>
     /// Create an entity decoder based on instructions passed to the
     /// decoder descriptor associated to this schema.
     /// </summary>

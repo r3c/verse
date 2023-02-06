@@ -1,5 +1,6 @@
 ﻿using Verse.DecoderDescriptors;
 using Verse.EncoderDescriptors;
+using Verse.Formats.RawProtobuf;
 using Verse.Schemas.RawProtobuf;
 
 namespace Verse.Schemas;
@@ -18,22 +19,9 @@ internal class RawProtobufSchema<TEntity> : ISchema<RawProtobufValue, TEntity>
     /// <inheritdoc/>
     public IEncoderDescriptor<RawProtobufValue, TEntity> EncoderDescriptor => _encoderDescriptor;
 
-    /// <inheritdoc/>
-    public RawProtobufValue DefaultValue => new(0, RawProtobufWireType.VarInt);
-
-    /// <inheritdoc/>
-    public IEncoderAdapter<RawProtobufValue> NativeFrom => _encoderAdapter;
-
-    /// <inheritdoc/>
-    public IDecoderAdapter<RawProtobufValue> NativeTo => _decoderAdapter;
-
     private readonly RawProtobufConfiguration _configuration;
 
-    private readonly RawProtobufDecoderAdapter _decoderAdapter;
-
     private readonly TreeDecoderDescriptor<ReaderState, RawProtobufValue, char, TEntity> _decoderDescriptor;
-
-    private readonly RawProtobufEncoderAdapter _encoderAdapter;
 
     private readonly TreeEncoderDescriptor<WriterState, RawProtobufValue, TEntity> _encoderDescriptor;
 
@@ -43,12 +31,8 @@ internal class RawProtobufSchema<TEntity> : ISchema<RawProtobufValue, TEntity>
         var writerDefinition = new WriterDefinition<TEntity>();
 
         _configuration = configuration;
-        _decoderAdapter = new RawProtobufDecoderAdapter();
-        _decoderDescriptor =
-            new TreeDecoderDescriptor<ReaderState, RawProtobufValue, char, TEntity>(readerDefinition);
-        _encoderAdapter = new RawProtobufEncoderAdapter();
-        _encoderDescriptor =
-            new TreeEncoderDescriptor<WriterState, RawProtobufValue, TEntity>(writerDefinition);
+        _decoderDescriptor = new TreeDecoderDescriptor<ReaderState, RawProtobufValue, char, TEntity>(readerDefinition);
+        _encoderDescriptor = new TreeEncoderDescriptor<WriterState, RawProtobufValue, TEntity>(writerDefinition);
     }
 
     public IDecoder<TEntity> CreateDecoder()

@@ -1,9 +1,11 @@
 ﻿using System;
 
-namespace Verse.Schemas.Protobuf;
+namespace Verse.Formats.Protobuf;
 
 internal class ProtobufEncoderAdapter : IEncoderAdapter<ProtobufValue>
 {
+    public static readonly ProtobufEncoderAdapter Instance = new();
+
     public Func<bool, ProtobufValue> Boolean => v => new ProtobufValue(v);
     public Func<char, ProtobufValue> Character => v => new ProtobufValue(new string(v, 1));
     public Func<decimal, ProtobufValue> Decimal => v => new ProtobufValue((double)v);

@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using NUnit.Framework;
 using Verse.Exceptions;
+using Verse.Formats.Json;
 using Verse.Schemas.Json;
 
 // ReSharper disable ClassNeverInstantiated.Global
@@ -21,7 +22,7 @@ public class LinkerTester
     public void CreateDecoder_ArrayFromArray(string json, double[] expected)
     {
         var encoded = Encoding.UTF8.GetBytes(json);
-        var decoded = CreateDecoderAndDecode(Schema.CreateJson<double[]>(), encoded);
+        var decoded = CreateDecoderAndDecode(Format.Json, Schema.CreateJson<double[]>(), encoded);
 
         Assert.That(decoded, Is.EqualTo(expected));
     }
@@ -32,7 +33,7 @@ public class LinkerTester
     public void CreateDecoder_ArrayFromList(string json, double[] expected)
     {
         var encoded = Encoding.UTF8.GetBytes(json);
-        var decoded = CreateDecoderAndDecode(Schema.CreateJson<List<double>>(), encoded);
+        var decoded = CreateDecoderAndDecode(Format.Json, Schema.CreateJson<List<double>>(), encoded);
 
         CollectionAssert.AreEqual(expected, decoded);
     }
@@ -43,7 +44,7 @@ public class LinkerTester
     public void CreateDecoder_ObjectField<T>(string json, T expected)
     {
         var encoded = Encoding.UTF8.GetBytes(json);
-        var decoded = CreateDecoderAndDecode(Schema.CreateJson<FieldContainer<T>>(), encoded);
+        var decoded = CreateDecoderAndDecode(Format.Json, Schema.CreateJson<FieldContainer<T>>(), encoded);
 
         Assert.AreEqual(expected, decoded.Field);
     }
@@ -54,7 +55,7 @@ public class LinkerTester
     public void CreateDecoder_ObjectProperty<T>(string json, T expected)
     {
         var encoded = Encoding.UTF8.GetBytes(json);
-        var decoded = CreateDecoderAndDecode(Schema.CreateJson<PropertyContainer<T>>(), encoded);
+        var decoded = CreateDecoderAndDecode(Format.Json, Schema.CreateJson<PropertyContainer<T>>(), encoded);
 
         Assert.AreEqual(expected, decoded.Property);
     }
@@ -64,7 +65,7 @@ public class LinkerTester
     public void CreateDecoder_ObjectRecursive(string json)
     {
         var encoded = Encoding.UTF8.GetBytes(json);
-        var decoded = CreateDecoderAndDecode(Schema.CreateJson<Recursive>(), encoded);
+        var decoded = CreateDecoderAndDecode(Format.Json, Schema.CreateJson<Recursive>(), encoded);
 
         Assert.AreEqual(42, decoded.R.R.V);
         Assert.AreEqual(17, decoded.R.V);
@@ -80,7 +81,7 @@ public class LinkerTester
         var encoded = Encoding.UTF8.GetBytes(json);
         var decoder = Linker.CreateReflection<JsonValue>()
             .SetBindingFlags(bindings)
-            .CreateDecoder(Schema.CreateJson<Visibility>());
+            .CreateDecoder(Format.Json, Schema.CreateJson<Visibility>());
         var decoded = Decode(decoder, encoded);
 
         Assert.AreEqual(expected, decoded.ToString());
@@ -89,7 +90,7 @@ public class LinkerTester
     [Test]
     public void CreateDecoder_ObjectWithParameterlessConstructor()
     {
-        var decoded = CreateDecoderAndDecode(Schema.CreateJson<ReferenceType>(), "{}"u8.ToArray());
+        var decoded = CreateDecoderAndDecode(Format.Json, Schema.CreateJson<ReferenceType>(), "{}"u8.ToArray());
 
         Assert.That(decoded, Is.InstanceOf<ReferenceType>());
     }
@@ -100,7 +101,7 @@ public class LinkerTester
         var schema = Schema.CreateJson<Uri>();
         var linker = Linker.CreateReflection<JsonValue>();
 
-        Assert.That(() => linker.CreateDecoder(schema), Throws.InstanceOf<ConstructorNotFoundException>());
+        Assert.That(() => linker.CreateDecoder(Format.Json, schema), Throws.InstanceOf<ConstructorNotFoundException>());
     }
 
     [Test]
@@ -108,7 +109,7 @@ public class LinkerTester
     [TestCase(new[] { 27.5, 19 }, "[27.5,19]")]
     public void CreateEncoder_ArrayFromArray(double[] value, string expected)
     {
-        var encoded = CreateEncoderAndEncode(Schema.CreateJson<double[]>(), value);
+        var encoded = CreateEncoderAndEncode(Format.Json, Schema.CreateJson<double[]>(), value);
 
         Assert.That(Encoding.UTF8.GetString(encoded), Is.EqualTo(expected));
     }
@@ -119,7 +120,7 @@ public class LinkerTester
     public void CreateEncoder_ArrayFromList(double[] value, string expected)
     {
         var decoded = new List<double>(value);
-        var encoded = CreateEncoderAndEncode(Schema.CreateJson<List<double>>(), decoded);
+        var encoded = CreateEncoderAndEncode(Format.Json, Schema.CreateJson<List<double>>(), decoded);
 
         Assert.That(Encoding.UTF8.GetString(encoded), Is.EqualTo(expected));
     }
@@ -130,7 +131,7 @@ public class LinkerTester
     public void CreateEncoder_ObjectField<T>(T value, string expected)
     {
         var decoded = new FieldContainer<T> { Field = value };
-        var encoded = CreateEncoderAndEncode(Schema.CreateJson<FieldContainer<T>>(), decoded);
+        var encoded = CreateEncoderAndEncode(Format.Json, Schema.CreateJson<FieldContainer<T>>(), decoded);
 
         Assert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
     }
@@ -141,7 +142,7 @@ public class LinkerTester
     public void CreateEncoder_ObjectProperty<T>(T value, string expected)
     {
         var decoded = new PropertyContainer<T> { Property = value };
-        var encoded = CreateEncoderAndEncode(Schema.CreateJson<PropertyContainer<T>>(), decoded);
+        var encoded = CreateEncoderAndEncode(Format.Json, Schema.CreateJson<PropertyContainer<T>>(), decoded);
 
         Assert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
     }
@@ -153,7 +154,7 @@ public class LinkerTester
     {
         var decoded = new Recursive { R = new Recursive { R = new Recursive { V = 42 }, V = 17 }, V = 3 };
         var schema = Schema.CreateJson<Recursive>(new JsonConfiguration { OmitNull = omitNull });
-        var encoded = CreateEncoderAndEncode(schema, decoded);
+        var encoded = CreateEncoderAndEncode(Format.Json, schema, decoded);
 
         Assert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
     }
@@ -166,7 +167,7 @@ public class LinkerTester
         var decoded = new Visibility();
         var encoder = Linker.CreateReflection<JsonValue>()
             .SetBindingFlags(bindings)
-            .CreateEncoder(Schema.CreateJson<Visibility>());
+            .CreateEncoder(Format.Json, Schema.CreateJson<Visibility>());
         var encoded = Encode(encoder, decoded);
 
         Assert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
@@ -179,7 +180,7 @@ public class LinkerTester
         var decoder = Linker
             .CreateReflection<JsonValue>()
             .SetDecoderDescriptor<int>(descriptor => descriptor.IsValue(v => (int)(v.Number * 2)))
-            .CreateDecoder(Schema.CreateJson<int[]>());
+            .CreateDecoder(Format.Json, Schema.CreateJson<int[]>());
 
         var encoded = Encoding.UTF8.GetBytes(json);
         var decoded = Decode(decoder, encoded);
@@ -187,18 +188,20 @@ public class LinkerTester
         CollectionAssert.AreEqual(expected, decoded);
     }
 
-    private static TEntity CreateDecoderAndDecode<TNative, TEntity>(ISchema<TNative, TEntity> schema, byte[] encoded)
+    private static TEntity CreateDecoderAndDecode<TNative, TEntity>(IFormat<TNative> format,
+        ISchema<TNative, TEntity> schema, byte[] encoded)
     {
         var linker = Linker.CreateReflection<TNative>();
-        var decoder = linker.CreateDecoder(schema);
+        var decoder = linker.CreateDecoder(format, schema);
 
         return Decode(decoder, encoded);
     }
 
-    private static byte[] CreateEncoderAndEncode<TNative, TEntity>(ISchema<TNative, TEntity> schema, TEntity decoded)
+    private static byte[] CreateEncoderAndEncode<TNative, TEntity>(IFormat<TNative> format,
+        ISchema<TNative, TEntity> schema, TEntity decoded)
     {
         var linker = Linker.CreateReflection<TNative>();
-        var encoder = linker.CreateEncoder(schema);
+        var encoder = linker.CreateEncoder(format, schema);
 
         return Encode(encoder, decoded);
     }

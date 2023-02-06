@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 
-namespace Verse.Schemas.RawProtobuf;
+namespace Verse.Formats.RawProtobuf;
 
 /// <summary>
 /// Due to missing message type information when using "legacy" protobuf mode (only wire type is available) decoded
@@ -10,6 +10,8 @@ namespace Verse.Schemas.RawProtobuf;
 /// </summary>
 internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
 {
+    public static readonly RawProtobufDecoderAdapter Instance = new();
+
     public Func<RawProtobufValue, bool> Boolean => source =>
     {
         return source.Storage switch

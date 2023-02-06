@@ -1,10 +1,12 @@
 using System;
 using System.Globalization;
 
-namespace Verse.Schemas.Protobuf;
+namespace Verse.Formats.Protobuf;
 
 internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
 {
+    public static readonly ProtobufDecoderAdapter Instance = new();
+
     public Func<ProtobufValue, bool> Boolean => source =>
     {
         return source.Type switch

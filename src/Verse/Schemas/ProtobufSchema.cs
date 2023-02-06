@@ -1,6 +1,7 @@
 using System.IO;
 using Verse.DecoderDescriptors;
 using Verse.EncoderDescriptors;
+using Verse.Formats.Protobuf;
 using Verse.Schemas.Protobuf;
 using Verse.Schemas.Protobuf.Definition;
 
@@ -20,20 +21,7 @@ internal sealed class ProtobufSchema<TEntity> : ISchema<ProtobufValue, TEntity>
     /// <inheritdoc/>
     public IEncoderDescriptor<ProtobufValue, TEntity> EncoderDescriptor => _encoderDescriptor;
 
-    /// <inheritdoc/>
-    public ProtobufValue DefaultValue => ProtobufValue.Empty;
-
-    /// <inheritdoc/>
-    public IEncoderAdapter<ProtobufValue> NativeFrom => _encoderAdapter;
-
-    /// <inheritdoc/>
-    public IDecoderAdapter<ProtobufValue> NativeTo => _decoderAdapter;
-
-    private readonly ProtobufDecoderAdapter _decoderAdapter;
-
     private readonly TreeDecoderDescriptor<ReaderState, ProtobufValue, int, TEntity> _decoderDescriptor;
-
-    private readonly ProtobufEncoderAdapter _encoderAdapter;
 
     private readonly TreeEncoderDescriptor<WriterState, ProtobufValue, TEntity> _encoderDescriptor;
 
@@ -43,9 +31,7 @@ internal sealed class ProtobufSchema<TEntity> : ISchema<ProtobufValue, TEntity>
         var reader = new ProtobufReaderDefinition<TEntity>(bindings, configuration.RejectUnknown);
         var writer = new ProtobufWriterDefinition<TEntity>(bindings);
 
-        _decoderAdapter = new ProtobufDecoderAdapter();
         _decoderDescriptor = new TreeDecoderDescriptor<ReaderState, ProtobufValue, int, TEntity>(reader);
-        _encoderAdapter = new ProtobufEncoderAdapter();
         _encoderDescriptor = new TreeEncoderDescriptor<WriterState, ProtobufValue, TEntity>(writer);
     }
 

@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using ProtoBuf;
+using Verse.Formats.Protobuf;
+using Verse.Formats.RawProtobuf;
 using Verse.Schemas;
 using Verse.Schemas.Protobuf;
 using Verse.Schemas.RawProtobuf;
@@ -34,7 +36,7 @@ internal class RawProtobufSchemaTester
     public void DecodeRepeatedScalarFromObject<T>(T a, T b, T c)
     {
         var schema = CreateSchema<List<T>>();
-        var converter = SchemaHelper<RawProtobufValue>.GetDecoderConverter<T>(schema.NativeTo);
+        var converter = SchemaHelper<RawProtobufValue>.GetDecoderConverter<T>(Format.RawProtobuf.To);
         var testFieldClass = new TestFieldClass<T> { Items = new List<T> { a, b, c } };
 
         schema.DecoderDescriptor
@@ -60,7 +62,7 @@ internal class RawProtobufSchemaTester
     public void DecodeScalarFromNestedObject<T>(T expectedValue)
     {
         var schema = CreateSchema<T>();
-        var converter = SchemaHelper<RawProtobufValue>.GetDecoderConverter<T>(schema.NativeTo);
+        var converter = SchemaHelper<RawProtobufValue>.GetDecoderConverter<T>(Format.RawProtobuf.To);
         var testFieldClass = new TestFieldClass<T> { SubValue = new SubTestFieldClass<T> { Value = expectedValue } };
 
         schema.DecoderDescriptor
@@ -90,7 +92,7 @@ internal class RawProtobufSchemaTester
     {
         var schema = CreateSchema<T>();
         var testFieldClass = new TestFieldClass<T> { Value = value };
-        var converter = SchemaHelper<RawProtobufValue>.GetDecoderConverter<T>(schema.NativeTo);
+        var converter = SchemaHelper<RawProtobufValue>.GetDecoderConverter<T>(Format.RawProtobuf.To);
 
         schema.DecoderDescriptor
             .IsObject(() => default!)
@@ -128,7 +130,7 @@ internal class RawProtobufSchemaTester
             });
         }
 
-        var converter = SchemaHelper<RawProtobufValue>.GetDecoderConverter<T>(schema.NativeTo);
+        var converter = SchemaHelper<RawProtobufValue>.GetDecoderConverter<T>(Format.RawProtobuf.To);
 
         schema.DecoderDescriptor
             .IsObject(() => new TestFieldClass<TestFieldClass<T>>())
@@ -234,7 +236,7 @@ internal class RawProtobufSchemaTester
         descriptor
             .IsObject(() => 0)
             .HasField<int>("_4", (_, v) => v)
-            .IsValue(schema.NativeTo.Integer32S);
+            .IsValue(Format.RawProtobuf.To.Integer32S);
 
         var value = DecodeTranscode(schema.CreateDecoder(), testFieldClass);
 
@@ -254,7 +256,7 @@ internal class RawProtobufSchemaTester
     {
         var expectedItems = new[] { a, b, c };
         var schema = CreateSchema<List<T>>();
-        var converter = SchemaHelper<RawProtobufValue>.GetEncoderConverter<T>(schema.NativeFrom);
+        var converter = SchemaHelper<RawProtobufValue>.GetEncoderConverter<T>(Format.RawProtobuf.From);
 
         schema.EncoderDescriptor
             .IsObject()
@@ -281,7 +283,7 @@ internal class RawProtobufSchemaTester
     {
         var schema = CreateSchema<TestFieldClass<T>>();
         var testFieldClass = new TestFieldClass<T> { SubValue = new SubTestFieldClass<T> { Value = expectedValue } };
-        var converter = SchemaHelper<RawProtobufValue>.GetEncoderConverter<T>(schema.NativeFrom);
+        var converter = SchemaHelper<RawProtobufValue>.GetEncoderConverter<T>(Format.RawProtobuf.From);
 
         schema.EncoderDescriptor
             .IsObject()
@@ -309,7 +311,7 @@ internal class RawProtobufSchemaTester
     public void EncodeScalarToObject<T>(T value)
     {
         var schema = CreateSchema<T>();
-        var converter = SchemaHelper<RawProtobufValue>.GetEncoderConverter<T>(schema.NativeFrom);
+        var converter = SchemaHelper<RawProtobufValue>.GetEncoderConverter<T>(Format.RawProtobuf.From);
 
         schema.EncoderDescriptor
             .IsObject()
@@ -336,7 +338,7 @@ internal class RawProtobufSchemaTester
     {
         var fieldClass = new TestFieldClass<TestFieldClass<T>>();
         var schema = CreateSchema<TestFieldClass<TestFieldClass<T>>>();
-        var converter = SchemaHelper<RawProtobufValue>.GetEncoderConverter<T>(schema.NativeFrom);
+        var converter = SchemaHelper<RawProtobufValue>.GetEncoderConverter<T>(Format.RawProtobuf.From);
         var expectedValues = new[] { a, b, c };
 
         foreach (var value in expectedValues)

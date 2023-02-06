@@ -1,4 +1,5 @@
 using Verse.DecoderDescriptors.Tree;
+using Verse.Formats.RawProtobuf;
 using Verse.Lookups;
 
 namespace Verse.Schemas.RawProtobuf;

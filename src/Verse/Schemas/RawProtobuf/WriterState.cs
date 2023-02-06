@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.IO;
 using System.Text;
+using Verse.Formats.RawProtobuf;
 
 namespace Verse.Schemas.RawProtobuf;
 

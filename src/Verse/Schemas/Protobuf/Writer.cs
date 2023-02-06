@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Verse.EncoderDescriptors.Tree;
+using Verse.Formats.Protobuf;
 
 namespace Verse.Schemas.Protobuf;
 

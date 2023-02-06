@@ -35,7 +35,7 @@ public class QueryStringSchemaTester
     public void DecodeFieldValue<T>(string name, string query, T expected)
     {
         var schema = Schema.CreateQueryString<T>();
-        var converter = SchemaHelper<string>.GetDecoderConverter<T>(schema.NativeTo);
+        var converter = SchemaHelper<string>.GetDecoderConverter<T>(Format.String.To);
 
         schema.DecoderDescriptor
             .IsObject(() => default!)
@@ -57,7 +57,7 @@ public class QueryStringSchemaTester
     public void DecodeSpecialCharacter<T>(string name, string query, T expected)
     {
         var schema = Schema.CreateQueryString<T>();
-        var converter = SchemaHelper<string>.GetDecoderConverter<T>(schema.NativeTo);
+        var converter = SchemaHelper<string>.GetDecoderConverter<T>(Format.String.To);
 
         schema.DecoderDescriptor
             .IsObject(() => default!)

@@ -28,11 +28,11 @@ internal class ValueDecodeLinker<TNative> : IDecodeLinker<TNative>
         where TEntity : struct
     {
         // TODO: move `AdapterResolver.TryGetDecoderConverter` as private method in this class
-        if (!AdapterResolver.TryGetDecoderConverter<TNative, TEntity>(context.Adapter, out var converter))
+        if (!AdapterResolver.TryGetDecoderConverter<TNative, TEntity>(context.Format.To, out var converter))
             return false;
 
         // Assume that default value is equivalent to null entity
-        descriptor.IsValue(source => Equals(context.DefaultValue, source) ? default(TEntity?) : converter(source));
+        descriptor.IsValue(source => Equals(context.Format.DefaultValue, source) ? default(TEntity?) : converter(source));
 
         return true;
     }
@@ -41,7 +41,7 @@ internal class ValueDecodeLinker<TNative> : IDecodeLinker<TNative>
         IDecoderDescriptor<TNative, TEntity> descriptor)
     {
         // TODO: move `AdapterResolver.TryGetDecoderConverter` as private method in this class
-        if (!AdapterResolver.TryGetDecoderConverter<TNative, TEntity>(context.Adapter, out var converter))
+        if (!AdapterResolver.TryGetDecoderConverter<TNative, TEntity>(context.Format.To, out var converter))
             return false;
 
         descriptor.IsValue(converter);

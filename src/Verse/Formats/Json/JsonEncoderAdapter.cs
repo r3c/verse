@@ -1,9 +1,11 @@
 using System;
 
-namespace Verse.Schemas.Json;
+namespace Verse.Formats.Json;
 
 internal class JsonEncoderAdapter : IEncoderAdapter<JsonValue>
 {
+    public static readonly JsonEncoderAdapter Instance = new();
+
     public Func<bool, JsonValue> Boolean => JsonValue.FromBoolean;
 
     public Func<char, JsonValue> Character => v => JsonValue.FromString(new string(v, 1));

@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.IO;
 using Verse.DecoderDescriptors.Tree;
+using Verse.Formats.RawProtobuf;
 
 namespace Verse.Schemas.RawProtobuf;
 

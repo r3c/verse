@@ -1,4 +1,4 @@
-namespace Verse.Schemas.RawProtobuf;
+namespace Verse.Formats.RawProtobuf;
 
 public readonly struct RawProtobufValue
 {
