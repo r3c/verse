@@ -10,12 +10,14 @@ internal class ValueDecodeLinker<TNative> : IDecodeLinker<TNative>
     public bool TryDescribe<TEntity>(DecodeContext<TNative> context, IDecoderDescriptor<TNative, TEntity> descriptor)
     {
         // Try linking using using underlying type if entity is nullable
-        if (TypeResolver.Create(typeof(TEntity)).HasSameDefinitionThan<int?>(out var arguments))
+        var typeResolver = TypeResolver.Create(typeof(TEntity));
+
+        if (typeResolver.HasSameDefinitionThan<int?>())
         {
             return (bool)MethodResolver
                 .Create<Func<DecodeContext<TNative>, IDecoderDescriptor<TNative, int?>, bool>>((c, d) =>
                     TryDescribeAsNullableValue(c, d))
-                .SetGenericArguments(arguments[0])
+                .SetGenericArguments(typeResolver.Type.GetGenericArguments())
                 .InvokeStatic(context, descriptor)!;
         }
 

@@ -43,12 +43,24 @@ public class ReflectionLinkerTester
     [Test]
     [TestCase("[]", new double[0])]
     [TestCase("[0, 5, 90, 23, -9, 5.32]", new[] { 0, 5, 90, 23, -9, 5.32 })]
-    public void CreateDecoder_ArrayFromEnumerable(string json, double[] expected)
+    public void CreateDecoder_ArrayFromInterface(string json, double[] expected)
     {
         var encoded = Encoding.UTF8.GetBytes(json);
-        var decoded = CreateDecoderAndDecode(Format.Json, Schema.CreateJson<IEnumerable<double>>(), encoded);
+        var decodedResults = new[]
+        {
+            CreateDecoderAndDecode(Format.Json, Schema.CreateJson<ISet<double>>(), encoded),
+#if NET6_0_OR_GREATER
+            CreateDecoderAndDecode(Format.Json, Schema.CreateJson<IReadOnlySet<double>>(), encoded),
+#endif
+            CreateDecoderAndDecode(Format.Json, Schema.CreateJson<IList<double>>(), encoded),
+            CreateDecoderAndDecode(Format.Json, Schema.CreateJson<IReadOnlyList<double>>(), encoded),
+            CreateDecoderAndDecode(Format.Json, Schema.CreateJson<ICollection<double>>(), encoded),
+            CreateDecoderAndDecode(Format.Json, Schema.CreateJson<IReadOnlyCollection<double>>(), encoded),
+            CreateDecoderAndDecode(Format.Json, Schema.CreateJson<IEnumerable<double>>(), encoded)
+        };
 
-        CollectionAssert.AreEqual(expected, decoded);
+        foreach (var decoded in decodedResults)
+            CollectionAssert.AreEqual(expected, decoded);
     }
 
     [Test]
@@ -152,11 +164,19 @@ public class ReflectionLinkerTester
     [Test]
     [TestCase(new[] { 0, 5, 90, 23, -9, 5.32 }, "[0,5,90,23,-9,5.32]")]
     [TestCase(new[] { 27.5, 19 }, "[27.5,19]")]
-    public void CreateEncoder_ArrayFromEnumerable(double[] value, string expected)
+    public void CreateEncoder_ArrayFromInterface(double[] value, string expected)
     {
-        var encoded = CreateEncoderAndEncode(Format.Json, Schema.CreateJson<IEnumerable<double>>(), value);
+        var encodedResults = new[]
+        {
+            CreateEncoderAndEncode(Format.Json, Schema.CreateJson<IList<double>>(), value),
+            CreateEncoderAndEncode(Format.Json, Schema.CreateJson<IReadOnlyList<double>>(), value),
+            CreateEncoderAndEncode(Format.Json, Schema.CreateJson<ICollection<double>>(), value),
+            CreateEncoderAndEncode(Format.Json, Schema.CreateJson<IReadOnlyCollection<double>>(), value),
+            CreateEncoderAndEncode(Format.Json, Schema.CreateJson<IEnumerable<double>>(), value),
+        };
 
-        Assert.That(Encoding.UTF8.GetString(encoded), Is.EqualTo(expected));
+        foreach (var encoded in encodedResults)
+            Assert.That(Encoding.UTF8.GetString(encoded), Is.EqualTo(expected));
     }
 
     [Test]
