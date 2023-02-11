@@ -25,7 +25,7 @@ internal class ArrayEncodeLinker<TNative> : IEncodeLinker<TNative>
             var getter = MethodResolver
                 .Create<Func<Func<object, object>>>(() => GetterGenerator.CreateIdentity<object>())
                 .SetGenericArguments(typeof(IEnumerable<>).MakeGenericType(elementType))
-                .Invoke(new object());
+                .InvokeStatic();
 
             return TryDescribeAsArray(context, descriptor, elementType, getter);
         }
@@ -43,7 +43,7 @@ internal class ArrayEncodeLinker<TNative> : IEncodeLinker<TNative>
             var getter = MethodResolver
                 .Create<Func<Func<object, object>>>(() => GetterGenerator.CreateIdentity<object>())
                 .SetGenericArguments(typeof(IEnumerable<>).MakeGenericType(elementType))
-                .Invoke(new object());
+                .InvokeStatic();
 
             return TryDescribeAsArray(context, descriptor, elementType, getter);
         }
@@ -53,7 +53,7 @@ internal class ArrayEncodeLinker<TNative> : IEncodeLinker<TNative>
     }
 
     private static bool TryDescribeAsArray<TEntity>(EncodeContext<TNative> context,
-        IEncoderDescriptor<TNative, TEntity> descriptor, Type elementType, object getter)
+        IEncoderDescriptor<TNative, TEntity> descriptor, Type elementType, object? getter)
     {
         if (context.Parents.TryGetValue(elementType, out var recurse))
         {
@@ -62,7 +62,7 @@ internal class ArrayEncodeLinker<TNative> : IEncodeLinker<TNative>
                     IEncoderDescriptor<TNative, object>,
                     IEncoderDescriptor<TNative, object>>>((d, a, p) => d.IsArray(a, p))
                 .SetGenericArguments(elementType)
-                .Invoke(descriptor, getter, recurse);
+                .InvokeInstance(descriptor, getter, recurse);
 
             return true;
         }
@@ -72,12 +72,12 @@ internal class ArrayEncodeLinker<TNative> : IEncodeLinker<TNative>
                 IEncoderDescriptor<TNative, object>>>(
                 (d, a) => d.IsArray(a))
             .SetGenericArguments(elementType)
-            .Invoke(descriptor, getter);
+            .InvokeInstance(descriptor, getter);
 
         return (bool)MethodResolver
             .Create<Func<IEncodeLinker<TNative>, EncodeContext<TNative>, IEncoderDescriptor<TNative, object>, bool>>(
                 (l, c, d) => l.TryDescribe(c, d))
             .SetGenericArguments(elementType)
-            .Invoke(context.Automatic, context, itemDescriptor);
+            .InvokeInstance(context.Automatic, context, itemDescriptor)!;
     }
 }

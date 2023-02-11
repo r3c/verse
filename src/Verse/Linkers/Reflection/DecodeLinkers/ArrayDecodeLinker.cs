@@ -26,7 +26,7 @@ internal class ArrayDecodeLinker<TNative> : IDecodeLinker<TNative>
                 .Create<Func<Func<IEnumerable<object>, object[]>>>(() =>
                     ConverterGenerator.CreateFromEnumerable<object>())
                 .SetGenericArguments(elementType)
-                .Invoke(new object());
+                .InvokeStatic();
 
             return TryDescribeAsArray(context, descriptor, elementType, converter);
         }
@@ -49,7 +49,7 @@ internal class ArrayDecodeLinker<TNative> : IDecodeLinker<TNative>
                     .Create<Func<ConstructorInfo, Func<object, object>>>(c =>
                         ConverterGenerator.CreateFromConstructor<object, object>(c))
                     .SetGenericArguments(constructor.DeclaringType!, entityType)
-                    .Invoke(new object(), constructor);
+                    .InvokeStatic(constructor);
 
                 return TryDescribeAsArray(context, descriptor, elementType, converter);
             }
@@ -85,7 +85,7 @@ internal class ArrayDecodeLinker<TNative> : IDecodeLinker<TNative>
                     .Create<Func<ConstructorInfo, Func<object, object>>>(c =>
                         ConverterGenerator.CreateFromConstructor<object, object>(c))
                     .SetGenericArguments(entityType, parameterType)
-                    .Invoke(new object(), constructor);
+                    .InvokeStatic(constructor);
 
                 return TryDescribeAsArray(context, descriptor, elementType, converter);
             }
@@ -96,7 +96,7 @@ internal class ArrayDecodeLinker<TNative> : IDecodeLinker<TNative>
     }
 
     private static bool TryDescribeAsArray<TEntity>(DecodeContext<TNative> context,
-        IDecoderDescriptor<TNative, TEntity> descriptor, Type elementType, object converter)
+        IDecoderDescriptor<TNative, TEntity> descriptor, Type elementType, object? converter)
     {
         if (context.Parents.TryGetValue(elementType, out var recurse))
         {
@@ -105,7 +105,7 @@ internal class ArrayDecodeLinker<TNative> : IDecodeLinker<TNative>
                     IDecoderDescriptor<TNative, object>, IDecoderDescriptor<TNative, object>>>((d, c, p) =>
                     d.IsArray(c, p))
                 .SetGenericArguments(elementType)
-                .Invoke(descriptor, converter, recurse);
+                .InvokeInstance(descriptor, converter, recurse);
 
             return true;
         }
@@ -115,12 +115,12 @@ internal class ArrayDecodeLinker<TNative> : IDecodeLinker<TNative>
                 IDecoderDescriptor<TNative, object>>>(
                 (d, c) => d.IsArray(c))
             .SetGenericArguments(elementType)
-            .Invoke(descriptor, converter);
+            .InvokeInstance(descriptor, converter);
 
         return (bool)MethodResolver
             .Create<Func<IDecodeLinker<TNative>, DecodeContext<TNative>, IDecoderDescriptor<TNative, object>, bool>>(
                 (l, c, d) => l.TryDescribe(c, d))
             .SetGenericArguments(elementType)
-            .Invoke(context.Automatic, context, elementDescriptor);
+            .InvokeInstance(context.Automatic, context, elementDescriptor)!;
     }
 }
