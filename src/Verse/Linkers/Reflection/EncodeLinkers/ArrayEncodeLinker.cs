@@ -42,10 +42,10 @@ internal class ArrayEncodeLinker<TNative> : IEncodeLinker<TNative>
             // Make sure that interface is IEnumerable<T> and store typeof(T)
             var interfaceResolver = TypeResolver.Create(interfaceType);
 
-            if (!interfaceResolver.HasSameDefinitionThan<IEnumerable<object>>(out var interfaceArgumentTypes))
+            if (!interfaceResolver.HasSameDefinitionThan<IEnumerable<object>>())
                 continue;
 
-            var elementType = interfaceArgumentTypes[0];
+            var elementType = interfaceResolver.Type.GetGenericArguments()[0];
             var getter = MethodResolver
                 .Create<Func<Func<object, object>>>(() => GetterGenerator.CreateIdentity<object>())
                 .SetGenericArguments(typeof(IEnumerable<>).MakeGenericType(elementType))

@@ -6,9 +6,31 @@ using Verse.Resolvers;
 
 namespace Verse.Linkers.Reflection.DecodeLinkers;
 
+internal static class ArrayDecodeLinker
+{
+    private static readonly ConstructorResolver HashSetConstructorResolver =
+        ConstructorResolver.Create<Func<IEnumerable<object>, HashSet<object>>>(e => new HashSet<object>(e));
+
+    private static readonly ConstructorResolver ListConstructorResolver =
+        ConstructorResolver.Create<Func<IEnumerable<object>, List<object>>>(e => new List<object>(e));
+
+    public static readonly IReadOnlyList<(Type, ConstructorResolver)> KnownInterfaces = new[]
+    {
+        (typeof(ISet<object>), HashSetConstructorResolver),
+#if NET6_0_OR_GREATER
+        (typeof(IReadOnlySet<object>), HashSetConstructorResolver),
+#endif
+        (typeof(IList<object>), ListConstructorResolver),
+        (typeof(IReadOnlyList<object>), ListConstructorResolver),
+        (typeof(ICollection<object>), ListConstructorResolver),
+        (typeof(IReadOnlyCollection<object>), ListConstructorResolver),
+        (typeof(IEnumerable<object>), ListConstructorResolver)
+    };
+}
+
 internal class ArrayDecodeLinker<TNative> : IDecodeLinker<TNative>
 {
-    private static readonly MethodResolver TryDescribeAsArrayMethod =
+    private static readonly MethodResolver ArrayDecodeLinkerTryDescribeAsArray =
         MethodResolver
             .Create<Func<DecodeContext<TNative>, IDecoderDescriptor<TNative, object>, Func<IEnumerable<object>, object>,
                 bool>>((c, d, s) => TryDescribeAsArray(c, d, s));
@@ -33,31 +55,35 @@ internal class ArrayDecodeLinker<TNative> : IDecodeLinker<TNative>
                 .SetGenericArguments(elementType)
                 .InvokeStatic();
 
-            return (bool)TryDescribeAsArrayMethod.SetGenericArguments(entityType, elementType)
+            return (bool)ArrayDecodeLinkerTryDescribeAsArray.SetGenericArguments(entityType, elementType)
                 .InvokeStatic(context, descriptor, converter)!;
         }
 
         // Try to bind descriptor as a known interface compatible with IEnumerable<>
-        if (entityType.IsInterface)
+        if (entityType is { IsInterface: true, IsGenericType: true })
         {
             var interfaceResolver = TypeResolver.Create(entityType);
 
-            if (interfaceResolver.HasSameDefinitionThan<IEnumerable<object>>(out var interfaceTypes))
+            foreach (var (interfaceType, constructorResolver) in ArrayDecodeLinker.KnownInterfaces)
             {
-                var elementType = interfaceTypes[0];
+                var hasSameDefinition = (bool)MethodResolver
+                    .Create<Func<TypeResolver, bool>>(r => r.HasSameDefinitionThan<object>())
+                    .SetGenericArguments(interfaceType)
+                    .InvokeInstance(interfaceResolver)!;
 
-                var constructor = ConstructorResolver
-                    .Create<Func<IEnumerable<object>, List<object>>>(e => new List<object>(e))
-                    .SetTypeGenericArguments(elementType)
-                    .Constructor;
+                if (!hasSameDefinition)
+                    continue;
+
+                var elementType = interfaceResolver.Type.GetGenericArguments()[0];
+                var constructor = constructorResolver.SetTypeGenericArguments(elementType).Constructor;
 
                 var converter = MethodResolver
                     .Create<Func<ConstructorInfo, Func<object, object>>>(c =>
                         ConverterGenerator.CreateFromConstructor<object, object>(c))
-                    .SetGenericArguments(constructor.DeclaringType!, entityType)
+                    .SetGenericArguments(constructor.DeclaringType!, typeof(IEnumerable<>).MakeGenericType(elementType))
                     .InvokeStatic(constructor);
 
-                return (bool)TryDescribeAsArrayMethod.SetGenericArguments(entityType, elementType)
+                return (bool)ArrayDecodeLinkerTryDescribeAsArray.SetGenericArguments(entityType, elementType)
                     .InvokeStatic(context, descriptor, converter)!;
             }
         }
@@ -68,10 +94,10 @@ internal class ArrayDecodeLinker<TNative> : IDecodeLinker<TNative>
             // Make sure that interface is IEnumerable<T> and store typeof(T)
             var interfaceResolver = TypeResolver.Create(interfaceType);
 
-            if (!interfaceResolver.HasSameDefinitionThan<IEnumerable<object>>(out var interfaceArgumentTypes))
+            if (!interfaceResolver.HasSameDefinitionThan<IEnumerable<object>>())
                 continue;
 
-            var elementType = interfaceArgumentTypes[0];
+            var elementType = interfaceResolver.Type.GetGenericArguments()[0];
 
             // Search constructor compatible with IEnumerable<>
             foreach (var constructor in entityType.GetConstructors())
@@ -84,8 +110,8 @@ internal class ArrayDecodeLinker<TNative> : IDecodeLinker<TNative>
                 var parameterType = parameters[0].ParameterType;
                 var parameterResolver = TypeResolver.Create(parameterType);
 
-                if (!parameterResolver.HasSameDefinitionThan<IEnumerable<object>>(out var parameterTypes) ||
-                    parameterTypes[0] != elementType)
+                if (!parameterResolver.HasSameDefinitionThan<IEnumerable<object>>() ||
+                    interfaceResolver.Type.GetGenericArguments()[0] != elementType)
                     continue;
 
                 var converter = MethodResolver
@@ -94,7 +120,7 @@ internal class ArrayDecodeLinker<TNative> : IDecodeLinker<TNative>
                     .SetGenericArguments(entityType, parameterType)
                     .InvokeStatic(constructor);
 
-                return (bool)TryDescribeAsArrayMethod.SetGenericArguments(entityType, elementType)
+                return (bool)ArrayDecodeLinkerTryDescribeAsArray.SetGenericArguments(entityType, elementType)
                     .InvokeStatic(context, descriptor, converter)!;
             }
         }
