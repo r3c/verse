@@ -11,7 +11,7 @@ internal static class Workflow
 {
     public static (Action Decode, Action Encode, string Source) InitializeJson<T>(T instance)
     {
-        var compareLogic = new CompareLogic();
+        var compareLogic = new CompareLogic(new ComparisonConfig { IgnoreObjectTypes = true });
         var source = JsonConvert.SerializeObject(instance);
 
         var linker = Linker.CreateReflection<JsonValue>();
