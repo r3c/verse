@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using NUnit.Framework;
@@ -25,6 +27,28 @@ public class ReflectionLinkerTester
         var decoded = CreateDecoderAndDecode(Format.Json, Schema.CreateJson<double[]>(), encoded);
 
         Assert.That(decoded, Is.EqualTo(expected));
+    }
+
+    [Test]
+    [TestCase("[]", new double[0])]
+    [TestCase("[0, 5, 90, 23, -9, 5.32]", new[] { 0, 5, 90, 23, -9, 5.32 })]
+    public void CreateDecoder_ArrayFromCustom(string json, double[] expected)
+    {
+        var encoded = Encoding.UTF8.GetBytes(json);
+        var decoded = CreateDecoderAndDecode(Format.Json, Schema.CreateJson<CustomList<double>>(), encoded);
+
+        CollectionAssert.AreEqual(expected, decoded);
+    }
+
+    [Test]
+    [TestCase("[]", new double[0])]
+    [TestCase("[0, 5, 90, 23, -9, 5.32]", new[] { 0, 5, 90, 23, -9, 5.32 })]
+    public void CreateDecoder_ArrayFromEnumerable(string json, double[] expected)
+    {
+        var encoded = Encoding.UTF8.GetBytes(json);
+        var decoded = CreateDecoderAndDecode(Format.Json, Schema.CreateJson<IEnumerable<double>>(), encoded);
+
+        CollectionAssert.AreEqual(expected, decoded);
     }
 
     [Test]
@@ -110,6 +134,27 @@ public class ReflectionLinkerTester
     public void CreateEncoder_ArrayFromArray(double[] value, string expected)
     {
         var encoded = CreateEncoderAndEncode(Format.Json, Schema.CreateJson<double[]>(), value);
+
+        Assert.That(Encoding.UTF8.GetString(encoded), Is.EqualTo(expected));
+    }
+
+    [Test]
+    [TestCase(new[] { 0, 5, 90, 23, -9, 5.32 }, "[0,5,90,23,-9,5.32]")]
+    [TestCase(new[] { 27.5, 19 }, "[27.5,19]")]
+    public void CreateEncoder_ArrayFromCustom(double[] value, string expected)
+    {
+        var encoded = CreateEncoderAndEncode(Format.Json, Schema.CreateJson<CustomList<double>>(),
+            new CustomList<double>(value));
+
+        Assert.That(Encoding.UTF8.GetString(encoded), Is.EqualTo(expected));
+    }
+
+    [Test]
+    [TestCase(new[] { 0, 5, 90, 23, -9, 5.32 }, "[0,5,90,23,-9,5.32]")]
+    [TestCase(new[] { 27.5, 19 }, "[27.5,19]")]
+    public void CreateEncoder_ArrayFromEnumerable(double[] value, string expected)
+    {
+        var encoded = CreateEncoderAndEncode(Format.Json, Schema.CreateJson<IEnumerable<double>>(), value);
 
         Assert.That(Encoding.UTF8.GetString(encoded), Is.EqualTo(expected));
     }
@@ -224,6 +269,30 @@ public class ReflectionLinkerTester
             encoderStream.Encode(decoded);
 
         return stream.ToArray();
+    }
+
+    public class CustomList<T> : IReadOnlyList<T>
+    {
+        private readonly IReadOnlyList<T> _list;
+
+        public CustomList(IEnumerable<T> enumerable)
+        {
+            _list = enumerable.ToList();
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            return _list.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return _list.GetEnumerator();
+        }
+
+        public int Count => _list.Count;
+
+        public T this[int index] => _list[index];
     }
 
     public class ReferenceType

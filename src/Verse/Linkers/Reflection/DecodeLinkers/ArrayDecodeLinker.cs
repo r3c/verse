@@ -31,16 +31,40 @@ internal class ArrayDecodeLinker<TNative> : IDecodeLinker<TNative>
             return TryDescribeAsArray(context, descriptor, elementType, converter);
         }
 
+        // Try to bind descriptor as a known interface compatible with IEnumerable<>
+        if (entityType.IsInterface)
+        {
+            var interfaceResolver = TypeResolver.Create(entityType);
+
+            if (interfaceResolver.HasSameDefinitionThan<IEnumerable<object>>(out var interfaceTypes))
+            {
+                var elementType = interfaceTypes[0];
+
+                var constructor = ConstructorResolver
+                    .Create<Func<IEnumerable<object>, List<object>>>(e => new List<object>(e))
+                    .SetTypeGenericArguments(elementType)
+                    .Constructor;
+
+                var converter = MethodResolver
+                    .Create<Func<ConstructorInfo, Func<object, object>>>(c =>
+                        ConverterGenerator.CreateFromConstructor<object, object>(c))
+                    .SetGenericArguments(constructor.DeclaringType!, entityType)
+                    .Invoke(new object(), constructor);
+
+                return TryDescribeAsArray(context, descriptor, elementType, converter);
+            }
+        }
+
         // Try to bind descriptor as an instance of IEnumerable<>
         foreach (var interfaceType in entityType.GetInterfaces())
         {
             // Make sure that interface is IEnumerable<T> and store typeof(T)
             var interfaceResolver = TypeResolver.Create(interfaceType);
 
-            if (!interfaceResolver.HasSameDefinitionThan<IEnumerable<object>>(out var interfaceTypes))
+            if (!interfaceResolver.HasSameDefinitionThan<IEnumerable<object>>(out var interfaceArgumentTypes))
                 continue;
 
-            var elementType = interfaceTypes[0];
+            var elementType = interfaceArgumentTypes[0];
 
             // Search constructor compatible with IEnumerable<>
             foreach (var constructor in entityType.GetConstructors())

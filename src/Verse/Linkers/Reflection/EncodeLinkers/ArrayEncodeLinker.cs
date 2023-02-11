@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Verse.Generators;
 using Verse.Resolvers;
 
@@ -30,15 +31,15 @@ internal class ArrayEncodeLinker<TNative> : IEncodeLinker<TNative>
         }
 
         // Try to bind descriptor as an instance of IEnumerable<>
-        foreach (var interfaceType in entityType.GetInterfaces())
+        foreach (var interfaceType in entityType.GetInterfaces().Append(entityType))
         {
             // Make sure that interface is IEnumerable<T> and store typeof(T)
             var interfaceResolver = TypeResolver.Create(interfaceType);
 
-            if (!interfaceResolver.HasSameDefinitionThan<IEnumerable<object>>(out var arguments))
+            if (!interfaceResolver.HasSameDefinitionThan<IEnumerable<object>>(out var interfaceArgumentTypes))
                 continue;
 
-            var elementType = arguments[0];
+            var elementType = interfaceArgumentTypes[0];
             var getter = MethodResolver
                 .Create<Func<Func<object, object>>>(() => GetterGenerator.CreateIdentity<object>())
                 .SetGenericArguments(typeof(IEnumerable<>).MakeGenericType(elementType))
