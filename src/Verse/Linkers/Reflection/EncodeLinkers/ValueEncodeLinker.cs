@@ -16,7 +16,7 @@ internal class ValueEncodeLinker<TNative> : IEncodeLinker<TNative>
                 .Create<Func<EncodeContext<TNative>, IEncoderDescriptor<TNative, int?>, bool>>((c, d) =>
                     TryDescribeAsNullableValue(c, d))
                 .SetGenericArguments(arguments[0])
-                .Invoke(this, context, descriptor);
+                .InvokeStatic(context, descriptor)!;
         }
 
         // Otherwise link as non-nullable value

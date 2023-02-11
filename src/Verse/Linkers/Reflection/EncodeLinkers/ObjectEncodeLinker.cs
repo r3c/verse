@@ -26,7 +26,7 @@ internal class ObjectEncodeLinker<TNative> : IEncodeLinker<TNative>
                 .Create<Func<PropertyInfo, Func<object, object>>>(p =>
                     GetterGenerator.CreateFromProperty<object, object>(p))
                 .SetGenericArguments(entityType, property.PropertyType)
-                .Invoke(new object(), property);
+                .InvokeStatic(property);
 
             if (!TryDescribeAsObject(context, objectDescriptor, property.PropertyType, property.Name, getter))
                 return false;
@@ -41,7 +41,7 @@ internal class ObjectEncodeLinker<TNative> : IEncodeLinker<TNative>
             var getter = MethodResolver
                 .Create<Func<FieldInfo, Func<object, object>>>(f => GetterGenerator.CreateFromField<object, object>(f))
                 .SetGenericArguments(entityType, field.FieldType)
-                .Invoke(new object(), field);
+                .InvokeStatic(field);
 
             if (!TryDescribeAsObject(context, objectDescriptor, field.FieldType, field.Name, getter))
                 return false;
@@ -51,7 +51,7 @@ internal class ObjectEncodeLinker<TNative> : IEncodeLinker<TNative>
     }
 
     private static bool TryDescribeAsObject<TEntity>(EncodeContext<TNative> context,
-        IEncoderObjectDescriptor<TNative, TEntity> objectDescriptor, Type type, string name, object getter)
+        IEncoderObjectDescriptor<TNative, TEntity> objectDescriptor, Type type, string name, object? getter)
     {
         if (context.Parents.TryGetValue(type, out var recurse))
         {
@@ -60,7 +60,7 @@ internal class ObjectEncodeLinker<TNative> : IEncodeLinker<TNative>
                     IEncoderDescriptor<TNative, object>,
                     IEncoderDescriptor<TNative, object>>>((d, n, a, p) => d.HasField(n, a, p))
                 .SetGenericArguments(type)
-                .Invoke(objectDescriptor, name, getter, recurse);
+                .InvokeInstance(objectDescriptor, name, getter, recurse);
 
             return true;
         }
@@ -70,12 +70,12 @@ internal class ObjectEncodeLinker<TNative> : IEncodeLinker<TNative>
                 IEncoderDescriptor<TNative, object>>>(
                 (d, n, a) => d.HasField(n, a))
             .SetGenericArguments(type)
-            .Invoke(objectDescriptor, name, getter);
+            .InvokeInstance(objectDescriptor, name, getter);
 
         return (bool)MethodResolver
             .Create<Func<IEncodeLinker<TNative>, EncodeContext<TNative>, IEncoderDescriptor<TNative, object>, bool>>(
                 (l, c, d) => l.TryDescribe(c, d))
             .SetGenericArguments(type)
-            .Invoke(context.Automatic, context, fieldDescriptor);
+            .InvokeInstance(context.Automatic, context, fieldDescriptor)!;
     }
 }

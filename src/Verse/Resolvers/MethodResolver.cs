@@ -6,6 +6,8 @@ namespace Verse.Resolvers;
 
 internal readonly struct MethodResolver
 {
+    private static readonly object NoCaller = new();
+
     public readonly MethodInfo Method;
 
     /// <Summary>
@@ -25,12 +27,19 @@ internal readonly struct MethodResolver
     }
 
     /// <Summary>
-    /// Invoke method with given caller instance and arguments.
+    /// Invoke instance method with given caller instance and arguments.
     /// </Summary>
-    public object Invoke(object caller, params object[] arguments)
+    public object? InvokeInstance(object caller, params object?[] arguments)
     {
-        return Method.Invoke(caller, arguments) ??
-               new InvalidOperationException("invoked method didn't return any result");
+        return Method.Invoke(caller, arguments);
+    }
+
+    /// <Summary>
+    /// Invoke static method with given arguments.
+    /// </Summary>
+    public object? InvokeStatic(params object?[] arguments)
+    {
+        return Method.Invoke(NoCaller, arguments);
     }
 
     /// <Summary>
