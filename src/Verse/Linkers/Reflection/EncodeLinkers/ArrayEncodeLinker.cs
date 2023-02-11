@@ -8,6 +8,11 @@ namespace Verse.Linkers.Reflection.EncodeLinkers;
 
 internal class ArrayEncodeLinker<TNative> : IEncodeLinker<TNative>
 {
+    private static readonly MethodResolver TryDescribeAsArrayMethod =
+        MethodResolver
+            .Create<Func<EncodeContext<TNative>, IEncoderDescriptor<TNative, object>, Func<object, IEnumerable<object>>,
+                bool>>((c, d, g) => TryDescribeAsArray(c, d, g));
+
     public static readonly ArrayEncodeLinker<TNative> Instance = new();
 
     public bool TryDescribe<TEntity>(EncodeContext<TNative> context, IEncoderDescriptor<TNative, TEntity> descriptor)
@@ -27,7 +32,8 @@ internal class ArrayEncodeLinker<TNative> : IEncodeLinker<TNative>
                 .SetGenericArguments(typeof(IEnumerable<>).MakeGenericType(elementType))
                 .InvokeStatic();
 
-            return TryDescribeAsArray(context, descriptor, elementType, getter);
+            return (bool)TryDescribeAsArrayMethod.SetGenericArguments(entityType, elementType)
+                .InvokeStatic(context, descriptor, getter)!;
         }
 
         // Try to bind descriptor as an instance of IEnumerable<>
@@ -45,39 +51,26 @@ internal class ArrayEncodeLinker<TNative> : IEncodeLinker<TNative>
                 .SetGenericArguments(typeof(IEnumerable<>).MakeGenericType(elementType))
                 .InvokeStatic();
 
-            return TryDescribeAsArray(context, descriptor, elementType, getter);
+            return (bool)TryDescribeAsArrayMethod.SetGenericArguments(entityType, elementType)
+                .InvokeStatic(context, descriptor, getter)!;
         }
 
         // Type doesn't seem compatible with array
         return false;
     }
 
-    private static bool TryDescribeAsArray<TEntity>(EncodeContext<TNative> context,
-        IEncoderDescriptor<TNative, TEntity> descriptor, Type elementType, object? getter)
+    private static bool TryDescribeAsArray<TEntity, TElement>(EncodeContext<TNative> context,
+        IEncoderDescriptor<TNative, TEntity> descriptor, Func<TEntity, IEnumerable<TElement>> getter)
     {
-        if (context.Parents.TryGetValue(elementType, out var recurse))
+        if (context.Parents.TryGetValue(typeof(TElement), out var recurse))
         {
-            MethodResolver
-                .Create<Func<IEncoderDescriptor<TNative, TEntity>, Func<TEntity, IEnumerable<object>>,
-                    IEncoderDescriptor<TNative, object>,
-                    IEncoderDescriptor<TNative, object>>>((d, a, p) => d.IsArray(a, p))
-                .SetGenericArguments(elementType)
-                .InvokeInstance(descriptor, getter, recurse);
+            descriptor.IsArray(getter, (IEncoderDescriptor<TNative, TElement>)recurse);
 
             return true;
         }
 
-        var itemDescriptor = MethodResolver
-            .Create<Func<IEncoderDescriptor<TNative, TEntity>, Func<TEntity, IEnumerable<object>>,
-                IEncoderDescriptor<TNative, object>>>(
-                (d, a) => d.IsArray(a))
-            .SetGenericArguments(elementType)
-            .InvokeInstance(descriptor, getter);
+        var itemDescriptor = descriptor.IsArray(getter);
 
-        return (bool)MethodResolver
-            .Create<Func<IEncodeLinker<TNative>, EncodeContext<TNative>, IEncoderDescriptor<TNative, object>, bool>>(
-                (l, c, d) => l.TryDescribe(c, d))
-            .SetGenericArguments(elementType)
-            .InvokeInstance(context.Automatic, context, itemDescriptor)!;
+        return context.Automatic.TryDescribe(context, itemDescriptor);
     }
 }

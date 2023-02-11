@@ -8,6 +8,11 @@ namespace Verse.Linkers.Reflection.DecodeLinkers;
 
 internal class ArrayDecodeLinker<TNative> : IDecodeLinker<TNative>
 {
+    private static readonly MethodResolver TryDescribeAsArrayMethod =
+        MethodResolver
+            .Create<Func<DecodeContext<TNative>, IDecoderDescriptor<TNative, object>, Func<IEnumerable<object>, object>,
+                bool>>((c, d, s) => TryDescribeAsArray(c, d, s));
+
     public static readonly ArrayDecodeLinker<TNative> Instance = new();
 
     public bool TryDescribe<TEntity>(DecodeContext<TNative> context, IDecoderDescriptor<TNative, TEntity> descriptor)
@@ -28,7 +33,8 @@ internal class ArrayDecodeLinker<TNative> : IDecodeLinker<TNative>
                 .SetGenericArguments(elementType)
                 .InvokeStatic();
 
-            return TryDescribeAsArray(context, descriptor, elementType, converter);
+            return (bool)TryDescribeAsArrayMethod.SetGenericArguments(entityType, elementType)
+                .InvokeStatic(context, descriptor, converter)!;
         }
 
         // Try to bind descriptor as a known interface compatible with IEnumerable<>
@@ -51,7 +57,8 @@ internal class ArrayDecodeLinker<TNative> : IDecodeLinker<TNative>
                     .SetGenericArguments(constructor.DeclaringType!, entityType)
                     .InvokeStatic(constructor);
 
-                return TryDescribeAsArray(context, descriptor, elementType, converter);
+                return (bool)TryDescribeAsArrayMethod.SetGenericArguments(entityType, elementType)
+                    .InvokeStatic(context, descriptor, converter)!;
             }
         }
 
@@ -87,7 +94,8 @@ internal class ArrayDecodeLinker<TNative> : IDecodeLinker<TNative>
                     .SetGenericArguments(entityType, parameterType)
                     .InvokeStatic(constructor);
 
-                return TryDescribeAsArray(context, descriptor, elementType, converter);
+                return (bool)TryDescribeAsArrayMethod.SetGenericArguments(entityType, elementType)
+                    .InvokeStatic(context, descriptor, converter)!;
             }
         }
 
@@ -95,32 +103,18 @@ internal class ArrayDecodeLinker<TNative> : IDecodeLinker<TNative>
         return false;
     }
 
-    private static bool TryDescribeAsArray<TEntity>(DecodeContext<TNative> context,
-        IDecoderDescriptor<TNative, TEntity> descriptor, Type elementType, object? converter)
+    private static bool TryDescribeAsArray<TEntity, TElement>(DecodeContext<TNative> context,
+        IDecoderDescriptor<TNative, TEntity> descriptor, Func<IEnumerable<TElement>, TEntity> converter)
     {
-        if (context.Parents.TryGetValue(elementType, out var recurse))
+        if (context.Parents.TryGetValue(typeof(TElement), out var recurse))
         {
-            MethodResolver
-                .Create<Func<IDecoderDescriptor<TNative, TEntity>, Func<IEnumerable<object>, TEntity>,
-                    IDecoderDescriptor<TNative, object>, IDecoderDescriptor<TNative, object>>>((d, c, p) =>
-                    d.IsArray(c, p))
-                .SetGenericArguments(elementType)
-                .InvokeInstance(descriptor, converter, recurse);
+            descriptor.IsArray(converter, (IDecoderDescriptor<TNative, TElement>)recurse);
 
             return true;
         }
 
-        var elementDescriptor = MethodResolver
-            .Create<Func<IDecoderDescriptor<TNative, TEntity>, Func<IEnumerable<object>, TEntity>,
-                IDecoderDescriptor<TNative, object>>>(
-                (d, c) => d.IsArray(c))
-            .SetGenericArguments(elementType)
-            .InvokeInstance(descriptor, converter);
+        var elementDescriptor = descriptor.IsArray(converter);
 
-        return (bool)MethodResolver
-            .Create<Func<IDecodeLinker<TNative>, DecodeContext<TNative>, IDecoderDescriptor<TNative, object>, bool>>(
-                (l, c, d) => l.TryDescribe(c, d))
-            .SetGenericArguments(elementType)
-            .InvokeInstance(context.Automatic, context, elementDescriptor)!;
+        return context.Automatic.TryDescribe(context, elementDescriptor);
     }
 }
