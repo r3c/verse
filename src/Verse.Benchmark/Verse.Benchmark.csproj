@@ -14,7 +14,7 @@
 
     <ItemGroup>
         <PackageReference Include="BenchmarkDotNet" Version="0.13.4"/>
-        <PackageReference Include="CompareNETObjects" Version="4.80.0"/>
+        <PackageReference Include="CompareNETObjects" Version="4.81.0"/>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.2"/>
     </ItemGroup>
 </Project>
