@@ -44,7 +44,7 @@ public class QueryStringSchemaTester
 
         var value = Decode(schema, query);
 
-        Assert.AreEqual(expected, value);
+        Assert.That(expected, Is.EqualTo(value));
     }
 
     [Test]
@@ -66,7 +66,7 @@ public class QueryStringSchemaTester
 
         var value = Decode(schema, query);
 
-        Assert.AreEqual(expected, value);
+        Assert.That(expected, Is.EqualTo(value));
     }
 
     [Test]
@@ -81,7 +81,7 @@ public class QueryStringSchemaTester
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(query));
         using var decoderStream = decoder.Open(stream);
 
-        Assert.IsFalse(decoderStream.TryDecode(out _));
+        Assert.That(decoderStream.TryDecode(out _), Is.False);
     }
 
     private static TEntity Decode<TEntity>(ISchema<string, TEntity> schema, string query)
@@ -91,7 +91,7 @@ public class QueryStringSchemaTester
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(query));
         using var decoderStream = decoder.Open(stream);
 
-        Assert.IsTrue(decoderStream.TryDecode(out var value));
+        Assert.That(decoderStream.TryDecode(out var value), Is.True);
 
         return value;
     }

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -88,8 +87,8 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
         var parser = schema.CreateDecoder();
 
         var decoderStream = parser.Open(new MemoryStream(Encoding.UTF8.GetBytes(json)));
-        Assert.IsTrue(decoderStream.TryDecode(out var result));
-        Assert.AreEqual(expected, result);
+        Assert.That(decoderStream.TryDecode(out var result), Is.True);
+        Assert.That(expected, Is.EqualTo(result));
     }
 
     [Test]
@@ -120,8 +119,8 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
         var parser = schema.CreateDecoder();
 
         var decoderStream = parser.Open(new MemoryStream(Encoding.UTF8.GetBytes(json)));
-        Assert.IsTrue(decoderStream.TryDecode(out var result));
-        Assert.AreEqual(expected, result);
+        Assert.That(decoderStream.TryDecode(out var result), Is.True);
+        Assert.That(expected, Is.EqualTo(result));
     }
 
     [Test]
@@ -202,14 +201,14 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
         var decoder = schema.CreateDecoder();
         var position = -1;
 
-        decoder.Error += (p, m) => position = p;
+        decoder.Error += (p, _) => position = p;
 
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
 
         using (var decoderStream = decoder.Open(stream))
-            Assert.IsFalse(decoderStream.TryDecode(out _));
+            Assert.That(decoderStream.TryDecode(out _), Is.False);
 
-        Assert.AreEqual(expected, position);
+        Assert.That(expected, Is.EqualTo(position));
     }
 
     [Test]
@@ -294,11 +293,10 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
         using var stream = new MemoryStream("{\"f\": {\"f\": {\"v\": 42}, \"v\": 17}, \"v\": 3}"u8.ToArray());
         using var decoderStream = decoder.Open(stream);
 
-        Assert.IsTrue(decoderStream.TryDecode(out var value));
-
-        Assert.AreEqual(42, value.Field.Field.Value);
-        Assert.AreEqual(17, value.Field.Value);
-        Assert.AreEqual(3, value.Value);
+        Assert.That(decoderStream.TryDecode(out var value), Is.True);
+        Assert.That(42, Is.EqualTo(value.Field.Field.Value));
+        Assert.That(17, Is.EqualTo(value.Field.Value));
+        Assert.That(3, Is.EqualTo(value.Value));
     }
 
     [Test]
@@ -402,7 +400,7 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
     public void JsonValueFromNumberTest(double value)
     {
         var jsonValue = JsonValue.FromNumber(value);
-        Assert.AreEqual(value, jsonValue.Number);
+        Assert.That(value, Is.EqualTo(jsonValue.Number));
     }
 
     [Test]
@@ -665,7 +663,7 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
         using var decoderStream = decoder.Open(stream);
 
-        Assert.IsTrue(decoderStream.TryDecode(out var value));
+        Assert.That(decoderStream.TryDecode(out var value), Is.True);
 
         var compare = new CompareLogic();
         var result = compare.Compare(expected, value);

@@ -26,12 +26,12 @@ internal static class SchemaHelper<TNative>
         using (var stream = new MemoryStream(encoded1))
         {
             using (var decoderStream = decoder.Open(stream))
-                Assert.IsTrue(decoderStream.TryDecode(out decoded));
+                Assert.That(decoderStream.TryDecode(out decoded), Is.True);
         }
 
         var comparisonResult = new CompareLogic().Compare(instance, decoded);
 
-        CollectionAssert.IsEmpty(comparisonResult.Differences,
+        Assert.That(comparisonResult.Differences, Is.Empty,
             $"differences found after decoding entity: {comparisonResult.DifferencesString}");
 
         using (var stream = new MemoryStream())
@@ -42,7 +42,7 @@ internal static class SchemaHelper<TNative>
             encoded2 = stream.ToArray();
         }
 
-        CollectionAssert.AreEqual(encoded1, encoded2);
+        Assert.That(encoded1, Is.EqualTo(encoded2).AsCollection);
     }
 
     public static void AssertRoundTripWithLinker<TEntity>(IFormat<TNative> format, ISchema<TNative, TEntity> schema,

@@ -37,7 +37,7 @@ public class ReflectionLinkerTester
         var encoded = Encoding.UTF8.GetBytes(json);
         var decoded = CreateDecoderAndDecode(Format.Json, Schema.CreateJson<CustomList<double>>(), encoded);
 
-        CollectionAssert.AreEqual(expected, decoded);
+        Assert.That(expected, Is.EqualTo(decoded).AsCollection);
     }
 
     [Test]
@@ -60,7 +60,7 @@ public class ReflectionLinkerTester
         };
 
         foreach (var decoded in decodedResults)
-            CollectionAssert.AreEqual(expected, decoded);
+            Assert.That(expected, Is.EqualTo(decoded).AsCollection);
     }
 
     [Test]
@@ -71,7 +71,7 @@ public class ReflectionLinkerTester
         var encoded = Encoding.UTF8.GetBytes(json);
         var decoded = CreateDecoderAndDecode(Format.Json, Schema.CreateJson<List<double>>(), encoded);
 
-        CollectionAssert.AreEqual(expected, decoded);
+        Assert.That(expected, Is.EqualTo(decoded).AsCollection);
     }
 
     [Test]
@@ -82,7 +82,7 @@ public class ReflectionLinkerTester
         var encoded = Encoding.UTF8.GetBytes(json);
         var decoded = CreateDecoderAndDecode(Format.Json, Schema.CreateJson<FieldContainer<T>>(), encoded);
 
-        Assert.AreEqual(expected, decoded.Field);
+        Assert.That(expected, Is.EqualTo(decoded.Field));
     }
 
     [Test]
@@ -93,7 +93,7 @@ public class ReflectionLinkerTester
         var encoded = Encoding.UTF8.GetBytes(json);
         var decoded = CreateDecoderAndDecode(Format.Json, Schema.CreateJson<PropertyContainer<T>>(), encoded);
 
-        Assert.AreEqual(expected, decoded.Property);
+        Assert.That(expected, Is.EqualTo(decoded.Property));
     }
 
     [Test]
@@ -103,9 +103,9 @@ public class ReflectionLinkerTester
         var encoded = Encoding.UTF8.GetBytes(json);
         var decoded = CreateDecoderAndDecode(Format.Json, Schema.CreateJson<Recursive>(), encoded);
 
-        Assert.AreEqual(42, decoded.R.R.V);
-        Assert.AreEqual(17, decoded.R.V);
-        Assert.AreEqual(3, decoded.V);
+        Assert.That(42, Is.EqualTo(decoded.R.R.V));
+        Assert.That(17, Is.EqualTo(decoded.R.V));
+        Assert.That(3, Is.EqualTo(decoded.V));
     }
 
     [Test]
@@ -120,7 +120,7 @@ public class ReflectionLinkerTester
             .CreateDecoder(Format.Json, Schema.CreateJson<Visibility>());
         var decoded = Decode(decoder, encoded);
 
-        Assert.AreEqual(expected, decoded.ToString());
+        Assert.That(expected, Is.EqualTo(decoded.ToString()));
     }
 
     [Test]
@@ -198,7 +198,7 @@ public class ReflectionLinkerTester
         var decoded = new FieldContainer<T> { Field = value };
         var encoded = CreateEncoderAndEncode(Format.Json, Schema.CreateJson<FieldContainer<T>>(), decoded);
 
-        Assert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
+        Assert.That(expected, Is.EqualTo(Encoding.UTF8.GetString(encoded)));
     }
 
     [Test]
@@ -209,7 +209,7 @@ public class ReflectionLinkerTester
         var decoded = new PropertyContainer<T> { Property = value };
         var encoded = CreateEncoderAndEncode(Format.Json, Schema.CreateJson<PropertyContainer<T>>(), decoded);
 
-        Assert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
+        Assert.That(expected, Is.EqualTo(Encoding.UTF8.GetString(encoded)));
     }
 
     [Test]
@@ -221,7 +221,7 @@ public class ReflectionLinkerTester
         var schema = Schema.CreateJson<Recursive>(new JsonConfiguration { OmitNull = omitNull });
         var encoded = CreateEncoderAndEncode(Format.Json, schema, decoded);
 
-        Assert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
+        Assert.That(expected, Is.EqualTo(Encoding.UTF8.GetString(encoded)));
     }
 
     [Test]
@@ -235,7 +235,7 @@ public class ReflectionLinkerTester
             .CreateEncoder(Format.Json, Schema.CreateJson<Visibility>());
         var encoded = Encode(encoder, decoded);
 
-        Assert.AreEqual(expected, Encoding.UTF8.GetString(encoded));
+        Assert.That(expected, Is.EqualTo(Encoding.UTF8.GetString(encoded)));
     }
 
     [Test]
@@ -250,7 +250,7 @@ public class ReflectionLinkerTester
         var encoded = Encoding.UTF8.GetBytes(json);
         var decoded = Decode(decoder, encoded);
 
-        CollectionAssert.AreEqual(expected, decoded);
+        Assert.That(expected, Is.EqualTo(decoded).AsCollection);
     }
 
     private static TEntity CreateDecoderAndDecode<TNative, TEntity>(IFormat<TNative> format,
@@ -276,7 +276,7 @@ public class ReflectionLinkerTester
         using var stream = new MemoryStream(encoded);
         using var decoderStream = decoder.Open(stream);
 
-        Assert.IsTrue(decoderStream.TryDecode(out var decoded));
+        Assert.That(decoderStream.TryDecode(out var decoded), Is.True);
 
         return decoded;
     }

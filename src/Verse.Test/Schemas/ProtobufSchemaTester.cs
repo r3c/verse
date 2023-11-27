@@ -16,7 +16,7 @@ internal class ProtobufSchemaTester
         var proto = File.ReadAllText(Path.Combine(TestContext.CurrentContext.TestDirectory, path));
         var schema = new ProtobufSchema<int>(new StringReader(proto), messageName);
 
-        Assert.NotNull(schema);
+        Assert.That(schema, Is.Not.Null);
     }
 
     private class Person
@@ -47,7 +47,7 @@ internal class ProtobufSchemaTester
         using var stream = new MemoryStream(new byte[] { 16, 17, 0, 0, 0 });
         using var decoderStream = decoder.Open(stream);
 
-        Assert.True(decoderStream.TryDecode(out var entity));
-        Assert.AreEqual(17, entity.Id);
+        Assert.That(decoderStream.TryDecode(out var entity), Is.True);
+        Assert.That(17, Is.EqualTo(entity.Id));
     }
 }
