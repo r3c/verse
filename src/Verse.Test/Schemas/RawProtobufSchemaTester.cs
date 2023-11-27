@@ -8,7 +8,6 @@ using ProtoBuf;
 using Verse.Formats.Protobuf;
 using Verse.Formats.RawProtobuf;
 using Verse.Schemas;
-using Verse.Schemas.Protobuf;
 using Verse.Schemas.RawProtobuf;
 
 namespace Verse.Test.Schemas;
@@ -47,7 +46,7 @@ internal class RawProtobufSchemaTester
 
         var value = DecodeTranscode(schema.CreateDecoder(), testFieldClass);
 
-        CollectionAssert.AreEqual(testFieldClass.Items, value);
+        Assert.That(testFieldClass.Items, Is.EqualTo(value).AsCollection);
     }
 
     [Test]
@@ -74,7 +73,7 @@ internal class RawProtobufSchemaTester
 
         var value = DecodeTranscode(schema.CreateDecoder(), testFieldClass);
 
-        Assert.AreEqual(expectedValue, value);
+        Assert.That(expectedValue, Is.EqualTo(value));
     }
 
     [Test]
@@ -101,7 +100,7 @@ internal class RawProtobufSchemaTester
 
         var decodedValue = DecodeTranscode(schema.CreateDecoder(), testFieldClass);
 
-        Assert.AreEqual(value, decodedValue);
+        Assert.That(value, Is.EqualTo(decodedValue));
     }
 
     [Test]
@@ -148,11 +147,11 @@ internal class RawProtobufSchemaTester
 
         var decodedValue = DecodeRoundTrip(schema.CreateDecoder(), testFieldClass);
 
-        Assert.AreEqual(expectedValues.Length, decodedValue.Items.Count);
+        Assert.That(expectedValues.Length, Is.EqualTo(decodedValue.Items.Count));
 
         for (var i = 0; i < expectedValues.Length; ++i)
         {
-            Assert.AreEqual(expectedValues[i], decodedValue.Items[i].SubValue.Value);
+            Assert.That(expectedValues[i], Is.EqualTo(decodedValue.Items[i].SubValue.Value));
         }
     }
 
@@ -240,7 +239,7 @@ internal class RawProtobufSchemaTester
 
         var value = DecodeTranscode(schema.CreateDecoder(), testFieldClass);
 
-        Assert.AreEqual(expected, value);
+        Assert.That(expected, Is.EqualTo(value));
     }
 
     [Test]
@@ -267,7 +266,7 @@ internal class RawProtobufSchemaTester
         var testFieldClass =
             EncodeTranscode<List<T>, TestFieldClass<T>>(schema.CreateEncoder(), new List<T>(expectedItems));
 
-        CollectionAssert.AreEqual(expectedItems, testFieldClass.Items);
+        Assert.That(expectedItems, Is.EqualTo(testFieldClass.Items).AsCollection);
     }
 
     [Test]
@@ -294,7 +293,7 @@ internal class RawProtobufSchemaTester
 
         var decodedTestFieldClass = EncodeRoundTrip(schema.CreateEncoder(), testFieldClass);
 
-        Assert.AreEqual(expectedValue, decodedTestFieldClass.SubValue.Value);
+        Assert.That(expectedValue, Is.EqualTo(decodedTestFieldClass.SubValue.Value));
     }
 
     [Test]
@@ -322,7 +321,7 @@ internal class RawProtobufSchemaTester
             EncodeTranscode<T, TestFieldClass<T>>(schema.CreateEncoder(),
                 value);
 
-        Assert.AreEqual(value, testFieldClass.Value);
+        Assert.That(value, Is.EqualTo(testFieldClass.Value));
     }
 
     [Test]
@@ -364,10 +363,10 @@ internal class RawProtobufSchemaTester
 
         var decodedFieldClass = EncodeRoundTrip(schema.CreateEncoder(), fieldClass);
 
-        Assert.AreEqual(expectedValues.Length, decodedFieldClass.Items.Count);
+        Assert.That(expectedValues.Length, Is.EqualTo(decodedFieldClass.Items.Count));
 
         for (var i = 0; i < expectedValues.Length; ++i)
-            Assert.AreEqual(expectedValues[i], decodedFieldClass.Items[i].SubValue.Value);
+            Assert.That(expectedValues[i], Is.EqualTo(decodedFieldClass.Items[i].SubValue.Value));
     }
 
     private static ISchema<RawProtobufValue, TEntity> CreateSchema<TEntity>()
@@ -390,7 +389,7 @@ internal class RawProtobufSchemaTester
 
         using var decoderStream = decoder.Open(stream);
 
-        Assert.IsTrue(decoderStream.TryDecode(out var output));
+        Assert.That(decoderStream.TryDecode(out var output), Is.True);
 
         return output;
     }
