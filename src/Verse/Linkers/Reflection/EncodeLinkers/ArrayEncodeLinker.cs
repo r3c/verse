@@ -32,26 +32,29 @@ internal class ArrayEncodeLinker<TNative> : IEncodeLinker<TNative>
                 .SetGenericArguments(typeof(IEnumerable<>).MakeGenericType(elementType))
                 .InvokeStatic();
 
-            return (bool)TryDescribeAsArrayMethod.SetGenericArguments(entityType, elementType)
+            return (bool)TryDescribeAsArrayMethod
+                .SetGenericArguments(entityType, elementType)
                 .InvokeStatic(context, descriptor, getter)!;
         }
 
-        // Try to bind descriptor as an instance of IEnumerable<>
+        // Try to bind descriptor as an instance of `IEnumerable<T>`
         foreach (var interfaceType in entityType.GetInterfaces().Append(entityType))
         {
-            // Make sure that interface is IEnumerable<T> and store typeof(T)
+            // Make sure that interface is `IEnumerable<T>` and store `typeof(T)`
             var interfaceResolver = TypeResolver.Create(interfaceType);
 
             if (!interfaceResolver.HasSameDefinitionThan<IEnumerable<object>>())
                 continue;
 
             var elementType = interfaceResolver.Type.GetGenericArguments()[0];
+            var outputType = typeof(IEnumerable<>).MakeGenericType(elementType);
             var getter = MethodResolver
                 .Create<Func<Func<object, object>>>(() => GetterGenerator.CreateIdentity<object>())
-                .SetGenericArguments(typeof(IEnumerable<>).MakeGenericType(elementType))
+                .SetGenericArguments(outputType)
                 .InvokeStatic();
 
-            return (bool)TryDescribeAsArrayMethod.SetGenericArguments(entityType, elementType)
+            return (bool)TryDescribeAsArrayMethod
+                .SetGenericArguments(entityType, elementType)
                 .InvokeStatic(context, descriptor, getter)!;
         }
 
