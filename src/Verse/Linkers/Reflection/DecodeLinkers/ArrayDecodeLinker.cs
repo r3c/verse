@@ -55,17 +55,19 @@ internal class ArrayDecodeLinker<TNative> : IDecodeLinker<TNative>
                 .SetGenericArguments(elementType)
                 .InvokeStatic();
 
-            return (bool)ArrayDecodeLinkerTryDescribeAsArray.SetGenericArguments(entityType, elementType)
+            return (bool)ArrayDecodeLinkerTryDescribeAsArray
+                .SetGenericArguments(entityType, elementType)
                 .InvokeStatic(context, descriptor, converter)!;
         }
 
-        // Try to bind descriptor as a known interface compatible with IEnumerable<>
+        // Try to bind descriptor as a known list-like interface (e.g. `IReadOnlyList<T>` or `ICollection<T>`)
         if (entityType is { IsInterface: true, IsGenericType: true })
         {
             var interfaceResolver = TypeResolver.Create(entityType);
 
             foreach (var (interfaceType, constructorResolver) in ArrayDecodeLinker.KnownInterfaces)
             {
+                // Check if current entity is a `ISomething<T>` where `ISomething` is a known list-like interface
                 var hasSameDefinition = (bool)MethodResolver
                     .Create<Func<TypeResolver, bool>>(r => r.HasSameDefinitionThan<object>())
                     .SetGenericArguments(interfaceType)
@@ -74,24 +76,27 @@ internal class ArrayDecodeLinker<TNative> : IDecodeLinker<TNative>
                 if (!hasSameDefinition)
                     continue;
 
+                // Resolve constructor from `IEnumerable<T>` input
                 var elementType = interfaceResolver.Type.GetGenericArguments()[0];
+                var inputType = typeof(IEnumerable<>).MakeGenericType(elementType);
                 var constructor = constructorResolver.SetTypeGenericArguments(elementType).Constructor;
 
                 var converter = MethodResolver
                     .Create<Func<ConstructorInfo, Func<object, object>>>(c =>
                         ConverterGenerator.CreateFromConstructor<object, object>(c))
-                    .SetGenericArguments(constructor.DeclaringType!, typeof(IEnumerable<>).MakeGenericType(elementType))
+                    .SetGenericArguments(constructor.DeclaringType!, inputType)
                     .InvokeStatic(constructor);
 
-                return (bool)ArrayDecodeLinkerTryDescribeAsArray.SetGenericArguments(entityType, elementType)
+                return (bool)ArrayDecodeLinkerTryDescribeAsArray
+                    .SetGenericArguments(entityType, elementType)
                     .InvokeStatic(context, descriptor, converter)!;
             }
         }
 
-        // Try to bind descriptor as an instance of IEnumerable<>
+        // Try to bind descriptor as a custom implementation of `IEnumerable<T>`
         foreach (var interfaceType in entityType.GetInterfaces())
         {
-            // Make sure that interface is IEnumerable<T> and store typeof(T)
+            // Make sure that interface is `IEnumerable<T>` and store `typeof(T)`
             var interfaceResolver = TypeResolver.Create(interfaceType);
 
             if (!interfaceResolver.HasSameDefinitionThan<IEnumerable<object>>())
@@ -99,7 +104,7 @@ internal class ArrayDecodeLinker<TNative> : IDecodeLinker<TNative>
 
             var elementType = interfaceResolver.Type.GetGenericArguments()[0];
 
-            // Search constructor compatible with IEnumerable<>
+            // Search constructor compatible with `IEnumerable<T>`
             foreach (var constructor in entityType.GetConstructors())
             {
                 var parameters = constructor.GetParameters();
@@ -120,7 +125,8 @@ internal class ArrayDecodeLinker<TNative> : IDecodeLinker<TNative>
                     .SetGenericArguments(entityType, parameterType)
                     .InvokeStatic(constructor);
 
-                return (bool)ArrayDecodeLinkerTryDescribeAsArray.SetGenericArguments(entityType, elementType)
+                return (bool)ArrayDecodeLinkerTryDescribeAsArray
+                    .SetGenericArguments(entityType, elementType)
                     .InvokeStatic(context, descriptor, converter)!;
             }
         }
