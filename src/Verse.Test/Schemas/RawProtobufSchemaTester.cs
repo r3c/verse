@@ -211,24 +211,24 @@ internal class RawProtobufSchemaTester
         };
 
         var descriptor = schema.DecoderDescriptor
-            .IsObject(() => default!)
+            .IsObject(() => 0!)
             .HasField<int>("_2", (_, v) => v);
 
         if (index0.HasValue)
         {
             descriptor = descriptor
-                .IsObject(() => default!)
+                .IsObject(() => 0!)
                 .HasField<int>(index0.Value.ToString(CultureInfo.InvariantCulture), (_, v) => v);
         }
 
         descriptor = descriptor
-            .IsObject(() => default!)
+            .IsObject(() => 0!)
             .HasField<int>("_2", (_, v) => v);
 
         if (index1.HasValue)
         {
             descriptor = descriptor
-                .IsObject(() => default!)
+                .IsObject(() => 0!)
                 .HasField<int>(index1.Value.ToString(CultureInfo.InvariantCulture), (_, v) => v);
         }
 

@@ -107,7 +107,7 @@ internal class Reader : IReader<ReaderState, string, char>
             case QueryStringLocation.Sequence:
                 var dummy = false;
 
-                value = default!;
+                value = null!;
 
                 return ReadToObject(state,
                     EmptyLookupNode<char, ReaderCallback<ReaderState, string, char, bool>>.Instance, ref dummy);
@@ -121,7 +121,7 @@ internal class Reader : IReader<ReaderState, string, char>
                 return ReaderStatus.Succeeded;
 
             default:
-                value = default!;
+                value = null!;
 
                 return ReaderStatus.Failed;
         }
@@ -170,7 +170,7 @@ internal class Reader : IReader<ReaderState, string, char>
                 {
                     if (count >= buffer.Length)
                     {
-                        value = default!;
+                        value = null!;
 
                         return false;
                     }
@@ -179,7 +179,7 @@ internal class Reader : IReader<ReaderState, string, char>
 
                     if (state.Current == -1)
                     {
-                        value = default!;
+                        value = null!;
 
                         return false;
                     }
@@ -190,7 +190,7 @@ internal class Reader : IReader<ReaderState, string, char>
 
                     if (state.Current == -1)
                     {
-                        value = default!;
+                        value = null!;
 
                         return false;
                     }
@@ -201,7 +201,7 @@ internal class Reader : IReader<ReaderState, string, char>
 
                     if (hex1 < 0 || hex2 < 0)
                     {
-                        value = default!;
+                        value = null!;
 
                         return false;
                     }

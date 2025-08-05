@@ -52,7 +52,7 @@ internal class ReaderState
         // Complex objects are expected to be at top-level (no parent field type) or contained within string type
         if (_fieldType.GetValueOrDefault(RawProtobufWireType.String) != RawProtobufWireType.String)
         {
-            backup = default;
+            backup = null;
 
             return false;
         }

@@ -17,7 +17,7 @@ public readonly struct RawProtobufValue
 
     public RawProtobufValue(string value, RawProtobufWireType storage)
     {
-        Number = default;
+        Number = 0;
         Storage = storage;
         String = value;
     }

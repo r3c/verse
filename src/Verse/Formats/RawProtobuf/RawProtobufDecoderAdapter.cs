@@ -31,7 +31,7 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
             RawProtobufWireType.Fixed32 => (char)source.Number,
             RawProtobufWireType.Fixed64 => (char)source.Number,
             RawProtobufWireType.VarInt => (char)source.Number,
-            RawProtobufWireType.String => source.String.Length > 0 ? source.String[0] : default,
+            RawProtobufWireType.String => source.String.Length > 0 ? source.String[0] : '\0',
             _ => throw new ArgumentOutOfRangeException(nameof(source.Storage), source.Storage, "invalid storage")
         };
     };
@@ -46,7 +46,7 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
             RawProtobufWireType.String => decimal.TryParse(source.String, NumberStyles.Integer,
                 CultureInfo.InvariantCulture, out var target)
                 ? target
-                : default,
+                : 0,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Storage), source.Storage, "invalid storage")
         };
     };
@@ -61,7 +61,7 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
             RawProtobufWireType.String => float.TryParse(source.String, NumberStyles.Integer,
                 CultureInfo.InvariantCulture, out var target)
                 ? target
-                : default,
+                : 0,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Storage), source.Storage, "invalid storage")
         };
     };
@@ -76,7 +76,7 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
             RawProtobufWireType.String => double.TryParse(source.String, NumberStyles.Integer,
                 CultureInfo.InvariantCulture, out var target)
                 ? target
-                : default,
+                : 0,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Storage), source.Storage, "invalid storage")
         };
     };
@@ -151,7 +151,7 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
             RawProtobufWireType.String => int.TryParse(source.String, NumberStyles.Integer,
                 CultureInfo.InvariantCulture, out var target)
                 ? target
-                : default,
+                : 0,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Storage), source.Storage, "invalid storage")
         };
     };
@@ -166,7 +166,7 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
             RawProtobufWireType.String => uint.TryParse(source.String, NumberStyles.Integer,
                 CultureInfo.InvariantCulture, out var target)
                 ? target
-                : default,
+                : 0,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Storage), source.Storage, "invalid storage")
         };
     };
@@ -181,7 +181,7 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
             RawProtobufWireType.String => long.TryParse(source.String, NumberStyles.Integer,
                 CultureInfo.InvariantCulture, out var target)
                 ? target
-                : default,
+                : 0,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Storage), source.Storage, "invalid storage")
         };
     };
@@ -196,7 +196,7 @@ internal class RawProtobufDecoderAdapter : IDecoderAdapter<RawProtobufValue>
             RawProtobufWireType.String => ulong.TryParse(source.String, NumberStyles.Integer,
                 CultureInfo.InvariantCulture, out var target)
                 ? target
-                : default,
+                : 0,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Storage), source.Storage, "invalid storage")
         };
     };
