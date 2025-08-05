@@ -8,7 +8,7 @@
         <IsTestProject>true</IsTestProject>
         <LangVersion>latest</LangVersion>
         <PackageId>Verse.Test</PackageId>
-        <TargetFrameworks>net7.0;net6.0;net472</TargetFrameworks>
+        <TargetFramework>net9.0</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>

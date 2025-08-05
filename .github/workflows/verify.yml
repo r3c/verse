@@ -13,7 +13,7 @@ on:
 env:
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_NOLOGO: true
-  DOTNET_VERSION: 7.0.x
+  DOTNET_VERSION: 9.0.x
 
 jobs:
   build:
@@ -23,8 +23,7 @@ jobs:
     strategy:
       matrix:
         dotnet: # https://dotnetcli.blob.core.windows.net/dotnet/release-metadata/releases-index.json
-          - framework: net6.0
-          - framework: net7.0
+          - framework: net9.0
 
     steps:
       - uses: actions/checkout@v4
@@ -53,4 +52,4 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
-      - run: dotnet test --framework net7.0 src/Verse.Test
+      - run: dotnet test --framework net9.0 src/Verse.Test
