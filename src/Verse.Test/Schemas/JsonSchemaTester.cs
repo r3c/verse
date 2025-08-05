@@ -634,9 +634,8 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
     [Test]
     public void RoundTripCustomType()
     {
-        var linker = Linker.CreateReflection<JsonValue>();
+        var linker = Linker.CreateReflection<JsonValue>(BindingFlags.Instance | BindingFlags.Public);
 
-        linker.SetBindingFlags(BindingFlags.Public | BindingFlags.Instance);
         linker.SetDecoderDescriptor<Guid>(d => d.IsValue(v => Guid.TryParse(v.String, out var g) ? g : Guid.Empty));
         linker.SetEncoderDescriptor<Guid>(d => d.IsValue(g => JsonValue.FromString(g.ToString())));
 

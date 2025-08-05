@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Reflection;
 using KellermanSoftware.CompareNetObjects;
 using NUnit.Framework;
 using Verse.Linkers.Reflection.DecodeLinkers;
@@ -49,7 +50,7 @@ internal static class SchemaHelper<TNative>
     public static void AssertRoundTripWithLinker<TEntity>(IFormat<TNative> format, ISchema<TNative, TEntity> schema,
         TEntity instance)
     {
-        var linker = Linker.CreateReflection<TNative>();
+        var linker = Linker.CreateReflection<TNative>(BindingFlags.Instance | BindingFlags.Public);
 
         AssertRoundTripWithCustom(linker.CreateDecoder(format, schema), linker.CreateEncoder(format, schema), instance);
     }

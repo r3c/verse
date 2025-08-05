@@ -112,11 +112,10 @@ public class ReflectionLinkerTester
     [TestCase(BindingFlags.Instance | BindingFlags.Public, "{\"IsPublic\":1}", "0:0:1")]
     [TestCase(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
         "{\"IsPublic\":1,\"IsProtected\":2,\"_isPrivate\":3}", "3:2:1")]
-    public void CreateDecoder_WithBindingFlags(BindingFlags bindings, string json, string expected)
+    public void CreateDecoder_WithBindingFlags(BindingFlags bindingFlags, string json, string expected)
     {
         var encoded = Encoding.UTF8.GetBytes(json);
-        var decoder = Linker.CreateReflection<JsonValue>()
-            .SetBindingFlags(bindings)
+        var decoder = Linker.CreateReflection<JsonValue>(bindingFlags)
             .CreateDecoder(Format.Json, Schema.CreateJson<Visibility>());
         var decoded = Decode(decoder, encoded);
 
@@ -135,7 +134,7 @@ public class ReflectionLinkerTester
     public void CreateDecoder_ShouldThrowWhenNoParameterlessConstructor()
     {
         var schema = Schema.CreateJson<Uri>();
-        var linker = Linker.CreateReflection<JsonValue>();
+        var linker = Linker.CreateReflection<JsonValue>(BindingFlags.Instance | BindingFlags.Public);
 
         Assert.That(() => linker.CreateDecoder(Format.Json, schema), Throws.InstanceOf<ConstructorNotFoundException>());
     }
@@ -227,11 +226,10 @@ public class ReflectionLinkerTester
     [Test]
     [TestCase(BindingFlags.Instance | BindingFlags.Public, "{\"IsPublic\":0}")]
     [TestCase(BindingFlags.Instance | BindingFlags.NonPublic, "{\"IsProtected\":0,\"_isPrivate\":0}")]
-    public void CreateEncoder_WithBindingFlags(BindingFlags bindings, string expected)
+    public void CreateEncoder_WithBindingFlags(BindingFlags bindingFlags, string expected)
     {
         var decoded = new Visibility();
-        var encoder = Linker.CreateReflection<JsonValue>()
-            .SetBindingFlags(bindings)
+        var encoder = Linker.CreateReflection<JsonValue>(bindingFlags)
             .CreateEncoder(Format.Json, Schema.CreateJson<Visibility>());
         var encoded = Encode(encoder, decoded);
 
@@ -243,7 +241,7 @@ public class ReflectionLinkerTester
     public void SetDecoderDescriptor_OverrideSystemType(string json, int[] expected)
     {
         var decoder = Linker
-            .CreateReflection<JsonValue>()
+            .CreateReflection<JsonValue>(BindingFlags.Instance | BindingFlags.Public)
             .SetDecoderDescriptor<int>(descriptor => descriptor.IsValue(v => (int)(v.Number * 2)))
             .CreateDecoder(Format.Json, Schema.CreateJson<int[]>());
 
@@ -256,7 +254,7 @@ public class ReflectionLinkerTester
     private static TEntity CreateDecoderAndDecode<TNative, TEntity>(IFormat<TNative> format,
         ISchema<TNative, TEntity> schema, byte[] encoded)
     {
-        var linker = Linker.CreateReflection<TNative>();
+        var linker = Linker.CreateReflection<TNative>(BindingFlags.Instance | BindingFlags.Public);
         var decoder = linker.CreateDecoder(format, schema);
 
         return Decode(decoder, encoded);
@@ -265,7 +263,7 @@ public class ReflectionLinkerTester
     private static byte[] CreateEncoderAndEncode<TNative, TEntity>(IFormat<TNative> format,
         ISchema<TNative, TEntity> schema, TEntity decoded)
     {
-        var linker = Linker.CreateReflection<TNative>();
+        var linker = Linker.CreateReflection<TNative>(BindingFlags.Instance | BindingFlags.Public);
         var encoder = linker.CreateEncoder(format, schema);
 
         return Encode(encoder, decoded);
