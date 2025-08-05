@@ -2,12 +2,12 @@ using System;
 
 namespace Verse.Linkers.Reflection.DecodeLinkers;
 
-internal class DescriptorDecodeLinker<TNative> : IDecodeLinker<TNative>
+internal class ActionDecodeLinker<TNative> : IDecodeLinker<TNative>
 {
     private readonly object _action;
     private readonly Type _match;
 
-    public DescriptorDecodeLinker(Type match, object action)
+    public ActionDecodeLinker(Type match, object action)
     {
         _action = action;
         _match = match;

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -21,7 +22,12 @@ internal class AutomaticEncodeLinker<TNative> : IEncodeLinker<TNative>
 
     public bool TryDescribe<TEntity>(EncodeContext<TNative> context, IEncoderDescriptor<TNative, TEntity> descriptor)
     {
-        // TODO: should "Parents" be stored as a field within this class?
+        if (context.Parents.ContainsKey(typeof(TEntity)))
+        {
+            throw new InvalidOperationException(
+                $"{typeof(TEntity)} already described by {nameof(AutomaticEncodeLinker<TNative>)}");
+        }
+
         context.Parents[typeof(TEntity)] = descriptor;
 
         // Try describe using known encode linkers
