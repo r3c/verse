@@ -14,10 +14,10 @@
         <PackageTags>Verse;Generic;Serialization;JSON;Protobuf</PackageTags>
         <RepositoryType>git</RepositoryType>
         <RepositoryUrl>git://github.com/r3c/verse</RepositoryUrl>
-        <TargetFrameworks>net7.0;net6.0;net472</TargetFrameworks>
         <Title>Verse: Versatile (de)Serializer</Title>
         <Version>0.6.0</Version>
         <Nullable>enable</Nullable>
+        <TargetFramework>net9.0</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' ">
