@@ -2,12 +2,12 @@ using System;
 
 namespace Verse.Linkers.Reflection.EncodeLinkers;
 
-internal class DescriptorEncodeLinker<TNative> : IEncodeLinker<TNative>
+internal class ActionEncodeLinker<TNative> : IEncodeLinker<TNative>
 {
     private readonly object _action;
     private readonly Type _match;
 
-    public DescriptorEncodeLinker(Type match, object action)
+    public ActionEncodeLinker(Type match, object action)
     {
         _action = action;
         _match = match;

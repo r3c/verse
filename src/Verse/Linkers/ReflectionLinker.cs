@@ -46,14 +46,14 @@ internal class ReflectionLinker<TNative> : ILinker<TNative>
 
     public ILinker<TNative> SetDecoderDescriptor<TEntity>(Action<IDecoderDescriptor<TNative, TEntity>> describe)
     {
-        _decodeLinkers[typeof(TEntity)] = new DescriptorDecodeLinker<TNative>(typeof(TEntity), describe);
+        _decodeLinkers[typeof(TEntity)] = new ActionDecodeLinker<TNative>(typeof(TEntity), describe);
 
         return this;
     }
 
     public ILinker<TNative> SetEncoderDescriptor<TEntity>(Action<IEncoderDescriptor<TNative, TEntity>> describe)
     {
-        _encodeLinkers[typeof(TEntity)] = new DescriptorEncodeLinker<TNative>(typeof(TEntity), describe);
+        _encodeLinkers[typeof(TEntity)] = new ActionEncodeLinker<TNative>(typeof(TEntity), describe);
 
         return this;
     }
