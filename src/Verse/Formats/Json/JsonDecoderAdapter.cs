@@ -14,7 +14,7 @@ internal class JsonDecoderAdapter : IDecoderAdapter<JsonValue>
             JsonType.Boolean => source.Boolean,
             JsonType.Number => Math.Abs(source.Number) >= double.Epsilon,
             JsonType.String => !string.IsNullOrEmpty(source.String),
-            JsonType.Undefined => default,
+            JsonType.Undefined => false,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
         };
     };
@@ -25,8 +25,8 @@ internal class JsonDecoderAdapter : IDecoderAdapter<JsonValue>
         {
             JsonType.Boolean => source.Boolean ? '1' : '\0',
             JsonType.Number => Math.Abs(source.Number) >= double.Epsilon ? '1' : '\0',
-            JsonType.String => source.String.Length > 0 ? source.String[0] : default,
-            JsonType.Undefined => default,
+            JsonType.String => source.String.Length > 0 ? source.String[0] : '\0',
+            JsonType.Undefined => '\0',
             _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
         };
     };
@@ -40,8 +40,8 @@ internal class JsonDecoderAdapter : IDecoderAdapter<JsonValue>
             JsonType.String => decimal.TryParse(source.String, NumberStyles.Float, CultureInfo.InvariantCulture,
                 out var target)
                 ? target
-                : default,
-            JsonType.Undefined => default,
+                : 0,
+            JsonType.Undefined => 0,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
         };
     };
@@ -55,8 +55,8 @@ internal class JsonDecoderAdapter : IDecoderAdapter<JsonValue>
             JsonType.String => float.TryParse(source.String, NumberStyles.Float, CultureInfo.InvariantCulture,
                 out var target)
                 ? target
-                : default,
-            JsonType.Undefined => default,
+                : 0,
+            JsonType.Undefined => 0,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
         };
     };
@@ -70,8 +70,8 @@ internal class JsonDecoderAdapter : IDecoderAdapter<JsonValue>
             JsonType.String => double.TryParse(source.String, NumberStyles.Float, CultureInfo.InvariantCulture,
                 out var target)
                 ? target
-                : default,
-            JsonType.Undefined => default,
+                : 0,
+            JsonType.Undefined => 0,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
         };
     };
@@ -86,7 +86,7 @@ internal class JsonDecoderAdapter : IDecoderAdapter<JsonValue>
                 out var target)
                 ? target
                 : default,
-            JsonType.Undefined => default,
+            JsonType.Undefined => 0,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
         };
     };
@@ -115,7 +115,7 @@ internal class JsonDecoderAdapter : IDecoderAdapter<JsonValue>
                 out var target)
                 ? target
                 : default,
-            JsonType.Undefined => default,
+            JsonType.Undefined => 0,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
         };
     };
@@ -130,7 +130,7 @@ internal class JsonDecoderAdapter : IDecoderAdapter<JsonValue>
                 out var target)
                 ? target
                 : default,
-            JsonType.Undefined => default,
+            JsonType.Undefined => 0,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
         };
     };
@@ -144,8 +144,8 @@ internal class JsonDecoderAdapter : IDecoderAdapter<JsonValue>
             JsonType.String => int.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
                 out var target)
                 ? target
-                : default,
-            JsonType.Undefined => default,
+                : 0,
+            JsonType.Undefined => 0,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
         };
     };
@@ -159,7 +159,7 @@ internal class JsonDecoderAdapter : IDecoderAdapter<JsonValue>
             JsonType.String => uint.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
                 out var target)
                 ? target
-                : default,
+                : 0,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
         };
     };
@@ -173,7 +173,7 @@ internal class JsonDecoderAdapter : IDecoderAdapter<JsonValue>
             JsonType.String => long.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
                 out var target)
                 ? target
-                : default,
+                : 0,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
         };
     };
@@ -187,7 +187,7 @@ internal class JsonDecoderAdapter : IDecoderAdapter<JsonValue>
             JsonType.String => ulong.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
                 out var target)
                 ? target
-                : default,
+                : 0,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
         };
     };

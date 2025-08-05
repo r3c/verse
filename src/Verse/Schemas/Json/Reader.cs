@@ -43,7 +43,7 @@ internal class Reader : IReader<ReaderState, JsonValue, int>
                 goto default;
 
             case 'n':
-                arrayReader = default!;
+                arrayReader = null!;
 
                 return ExpectKeywordNull(state) ? ReaderStatus.Ignored : ReaderStatus.Failed;
 

@@ -41,7 +41,7 @@ internal class ReaderState : IDisposable
 
         if (previous < 0)
         {
-            character = default;
+            character = '\0';
 
             return false;
         }
@@ -60,7 +60,7 @@ internal class ReaderState : IDisposable
         switch (previous)
         {
             case -1:
-                character = default;
+                character = '\0';
 
                 return false;
 
@@ -120,7 +120,7 @@ internal class ReaderState : IDisposable
                     {
                         Error("unknown character in unicode escape sequence");
 
-                        character = default;
+                        character = '\0';
 
                         return false;
                     }

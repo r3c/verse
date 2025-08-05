@@ -17,7 +17,7 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
             ProtobufType.Signed => source.Signed != 0,
             ProtobufType.String => !string.IsNullOrEmpty(source.String),
             ProtobufType.Unsigned => source.Unsigned != 0,
-            ProtobufType.Void => default,
+            ProtobufType.Void => false,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
         };
     };
@@ -30,9 +30,9 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
             ProtobufType.Float32 => (char)source.Float32,
             ProtobufType.Float64 => (char)source.Float64,
             ProtobufType.Signed => (char)source.Signed,
-            ProtobufType.String => source.String.Length > 0 ? source.String[0] : default,
+            ProtobufType.String => source.String.Length > 0 ? source.String[0] : '\0',
             ProtobufType.Unsigned => (char)source.Unsigned,
-            ProtobufType.Void => default,
+            ProtobufType.Void => '\0',
             _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
         };
     };
@@ -48,9 +48,9 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
             ProtobufType.String => decimal.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
                 out var target)
                 ? target
-                : default,
+                : 0,
             ProtobufType.Unsigned => source.Unsigned,
-            ProtobufType.Void => default,
+            ProtobufType.Void => 0,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
         };
     };
@@ -66,9 +66,9 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
             ProtobufType.String => float.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
                 out var target)
                 ? target
-                : default,
+                : 0,
             ProtobufType.Unsigned => source.Unsigned,
-            ProtobufType.Void => default,
+            ProtobufType.Void => 0,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
         };
     };
@@ -84,9 +84,9 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
             ProtobufType.String => double.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
                 out var target)
                 ? target
-                : default,
+                : 0,
             ProtobufType.Unsigned => source.Unsigned,
-            ProtobufType.Void => default,
+            ProtobufType.Void => 0,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
         };
     };
@@ -104,7 +104,7 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
                 ? target
                 : default,
             ProtobufType.Unsigned => (sbyte)source.Unsigned,
-            ProtobufType.Void => default,
+            ProtobufType.Void => 0,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
         };
     };
@@ -122,7 +122,7 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
                 ? target
                 : default,
             ProtobufType.Unsigned => (byte)source.Unsigned,
-            ProtobufType.Void => default,
+            ProtobufType.Void => 0,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
         };
     };
@@ -140,7 +140,7 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
                 ? target
                 : default,
             ProtobufType.Unsigned => (short)source.Unsigned,
-            ProtobufType.Void => default,
+            ProtobufType.Void => 0,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
         };
     };
@@ -158,7 +158,7 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
                 ? target
                 : default,
             ProtobufType.Unsigned => (ushort)source.Unsigned,
-            ProtobufType.Void => default,
+            ProtobufType.Void => 0,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
         };
     };
@@ -174,9 +174,9 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
             ProtobufType.String => int.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
                 out var target)
                 ? target
-                : default,
+                : 0,
             ProtobufType.Unsigned => (int)source.Unsigned,
-            ProtobufType.Void => default,
+            ProtobufType.Void => 0,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
         };
     };
@@ -192,9 +192,9 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
             ProtobufType.String => uint.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
                 out var target)
                 ? target
-                : default,
+                : 0,
             ProtobufType.Unsigned => (uint)source.Unsigned,
-            ProtobufType.Void => default,
+            ProtobufType.Void => 0,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
         };
     };
@@ -210,9 +210,9 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
             ProtobufType.String => long.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
                 out var target)
                 ? target
-                : default,
+                : 0,
             ProtobufType.Unsigned => (long)source.Unsigned,
-            ProtobufType.Void => default,
+            ProtobufType.Void => 0,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
         };
     };
@@ -228,9 +228,9 @@ internal class ProtobufDecoderAdapter : IDecoderAdapter<ProtobufValue>
             ProtobufType.String => ulong.TryParse(source.String, NumberStyles.Integer, CultureInfo.InvariantCulture,
                 out var target)
                 ? target
-                : default,
+                : 0,
             ProtobufType.Unsigned => source.Unsigned,
-            ProtobufType.Void => default,
+            ProtobufType.Void => 0,
             _ => throw new ArgumentOutOfRangeException(nameof(source.Type), source.Type, "invalid type")
         };
     };

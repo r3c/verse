@@ -13,7 +13,7 @@ internal class HashLookupNode<TKey, TValue> : ILookupNode<TKey, TValue>
     public bool HasValue { get; set; }
     public TValue Value { get; set; }
 
-    private static readonly ILookupNode<TKey, TValue> Empty = new HashLookupNode<TKey, TValue>(_ => default);
+    private static readonly ILookupNode<TKey, TValue> Empty = new HashLookupNode<TKey, TValue>(_ => 0);
 
     private readonly Func<TKey, int> _extractor;
 
