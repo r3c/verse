@@ -1,7 +1,88 @@
 using System;
+using System.Collections.Generic;
 using Verse.Resolvers;
 
 namespace Verse.Linkers.Reflection.EncodeLinkers;
+
+internal static class ValueEncodeLinker
+{
+    internal static bool TryGetConverter<TNative, TEntity>(IEncoderAdapter<TNative> adapter,
+        out Func<TEntity, TNative> converter)
+    {
+        if (!AdapterConverters.TryGetValue(typeof(TEntity), out var resolver))
+        {
+            converter = null!;
+
+            return false;
+        }
+
+        var untyped = resolver.SetCallerGenericArguments(typeof(TNative)).GetGetter(adapter);
+
+        converter = (Func<TEntity, TNative>)untyped!;
+
+        return true;
+    }
+
+    private static readonly Dictionary<Type, PropertyResolver> AdapterConverters = new()
+    {
+        {
+            typeof(bool),
+            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<bool, object>>>(a => a.Boolean)
+        },
+        {
+            typeof(char),
+            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<char, object>>>(a => a.Character)
+        },
+        {
+            typeof(decimal),
+            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<decimal, object>>>(a => a.Decimal)
+        },
+        {
+            typeof(float),
+            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<float, object>>>(a => a.Float32)
+        },
+        {
+            typeof(double),
+            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<double, object>>>(a => a.Float64)
+        },
+        {
+            typeof(sbyte),
+            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<sbyte, object>>>(a => a.Integer8S)
+        },
+        {
+            typeof(byte),
+            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<byte, object>>>(a => a.Integer8U)
+        },
+        {
+            typeof(short),
+            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<short, object>>>(a => a.Integer16S)
+        },
+        {
+            typeof(ushort),
+            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<ushort, object>>>(a => a.Integer16U)
+        },
+        {
+            typeof(int),
+            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<int, object>>>(a => a.Integer32S)
+        },
+        {
+            typeof(uint),
+            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<uint, object>>>(a => a.Integer32U)
+        },
+        {
+            typeof(long),
+            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<long, object>>>(a => a.Integer64S)
+        },
+        {
+            typeof(ulong),
+            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<ulong, object>>>(a => a.Integer64U)
+        },
+        {
+            typeof(string),
+            PropertyResolver.Create<Func<IEncoderAdapter<object>, Func<string, object>>>(a => a.String)
+        }
+    };
+}
 
 internal class ValueEncodeLinker<TNative> : IEncodeLinker<TNative>
 {
@@ -29,8 +110,7 @@ internal class ValueEncodeLinker<TNative> : IEncodeLinker<TNative>
         IEncoderDescriptor<TNative, TEntity?> descriptor)
         where TEntity : struct
     {
-        // TODO: move `AdapterResolver.TryGetDecoderConverter` as private method in this class
-        if (!AdapterResolver.TryGetEncoderConverter<TNative, TEntity>(context.Format.From, out var converter))
+        if (!ValueEncodeLinker.TryGetConverter<TNative, TEntity>(context.Format.From, out var converter))
             return false;
 
         // Assume that null entity is equivalent to default value
@@ -42,8 +122,7 @@ internal class ValueEncodeLinker<TNative> : IEncodeLinker<TNative>
     private static bool TryDescribeAsValue<TEntity>(EncodeContext<TNative> context,
         IEncoderDescriptor<TNative, TEntity> descriptor)
     {
-        // TODO: move `AdapterResolver.TryGetEncoderConverter` as private method in this class
-        if (!AdapterResolver.TryGetEncoderConverter<TNative, TEntity>(context.Format.From, out var converter))
+        if (!ValueEncodeLinker.TryGetConverter<TNative, TEntity>(context.Format.From, out var converter))
             return false;
 
         descriptor.IsValue(converter);
