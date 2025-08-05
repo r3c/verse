@@ -16,11 +16,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="CompareNETObjects" Version="4.82.0" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
-        <PackageReference Include="NUnit" Version="4.0.0" />
-        <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
-        <PackageReference Include="protobuf-net" Version="3.2.0" />
+        <PackageReference Include="CompareNETObjects" Version="4.84.0" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+        <PackageReference Include="NUnit" Version="4.4.0-beta.2.1" />
+        <PackageReference Include="NUnit3TestAdapter" Version="5.1.0-alpha.3" />
+        <PackageReference Include="protobuf-net" Version="3.2.56" />
     </ItemGroup>
 
     <ItemGroup>
