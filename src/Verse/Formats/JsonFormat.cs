@@ -15,5 +15,4 @@ internal class JsonFormat : IFormat<JsonValue>
 
     /// <inheritdoc/>
     public IDecoderAdapter<JsonValue> To => JsonDecoderAdapter.Instance;
-
 }

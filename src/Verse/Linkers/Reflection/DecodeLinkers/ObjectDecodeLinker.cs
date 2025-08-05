@@ -75,8 +75,8 @@ internal class ObjectDecodeLinker<TNative> : IDecodeLinker<TNative>
             .InvokeInstance(objectDescriptor, name, setter);
 
         return (bool)MethodResolver
-            .Create<Func<IDecodeLinker<TNative>, DecodeContext<TNative>, IDecoderDescriptor<TNative, object>, bool>>(
-                (l, c, d) => l.TryDescribe(c, d))
+            .Create<Func<IDecodeLinker<TNative>, DecodeContext<TNative>, IDecoderDescriptor<TNative, object>, bool>>((l,
+                c, d) => l.TryDescribe(c, d))
             .SetGenericArguments(type)
             .InvokeInstance(context.Automatic, context, fieldDescriptor)!;
     }

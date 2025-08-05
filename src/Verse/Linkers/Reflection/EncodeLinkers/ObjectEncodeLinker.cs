@@ -67,14 +67,13 @@ internal class ObjectEncodeLinker<TNative> : IEncodeLinker<TNative>
 
         var fieldDescriptor = MethodResolver
             .Create<Func<IEncoderObjectDescriptor<TNative, TEntity>, string, Func<TEntity, object>,
-                IEncoderDescriptor<TNative, object>>>(
-                (d, n, a) => d.HasField(n, a))
+                IEncoderDescriptor<TNative, object>>>((d, n, a) => d.HasField(n, a))
             .SetGenericArguments(type)
             .InvokeInstance(objectDescriptor, name, getter);
 
         return (bool)MethodResolver
-            .Create<Func<IEncodeLinker<TNative>, EncodeContext<TNative>, IEncoderDescriptor<TNative, object>, bool>>(
-                (l, c, d) => l.TryDescribe(c, d))
+            .Create<Func<IEncodeLinker<TNative>, EncodeContext<TNative>, IEncoderDescriptor<TNative, object>, bool>>((l,
+                c, d) => l.TryDescribe(c, d))
             .SetGenericArguments(type)
             .InvokeInstance(context.Automatic, context, fieldDescriptor)!;
     }

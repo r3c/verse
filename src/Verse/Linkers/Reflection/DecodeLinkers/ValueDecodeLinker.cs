@@ -34,7 +34,8 @@ internal class ValueDecodeLinker<TNative> : IDecodeLinker<TNative>
             return false;
 
         // Assume that default value is equivalent to null entity
-        descriptor.IsValue(source => Equals(context.Format.DefaultValue, source) ? default(TEntity?) : converter(source));
+        descriptor.IsValue(source =>
+            Equals(context.Format.DefaultValue, source) ? default(TEntity?) : converter(source));
 
         return true;
     }
