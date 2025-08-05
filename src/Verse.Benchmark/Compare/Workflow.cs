@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using KellermanSoftware.CompareNetObjects;
 using Newtonsoft.Json;
@@ -14,7 +15,7 @@ internal static class Workflow
         var compareLogic = new CompareLogic(new ComparisonConfig { IgnoreObjectTypes = true });
         var source = JsonConvert.SerializeObject(instance);
 
-        var linker = Linker.CreateReflection<JsonValue>();
+        var linker = Linker.CreateReflection<JsonValue>(BindingFlags.Instance | BindingFlags.Public);
         var schema = Schema.CreateJson<T>();
         var decoder = linker.CreateDecoder(Format.Json, schema);
         var decoderMemoryStream = new MemoryStream(Encoding.UTF8.GetBytes(source));

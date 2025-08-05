@@ -1,5 +1,4 @@
 using System;
-using System.Reflection;
 
 namespace Verse;
 
@@ -26,8 +25,6 @@ public interface ILinker<TNative>
     /// <param name="schema">Entity schema</param>
     /// <returns>Entity encoder</returns>
     IEncoder<TEntity> CreateEncoder<TEntity>(IFormat<TNative> format, ISchema<TNative, TEntity> schema);
-
-    ILinker<TNative> SetBindingFlags(BindingFlags bindingFlags);
 
     ILinker<TNative> SetDecoderDescriptor<TEntity>(Action<IDecoderDescriptor<TNative, TEntity>> describe);
 
