@@ -2,7 +2,8 @@ using System;
 using System.IO;
 using KellermanSoftware.CompareNetObjects;
 using NUnit.Framework;
-using Verse.Resolvers;
+using Verse.Linkers.Reflection.DecodeLinkers;
+using Verse.Linkers.Reflection.EncodeLinkers;
 
 namespace Verse.Test.Schemas;
 
@@ -55,7 +56,7 @@ internal static class SchemaHelper<TNative>
 
     public static Func<TNative, TEntity> GetDecoderConverter<TEntity>(IDecoderAdapter<TNative> decoderAdapter)
     {
-        var result = AdapterResolver.TryGetDecoderConverter<TNative, TEntity>(decoderAdapter, out var converter);
+        var result = ValueDecodeLinker.TryGetConverter<TNative, TEntity>(decoderAdapter, out var converter);
 
         Assert.That(result, Is.True);
 
@@ -64,7 +65,7 @@ internal static class SchemaHelper<TNative>
 
     public static Func<TEntity, TNative> GetEncoderConverter<TEntity>(IEncoderAdapter<TNative> encoderAdapter)
     {
-        var result = AdapterResolver.TryGetEncoderConverter<TNative, TEntity>(encoderAdapter, out var converter);
+        var result = ValueEncodeLinker.TryGetConverter<TNative, TEntity>(encoderAdapter, out var converter);
 
         Assert.That(result, Is.True);
 
