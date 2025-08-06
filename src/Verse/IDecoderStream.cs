@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Verse;
 
@@ -14,5 +15,5 @@ public interface IDecoderStream<TEntity> : IDisposable
     /// </summary>
     /// <param name="entity">Output entity</param>
     /// <returns>True if decoding succeeded, false otherwise</returns>
-    bool TryDecode(out TEntity? entity);
+    bool TryDecode([NotNullWhen(true)] out TEntity? entity);
 }

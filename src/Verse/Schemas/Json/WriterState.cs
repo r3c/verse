@@ -73,7 +73,7 @@ internal class WriterState : IDisposable
         _writer.Dispose();
     }
 
-    public void Flush()
+    public bool Flush()
     {
         if (_isEmpty)
             AppendNull();
@@ -81,6 +81,8 @@ internal class WriterState : IDisposable
         _isEmpty = true;
         _nextKey = null;
         _needComma = false;
+
+        return true;
     }
 
     public void Key(string key)
@@ -105,7 +107,7 @@ internal class WriterState : IDisposable
         _needComma = true;
     }
 
-    public void Value(JsonValue value)
+    public bool Value(JsonValue value)
     {
         switch (value.Type)
         {
@@ -127,22 +129,27 @@ internal class WriterState : IDisposable
 
                 break;
 
-            default:
+            case JsonType.Undefined:
                 if (_omitNull)
                 {
                     _nextKey = null;
 
-                    return;
+                    return true;
                 }
 
                 AppendPrefix();
                 AppendNull();
 
                 break;
+
+            default:
+                return false;
         }
 
         _isEmpty = false;
         _needComma = true;
+
+        return true;
     }
 
     private void AppendNull()

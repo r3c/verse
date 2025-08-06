@@ -28,26 +28,29 @@ internal class WriterState
         _stream = stream;
     }
 
-    public void Flush()
+    public bool Flush()
     {
         FieldIndex = 0;
 
         _buffer.Position = 0;
         _buffer.CopyTo(_stream);
         _buffer.SetLength(0);
+
+        return true;
     }
 
-    public void Key(string key)
+    public bool Key(string key)
     {
         if (!int.TryParse(key, NumberStyles.Integer, CultureInfo.InvariantCulture, out var fieldIndex))
         {
             Error($"invalid field name {key}");
 
-            // FIXME: should return false and stop serialization
-            return;
+            return false;
         }
 
         FieldIndex = fieldIndex;
+
+        return true;
     }
 
     public long? ObjectBegin()
@@ -103,7 +106,7 @@ internal class WriterState
         _buffer.Position = position + bytes - 1;
     }
 
-    public void Value(RawProtobufValue value)
+    public bool Value(RawProtobufValue value)
     {
         WriteHeader(FieldIndex, value.Storage);
 
@@ -115,7 +118,7 @@ internal class WriterState
                 _buffer.WriteByte((byte)((value.Number >> 16) & 255));
                 _buffer.WriteByte((byte)((value.Number >> 24) & 255));
 
-                break;
+                return true;
 
             case RawProtobufWireType.Fixed64:
                 _buffer.WriteByte((byte)((value.Number >> 0) & 255));
@@ -127,7 +130,7 @@ internal class WriterState
                 _buffer.WriteByte((byte)((value.Number >> 48) & 255));
                 _buffer.WriteByte((byte)((value.Number >> 56) & 255));
 
-                break;
+                return true;
 
             case RawProtobufWireType.String:
                 var buffer = Encoding.UTF8.GetBytes(value.String);
@@ -136,7 +139,7 @@ internal class WriterState
 
                 _buffer.Write(buffer, 0, buffer.Length);
 
-                break;
+                return true;
 
             case RawProtobufWireType.VarInt:
                 // See: https://developers.google.com/protocol-buffers/docs/encoding
@@ -144,7 +147,12 @@ internal class WriterState
 
                 WriteVarInt(number);
 
-                break;
+                return true;
+
+            default:
+                Error($"invalid wire type {value.Storage} for field {value.Number}");
+
+                return false;
         }
     }
 
