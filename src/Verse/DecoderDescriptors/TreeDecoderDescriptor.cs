@@ -6,47 +6,45 @@ namespace Verse.DecoderDescriptors;
 
 internal class TreeDecoderDescriptor<TState, TNative, TKey, TEntity> : IDecoderDescriptor<TNative, TEntity>
 {
-    private readonly IReaderDefinition<TState, TNative, TKey, TEntity> _definition;
+    private readonly ReaderLayer<TState, TNative, TKey, TEntity> _layer;
 
     public TreeDecoderDescriptor(IReaderDefinition<TState, TNative, TKey, TEntity> definition)
     {
-        _definition = definition;
+        _layer = new ReaderLayer<TState, TNative, TKey, TEntity>(definition);
     }
 
     public IDecoder<TEntity> CreateDecoder(IReader<TState, TNative, TKey> reader)
     {
-        return new TreeDecoder<TState, TNative, TKey, TEntity>(reader, _definition.Callback);
+        return new TreeDecoder<TState, TNative, TKey, TEntity>(reader, _layer.Callback);
     }
 
     public IDecoderDescriptor<TNative, TElement> IsArray<TElement>(Func<IEnumerable<TElement>, TEntity> converter,
         IDecoderDescriptor<TNative, TElement> descriptor)
     {
-        if (!(descriptor is TreeDecoderDescriptor<TState, TNative, TKey, TElement> parentDescriptor))
+        if (descriptor is not TreeDecoderDescriptor<TState, TNative, TKey, TElement> treeDescriptor)
             throw new ArgumentOutOfRangeException(nameof(descriptor), "incompatible descriptor type");
 
-        return BindArray(_definition, converter,
-            parentDescriptor);
+        return BindArray(_layer, converter, treeDescriptor);
     }
 
     public IDecoderDescriptor<TNative, TElement> IsArray<TElement>(Func<IEnumerable<TElement>, TEntity> converter)
     {
-        var elementDefinition = _definition.Create<TElement>();
+        var elementDefinition = _layer.Definition.Create<TElement>();
         var elementDescriptor =
             new TreeDecoderDescriptor<TState, TNative, TKey, TElement>(elementDefinition);
 
-        return BindArray(_definition, converter,
-            elementDescriptor);
+        return BindArray(_layer, converter, elementDescriptor);
     }
 
     public IDecoderObjectDescriptor<TNative, TObject> IsObject<TObject>(Func<TObject> constructor,
         Func<TObject, TEntity> converter)
     {
-        var objectDefinition = _definition.Create<TObject>();
+        var objectDefinition = _layer.Definition.Create<TObject>();
         var objectLookup = objectDefinition.Lookup;
-        var objectDescriptor =
-            new TreeDecoderDescriptor<TState, TNative, TKey, TObject>.ObjectDescriptor(objectDefinition);
+        var objectDescriptor = new TreeDecoderDescriptor<TState, TNative, TKey, TObject>.ObjectDescriptor(
+            objectDefinition);
 
-        _definition.Callback = (IReader<TState, TNative, TKey> reader, TState state, ref TEntity target) =>
+        _layer.Callback = (IReader<TState, TNative, TKey> reader, TState state, ref TEntity target) =>
         {
             var entity = constructor();
 
@@ -75,7 +73,7 @@ internal class TreeDecoderDescriptor<TState, TNative, TKey, TEntity> : IDecoderD
 
     public void IsValue(Func<TNative, TEntity> converter)
     {
-        _definition.Callback = (IReader<TState, TNative, TKey> reader, TState state, ref TEntity entity) =>
+        _layer.Callback = (IReader<TState, TNative, TKey> reader, TState state, ref TEntity entity) =>
         {
             switch (reader.ReadToValue(state, out var value))
             {
@@ -87,6 +85,7 @@ internal class TreeDecoderDescriptor<TState, TNative, TKey, TEntity> : IDecoderD
                 case ReaderStatus.Ignored:
                     return ReaderStatus.Ignored;
 
+                case ReaderStatus.Failed:
                 default:
                     entity = default!;
 
@@ -96,13 +95,12 @@ internal class TreeDecoderDescriptor<TState, TNative, TKey, TEntity> : IDecoderD
     }
 
     private static TreeDecoderDescriptor<TState, TNative, TKey, TElement> BindArray<TElement>(
-        IReaderDefinition<TState, TNative, TKey, TEntity> parentDefinition,
-        Func<IEnumerable<TElement>, TEntity> converter,
+        ReaderLayer<TState, TNative, TKey, TEntity> arrayLayer, Func<IEnumerable<TElement>, TEntity> converter,
         TreeDecoderDescriptor<TState, TNative, TKey, TElement> elementDescriptor)
     {
-        var elementDefinition = elementDescriptor._definition;
+        var elementDefinition = elementDescriptor._layer;
 
-        parentDefinition.Callback = (IReader<TState, TNative, TKey> reader, TState state, ref TEntity entity) =>
+        arrayLayer.Callback = (IReader<TState, TNative, TKey> reader, TState state, ref TEntity entity) =>
         {
             var status = reader.ReadToArray(state, elementDefinition.Callback, out var arrayReader);
 
@@ -121,11 +119,11 @@ internal class TreeDecoderDescriptor<TState, TNative, TKey, TEntity> : IDecoderD
 
     private class ObjectDescriptor : IDecoderObjectDescriptor<TNative, TEntity>
     {
-        private readonly IReaderDefinition<TState, TNative, TKey, TEntity> _definition;
+        private readonly ReaderLayer<TState, TNative, TKey, TEntity> _layer;
 
         public ObjectDescriptor(IReaderDefinition<TState, TNative, TKey, TEntity> definition)
         {
-            _definition = definition;
+            _layer = new ReaderLayer<TState, TNative, TKey, TEntity>(definition);
         }
 
         public IDecoderDescriptor<TNative, TField> HasField<TField>(string name, Func<TEntity, TField, TEntity> setter,
@@ -134,52 +132,55 @@ internal class TreeDecoderDescriptor<TState, TNative, TKey, TEntity> : IDecoderD
             if (descriptor is not TreeDecoderDescriptor<TState, TNative, TKey, TField> ancestor)
                 throw new ArgumentOutOfRangeException(nameof(descriptor), "incompatible descriptor type");
 
-            return BindField(_definition, name, setter, ancestor);
+            return BindField(_layer, name, setter, ancestor);
         }
 
         public IDecoderDescriptor<TNative, TField> HasField<TField>(string name, Func<TEntity, TField, TEntity> setter)
         {
-            var fieldDefinition = _definition.Create<TField>();
+            var fieldDefinition = _layer.Definition.Create<TField>();
             var fieldDescriptor = new TreeDecoderDescriptor<TState, TNative, TKey, TField>(fieldDefinition);
 
-            return BindField(_definition, name, setter, fieldDescriptor);
+            return BindField(_layer, name, setter, fieldDescriptor);
         }
 
         public IDecoderDescriptor<TNative, TEntity> HasField(string name)
         {
-            var fieldDefinition = _definition.Create<TEntity>();
+            var objectDefinition = _layer.Definition;
+            var objectLookup = objectDefinition.Lookup;
+            var objectRoot = objectLookup.Root;
+            var fieldDefinition = objectDefinition.Create<TEntity>();
             var fieldDescriptor = new TreeDecoderDescriptor<TState, TNative, TKey, TEntity>(fieldDefinition);
-            var parentLookup = _definition.Lookup;
-            var parentRoot = parentLookup.Root;
+            var fieldLayer = fieldDescriptor._layer;
 
-            var success = parentLookup.ConnectTo(name,
+            var success = objectLookup.ConnectTo(name,
                 (IReader<TState, TNative, TKey> reader, TState state, ref TEntity entity) =>
-                    fieldDefinition.Callback(reader, state, ref entity));
+                    fieldLayer.Callback(reader, state, ref entity));
 
             if (!success)
                 throw new InvalidOperationException($"field '{name}' was declared twice on same descriptor");
 
-            _definition.Callback = (IReader<TState, TNative, TKey> reader, TState state, ref TEntity target) =>
-                reader.ReadToObject(state, parentRoot, ref target);
+            _layer.Callback = (IReader<TState, TNative, TKey> reader, TState state, ref TEntity target) =>
+                reader.ReadToObject(state, objectRoot, ref target);
 
             return fieldDescriptor;
         }
 
         private static TreeDecoderDescriptor<TState, TNative, TKey, TField> BindField<TField>(
-            IReaderDefinition<TState, TNative, TKey, TEntity> parentDefinition, string name,
+            ReaderLayer<TState, TNative, TKey, TEntity> objectLayer, string name,
             Func<TEntity, TField, TEntity> setter,
             TreeDecoderDescriptor<TState, TNative, TKey, TField> fieldDescriptor)
         {
-            var fieldDefinition = fieldDescriptor._definition;
-            var parentLookup = parentDefinition.Lookup;
-            var parentRoot = parentLookup.Root;
+            var objectDefinition = objectLayer.Definition;
+            var objectLookup = objectDefinition.Lookup;
+            var objectRoot = objectLookup.Root;
+            var fieldLayer = fieldDescriptor._layer;
 
-            var success = parentLookup.ConnectTo(name,
+            var success = objectLookup.ConnectTo(name,
                 (IReader<TState, TNative, TKey> reader, TState state, ref TEntity entity) =>
                 {
                     TField field = default!;
 
-                    switch (fieldDefinition.Callback(reader, state, ref field))
+                    switch (fieldLayer.Callback(reader, state, ref field))
                     {
                         case ReaderStatus.Failed:
                             return ReaderStatus.Failed;
@@ -196,8 +197,8 @@ internal class TreeDecoderDescriptor<TState, TNative, TKey, TEntity> : IDecoderD
             if (!success)
                 throw new InvalidOperationException($"field '{name}' was declared twice on same descriptor");
 
-            parentDefinition.Callback = (IReader<TState, TNative, TKey> reader, TState state, ref TEntity target) =>
-                reader.ReadToObject(state, parentRoot, ref target);
+            objectLayer.Callback = (IReader<TState, TNative, TKey> reader, TState state, ref TEntity target) =>
+                reader.ReadToObject(state, objectRoot, ref target);
 
             return fieldDescriptor;
         }

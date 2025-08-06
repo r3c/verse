@@ -6,8 +6,6 @@ namespace Verse.Schemas.Protobuf;
 
 internal class ProtobufReaderDefinition<TEntity> : IReaderDefinition<ReaderState, ProtobufValue, int, TEntity>
 {
-    public ReaderCallback<ReaderState, ProtobufValue, int, TEntity> Callback { get; set; }
-
     public ILookup<int, ReaderCallback<ReaderState, ProtobufValue, int, TEntity>> Lookup { get; }
 
     //private static readonly Reader<TEntity> emptyReader = new Reader<TEntity>(new ProtoBinding[0], false);
@@ -20,7 +18,6 @@ internal class ProtobufReaderDefinition<TEntity> : IReaderDefinition<ReaderState
 
     public ProtobufReaderDefinition(ProtoBinding[] bindings, bool rejectUnknown)
     {
-        Callback = (IReader<ReaderState, ProtobufValue, int> _, ReaderState _, ref TEntity _) => ReaderStatus.Failed;
         Lookup = null!; // FIXME
 
         _bindings = bindings;

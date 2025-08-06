@@ -6,16 +6,16 @@ namespace Verse.EncoderDescriptors;
 
 internal class TreeEncoderDescriptor<TState, TNative, TEntity> : IEncoderDescriptor<TNative, TEntity>
 {
-    private readonly IWriterDefinition<TState, TNative, TEntity> _definition;
+    private readonly WriterLayer<TState, TNative, TEntity> _layer;
 
     public TreeEncoderDescriptor(IWriterDefinition<TState, TNative, TEntity> definition)
     {
-        _definition = definition;
+        _layer = new WriterLayer<TState, TNative, TEntity>(definition);
     }
 
     public IEncoder<TEntity> CreateEncoder(IWriter<TState, TNative> reader)
     {
-        return new TreeEncoder<TState, TNative, TEntity>(reader, _definition.Callback);
+        return new TreeEncoder<TState, TNative, TEntity>(reader, _layer.Callback);
     }
 
     public IEncoderDescriptor<TNative, TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> getter,
@@ -24,24 +24,23 @@ internal class TreeEncoderDescriptor<TState, TNative, TEntity> : IEncoderDescrip
         if (descriptor is not TreeEncoderDescriptor<TState, TNative, TElement> ancestor)
             throw new ArgumentOutOfRangeException(nameof(descriptor), "incompatible descriptor type");
 
-        return BindArray(_definition, getter, ancestor);
+        return BindArray(_layer, getter, ancestor);
     }
 
     public IEncoderDescriptor<TNative, TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> getter)
     {
-        var elementDefinition = _definition.Create<TElement>();
+        var elementDefinition = _layer.Definition.Create<TElement>();
         var elementDescriptor = new TreeEncoderDescriptor<TState, TNative, TElement>(elementDefinition);
 
-        return BindArray(_definition, getter,
-            elementDescriptor);
+        return BindArray(_layer, getter, elementDescriptor);
     }
 
     public IEncoderObjectDescriptor<TNative, TObject> IsObject<TObject>(Func<TEntity, TObject> converter)
     {
-        var objectDefinition = _definition.Create<TObject>();
+        var objectDefinition = _layer.Definition.Create<TObject>();
         var objectDescriptor = new TreeEncoderDescriptor<TState, TNative, TObject>.ObjectDescriptor(objectDefinition);
 
-        _definition.Callback = (writer, state, source) => writer.WriteAsObject(state, converter(source),
+        _layer.Callback = (writer, state, source) => writer.WriteAsObject(state, converter(source),
             objectDefinition.Fields);
 
         return objectDescriptor;
@@ -54,28 +53,28 @@ internal class TreeEncoderDescriptor<TState, TNative, TEntity> : IEncoderDescrip
 
     public void IsValue(Func<TEntity, TNative> converter)
     {
-        _definition.Callback = (writer, state, entity) => writer.WriteAsValue(state, converter(entity));
+        _layer.Callback = (writer, state, entity) => writer.WriteAsValue(state, converter(entity));
     }
 
     private static IEncoderDescriptor<TNative, TElement> BindArray<TElement>(
-        IWriterDefinition<TState, TNative, TEntity> parent, Func<TEntity, IEnumerable<TElement>> getter,
+        WriterLayer<TState, TNative, TEntity> arrayLayer, Func<TEntity, IEnumerable<TElement>> getter,
         TreeEncoderDescriptor<TState, TNative, TElement> elementDescriptor)
     {
-        var elementDefinition = elementDescriptor._definition;
+        var elementLayer = elementDescriptor._layer;
 
-        parent.Callback = (reader, state, entity) =>
-            reader.WriteAsArray(state, getter(entity), elementDefinition.Callback);
+        arrayLayer.Callback = (reader, state, entity) => reader.WriteAsArray(state, getter(entity),
+            elementLayer.Callback);
 
         return elementDescriptor;
     }
 
     private class ObjectDescriptor : IEncoderObjectDescriptor<TNative, TEntity>
     {
-        private readonly IWriterDefinition<TState, TNative, TEntity> _definition;
+        private readonly WriterLayer<TState, TNative, TEntity> _layer;
 
         public ObjectDescriptor(IWriterDefinition<TState, TNative, TEntity> definition)
         {
-            _definition = definition;
+            _layer = new WriterLayer<TState, TNative, TEntity>(definition);
         }
 
         public IEncoderDescriptor<TNative, TField> HasField<TField>(string name, Func<TEntity, TField> getter,
@@ -84,15 +83,15 @@ internal class TreeEncoderDescriptor<TState, TNative, TEntity> : IEncoderDescrip
             if (descriptor is not TreeEncoderDescriptor<TState, TNative, TField> ancestor)
                 throw new ArgumentOutOfRangeException(nameof(descriptor), "incompatible descriptor type");
 
-            return BindField(_definition, name, getter, ancestor);
+            return BindField(_layer, name, getter, ancestor);
         }
 
         public IEncoderDescriptor<TNative, TField> HasField<TField>(string name, Func<TEntity, TField> getter)
         {
-            var fieldDefinition = _definition.Create<TField>();
+            var fieldDefinition = _layer.Definition.Create<TField>();
             var fieldDescriptor = new TreeEncoderDescriptor<TState, TNative, TField>(fieldDefinition);
 
-            return BindField(_definition, name, getter, fieldDescriptor);
+            return BindField(_layer, name, getter, fieldDescriptor);
         }
 
         public IEncoderDescriptor<TNative, TEntity> HasField(string name)
@@ -101,19 +100,20 @@ internal class TreeEncoderDescriptor<TState, TNative, TEntity> : IEncoderDescrip
         }
 
         private static IEncoderDescriptor<TNative, TField> BindField<TField>(
-            IWriterDefinition<TState, TNative, TEntity> parentDefinition, string name,
-            Func<TEntity, TField> getter, TreeEncoderDescriptor<TState, TNative, TField> fieldDescriptor)
+            WriterLayer<TState, TNative, TEntity> objectLayer, string name, Func<TEntity, TField> getter,
+            TreeEncoderDescriptor<TState, TNative, TField> fieldDescriptor)
         {
-            var parentFields = parentDefinition.Fields;
+            var objectDefinition = objectLayer.Definition;
+            var objectFields = objectDefinition.Fields;
 
-            if (parentFields.ContainsKey(name))
+            if (objectFields.ContainsKey(name))
                 throw new InvalidOperationException($"field '{name}' was declared twice on same descriptor");
 
-            parentDefinition.Callback = (reader, state, entity) => reader.WriteAsObject(state, entity, parentFields);
+            objectLayer.Callback = (reader, state, entity) => reader.WriteAsObject(state, entity, objectFields);
 
-            var fieldDefinition = fieldDescriptor._definition;
+            var fieldLayer = fieldDescriptor._layer;
 
-            parentFields[name] = (reader, state, entity) => fieldDefinition.Callback(reader, state, getter(entity));
+            objectFields[name] = (reader, state, entity) => fieldLayer.Callback(reader, state, getter(entity));
 
             return fieldDescriptor;
         }
