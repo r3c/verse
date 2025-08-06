@@ -12,7 +12,11 @@ public class QueryStringSchemaTester
     [TestCase("?a&")]
     public void DecodeSuccess(string query)
     {
-        Decode(Schema.CreateQueryString<string>(), query);
+        var schema = Schema.CreateQueryString<string>();
+
+        schema.DecoderDescriptor.IsObject(() => null);
+
+        Decode(schema, query);
     }
 
     [Test]
