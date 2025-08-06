@@ -4,7 +4,7 @@ using Verse.Formats.RawProtobuf;
 
 namespace Verse.Schemas.RawProtobuf;
 
-internal class ReaderState
+internal class ReaderState(Stream stream, ErrorEvent error, bool noZigZagEncoding)
 {
     private const int StringMaxLength = 65536;
 
@@ -27,25 +27,6 @@ internal class ReaderState
     /// Current byte offset in stream being read.
     /// </summary>
     private int _position;
-
-    private readonly ErrorEvent _error;
-
-    private readonly bool _noZigZagEncoding;
-
-    private readonly Stream _stream;
-
-    public ReaderState(Stream stream, ErrorEvent error, bool noZigZagEncoding)
-    {
-        _error = error;
-        _noZigZagEncoding = noZigZagEncoding;
-        _stream = stream;
-
-        FieldIndex = 0;
-
-        _boundary = null;
-        _fieldType = null;
-        _position = 0;
-    }
 
     public bool ObjectBegin(out int? backup)
     {
@@ -87,7 +68,7 @@ internal class ReaderState
             return;
         }
 
-        var current = _stream.ReadByte();
+        var current = stream.ReadByte();
 
         ++_position;
 
@@ -99,13 +80,13 @@ internal class ReaderState
             return;
         }
 
-        var fieldIndex = (current >> 3) & 15;
+        var fieldIndex = current >> 3 & 15;
         var fieldType = (RawProtobufWireType)(current & 7);
         var shift = 4;
 
         while ((current & 128) != 0)
         {
-            current = _stream.ReadByte();
+            current = stream.ReadByte();
 
             _position += 1;
 
@@ -124,10 +105,10 @@ internal class ReaderState
             case RawProtobufWireType.Fixed32:
                 var fixed32 = 0;
 
-                fixed32 += _stream.ReadByte();
-                fixed32 += _stream.ReadByte() << 8;
-                fixed32 += _stream.ReadByte() << 16;
-                fixed32 += _stream.ReadByte() << 24;
+                fixed32 += stream.ReadByte();
+                fixed32 += stream.ReadByte() << 8;
+                fixed32 += stream.ReadByte() << 16;
+                fixed32 += stream.ReadByte() << 24;
 
                 value = new RawProtobufValue(fixed32, RawProtobufWireType.Fixed32);
 
@@ -138,14 +119,14 @@ internal class ReaderState
             case RawProtobufWireType.Fixed64:
                 var fixed64 = 0L;
 
-                fixed64 += _stream.ReadByte();
-                fixed64 += (long)_stream.ReadByte() << 8;
-                fixed64 += (long)_stream.ReadByte() << 16;
-                fixed64 += (long)_stream.ReadByte() << 24;
-                fixed64 += (long)_stream.ReadByte() << 32;
-                fixed64 += (long)_stream.ReadByte() << 40;
-                fixed64 += (long)_stream.ReadByte() << 48;
-                fixed64 += (long)_stream.ReadByte() << 56;
+                fixed64 += stream.ReadByte();
+                fixed64 += (long)stream.ReadByte() << 8;
+                fixed64 += (long)stream.ReadByte() << 16;
+                fixed64 += (long)stream.ReadByte() << 24;
+                fixed64 += (long)stream.ReadByte() << 32;
+                fixed64 += (long)stream.ReadByte() << 40;
+                fixed64 += (long)stream.ReadByte() << 48;
+                fixed64 += (long)stream.ReadByte() << 56;
 
                 _position += 8;
 
@@ -167,7 +148,7 @@ internal class ReaderState
 
                 var buffer = new byte[length];
 
-                if (_stream.Read(buffer, 0, length) != length)
+                if (stream.Read(buffer, 0, length) != length)
                 {
                     Error($"could not read string of length {length}");
 
@@ -186,7 +167,7 @@ internal class ReaderState
                 var varint = ReadVarInt();
 
                 // See: https://developers.google.com/protocol-buffers/docs/encoding
-                var number = _noZigZagEncoding ? varint : -(varint & 1) ^ (varint >> 1);
+                var number = noZigZagEncoding ? varint : -(varint & 1) ^ varint >> 1;
 
                 value = new RawProtobufValue(number, RawProtobufWireType.VarInt);
 
@@ -206,23 +187,23 @@ internal class ReaderState
         switch (_fieldType.GetValueOrDefault())
         {
             case RawProtobufWireType.Fixed32:
-                _stream.ReadByte();
-                _stream.ReadByte();
-                _stream.ReadByte();
-                _stream.ReadByte();
+                stream.ReadByte();
+                stream.ReadByte();
+                stream.ReadByte();
+                stream.ReadByte();
                 _position += 4;
 
                 return true;
 
             case RawProtobufWireType.Fixed64:
-                _stream.ReadByte();
-                _stream.ReadByte();
-                _stream.ReadByte();
-                _stream.ReadByte();
-                _stream.ReadByte();
-                _stream.ReadByte();
-                _stream.ReadByte();
-                _stream.ReadByte();
+                stream.ReadByte();
+                stream.ReadByte();
+                stream.ReadByte();
+                stream.ReadByte();
+                stream.ReadByte();
+                stream.ReadByte();
+                stream.ReadByte();
+                stream.ReadByte();
                 _position += 8;
 
                 return true;
@@ -239,7 +220,7 @@ internal class ReaderState
 
                 while (length-- > 0)
                 {
-                    _stream.ReadByte();
+                    stream.ReadByte();
                     _position += 1;
                 }
 
@@ -259,7 +240,7 @@ internal class ReaderState
 
     private void Error(string message)
     {
-        _error(_position, message);
+        error(_position, message);
     }
 
     private unsafe long ReadVarInt()
@@ -270,7 +251,7 @@ internal class ReaderState
 
         do
         {
-            current = (byte)_stream.ReadByte();
+            current = (byte)stream.ReadByte();
 
             _position += 1;
 

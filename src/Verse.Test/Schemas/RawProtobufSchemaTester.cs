@@ -36,10 +36,10 @@ internal class RawProtobufSchemaTester
     {
         var schema = CreateSchema<List<T>>();
         var converter = SchemaHelper<RawProtobufValue>.GetDecoderConverter<T>(Format.RawProtobuf.To);
-        var testFieldClass = new TestFieldClass<T> { Items = new List<T> { a, b, c } };
+        var testFieldClass = new TestFieldClass<T> { Items = [a, b, c] };
 
         schema.DecoderDescriptor
-            .IsObject(() => new List<T>())
+            .IsObject(() => [])
             .HasField("_2", SetterHelper.Mutation((List<T> target, T[] values) => target.AddRange(values)))
             .IsArray<T>(elements => elements.ToArray())
             .IsValue(converter);
@@ -114,7 +114,7 @@ internal class RawProtobufSchemaTester
     [TestCase(LongString, LongString, LongString)]
     public void DecodeScalarFromRepeatedObject<T>(T a, T b, T c)
     {
-        T[] expectedValues = { a, b, c };
+        T[] expectedValues = [a, b, c];
         var schema = CreateSchema<TestFieldClass<TestFieldClass<T>>>();
         var testFieldClass = new TestFieldClass<TestFieldClass<T>>();
 
@@ -178,36 +178,38 @@ internal class RawProtobufSchemaTester
         var schema = CreateSchema<int>();
         var testFieldClass = new TestFieldClass<TestFieldClass<SubTestFieldClass<int>>>
         {
-            Items = new List<TestFieldClass<SubTestFieldClass<int>>>
-            {
+            Items =
+            [
                 new()
                 {
-                    Items = new List<SubTestFieldClass<int>>
-                    {
+                    Items =
+                    [
                         new() { Value = 10 },
                         new() { Value = 20 },
                         new() { Value = 30 }
-                    }
+                    ]
                 },
+
                 new()
                 {
-                    Items = new List<SubTestFieldClass<int>>
-                    {
+                    Items =
+                    [
                         new() { Value = 40 },
                         new() { Value = 50 },
                         new() { Value = 60 }
-                    }
+                    ]
                 },
+
                 new()
                 {
-                    Items = new List<SubTestFieldClass<int>>
-                    {
+                    Items =
+                    [
                         new() { Value = 70 },
                         new() { Value = 80 },
                         new() { Value = 90 }
-                    }
+                    ]
                 }
-            }
+            ]
         };
 
         var descriptor = schema.DecoderDescriptor
@@ -263,8 +265,7 @@ internal class RawProtobufSchemaTester
             .IsArray(source => source)
             .IsValue(converter);
 
-        var testFieldClass =
-            EncodeTranscode<List<T>, TestFieldClass<T>>(schema.CreateEncoder(), new List<T>(expectedItems));
+        var testFieldClass = EncodeTranscode<List<T>, TestFieldClass<T>>(schema.CreateEncoder(), [.. expectedItems]);
 
         Assert.That(expectedItems, Is.EqualTo(testFieldClass.Items).AsCollection);
     }
@@ -443,7 +444,7 @@ internal class RawProtobufSchemaTester
             set => _value = value;
         }
 
-        private List<T> _items = new();
+        private List<T> _items = [];
 
         [ProtoMember(2, IsRequired = true, DataFormat = DataFormat.Default)]
         public List<T> Items

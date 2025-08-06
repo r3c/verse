@@ -99,7 +99,7 @@ internal class Lexer
 
             return;
         }
-        else if ((_pending >= 'A' && _pending <= 'Z') || (_pending >= 'a' && _pending <= 'z') || _pending == '_')
+        else if (_pending >= 'A' && _pending <= 'Z' || _pending >= 'a' && _pending <= 'z' || _pending == '_')
         {
             builder = new StringBuilder();
 
@@ -109,8 +109,8 @@ internal class Lexer
 
                 Read();
             }
-            while ((_pending >= '0' && _pending <= '9') || (_pending >= 'A' && _pending <= 'Z') ||
-                   (_pending >= 'a' && _pending <= 'z') || _pending == '_');
+            while (_pending >= '0' && _pending <= '9' || _pending >= 'A' && _pending <= 'Z' ||
+                   _pending >= 'a' && _pending <= 'z' || _pending == '_');
 
             _current = new Lexem(LexemType.Symbol, builder.ToString());
 
@@ -144,8 +144,8 @@ internal class Lexer
 
                         _position += 2;
 
-                        if (((hex1 < '0' || hex1 > '9') && (hex1 < 'A' || hex1 > 'F') && (hex1 < 'a' || hex1 > 'f')) ||
-                            ((hex2 < '0' || hex2 > '9') && (hex2 < 'A' || hex2 > 'F') && (hex2 < 'a' || hex2 > 'f')))
+                        if ((hex1 < '0' || hex1 > '9') && (hex1 < 'A' || hex1 > 'F') && (hex1 < 'a' || hex1 > 'f') ||
+                            (hex2 < '0' || hex2 > '9') && (hex2 < 'A' || hex2 > 'F') && (hex2 < 'a' || hex2 > 'f'))
                         {
                             _current = new Lexem(LexemType.Unknown, new string(new[] { (char)hex1, (char)hex2 }));
 

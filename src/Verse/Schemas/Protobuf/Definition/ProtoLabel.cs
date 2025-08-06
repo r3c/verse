@@ -1,14 +1,8 @@
 ﻿namespace Verse.Schemas.Protobuf.Definition;
 
-internal struct ProtoLabel
+internal struct ProtoLabel(int value, string name)
 {
-    public readonly string Name;
+    public readonly string Name = name;
 
-    public readonly int Value;
-
-    public ProtoLabel(int value, string name)
-    {
-        Value = value;
-        Name = name;
-    }
+    public readonly int Value = value;
 }

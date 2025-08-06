@@ -2,15 +2,9 @@
 
 namespace Verse.Schemas.Protobuf;
 
-internal class WriterState
+internal class WriterState(Stream stream, ErrorEvent error)
 {
-    public readonly ErrorEvent Error;
+    public readonly ErrorEvent Error = error;
 
-    public readonly Stream Stream;
-
-    public WriterState(Stream stream, ErrorEvent error)
-    {
-        Error = error;
-        Stream = stream;
-    }
+    public readonly Stream Stream = stream;
 }

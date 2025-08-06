@@ -4,14 +4,11 @@ using Verse.DecoderDescriptors.Tree;
 
 namespace Verse.DecoderDescriptors;
 
-internal class TreeDecoderDescriptor<TState, TNative, TKey, TEntity> : IDecoderDescriptor<TNative, TEntity>
+internal class TreeDecoderDescriptor<TState, TNative, TKey, TEntity>(
+    IReaderDefinition<TState, TNative, TKey, TEntity> definition)
+    : IDecoderDescriptor<TNative, TEntity>
 {
-    private readonly ReaderLayer<TState, TNative, TKey, TEntity> _layer;
-
-    public TreeDecoderDescriptor(IReaderDefinition<TState, TNative, TKey, TEntity> definition)
-    {
-        _layer = new ReaderLayer<TState, TNative, TKey, TEntity>(definition);
-    }
+    private readonly ReaderLayer<TState, TNative, TKey, TEntity> _layer = new(definition);
 
     public IDecoder<TEntity> CreateDecoder(IReader<TState, TNative, TKey> reader)
     {
@@ -117,14 +114,10 @@ internal class TreeDecoderDescriptor<TState, TNative, TKey, TEntity> : IDecoderD
         return elementDescriptor;
     }
 
-    private class ObjectDescriptor : IDecoderObjectDescriptor<TNative, TEntity>
+    private class ObjectDescriptor(IReaderDefinition<TState, TNative, TKey, TEntity> definition)
+        : IDecoderObjectDescriptor<TNative, TEntity>
     {
-        private readonly ReaderLayer<TState, TNative, TKey, TEntity> _layer;
-
-        public ObjectDescriptor(IReaderDefinition<TState, TNative, TKey, TEntity> definition)
-        {
-            _layer = new ReaderLayer<TState, TNative, TKey, TEntity>(definition);
-        }
+        private readonly ReaderLayer<TState, TNative, TKey, TEntity> _layer = new(definition);
 
         public IDecoderDescriptor<TNative, TField> HasField<TField>(string name, Func<TEntity, TField, TEntity> setter,
             IDecoderDescriptor<TNative, TField> descriptor)

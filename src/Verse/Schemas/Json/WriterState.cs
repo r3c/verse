@@ -6,38 +6,27 @@ using Verse.Formats.Json;
 
 namespace Verse.Schemas.Json;
 
-internal class WriterState : IDisposable
+internal class WriterState(Stream stream, Encoding encoding, bool omitNull) : IDisposable
 {
     private const char AsciiUpperBound = (char)128;
 
-    private bool _isEmpty;
+    private bool _isEmpty = true;
 
     private string? _nextKey;
 
     private bool _needComma;
 
-    private readonly bool _omitNull;
-
-    private readonly StreamWriter _writer;
+    private readonly StreamWriter _writer = new(stream, encoding, 1024, true);
 
     private static readonly string[] Ascii = new string[AsciiUpperBound];
 
     private static readonly char[] Hexa =
-        { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
-
-    public WriterState(Stream stream, Encoding encoding, bool omitNull)
-    {
-        _isEmpty = true;
-        _nextKey = null;
-        _needComma = false;
-        _omitNull = omitNull;
-        _writer = new StreamWriter(stream, encoding, 1024, true);
-    }
+        ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'];
 
     static WriterState()
     {
         for (var i = 0; i < 32; ++i)
-            Ascii[i] = "\\u00" + Hexa[(i >> 4) & 0xF] + Hexa[(i >> 0) & 0xF];
+            Ascii[i] = "\\u00" + Hexa[i >> 4 & 0xF] + Hexa[i >> 0 & 0xF];
 
         for (var i = 32; i < AsciiUpperBound; ++i)
             Ascii[i] = new string((char)i, 1);
@@ -130,7 +119,7 @@ internal class WriterState : IDisposable
                 break;
 
             case JsonType.Undefined:
-                if (_omitNull)
+                if (omitNull)
                 {
                     _nextKey = null;
 
@@ -182,10 +171,10 @@ internal class WriterState : IDisposable
             else
             {
                 writer.Write("\\u");
-                writer.Write(Hexa[(c >> 12) & 0xF]);
-                writer.Write(Hexa[(c >> 8) & 0xF]);
-                writer.Write(Hexa[(c >> 4) & 0xF]);
-                writer.Write(Hexa[(c >> 0) & 0xF]);
+                writer.Write(Hexa[c >> 12 & 0xF]);
+                writer.Write(Hexa[c >> 8 & 0xF]);
+                writer.Write(Hexa[c >> 4 & 0xF]);
+                writer.Write(Hexa[c >> 0 & 0xF]);
             }
         }
 

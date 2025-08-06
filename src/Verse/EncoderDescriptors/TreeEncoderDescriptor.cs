@@ -4,14 +4,10 @@ using Verse.EncoderDescriptors.Tree;
 
 namespace Verse.EncoderDescriptors;
 
-internal class TreeEncoderDescriptor<TState, TNative, TEntity> : IEncoderDescriptor<TNative, TEntity>
+internal class TreeEncoderDescriptor<TState, TNative, TEntity>(IWriterDefinition<TState, TNative, TEntity> definition)
+    : IEncoderDescriptor<TNative, TEntity>
 {
-    private readonly WriterLayer<TState, TNative, TEntity> _layer;
-
-    public TreeEncoderDescriptor(IWriterDefinition<TState, TNative, TEntity> definition)
-    {
-        _layer = new WriterLayer<TState, TNative, TEntity>(definition);
-    }
+    private readonly WriterLayer<TState, TNative, TEntity> _layer = new(definition);
 
     public IEncoder<TEntity> CreateEncoder(IWriter<TState, TNative> reader)
     {
@@ -68,14 +64,10 @@ internal class TreeEncoderDescriptor<TState, TNative, TEntity> : IEncoderDescrip
         return elementDescriptor;
     }
 
-    private class ObjectDescriptor : IEncoderObjectDescriptor<TNative, TEntity>
+    private class ObjectDescriptor(IWriterDefinition<TState, TNative, TEntity> definition)
+        : IEncoderObjectDescriptor<TNative, TEntity>
     {
-        private readonly WriterLayer<TState, TNative, TEntity> _layer;
-
-        public ObjectDescriptor(IWriterDefinition<TState, TNative, TEntity> definition)
-        {
-            _layer = new WriterLayer<TState, TNative, TEntity>(definition);
-        }
+        private readonly WriterLayer<TState, TNative, TEntity> _layer = new(definition);
 
         public IEncoderDescriptor<TNative, TField> HasField<TField>(string name, Func<TEntity, TField> getter,
             IEncoderDescriptor<TNative, TField> descriptor)

@@ -7,19 +7,9 @@ using Verse.LookupNodes;
 
 namespace Verse.Schemas.Json;
 
-internal class Reader : IReader<ReaderState, JsonValue, int>
+internal class Reader(Encoding encoding, bool readObjectValuesAsArray, bool readScalarAsOneElementArray)
+    : IReader<ReaderState, JsonValue, int>
 {
-    private readonly bool _readObjectValuesAsArray;
-    private readonly bool _readScalarAsOneElementArray;
-    private readonly Encoding _encoding;
-
-    public Reader(Encoding encoding, bool readObjectValuesAsArray, bool readScalarAsOneElementArray)
-    {
-        _readObjectValuesAsArray = readObjectValuesAsArray;
-        _readScalarAsOneElementArray = readScalarAsOneElementArray;
-        _encoding = encoding;
-    }
-
     public ReaderStatus ReadToArray<TElement>(ReaderState state,
         ReaderCallback<ReaderState, JsonValue, int, TElement> callback, out ArrayReader<TElement> arrayReader)
     {
@@ -33,7 +23,7 @@ internal class Reader : IReader<ReaderState, JsonValue, int>
                 return ReaderStatus.Succeeded;
 
             case '{':
-                if (_readObjectValuesAsArray)
+                if (readObjectValuesAsArray)
                 {
                     arrayReader = ReadToArrayFromObjectValues(state, callback);
 
@@ -49,7 +39,7 @@ internal class Reader : IReader<ReaderState, JsonValue, int>
 
             default:
                 // Accept any scalar value as an array of one element
-                if (_readScalarAsOneElementArray)
+                if (readScalarAsOneElementArray)
                 {
                     arrayReader = index =>
                     {
@@ -174,7 +164,7 @@ internal class Reader : IReader<ReaderState, JsonValue, int>
 
     public ReaderState Start(Stream stream, ErrorEvent error)
     {
-        return new ReaderState(stream, _encoding, error);
+        return new ReaderState(stream, encoding, error);
     }
 
     public void Stop(ReaderState state)

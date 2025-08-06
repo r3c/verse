@@ -6,18 +6,8 @@ using Verse.Formats.Json;
 
 namespace Verse.Schemas.Json;
 
-internal class Writer : IWriter<WriterState, JsonValue>
+internal class Writer(Encoding encoding, bool omitNull) : IWriter<WriterState, JsonValue>
 {
-    private readonly Encoding _encoding;
-
-    private readonly bool _omitNull;
-
-    public Writer(Encoding encoding, bool omitNull)
-    {
-        _encoding = encoding;
-        _omitNull = omitNull;
-    }
-
     public bool Flush(WriterState state)
     {
         return state.Flush();
@@ -25,7 +15,7 @@ internal class Writer : IWriter<WriterState, JsonValue>
 
     public WriterState Start(Stream stream, ErrorEvent error)
     {
-        return new WriterState(stream, _encoding, _omitNull);
+        return new WriterState(stream, encoding, omitNull);
     }
 
     public void Stop(WriterState state)

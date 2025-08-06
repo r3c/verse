@@ -16,36 +16,36 @@ public abstract class SchemaTester<TNative>
 
         SchemaHelper<TNative>.AssertRoundTripWithLinker(Format, schema, new NestedArray
         {
-            Children = new[]
-            {
+            Children =
+            [
                 new NestedArray
                 {
-                    Children = Array.Empty<NestedArray>(),
+                    Children = [],
                     Value = "a"
                 },
                 new NestedArray
                 {
-                    Children = new[]
-                    {
+                    Children =
+                    [
                         new NestedArray
                         {
-                            Children = Array.Empty<NestedArray>(),
+                            Children = [],
                             Value = "b"
                         },
                         new NestedArray
                         {
-                            Children = Array.Empty<NestedArray>(),
+                            Children = [],
                             Value = "c"
                         }
-                    },
+                    ],
                     Value = "d"
                 },
                 new NestedArray
                 {
-                    Children = Array.Empty<NestedArray>(),
+                    Children = [],
                     Value = "e"
                 }
-            },
+            ],
             Value = "f"
         });
     }
@@ -80,7 +80,7 @@ public abstract class SchemaTester<TNative>
 
         SchemaHelper<TNative>.AssertRoundTripWithLinker(Format, schema, new MixedContainer
         {
-            Floats = new[] { 1.1f, 2.2f, 3.3f },
+            Floats = [1.1f, 2.2f, 3.3f],
             Integer = 17,
             Option = SomeEnum.B,
             Pairs = new Dictionary<string, string>

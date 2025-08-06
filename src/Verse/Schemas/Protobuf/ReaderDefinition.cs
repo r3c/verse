@@ -4,30 +4,20 @@ using Verse.Schemas.Protobuf.Definition;
 
 namespace Verse.Schemas.Protobuf;
 
-internal class ProtobufReaderDefinition<TEntity> : IReaderDefinition<ReaderState, ProtobufValue, int, TEntity>
+internal class ProtobufReaderDefinition<TEntity>(ProtoBinding[] bindings, bool rejectUnknown)
+    : IReaderDefinition<ReaderState, ProtobufValue, int, TEntity>
 {
-    public ILookup<int, ReaderCallback<ReaderState, ProtobufValue, int, TEntity>> Lookup { get; }
+    public ILookup<int, ReaderCallback<ReaderState, ProtobufValue, int, TEntity>> Lookup { get; } = null!; // FIXME
 
     //private static readonly Reader<TEntity> emptyReader = new Reader<TEntity>(new ProtoBinding[0], false);
 
-    private readonly ProtoBinding[] _bindings;
-
     //private readonly ReaderCallback<ReaderState, ProtobufValue, TEntity>[] fields;
 
-    private readonly bool _rejectUnknown;
-
-    public ProtobufReaderDefinition(ProtoBinding[] bindings, bool rejectUnknown)
-    {
-        Lookup = null!; // FIXME
-
-        _bindings = bindings;
-        //this.fields = new ReaderCallback<ReaderState, ProtobufValue, TEntity>[bindings.Length];
-        _rejectUnknown = rejectUnknown;
-    }
+    //this.fields = new ReaderCallback<ReaderState, ProtobufValue, TEntity>[bindings.Length];
 
     public IReaderDefinition<ReaderState, ProtobufValue, int, TOther> Create<TOther>()
     {
-        return new ProtobufReaderDefinition<TOther>(_bindings, _rejectUnknown);
+        return new ProtobufReaderDefinition<TOther>(bindings, rejectUnknown);
     }
     /*
             public override TreeReader<ReaderState, TField, ProtobufValue> HasField<TField>(string name, ReaderCallback<ReaderState, TEntity> enter)

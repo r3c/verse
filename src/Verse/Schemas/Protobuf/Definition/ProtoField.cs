@@ -1,20 +1,12 @@
 ﻿namespace Verse.Schemas.Protobuf.Definition;
 
-internal struct ProtoField
+internal struct ProtoField(int number, ProtoReference reference, string name, ProtoOccurrence occurrence)
 {
-    public readonly string Name;
+    public readonly string Name = name;
 
-    public readonly int Number;
+    public readonly int Number = number;
 
-    public readonly ProtoOccurrence Occurrence;
+    public readonly ProtoOccurrence Occurrence = occurrence;
 
-    public readonly ProtoReference Reference;
-
-    public ProtoField(int number, ProtoReference reference, string name, ProtoOccurrence occurrence)
-    {
-        Occurrence = occurrence;
-        Number = number;
-        Name = name;
-        Reference = reference;
-    }
+    public readonly ProtoReference Reference = reference;
 }

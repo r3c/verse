@@ -2,37 +2,29 @@ using System;
 
 namespace Verse.LookupNodes;
 
-internal class DualLookupNode<TKey, TValue> : ILookupNode<TKey, TValue>
+internal class DualLookupNode<TKey, TValue>(ILookupNode<TKey, TValue> shortcut, ILookupNode<TKey, TValue> fallback)
+    : ILookupNode<TKey, TValue>
 {
-    public bool HasValue => _shortcut.HasValue || _fallback.HasValue;
+    public bool HasValue => shortcut.HasValue || fallback.HasValue;
 
     public TValue Value
     {
         get
         {
-            if (_shortcut.HasValue)
-                return _shortcut.Value;
+            if (shortcut.HasValue)
+                return shortcut.Value;
 
-            if (_fallback.HasValue)
-                return _fallback.Value;
+            if (fallback.HasValue)
+                return fallback.Value;
 
             throw new InvalidOperationException();
         }
     }
 
-    private readonly ILookupNode<TKey, TValue> _fallback;
-    private readonly ILookupNode<TKey, TValue> _shortcut;
-
-    public DualLookupNode(ILookupNode<TKey, TValue> shortcut, ILookupNode<TKey, TValue> fallback)
-    {
-        _fallback = fallback;
-        _shortcut = shortcut;
-    }
-
     public ILookupNode<TKey, TValue> Follow(TKey key)
     {
-        var direct = _shortcut.Follow(key);
+        var direct = shortcut.Follow(key);
 
-        return direct.HasValue ? direct : _fallback.Follow(key);
+        return direct.HasValue ? direct : fallback.Follow(key);
     }
 }

@@ -18,7 +18,7 @@ internal struct ProtoReference
 
     public ProtoReference(ProtoType type)
     {
-        Names = Array.Empty<string>();
+        Names = [];
         Type = type;
     }
 }
