@@ -2,7 +2,7 @@
 
 namespace Verse.Schemas.Protobuf.Definition;
 
-internal struct Lexem : IEquatable<Lexem>
+internal struct Lexem(LexemType type, string value) : IEquatable<Lexem>
 {
     public static readonly Lexem Enum = new Lexem(LexemType.Symbol, "enum");
 
@@ -28,15 +28,9 @@ internal struct Lexem : IEquatable<Lexem>
 
     public static readonly Lexem Reserved = new Lexem(LexemType.Symbol, "reserved");
 
-    public readonly LexemType Type;
+    public readonly LexemType Type = type;
 
-    public readonly string Value;
-
-    public Lexem(LexemType type, string value)
-    {
-        Type = type;
-        Value = value;
-    }
+    public readonly string Value = value;
 
     public static bool operator ==(Lexem lhs, Lexem rhs)
     {
@@ -55,7 +49,7 @@ internal struct Lexem : IEquatable<Lexem>
 
     public override bool Equals(object? obj)
     {
-        return (obj is Lexem lexem) && Equals(lexem);
+        return obj is Lexem lexem && Equals(lexem);
     }
 
     public override int GetHashCode()

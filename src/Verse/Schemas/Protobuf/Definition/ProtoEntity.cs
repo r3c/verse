@@ -3,26 +3,17 @@ using System.Collections.Generic;
 
 namespace Verse.Schemas.Protobuf.Definition;
 
-internal struct ProtoEntity
+internal struct ProtoEntity(ProtoContainer container, string name)
 {
-    public readonly ProtoContainer Container;
+    public readonly ProtoContainer Container = container;
 
-    public readonly List<ProtoEntity> Entities;
+    public readonly List<ProtoEntity> Entities = [];
 
-    public readonly List<ProtoField> Fields;
+    public readonly List<ProtoField> Fields = [];
 
-    public readonly List<ProtoLabel> Labels;
+    public readonly List<ProtoLabel> Labels = [];
 
-    public readonly string Name;
-
-    public ProtoEntity(ProtoContainer container, string name)
-    {
-        Container = container;
-        Entities = new List<ProtoEntity>();
-        Fields = new List<ProtoField>();
-        Labels = new List<ProtoLabel>();
-        Name = name;
-    }
+    public readonly string Name = name;
 
     public ProtoBinding[] Resolve(string name)
     {
@@ -33,7 +24,7 @@ internal struct ProtoEntity
 
         var entity = Entities[index];
 
-        return ResolveEntity(entity, new[] { this, entity });
+        return ResolveEntity(entity, [this, entity]);
     }
 
     private ProtoBinding[] ResolveEntity(ProtoEntity entity, IEnumerable<ProtoEntity> parents)

@@ -2,25 +2,16 @@ using System;
 
 namespace Verse.Linkers.Reflection.EncodeLinkers;
 
-internal class ActionEncodeLinker<TNative> : IEncodeLinker<TNative>
+internal class ActionEncodeLinker<TNative>(Type match, object action) : IEncodeLinker<TNative>
 {
-    private readonly object _action;
-    private readonly Type _match;
-
-    public ActionEncodeLinker(Type match, object action)
-    {
-        _action = action;
-        _match = match;
-    }
-
     public bool TryDescribe<TEntity>(EncodeContext<TNative> context, IEncoderDescriptor<TNative, TEntity> descriptor)
     {
-        if (typeof(TEntity) != _match)
+        if (typeof(TEntity) != match)
             return false;
 
-        var action = (Action<IEncoderDescriptor<TNative, TEntity>>)_action;
+        var action1 = (Action<IEncoderDescriptor<TNative, TEntity>>)action;
 
-        action(descriptor);
+        action1(descriptor);
 
         return true;
     }

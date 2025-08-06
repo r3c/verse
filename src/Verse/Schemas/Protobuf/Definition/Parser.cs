@@ -206,14 +206,14 @@ internal static class Parser
         ParseValue(lexer, LexemType.GreaterThan, "greater than sign");
 
         return Tuple.Create(entity,
-            ParseField(lexer, new ProtoReference(parentNames.Concat(new[] { entity.Name })), ProtoOccurrence.Required));
+            ParseField(lexer, new ProtoReference(parentNames.Concat([entity.Name])), ProtoOccurrence.Required));
     }
 
     private static ProtoEntity ParseMessage(Lexer lexer, IEnumerable<string> parentNames)
     {
         var name = ParseValue(lexer, LexemType.Symbol, "message name");
 
-        var currentNames = parentNames.Concat(new[] { name });
+        var currentNames = parentNames.Concat([name]);
         var entity = new ProtoEntity(ProtoContainer.Message, name);
 
         ParseValue(lexer, LexemType.BraceBegin, "opening brace");
@@ -386,9 +386,9 @@ internal static class Parser
             return new ProtoReference(type);
 
         if (local)
-            return new ProtoReference(parentNames.Concat(new[] { ident }));
+            return new ProtoReference(parentNames.Concat([ident]));
 
-        return new ProtoReference(new[] { ident });
+        return new ProtoReference([ident]);
     }
 
     private static string ParseValue(Lexer lexer, LexemType type, string expected)

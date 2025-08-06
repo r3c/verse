@@ -289,14 +289,9 @@ public class ReflectionLinkerTester
         return stream.ToArray();
     }
 
-    public class CustomList<T> : IReadOnlyList<T>
+    public class CustomList<T>(IEnumerable<T> enumerable) : IReadOnlyList<T>
     {
-        private readonly IReadOnlyList<T> _list;
-
-        public CustomList(IEnumerable<T> enumerable)
-        {
-            _list = enumerable.ToList();
-        }
+        private readonly IReadOnlyList<T> _list = enumerable.ToList();
 
         public IEnumerator<T> GetEnumerator()
         {

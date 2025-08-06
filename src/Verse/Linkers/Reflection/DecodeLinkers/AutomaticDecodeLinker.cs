@@ -4,21 +4,17 @@ using System.Linq;
 
 namespace Verse.Linkers.Reflection.DecodeLinkers;
 
-internal class AutomaticDecodeLinker<TNative> : IDecodeLinker<TNative>
+internal class AutomaticDecodeLinker<TNative>(IEnumerable<IDecodeLinker<TNative>> customDecodeLinkers)
+    : IDecodeLinker<TNative>
 {
-    private static readonly IReadOnlyList<IDecodeLinker<TNative>> DefaultDecodeLinkers = new IDecodeLinker<TNative>[]
-    {
+    private static readonly IReadOnlyList<IDecodeLinker<TNative>> DefaultDecodeLinkers =
+    [
         ValueDecodeLinker<TNative>.Instance,
         ArrayDecodeLinker<TNative>.Instance,
         ObjectDecodeLinker<TNative>.Instance
-    };
+    ];
 
-    private readonly IReadOnlyList<IDecodeLinker<TNative>> _decodeLinkers;
-
-    public AutomaticDecodeLinker(IEnumerable<IDecodeLinker<TNative>> customDecodeLinkers)
-    {
-        _decodeLinkers = customDecodeLinkers.Concat(DefaultDecodeLinkers).ToList();
-    }
+    private readonly IReadOnlyList<IDecodeLinker<TNative>> _decodeLinkers = customDecodeLinkers.Concat(DefaultDecodeLinkers).ToList();
 
     public bool TryDescribe<TEntity>(DecodeContext<TNative> context, IDecoderDescriptor<TNative, TEntity> descriptor)
     {

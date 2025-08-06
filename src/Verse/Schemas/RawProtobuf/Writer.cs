@@ -5,15 +5,8 @@ using Verse.Formats.RawProtobuf;
 
 namespace Verse.Schemas.RawProtobuf;
 
-internal class Writer : IWriter<WriterState, RawProtobufValue>
+internal class Writer(bool noZigZagEncoding) : IWriter<WriterState, RawProtobufValue>
 {
-    private readonly bool _noZigZagEncoding;
-
-    public Writer(bool noZigZagEncoding)
-    {
-        _noZigZagEncoding = noZigZagEncoding;
-    }
-
     public bool Flush(WriterState state)
     {
         return state.Flush();
@@ -21,7 +14,7 @@ internal class Writer : IWriter<WriterState, RawProtobufValue>
 
     public WriterState Start(Stream stream, ErrorEvent error)
     {
-        return new WriterState(stream, error, _noZigZagEncoding);
+        return new WriterState(stream, error, noZigZagEncoding);
     }
 
     public void Stop(WriterState state)
@@ -55,7 +48,7 @@ internal class Writer : IWriter<WriterState, RawProtobufValue>
         foreach (var field in fields)
         {
             var keySuccess = field.Key.Length > 1 && field.Key[0] == '_'
-                ? state.Key(field.Key.Substring(1))
+                ? state.Key(field.Key[1..])
                 : state.Key(field.Key);
 
             if (!keySuccess || !field.Value(this, state, source))

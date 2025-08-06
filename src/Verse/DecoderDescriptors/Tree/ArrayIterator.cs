@@ -4,17 +4,11 @@ using System.Collections.Generic;
 
 namespace Verse.DecoderDescriptors.Tree;
 
-internal class ArrayIterator<TElement> : IDisposable, IEnumerable<TElement>
+internal class ArrayIterator<TElement>(ArrayReader<TElement> move) : IDisposable, IEnumerable<TElement>
 {
-    private readonly Enumerator _enumerator;
+    private readonly Enumerator _enumerator = new(move);
 
     private bool _started;
-
-    public ArrayIterator(ArrayReader<TElement> move)
-    {
-        _enumerator = new Enumerator(move);
-        _started = false;
-    }
 
     public void Dispose()
     {
@@ -41,27 +35,17 @@ internal class ArrayIterator<TElement> : IDisposable, IEnumerable<TElement>
         return GetEnumerator();
     }
 
-    private class Enumerator : IEnumerator<TElement>
+    private class Enumerator(ArrayReader<TElement> reader) : IEnumerator<TElement>
     {
         public TElement Current => _current;
 
         object? IEnumerator.Current => _current;
 
-        private TElement _current;
+        private TElement _current = default!;
 
         private int _index;
 
-        private readonly ArrayReader<TElement> _reader;
-
-        private ArrayState _state;
-
-        public Enumerator(ArrayReader<TElement> reader)
-        {
-            _current = default!;
-            _index = 0;
-            _reader = reader;
-            _state = ArrayState.NextElement;
-        }
+        private ArrayState _state = ArrayState.NextElement;
 
         public void Dispose()
         {
@@ -81,7 +65,7 @@ internal class ArrayIterator<TElement> : IDisposable, IEnumerable<TElement>
             if (_state != ArrayState.NextElement)
                 return false;
 
-            var result = _reader(_index++);
+            var result = reader(_index++);
 
             _current = result.Current!;
             _state = result.State;

@@ -2,25 +2,16 @@ using System;
 
 namespace Verse.Linkers.Reflection.DecodeLinkers;
 
-internal class ActionDecodeLinker<TNative> : IDecodeLinker<TNative>
+internal class ActionDecodeLinker<TNative>(Type match, object action) : IDecodeLinker<TNative>
 {
-    private readonly object _action;
-    private readonly Type _match;
-
-    public ActionDecodeLinker(Type match, object action)
-    {
-        _action = action;
-        _match = match;
-    }
-
     public bool TryDescribe<TEntity>(DecodeContext<TNative> context, IDecoderDescriptor<TNative, TEntity> descriptor)
     {
-        if (typeof(TEntity) != _match)
+        if (typeof(TEntity) != match)
             return false;
 
-        var action = (Action<IDecoderDescriptor<TNative, TEntity>>)_action;
+        var action1 = (Action<IDecoderDescriptor<TNative, TEntity>>)action;
 
-        action(descriptor);
+        action1(descriptor);
 
         return true;
     }

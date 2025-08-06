@@ -4,23 +4,14 @@ using Verse.Formats.Protobuf;
 
 namespace Verse.Schemas.Protobuf;
 
-internal class ReaderState
+internal class ReaderState(Stream stream, ErrorEvent error)
 {
-    public readonly Stream Stream;
+    public readonly Stream Stream = stream;
 
-    public ProtobufValue Value;
-
-    private readonly ErrorEvent _error;
-
-    public ReaderState(Stream stream, ErrorEvent error)
-    {
-        _error = error;
-        Stream = stream;
-        Value = ProtobufValue.Empty;
-    }
+    public ProtobufValue Value = ProtobufValue.Empty;
 
     public void RaiseError(string format, params object[] args)
     {
-        _error((int)Stream.Position, string.Format(CultureInfo.InvariantCulture, format, args));
+        error((int)Stream.Position, string.Format(CultureInfo.InvariantCulture, format, args));
     }
 }

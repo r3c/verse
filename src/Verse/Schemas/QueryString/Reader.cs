@@ -6,15 +6,8 @@ using Verse.LookupNodes;
 
 namespace Verse.Schemas.QueryString;
 
-internal class Reader : IReader<ReaderState, string, char>
+internal class Reader(Encoding encoding) : IReader<ReaderState, string, char>
 {
-    private readonly Encoding _encoding;
-
-    public Reader(Encoding encoding)
-    {
-        _encoding = encoding;
-    }
-
     public ReaderStatus ReadToArray<TElement>(ReaderState state,
         ReaderCallback<ReaderState, string, char, TElement> callback, out ArrayReader<TElement> arrayReader)
     {
@@ -129,7 +122,7 @@ internal class Reader : IReader<ReaderState, string, char>
 
     public ReaderState Start(Stream stream, ErrorEvent error)
     {
-        var state = new ReaderState(stream, _encoding, error);
+        var state = new ReaderState(stream, encoding, error);
 
         if (state.Current == '?')
             state.Pull();

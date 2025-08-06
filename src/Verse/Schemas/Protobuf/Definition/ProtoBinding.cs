@@ -5,7 +5,7 @@ namespace Verse.Schemas.Protobuf.Definition;
 
 internal struct ProtoBinding
 {
-    private static readonly ProtoBinding[] EmptyBindings = new ProtoBinding[0];
+    private static readonly ProtoBinding[] EmptyBindings = [];
 
     public static readonly ProtoBinding Empty = new ProtoBinding(string.Empty, ProtoType.Undefined);
 

@@ -7,17 +7,17 @@ namespace Verse.Resolvers;
 
 internal readonly struct PropertyResolver
 {
-    public readonly PropertyInfo Property;
+    private readonly PropertyInfo _property;
 
     /// <Summary>
     /// Resolve method information from given compile-type expression.
     /// </Summary>
     public static PropertyResolver Create<TProperty>(Expression<TProperty> lambda)
     {
-        if (!(lambda.Body is MemberExpression expression))
+        if (lambda.Body is not MemberExpression expression)
             throw new ArgumentException("can't get property information from expression", nameof(lambda));
 
-        if (!(expression.Member is PropertyInfo property))
+        if (expression.Member is not PropertyInfo property)
             throw new ArgumentException("member expression doesn't target a property", nameof(lambda));
 
         return new PropertyResolver(property);
@@ -25,22 +25,22 @@ internal readonly struct PropertyResolver
 
     private PropertyResolver(PropertyInfo property)
     {
-        Property = property;
+        _property = property;
     }
 
     public object? GetGetter(object instance)
     {
-        var method = Property.GetMethod;
+        var method = _property.GetMethod;
 
         if (method == null)
             throw new InvalidOperationException("property has no getter");
 
-        return method.Invoke(instance, Array.Empty<object>());
+        return method.Invoke(instance, []);
     }
 
     public PropertyResolver SetCallerGenericArguments(params Type[] arguments)
     {
-        var callerType = Property.DeclaringType ??
+        var callerType = _property.DeclaringType ??
                          throw new InvalidOperationException("property has no declaring type");
 
         if (!callerType.IsGenericType)
@@ -50,7 +50,7 @@ internal readonly struct PropertyResolver
             throw new InvalidOperationException(
                 $"property caller type doesn't have {arguments.Length} generic argument(s)");
 
-        var metadataToken = Property.MetadataToken;
+        var metadataToken = _property.MetadataToken;
         var property = callerType.GetGenericTypeDefinition().MakeGenericType(arguments)
             .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
             .FirstOrDefault(p => p.MetadataToken == metadataToken);

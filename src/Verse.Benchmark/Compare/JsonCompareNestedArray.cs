@@ -8,8 +8,8 @@ public class JsonCompareNestedArray : JsonCompare<JsonCompareNestedArray.MyNeste
 {
     protected override MyNestedArray Instance => new()
     {
-        Children = new[]
-        {
+        Children =
+        [
             new MyNestedArray
             {
                 Children = null,
@@ -17,8 +17,8 @@ public class JsonCompareNestedArray : JsonCompare<JsonCompareNestedArray.MyNeste
             },
             new MyNestedArray
             {
-                Children = new[]
-                {
+                Children =
+                [
                     new MyNestedArray
                     {
                         Children = null,
@@ -29,15 +29,15 @@ public class JsonCompareNestedArray : JsonCompare<JsonCompareNestedArray.MyNeste
                         Children = null,
                         Value = "c"
                     }
-                },
+                ],
                 Value = "d"
             },
             new MyNestedArray
             {
-                Children = Array.Empty<MyNestedArray>(),
+                Children = [],
                 Value = "e"
             }
-        },
+        ],
         Value = "f"
     };
 

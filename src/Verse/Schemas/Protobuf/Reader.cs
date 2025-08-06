@@ -68,7 +68,7 @@ internal class Reader : IReader<ReaderState, ProtobufValue, int>
             return ReaderStatus.Succeeded;
 
         // Read field number and wire type
-        var index = (current >> 3) & 15;
+        var index = current >> 3 & 15;
         var wire = (WireType)(current & 7);
 
         while ((current & 128) != 0)
@@ -107,7 +107,7 @@ internal class Reader : IReader<ReaderState, ProtobufValue, int>
                     case ProtoType.Float:
                         unsafe
                         {
-                            state.Value = new ProtobufValue(*((float*)&u32));
+                            state.Value = new ProtobufValue(*(float*)&u32);
                         }
 
                         break;
@@ -136,7 +136,7 @@ internal class Reader : IReader<ReaderState, ProtobufValue, int>
                     case ProtoType.Double:
                         unsafe
                         {
-                            state.Value = new ProtobufValue(*((double*)&u64));
+                            state.Value = new ProtobufValue(*(double*)&u64);
                         }
 
                         break;
@@ -240,7 +240,7 @@ internal class Reader : IReader<ReaderState, ProtobufValue, int>
 
                     case ProtoType.SInt32:
                     case ProtoType.SInt64:
-                        state.Value = new ProtobufValue((-(long)(varint & 1)) ^ (long)(varint >> 1));
+                        state.Value = new ProtobufValue(-(long)(varint & 1) ^ (long)(varint >> 1));
 
                         break;
 

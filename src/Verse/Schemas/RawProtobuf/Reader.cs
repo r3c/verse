@@ -5,15 +5,8 @@ using Verse.Formats.RawProtobuf;
 
 namespace Verse.Schemas.RawProtobuf;
 
-internal class Reader : IReader<ReaderState, RawProtobufValue, char>
+internal class Reader(bool noZigZagEncoding) : IReader<ReaderState, RawProtobufValue, char>
 {
-    private readonly bool _noZigZagEncoding;
-
-    public Reader(bool noZigZagEncoding)
-    {
-        _noZigZagEncoding = noZigZagEncoding;
-    }
-
     public ReaderStatus ReadToArray<TElement>(ReaderState state,
         ReaderCallback<ReaderState, RawProtobufValue, char, TElement> callback,
         out ArrayReader<TElement> arrayReader)
@@ -83,7 +76,7 @@ internal class Reader : IReader<ReaderState, RawProtobufValue, char>
 
     public ReaderState Start(Stream stream, ErrorEvent error)
     {
-        return new ReaderState(stream, error, _noZigZagEncoding);
+        return new ReaderState(stream, error, noZigZagEncoding);
     }
 
     public void Stop(ReaderState state)

@@ -6,34 +6,18 @@ using Verse.Formats.RawProtobuf;
 
 namespace Verse.Schemas.RawProtobuf;
 
-internal class WriterState
+internal class WriterState(Stream stream, ErrorEvent error, bool noZigZagEncoding)
 {
     public int FieldIndex;
 
-    private readonly MemoryStream _buffer;
-
-    private readonly ErrorEvent _error;
-
-    private readonly bool _noZigZagEncoding;
-
-    private readonly Stream _stream;
-
-    public WriterState(Stream stream, ErrorEvent error, bool noZigZagEncoding)
-    {
-        FieldIndex = 0;
-
-        _buffer = new MemoryStream();
-        _error = error;
-        _noZigZagEncoding = noZigZagEncoding;
-        _stream = stream;
-    }
+    private readonly MemoryStream _buffer = new();
 
     public bool Flush()
     {
         FieldIndex = 0;
 
         _buffer.Position = 0;
-        _buffer.CopyTo(_stream);
+        _buffer.CopyTo(stream);
         _buffer.SetLength(0);
 
         return true;
@@ -113,22 +97,22 @@ internal class WriterState
         switch (value.Storage)
         {
             case RawProtobufWireType.Fixed32:
-                _buffer.WriteByte((byte)((value.Number >> 0) & 255));
-                _buffer.WriteByte((byte)((value.Number >> 8) & 255));
-                _buffer.WriteByte((byte)((value.Number >> 16) & 255));
-                _buffer.WriteByte((byte)((value.Number >> 24) & 255));
+                _buffer.WriteByte((byte)(value.Number >> 0 & 255));
+                _buffer.WriteByte((byte)(value.Number >> 8 & 255));
+                _buffer.WriteByte((byte)(value.Number >> 16 & 255));
+                _buffer.WriteByte((byte)(value.Number >> 24 & 255));
 
                 return true;
 
             case RawProtobufWireType.Fixed64:
-                _buffer.WriteByte((byte)((value.Number >> 0) & 255));
-                _buffer.WriteByte((byte)((value.Number >> 8) & 255));
-                _buffer.WriteByte((byte)((value.Number >> 16) & 255));
-                _buffer.WriteByte((byte)((value.Number >> 24) & 255));
-                _buffer.WriteByte((byte)((value.Number >> 32) & 255));
-                _buffer.WriteByte((byte)((value.Number >> 40) & 255));
-                _buffer.WriteByte((byte)((value.Number >> 48) & 255));
-                _buffer.WriteByte((byte)((value.Number >> 56) & 255));
+                _buffer.WriteByte((byte)(value.Number >> 0 & 255));
+                _buffer.WriteByte((byte)(value.Number >> 8 & 255));
+                _buffer.WriteByte((byte)(value.Number >> 16 & 255));
+                _buffer.WriteByte((byte)(value.Number >> 24 & 255));
+                _buffer.WriteByte((byte)(value.Number >> 32 & 255));
+                _buffer.WriteByte((byte)(value.Number >> 40 & 255));
+                _buffer.WriteByte((byte)(value.Number >> 48 & 255));
+                _buffer.WriteByte((byte)(value.Number >> 56 & 255));
 
                 return true;
 
@@ -143,7 +127,7 @@ internal class WriterState
 
             case RawProtobufWireType.VarInt:
                 // See: https://developers.google.com/protocol-buffers/docs/encoding
-                var number = _noZigZagEncoding ? value.Number : (value.Number << 1) ^ (value.Number >> 31);
+                var number = noZigZagEncoding ? value.Number : value.Number << 1 ^ value.Number >> 31;
 
                 WriteVarInt(number);
 
@@ -158,7 +142,7 @@ internal class WriterState
 
     private void Error(string message)
     {
-        _error((int)_buffer.Position, message);
+        error((int)_buffer.Position, message);
     }
 
     private void WriteHeader(int fieldIndex, RawProtobufWireType fieldType)
@@ -166,14 +150,14 @@ internal class WriterState
         // Write field type and first 4 bits of field index
         var wireType = (int)fieldType & 7;
 
-        _buffer.WriteByte((byte)(wireType | ((fieldIndex & 15) << 3) | (fieldIndex >= 16 ? 128 : 0)));
+        _buffer.WriteByte((byte)(wireType | (fieldIndex & 15) << 3 | (fieldIndex >= 16 ? 128 : 0)));
 
         fieldIndex >>= 4;
 
         // Write remaining part of field index if any
         while (fieldIndex > 0)
         {
-            _buffer.WriteByte((byte)((fieldIndex & 127) | (fieldIndex >= 128 ? 128 : 0)));
+            _buffer.WriteByte((byte)(fieldIndex & 127 | (fieldIndex >= 128 ? 128 : 0)));
 
             fieldIndex >>= 7;
         }
@@ -185,7 +169,7 @@ internal class WriterState
 
         do
         {
-            _buffer.WriteByte((byte)((number & 127) | (number >= 128 ? 128u : 0u)));
+            _buffer.WriteByte((byte)(number & 127 | (number >= 128 ? 128u : 0u)));
 
             number >>= 7;
         }
