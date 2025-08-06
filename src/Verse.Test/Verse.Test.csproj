@@ -25,14 +25,14 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Update="res\Protobuf\Example2.proto">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <None Update="Schemas\Protobuf\Example2.proto">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="res\Protobuf\Example3.proto">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <None Update="Schemas\Protobuf\Example3.proto">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="res\Protobuf\Person.proto">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <None Update="Schemas\Protobuf\Person.proto">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
     </ItemGroup>
 </Project>

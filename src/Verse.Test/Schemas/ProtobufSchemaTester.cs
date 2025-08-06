@@ -8,12 +8,12 @@ namespace Verse.Test.Schemas;
 internal class ProtobufSchemaTester
 {
     [Test]
-    //[TestCase("res/Protobuf/Example2.proto", "outer")]
-    [TestCase("res/Protobuf/Example3.proto", "outer")]
-    [TestCase("res/Protobuf/Person.proto", "Person")]
+    //[TestCase("Protobuf/Example2.proto", "outer")]
+    [TestCase("Protobuf/Example3.proto", "outer")]
+    [TestCase("Protobuf/Person.proto", "Person")]
     public void Decode(string path, string messageName)
     {
-        var proto = File.ReadAllText(Path.Combine(TestContext.CurrentContext.TestDirectory, path));
+        var proto = File.ReadAllText(ResourceResolver.Resolve<ProtobufSchemaTester>(path));
         var schema = new ProtobufSchema<int>(new StringReader(proto), messageName);
 
         Assert.That(schema, Is.Not.Null);
@@ -30,16 +30,18 @@ internal class ProtobufSchemaTester
     [Ignore("Proto messages are not supported yet")]
     public void DecodeAssign()
     {
-        var proto = File.ReadAllText(
-            Path.Combine(TestContext.CurrentContext.TestDirectory, "res/Protobuf/Person.proto"));
+        var proto = File.ReadAllText(ResourceResolver.Resolve<ProtobufSchemaTester>("Protobuf/Person.proto"));
         var schema = new ProtobufSchema<Person>(new StringReader(proto), "Person");
-        var root = schema.DecoderDescriptor.IsObject(() => new Person());
+        var person = schema.DecoderDescriptor.IsObject(() => new Person());
 
-        root.HasField("email", SetterHelper.Mutation((Person p, string v) => p.Email = v))
+        person
+            .HasField("email", SetterHelper.Mutation((Person p, string v) => p.Email = v))
             .IsValue(Format.Protobuf.To.String);
-        root.HasField("id", SetterHelper.Mutation((Person p, int v) => p.Id = v))
+        person
+            .HasField("id", SetterHelper.Mutation((Person p, int v) => p.Id = v))
             .IsValue(Format.Protobuf.To.Integer32S);
-        root.HasField("name", SetterHelper.Mutation((Person p, string v) => p.Name = v))
+        person
+            .HasField("name", SetterHelper.Mutation((Person p, string v) => p.Name = v))
             .IsValue(Format.Protobuf.To.String);
 
         var decoder = schema.CreateDecoder();
