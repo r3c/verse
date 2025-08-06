@@ -3,7 +3,7 @@ using Verse.Formats.String;
 
 namespace Verse.Formats;
 
-public class StringFormat : IFormat<string>
+internal class StringFormat : IFormat<string>
 {
     public static readonly StringFormat Instance = new();
 

@@ -2,7 +2,7 @@ using Verse.Formats.Protobuf;
 
 namespace Verse.Formats;
 
-public class ProtobufFormat : IFormat<ProtobufValue>
+internal class ProtobufFormat : IFormat<ProtobufValue>
 {
     public static readonly ProtobufFormat Instance = new();
 
