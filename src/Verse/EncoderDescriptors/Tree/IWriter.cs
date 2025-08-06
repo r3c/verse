@@ -11,7 +11,7 @@ internal interface IWriter<TState, TNative>
 
     void Stop(TState state);
 
-    bool WriteAsArray<TElement>(TState state, IEnumerable<TElement> elements,
+    bool WriteAsArray<TElement>(TState state, IEnumerable<TElement>? elements,
         WriterCallback<TState, TNative, TElement> callback);
 
     bool WriteAsObject<TObject>(TState state, TObject source,

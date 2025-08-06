@@ -484,7 +484,7 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
 
         root
             .HasField("array", s => s)
-            .IsArray(_ => nullArray ? null! : new[] { 1, 2 })
+            .IsArray(_ => nullArray ? null : new[] { 1, 2 })
             .IsValue(Format.From.Integer32S);
 
         root

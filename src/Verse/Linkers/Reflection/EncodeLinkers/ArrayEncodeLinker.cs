@@ -10,7 +10,7 @@ internal class ArrayEncodeLinker<TNative> : IEncodeLinker<TNative>
 {
     private static readonly MethodResolver TryDescribeAsArrayMethod =
         MethodResolver
-            .Create<Func<EncodeContext<TNative>, IEncoderDescriptor<TNative, object>, Func<object, IEnumerable<object>>,
+            .Create<Func<EncodeContext<TNative>, IEncoderDescriptor<TNative, object>, Func<object, IEnumerable<object>?>,
                 bool>>((c, d, g) => TryDescribeAsArray(c, d, g));
 
     public static readonly ArrayEncodeLinker<TNative> Instance = new();
@@ -63,7 +63,7 @@ internal class ArrayEncodeLinker<TNative> : IEncodeLinker<TNative>
     }
 
     private static bool TryDescribeAsArray<TEntity, TElement>(EncodeContext<TNative> context,
-        IEncoderDescriptor<TNative, TEntity> descriptor, Func<TEntity, IEnumerable<TElement>> getter)
+        IEncoderDescriptor<TNative, TEntity> descriptor, Func<TEntity, IEnumerable<TElement>?> getter)
     {
         if (context.Parents.TryGetValue(typeof(TElement), out var recurse))
         {

@@ -23,7 +23,7 @@ internal class Writer : IWriter<WriterState, ProtobufValue>
         throw new NotImplementedException();
     }
 
-    public bool WriteAsArray<TEntity>(WriterState state, IEnumerable<TEntity> elements,
+    public bool WriteAsArray<TEntity>(WriterState state, IEnumerable<TEntity>? elements,
         WriterCallback<WriterState, ProtobufValue, TEntity> writer)
     {
         throw new NotImplementedException();
