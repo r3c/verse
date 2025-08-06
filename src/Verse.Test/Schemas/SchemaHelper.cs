@@ -28,7 +28,11 @@ internal static class SchemaHelper<TNative>
         using (var stream = new MemoryStream(encoded1))
         {
             using (var decoderStream = decoder.Open(stream))
-                Assert.That(decoderStream.TryDecode(out decoded), Is.True);
+            {
+                Assert.That(decoderStream.TryDecode(out var output), Is.True);
+
+                decoded = output!;
+            }
         }
 
         var comparisonResult = new CompareLogic().Compare(instance, decoded);

@@ -1,4 +1,6 @@
-﻿namespace Verse.DecoderDescriptors.Tree;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Verse.DecoderDescriptors.Tree;
 
 internal class TreeDecoderStream<TState, TNative, TKey, TEntity> : IDecoderStream<TEntity>
 {
@@ -21,7 +23,7 @@ internal class TreeDecoderStream<TState, TNative, TKey, TEntity> : IDecoderStrea
         _reader.Stop(_state);
     }
 
-    public bool TryDecode(out TEntity? entity)
+    public bool TryDecode([NotNullWhen(true)] out TEntity? entity)
     {
         var entityValue = default(TEntity)!;
         var result = _callback(_reader, _state, ref entityValue);

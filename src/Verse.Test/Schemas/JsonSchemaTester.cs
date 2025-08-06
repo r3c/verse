@@ -15,28 +15,6 @@ namespace Verse.Test.Schemas;
 public class JsonSchemaTester : SchemaTester<JsonValue>
 {
     [Test]
-    [TestCase(false, "{\"parent\" : [ { \"child\" : 123 } ]}", new[] { 123 })]
-    [TestCase(true, "{\"parent\" : [ { \"child\" : 123 } ]}", new[] { 123 })]
-    [TestCase(false, "{\"parent\" : [ { \"child\" : 123 }, { \"child\" : 124 } ]}", new[] { 123, 124 })]
-    [TestCase(true, "{\"parent\" : [ { \"child\" : 123 }, { \"child\" : 124 } ]}", new[] { 123, 124 })]
-    [TestCase(false, "{\"parent\" : { \"child\" : 123 } }", new int[0])]
-    [TestCase(true, "{\"parent\" : { \"child\" : 123 } }", new[] { 123 })]
-    public void DecodeObjectAsArray(bool scalarAsArray, string json, int[] expected)
-    {
-        var schema = Schema.CreateJson<int[]>(new JsonConfiguration { ReadScalarAsOneElementArray = scalarAsArray });
-
-        schema.DecoderDescriptor
-            .IsObject(Array.Empty<int>)
-            .HasField<int[]>("parent", (_, value) => value)
-            .IsArray<int>(e => e.ToArray())
-            .IsObject(() => 0)
-            .HasField<int>("child", (_, value) => value)
-            .IsValue(Format.To.Integer32S);
-
-        AssertDecodeAndEqual(schema, json, expected);
-    }
-
-    [Test]
     [TestCase("{\"a\": 1, \"b\": 2}", 1, 2)]
     [TestCase("{\"a\": 42, \"b\": 17}", 42, 17)]
     [TestCase("{\"a\": 42}", 42, 0)]
@@ -156,20 +134,6 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
     }
 
     [Test]
-    [TestCase(false, "{\"key1\": 27.5, \"key2\": 19}", new double[0])]
-    [TestCase(true, "{\"key1\": 27.5, \"key2\": 19}", new[] { 27.5, 19 })]
-    public void DecodeValueAsArray(bool acceptAsArray, string json, double[] expected)
-    {
-        var schema = Schema.CreateJson<double[]>(new JsonConfiguration { ReadObjectValuesAsArray = acceptAsArray });
-
-        schema.DecoderDescriptor
-            .IsArray<double>(e => e.ToArray())
-            .IsValue(Format.To.Float64);
-
-        AssertDecodeAndEqual(schema, json, expected);
-    }
-
-    [Test]
     [TestCase("[]", new double[0])]
     [TestCase("[-42.1]", new[] { -42.1 })]
     [TestCase("[0, 5, 90, 23, -9, 5.32]", new[] { 0, 5, 90, 23, -9, 5.32 })]
@@ -267,9 +231,23 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
         var converter = SchemaHelper<JsonValue>.GetDecoderConverter<T>(Format.To);
 
         schema.DecoderDescriptor
-            .IsObject(() => default)
+            .IsObject(() => default!)
             .HasField<T>(name, (_, v) => v)
             .IsValue(converter);
+
+        AssertDecodeAndEqual(schema, json, expected);
+    }
+
+    [Test]
+    [TestCase(false, "{\"key1\": 27.5, \"key2\": 19}", new double[0])]
+    [TestCase(true, "{\"key1\": 27.5, \"key2\": 19}", new[] { 27.5, 19 })]
+    public void DecodeObjectAsArray(bool acceptAsArray, string json, double[] expected)
+    {
+        var schema = Schema.CreateJson<double[]>(new JsonConfiguration { ReadObjectValuesAsArray = acceptAsArray });
+
+        schema.DecoderDescriptor
+            .IsArray<double>(e => e.ToArray())
+            .IsValue(Format.To.Float64);
 
         AssertDecodeAndEqual(schema, json, expected);
     }
@@ -294,22 +272,22 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
         using var decoderStream = decoder.Open(stream);
 
         Assert.That(decoderStream.TryDecode(out var value), Is.True);
-        Assert.That(42, Is.EqualTo(value.Field.Field.Value));
-        Assert.That(17, Is.EqualTo(value.Field.Value));
-        Assert.That(3, Is.EqualTo(value.Value));
+        Assert.That(42, Is.EqualTo(value?.Field?.Field?.Value));
+        Assert.That(17, Is.EqualTo(value?.Field?.Value));
+        Assert.That(3, Is.EqualTo(value?.Value));
     }
 
     [Test]
     [TestCase(false, "19", 0)]
     [TestCase(true, "19", 19)]
     [TestCase(true, "\"test\"", "test")]
-    public void DecodeObjectAsArray<T>(bool acceptObjectAsArray, string json, T expected)
+    public void DecodeValueAsArray<T>(bool scalarAsArray, string json, T expected)
     {
-        var schema = Schema.CreateJson<T>(new JsonConfiguration { ReadScalarAsOneElementArray = acceptObjectAsArray });
+        var schema = Schema.CreateJson<T>(new JsonConfiguration { ReadScalarAsOneElementArray = scalarAsArray });
         var converter = SchemaHelper<JsonValue>.GetDecoderConverter<T>(Format.To);
 
         schema.DecoderDescriptor
-            .IsArray<T>(elements => elements.FirstOrDefault())
+            .IsArray<T>(elements => elements.FirstOrDefault() ?? default!)
             .IsValue(converter);
 
         AssertDecodeAndEqual(schema, json, expected);
@@ -376,6 +354,28 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
         var converter = SchemaHelper<JsonValue>.GetDecoderConverter<T>(Format.To);
 
         schema.DecoderDescriptor.IsValue(converter);
+
+        AssertDecodeAndEqual(schema, json, expected);
+    }
+
+    [Test]
+    [TestCase(false, "{\"parent\" : [ { \"child\" : 123 } ]}", new[] { 123 })]
+    [TestCase(true, "{\"parent\" : [ { \"child\" : 123 } ]}", new[] { 123 })]
+    [TestCase(false, "{\"parent\" : [ { \"child\" : 123 }, { \"child\" : 124 } ]}", new[] { 123, 124 })]
+    [TestCase(true, "{\"parent\" : [ { \"child\" : 123 }, { \"child\" : 124 } ]}", new[] { 123, 124 })]
+    [TestCase(false, "{\"parent\" : { \"child\" : 123 } }", new int[0])]
+    [TestCase(true, "{\"parent\" : { \"child\" : 123 } }", new[] { 123 })]
+    public void DecodeValueInObjectAsArray(bool scalarAsArray, string json, int[] expected)
+    {
+        var schema = Schema.CreateJson<int[]>(new JsonConfiguration { ReadScalarAsOneElementArray = scalarAsArray });
+
+        schema.DecoderDescriptor
+            .IsObject(Array.Empty<int>)
+            .HasField<int[]>("parent", (_, value) => value)
+            .IsArray<int>(e => e.ToArray())
+            .IsObject(() => 0)
+            .HasField<int>("child", (_, value) => value)
+            .IsValue(Format.To.Integer32S);
 
         AssertDecodeAndEqual(schema, json, expected);
     }
@@ -484,7 +484,7 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
 
         root
             .HasField("array", s => s)
-            .IsArray(_ => nullArray ? null : new[] { 1, 2 })
+            .IsArray(_ => nullArray ? null! : new[] { 1, 2 })
             .IsValue(Format.From.Integer32S);
 
         root
@@ -628,7 +628,7 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
 
         schema.EncoderDescriptor.IsValue(Format.From.String);
 
-        AssertEncodeAndEqual(schema, null, expected);
+        AssertEncodeAndEqual(schema, null!, expected);
     }
 
     [Test]
@@ -685,12 +685,12 @@ public class JsonSchemaTester : SchemaTester<JsonValue>
 
     private class Container<T>
     {
-        public T Value { get; set; }
+        public T? Value { get; set; }
     }
 
     private class RecursiveEntity
     {
-        public RecursiveEntity Field;
+        public RecursiveEntity? Field;
 
         public int Value;
     }
