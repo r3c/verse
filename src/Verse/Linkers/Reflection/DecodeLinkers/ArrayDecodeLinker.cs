@@ -9,22 +9,22 @@ namespace Verse.Linkers.Reflection.DecodeLinkers;
 internal static class ArrayDecodeLinker
 {
     private static readonly ConstructorResolver HashSetConstructorResolver =
-        ConstructorResolver.Create<Func<IEnumerable<object>, HashSet<object>>>(e => new HashSet<object>(e));
+        ConstructorResolver.Create<Func<IEnumerable<Any>, HashSet<Any>>>(e => new HashSet<Any>(e));
 
     private static readonly ConstructorResolver ListConstructorResolver =
-        ConstructorResolver.Create<Func<IEnumerable<object>, List<object>>>(e => new List<object>(e));
+        ConstructorResolver.Create<Func<IEnumerable<Any>, List<Any>>>(e => new List<Any>(e));
 
     public static readonly IReadOnlyList<(Type, ConstructorResolver)> KnownInterfaces = new[]
     {
-        (typeof(ISet<object>), HashSetConstructorResolver),
+        (typeof(ISet<Any>), HashSetConstructorResolver),
 #if NET6_0_OR_GREATER
-        (typeof(IReadOnlySet<object>), HashSetConstructorResolver),
+        (typeof(IReadOnlySet<Any>), HashSetConstructorResolver),
 #endif
-        (typeof(IList<object>), ListConstructorResolver),
-        (typeof(IReadOnlyList<object>), ListConstructorResolver),
-        (typeof(ICollection<object>), ListConstructorResolver),
-        (typeof(IReadOnlyCollection<object>), ListConstructorResolver),
-        (typeof(IEnumerable<object>), ListConstructorResolver)
+        (typeof(IList<Any>), ListConstructorResolver),
+        (typeof(IReadOnlyList<Any>), ListConstructorResolver),
+        (typeof(ICollection<Any>), ListConstructorResolver),
+        (typeof(IReadOnlyCollection<Any>), ListConstructorResolver),
+        (typeof(IEnumerable<Any>), ListConstructorResolver)
     };
 }
 
@@ -32,8 +32,8 @@ internal class ArrayDecodeLinker<TNative> : IDecodeLinker<TNative>
 {
     private static readonly MethodResolver ArrayDecodeLinkerTryDescribeAsArray =
         MethodResolver
-            .Create<Func<DecodeContext<TNative>, IDecoderDescriptor<TNative, object>, Func<IEnumerable<object>, object>,
-                bool>>((c, d, s) => TryDescribeAsArray(c, d, s));
+            .Create<Func<DecodeContext<TNative>, IDecoderDescriptor<TNative, Any>, Func<IEnumerable<Any>, Any>, bool>>((
+                c, d, s) => TryDescribeAsArray(c, d, s));
 
     public static readonly ArrayDecodeLinker<TNative> Instance = new();
 
@@ -50,8 +50,7 @@ internal class ArrayDecodeLinker<TNative> : IDecodeLinker<TNative>
                 return false;
 
             var converter = MethodResolver
-                .Create<Func<Func<IEnumerable<object>, object[]>>>(() =>
-                    ConverterGenerator.CreateFromEnumerable<object>())
+                .Create<Func<Func<IEnumerable<Any>, Any[]>>>(() => ConverterGenerator.CreateFromEnumerable<Any>())
                 .SetGenericArguments(elementType)
                 .InvokeStatic();
 
@@ -82,8 +81,8 @@ internal class ArrayDecodeLinker<TNative> : IDecodeLinker<TNative>
                 var constructor = constructorResolver.SetTypeGenericArguments(elementType).Constructor;
 
                 var converter = MethodResolver
-                    .Create<Func<ConstructorInfo, Func<object, object>>>(c =>
-                        ConverterGenerator.CreateFromConstructor<object, object>(c))
+                    .Create<Func<ConstructorInfo, Func<Any, Any>>>(c =>
+                        ConverterGenerator.CreateFromConstructor<Any, Any>(c))
                     .SetGenericArguments(constructor.DeclaringType!, inputType)
                     .InvokeStatic(constructor);
 
@@ -120,8 +119,8 @@ internal class ArrayDecodeLinker<TNative> : IDecodeLinker<TNative>
                     continue;
 
                 var converter = MethodResolver
-                    .Create<Func<ConstructorInfo, Func<object, object>>>(c =>
-                        ConverterGenerator.CreateFromConstructor<object, object>(c))
+                    .Create<Func<ConstructorInfo, Func<Any, Any>>>(c =>
+                        ConverterGenerator.CreateFromConstructor<Any, Any>(c))
                     .SetGenericArguments(entityType, parameterType)
                     .InvokeStatic(constructor);
 

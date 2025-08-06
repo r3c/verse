@@ -10,8 +10,9 @@ internal class ArrayEncodeLinker<TNative> : IEncodeLinker<TNative>
 {
     private static readonly MethodResolver TryDescribeAsArrayMethod =
         MethodResolver
-            .Create<Func<EncodeContext<TNative>, IEncoderDescriptor<TNative, object>, Func<object, IEnumerable<object>?>,
-                bool>>((c, d, g) => TryDescribeAsArray(c, d, g));
+            .Create<
+                Func<EncodeContext<TNative>, IEncoderDescriptor<TNative, Any>, Func<Any, IEnumerable<Any>?>, bool>>((c,
+                d, g) => TryDescribeAsArray(c, d, g));
 
     public static readonly ArrayEncodeLinker<TNative> Instance = new();
 
@@ -28,7 +29,7 @@ internal class ArrayEncodeLinker<TNative> : IEncodeLinker<TNative>
                 return false;
 
             var getter = MethodResolver
-                .Create<Func<Func<object, object>>>(() => GetterGenerator.CreateIdentity<object>())
+                .Create<Func<Func<Any, Any>>>(() => GetterGenerator.CreateIdentity<Any>())
                 .SetGenericArguments(typeof(IEnumerable<>).MakeGenericType(elementType))
                 .InvokeStatic();
 
@@ -49,7 +50,7 @@ internal class ArrayEncodeLinker<TNative> : IEncodeLinker<TNative>
             var elementType = interfaceResolver.Type.GetGenericArguments()[0];
             var outputType = typeof(IEnumerable<>).MakeGenericType(elementType);
             var getter = MethodResolver
-                .Create<Func<Func<object, object>>>(() => GetterGenerator.CreateIdentity<object>())
+                .Create<Func<Func<Any, Any>>>(() => GetterGenerator.CreateIdentity<Any>())
                 .SetGenericArguments(outputType)
                 .InvokeStatic();
 
