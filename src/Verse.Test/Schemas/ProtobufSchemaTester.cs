@@ -21,9 +21,9 @@ internal class ProtobufSchemaTester
 
     private class Person
     {
-        public string Email;
+        public string Email = string.Empty;
         public int Id;
-        public string Name;
+        public string Name = string.Empty;
     }
 
     [Test]
@@ -44,10 +44,10 @@ internal class ProtobufSchemaTester
 
         var decoder = schema.CreateDecoder();
 
-        using var stream = new MemoryStream(new byte[] { 16, 17, 0, 0, 0 });
+        using var stream = new MemoryStream([16, 17, 0, 0, 0]);
         using var decoderStream = decoder.Open(stream);
 
         Assert.That(decoderStream.TryDecode(out var entity), Is.True);
-        Assert.That(17, Is.EqualTo(entity.Id));
+        Assert.That(17, Is.EqualTo(entity!.Id));
     }
 }

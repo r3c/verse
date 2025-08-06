@@ -103,8 +103,8 @@ public class ReflectionLinkerTester
         var encoded = Encoding.UTF8.GetBytes(json);
         var decoded = CreateDecoderAndDecode(Format.Json, Schema.CreateJson<Recursive>(), encoded);
 
-        Assert.That(42, Is.EqualTo(decoded.R.R.V));
-        Assert.That(17, Is.EqualTo(decoded.R.V));
+        Assert.That(42, Is.EqualTo(decoded.R?.R?.V));
+        Assert.That(17, Is.EqualTo(decoded.R?.V));
         Assert.That(3, Is.EqualTo(decoded.V));
     }
 
@@ -276,7 +276,7 @@ public class ReflectionLinkerTester
 
         Assert.That(decoderStream.TryDecode(out var decoded), Is.True);
 
-        return decoded;
+        return decoded!;
     }
 
     private static byte[] Encode<T>(IEncoder<T> encoder, T decoded)
@@ -319,7 +319,7 @@ public class ReflectionLinkerTester
 
     private class FieldContainer<T>
     {
-        public T Field;
+        public T Field = default!;
     }
 
     private class PropertyContainer<T>
@@ -328,14 +328,14 @@ public class ReflectionLinkerTester
         {
             get;
             set;
-        }
+        } = default!;
     }
 
     private class Recursive
     {
-        public Recursive R = null;
+        public Recursive? R;
 
-        public int V = 0;
+        public int V;
     }
 
     public class Visibility

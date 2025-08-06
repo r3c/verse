@@ -389,9 +389,9 @@ internal class RawProtobufSchemaTester
 
         using var decoderStream = decoder.Open(stream);
 
-        Assert.That(decoderStream.TryDecode(out var output), Is.True);
+        Assert.That(decoderStream.TryDecode(out var decoded), Is.True);
 
-        return output;
+        return decoded!;
     }
 
     private static T EncodeRoundTrip<T>(IEncoder<T> encoder, T input)
@@ -414,7 +414,7 @@ internal class RawProtobufSchemaTester
     [Serializable, ProtoContract(Name = @"SubTestFieldClass")]
     public class SubTestFieldClass<T> : IExtensible
     {
-        private T _value;
+        private T _value = default!;
 
         [ProtoMember(4, IsRequired = true)]
         public T Value
@@ -423,7 +423,7 @@ internal class RawProtobufSchemaTester
             set => _value = value;
         }
 
-        private IExtension _extensionObject;
+        private IExtension? _extensionObject;
 
         IExtension IExtensible.GetExtensionObject(bool createIfMissing)
         {
@@ -434,7 +434,7 @@ internal class RawProtobufSchemaTester
     [Serializable, ProtoContract(Name = @"TestFieldClass")]
     public class TestFieldClass<T> : IExtensible
     {
-        private T _value;
+        private T _value = default!;
 
         [ProtoMember(1, IsRequired = true)]
         public T Value
@@ -452,7 +452,7 @@ internal class RawProtobufSchemaTester
             set => _items = value;
         }
 
-        private SubTestFieldClass<T> _subValue;
+        private SubTestFieldClass<T> _subValue = null!;
 
         [ProtoMember(3, IsRequired = true)]
         public SubTestFieldClass<T> SubValue
@@ -461,7 +461,8 @@ internal class RawProtobufSchemaTester
             set => _subValue = value;
         }
 
-        private IExtension _extensionObject;
+        private IExtension? _extensionObject;
+
         IExtension IExtensible.GetExtensionObject(bool createIfMissing)
         {
             return Extensible.GetExtensionObject(ref _extensionObject, createIfMissing);

@@ -7,6 +7,7 @@
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <IsTestProject>true</IsTestProject>
         <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
         <PackageId>Verse.Test</PackageId>
         <TargetFramework>net9.0</TargetFramework>
     </PropertyGroup>

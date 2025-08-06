@@ -153,22 +153,22 @@ public abstract class SchemaTester<TNative>
 
     private class MixedContainer
     {
-        public float[] Floats;
+        public float[] Floats = [];
         public short Integer;
         public SomeEnum Option;
-        public Dictionary<string, string> Pairs;
-        public string Text;
+        public Dictionary<string, string> Pairs = new();
+        public string Text = string.Empty;
     }
 
     private class NestedArray
     {
-        public NestedArray[] Children;
-        public string Value;
+        public NestedArray[] Children = [];
+        public string Value = string.Empty;
     }
 
     private class NestedValue
     {
-        public NestedValue Child;
+        public NestedValue? Child;
         public int Value;
     }
 

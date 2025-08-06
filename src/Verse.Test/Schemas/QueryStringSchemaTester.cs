@@ -14,7 +14,7 @@ public class QueryStringSchemaTester
     {
         var schema = Schema.CreateQueryString<string>();
 
-        schema.DecoderDescriptor.IsObject(() => null);
+        schema.DecoderDescriptor.IsObject(() => string.Empty);
 
         Decode(schema, query);
     }
@@ -97,6 +97,6 @@ public class QueryStringSchemaTester
 
         Assert.That(decoderStream.TryDecode(out var value), Is.True);
 
-        return value;
+        return value!;
     }
 }
