@@ -24,8 +24,7 @@ internal class ObjectDecodeLinker<TNative> : IDecodeLinker<TNative>
                 continue;
 
             var setter = MethodResolver
-                .Create<Func<PropertyInfo, Func<object, object, object>>>(p =>
-                    SetterGenerator.CreateFromProperty<object, object>(p))
+                .Create<Func<PropertyInfo, Func<Any, Any, Any>>>(p => SetterGenerator.CreateFromProperty<Any, Any>(p))
                 .SetGenericArguments(entityType, property.PropertyType)
                 .InvokeStatic(property);
 
@@ -40,8 +39,7 @@ internal class ObjectDecodeLinker<TNative> : IDecodeLinker<TNative>
                 continue;
 
             var setter = MethodResolver
-                .Create<Func<FieldInfo, Func<object, object, object>>>(f =>
-                    SetterGenerator.CreateFromField<object, object>(f))
+                .Create<Func<FieldInfo, Func<Any, Any, Any>>>(f => SetterGenerator.CreateFromField<Any, Any>(f))
                 .SetGenericArguments(entityType, field.FieldType)
                 .InvokeStatic(field);
 
@@ -58,9 +56,8 @@ internal class ObjectDecodeLinker<TNative> : IDecodeLinker<TNative>
         if (context.Parents.TryGetValue(type, out var parent))
         {
             MethodResolver
-                .Create<Func<IDecoderObjectDescriptor<TNative, TEntity>, string, Func<TEntity, object, TEntity>,
-                    IDecoderDescriptor<TNative, object>,
-                    IDecoderDescriptor<TNative, object>>>((d, n, s, p) =>
+                .Create<Func<IDecoderObjectDescriptor<TNative, TEntity>, string, Func<TEntity, Any, TEntity>,
+                    IDecoderDescriptor<TNative, Any>, IDecoderDescriptor<TNative, Any>>>((d, n, s, p) =>
                     d.HasField(n, s, p))
                 .SetGenericArguments(type)
                 .InvokeInstance(objectDescriptor, name, setter, parent);
@@ -69,13 +66,13 @@ internal class ObjectDecodeLinker<TNative> : IDecodeLinker<TNative>
         }
 
         var fieldDescriptor = MethodResolver
-            .Create<Func<IDecoderObjectDescriptor<TNative, TEntity>, string, Func<TEntity, object, TEntity>,
-                IDecoderDescriptor<TNative, object>>>((d, n, s) => d.HasField(n, s))
+            .Create<Func<IDecoderObjectDescriptor<TNative, TEntity>, string, Func<TEntity, Any, TEntity>,
+                IDecoderDescriptor<TNative, Any>>>((d, n, s) => d.HasField(n, s))
             .SetGenericArguments(type)
             .InvokeInstance(objectDescriptor, name, setter);
 
         return (bool)MethodResolver
-            .Create<Func<IDecodeLinker<TNative>, DecodeContext<TNative>, IDecoderDescriptor<TNative, object>, bool>>((l,
+            .Create<Func<IDecodeLinker<TNative>, DecodeContext<TNative>, IDecoderDescriptor<TNative, Any>, bool>>((l,
                 c, d) => l.TryDescribe(c, d))
             .SetGenericArguments(type)
             .InvokeInstance(context.Automatic, context, fieldDescriptor)!;
