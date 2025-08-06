@@ -28,9 +28,12 @@ internal class Writer : IWriter<WriterState, RawProtobufValue>
     {
     }
 
-    public bool WriteAsArray<TEntity>(WriterState state, IEnumerable<TEntity> elements,
+    public bool WriteAsArray<TEntity>(WriterState state, IEnumerable<TEntity>? elements,
         WriterCallback<WriterState, RawProtobufValue, TEntity> writer)
     {
+        if (elements is null)
+            return true;
+
         foreach (var element in elements)
         {
             var fieldIndex = state.FieldIndex;

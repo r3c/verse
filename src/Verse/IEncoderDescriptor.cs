@@ -21,7 +21,7 @@ public interface IEncoderDescriptor<TNative, out TEntity>
     /// <param name="getter">Elements getter from current entity</param>
     /// <param name="descriptor">Existing encoder descriptor</param>
     /// <returns>Element encoder descriptor</returns>
-    IEncoderDescriptor<TNative, TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> getter,
+    IEncoderDescriptor<TNative, TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>?> getter,
         IEncoderDescriptor<TNative, TElement> descriptor);
 
     /// <summary>
@@ -31,7 +31,7 @@ public interface IEncoderDescriptor<TNative, out TEntity>
     /// <typeparam name="TElement">Element type</typeparam>
     /// <param name="getter">Elements getter from current entity</param>
     /// <returns>Element encoder descriptor</returns>
-    IEncoderDescriptor<TNative, TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> getter);
+    IEncoderDescriptor<TNative, TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>?> getter);
 
     /// <summary>
     /// Declare entity as an object with fields, using an intermediate object as buffer for extracting field values.

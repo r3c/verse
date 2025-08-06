@@ -18,7 +18,7 @@ internal class TreeEncoderDescriptor<TState, TNative, TEntity> : IEncoderDescrip
         return new TreeEncoder<TState, TNative, TEntity>(reader, _layer.Callback);
     }
 
-    public IEncoderDescriptor<TNative, TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> getter,
+    public IEncoderDescriptor<TNative, TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>?> getter,
         IEncoderDescriptor<TNative, TElement> descriptor)
     {
         if (descriptor is not TreeEncoderDescriptor<TState, TNative, TElement> ancestor)
@@ -27,7 +27,7 @@ internal class TreeEncoderDescriptor<TState, TNative, TEntity> : IEncoderDescrip
         return BindArray(_layer, getter, ancestor);
     }
 
-    public IEncoderDescriptor<TNative, TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>> getter)
+    public IEncoderDescriptor<TNative, TElement> IsArray<TElement>(Func<TEntity, IEnumerable<TElement>?> getter)
     {
         var elementDefinition = _layer.Definition.Create<TElement>();
         var elementDescriptor = new TreeEncoderDescriptor<TState, TNative, TElement>(elementDefinition);
@@ -57,7 +57,7 @@ internal class TreeEncoderDescriptor<TState, TNative, TEntity> : IEncoderDescrip
     }
 
     private static IEncoderDescriptor<TNative, TElement> BindArray<TElement>(
-        WriterLayer<TState, TNative, TEntity> arrayLayer, Func<TEntity, IEnumerable<TElement>> getter,
+        WriterLayer<TState, TNative, TEntity> arrayLayer, Func<TEntity, IEnumerable<TElement>?> getter,
         TreeEncoderDescriptor<TState, TNative, TElement> elementDescriptor)
     {
         var elementLayer = elementDescriptor._layer;

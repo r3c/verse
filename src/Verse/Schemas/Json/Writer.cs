@@ -33,10 +33,10 @@ internal class Writer : IWriter<WriterState, JsonValue>
         state.Dispose();
     }
 
-    public bool WriteAsArray<TElement>(WriterState state, IEnumerable<TElement> elements,
+    public bool WriteAsArray<TElement>(WriterState state, IEnumerable<TElement>? elements,
         WriterCallback<WriterState, JsonValue, TElement> writer)
     {
-        if (elements == null)
+        if (elements is null)
             WriteAsValue(state, JsonValue.Undefined);
         else
         {
