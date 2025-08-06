@@ -14,9 +14,9 @@ internal class Writer : IWriter<WriterState, RawProtobufValue>
         _noZigZagEncoding = noZigZagEncoding;
     }
 
-    public void Flush(WriterState state)
+    public bool Flush(WriterState state)
     {
-        state.Flush();
+        return state.Flush();
     }
 
     public WriterState Start(Stream stream, ErrorEvent error)
@@ -28,39 +28,44 @@ internal class Writer : IWriter<WriterState, RawProtobufValue>
     {
     }
 
-    public void WriteAsArray<TEntity>(WriterState state, IEnumerable<TEntity> elements,
+    public bool WriteAsArray<TEntity>(WriterState state, IEnumerable<TEntity> elements,
         WriterCallback<WriterState, RawProtobufValue, TEntity> writer)
     {
         foreach (var element in elements)
         {
             var fieldIndex = state.FieldIndex;
 
-            writer(this, state, element);
+            if (!writer(this, state, element))
+                return false;
 
             state.FieldIndex = fieldIndex;
         }
+
+        return true;
     }
 
-    public void WriteAsObject<TEntity>(WriterState state, TEntity source,
+    public bool WriteAsObject<TEntity>(WriterState state, TEntity source,
         IReadOnlyDictionary<string, WriterCallback<WriterState, RawProtobufValue, TEntity>> fields)
     {
         var marker = state.ObjectBegin();
 
         foreach (var field in fields)
         {
-            if (field.Key.Length > 1 && field.Key[0] == '_')
-                state.Key(field.Key.Substring(1));
-            else
-                state.Key(field.Key);
+            var keySuccess = field.Key.Length > 1 && field.Key[0] == '_'
+                ? state.Key(field.Key.Substring(1))
+                : state.Key(field.Key);
 
-            field.Value(this, state, source);
+            if (!keySuccess || !field.Value(this, state, source))
+                return false;
         }
 
         state.ObjectEnd(marker);
+
+        return true;
     }
 
-    public void WriteAsValue(WriterState state, RawProtobufValue value)
+    public bool WriteAsValue(WriterState state, RawProtobufValue value)
     {
-        state.Value(value);
+        return state.Value(value);
     }
 }

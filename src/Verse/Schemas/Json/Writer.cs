@@ -18,9 +18,9 @@ internal class Writer : IWriter<WriterState, JsonValue>
         _omitNull = omitNull;
     }
 
-    public void Flush(WriterState state)
+    public bool Flush(WriterState state)
     {
-        state.Flush();
+        return state.Flush();
     }
 
     public WriterState Start(Stream stream, ErrorEvent error)
@@ -33,7 +33,7 @@ internal class Writer : IWriter<WriterState, JsonValue>
         state.Dispose();
     }
 
-    public void WriteAsArray<TElement>(WriterState state, IEnumerable<TElement> elements,
+    public bool WriteAsArray<TElement>(WriterState state, IEnumerable<TElement> elements,
         WriterCallback<WriterState, JsonValue, TElement> writer)
     {
         if (elements == null)
@@ -47,9 +47,11 @@ internal class Writer : IWriter<WriterState, JsonValue>
 
             state.ArrayEnd();
         }
+
+        return true;
     }
 
-    public void WriteAsObject<TObject>(WriterState state, TObject parent,
+    public bool WriteAsObject<TObject>(WriterState state, TObject parent,
         IReadOnlyDictionary<string, WriterCallback<WriterState, JsonValue, TObject>> fields)
     {
         if (parent == null)
@@ -66,10 +68,12 @@ internal class Writer : IWriter<WriterState, JsonValue>
 
             state.ObjectEnd();
         }
+
+        return true;
     }
 
-    public void WriteAsValue(WriterState state, JsonValue value)
+    public bool WriteAsValue(WriterState state, JsonValue value)
     {
-        state.Value(value);
+        return state.Value(value);
     }
 }

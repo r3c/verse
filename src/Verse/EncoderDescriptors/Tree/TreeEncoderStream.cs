@@ -21,9 +21,8 @@ internal class TreeEncoderStream<TState, TNative, TEntity> : IEncoderStream<TEnt
         _reader.Stop(_state);
     }
 
-    public void Encode(TEntity input)
+    public bool Encode(TEntity input)
     {
-        _callback(_reader, _state, input);
-        _reader.Flush(_state);
+        return _callback(_reader, _state, input) && _reader.Flush(_state);
     }
 }

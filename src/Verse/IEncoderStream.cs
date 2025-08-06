@@ -14,5 +14,5 @@ public interface IEncoderStream<in TEntity> : IDisposable
     /// </summary>
     /// <param name="entity">Input entity</param>
     /// <returns>True if encoding succeeded, false otherwise</returns>
-    void Encode(TEntity entity);
+    bool Encode(TEntity entity);
 }
