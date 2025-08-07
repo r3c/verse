@@ -8,7 +8,7 @@ namespace Verse.Test.Schemas;
 internal class ProtobufSchemaTester
 {
     [Test]
-    //[TestCase("Protobuf/Example2.proto", "outer")]
+    [TestCase("Protobuf/Example2.proto", "outer")]
     [TestCase("Protobuf/Example3.proto", "outer")]
     [TestCase("Protobuf/Person.proto", "Person")]
     public void Decode(string path, string messageName)

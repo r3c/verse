@@ -191,7 +191,7 @@ internal static class Parser
         return name;
     }
 
-    private static Tuple<ProtoEntity, ProtoField> ParseMapField(Lexer lexer, IEnumerable<string> parentNames)
+    private static (ProtoEntity, ProtoField) ParseMapField(Lexer lexer, IReadOnlyList<string> parentNames)
     {
         var entity = new ProtoEntity(ProtoContainer.Message, Guid.NewGuid().ToString("N"));
 
@@ -205,15 +205,17 @@ internal static class Parser
 
         ParseValue(lexer, LexemType.GreaterThan, "greater than sign");
 
-        return Tuple.Create(entity,
-            ParseField(lexer, new ProtoReference(parentNames.Concat([entity.Name])), ProtoOccurrence.Required));
+        var reference = new ProtoReference(parentNames.Append(entity.Name));
+        var field = ParseField(lexer, reference, ProtoOccurrence.Required);
+
+        return (entity, field);
     }
 
-    private static ProtoEntity ParseMessage(Lexer lexer, IEnumerable<string> parentNames)
+    private static ProtoEntity ParseMessage(Lexer lexer, IReadOnlyList<string> parentNames)
     {
         var name = ParseValue(lexer, LexemType.Symbol, "message name");
 
-        var currentNames = parentNames.Concat([name]);
+        var currentNames = parentNames.Append(name).ToList();
         var entity = new ProtoEntity(ProtoContainer.Message, name);
 
         ParseValue(lexer, LexemType.BraceBegin, "opening brace");
@@ -236,10 +238,10 @@ internal static class Parser
             {
                 lexer.Next();
 
-                var map = ParseMapField(lexer, currentNames);
+                var (mapEntity, mapField) = ParseMapField(lexer, currentNames);
 
-                entity.Entities.Add(map.Item1);
-                entity.Fields.Add(map.Item2);
+                entity.Entities.Add(mapEntity);
+                entity.Fields.Add(mapField);
 
                 ParseValue(lexer, LexemType.SemiColon, "semicolon");
             }
@@ -302,7 +304,7 @@ internal static class Parser
 
     private static ProtobufValue ParseNumber(Lexer lexer, int sign)
     {
-        string number = lexer.Current.Value;
+        var number = lexer.Current.Value;
 
         lexer.Next();
 
@@ -315,7 +317,7 @@ internal static class Parser
             throw new ParserException(lexer.Position, "invalid literal number");
     }
 
-    private static ProtoEntity ParseOneOf(Lexer lexer, IEnumerable<string> parentNames)
+    private static ProtoEntity ParseOneOf(Lexer lexer, IReadOnlyList<string> parentNames)
     {
         var entity = new ProtoEntity(ProtoContainer.OneOf, ParseValue(lexer, LexemType.Symbol, "oneof name"));
 
@@ -382,18 +384,15 @@ internal static class Parser
 
         var ident = ParseFullIdent(lexer);
 
-        if (Enum.TryParse(ident.ToLowerInvariant(), true, out ProtoType type))
+        if (Enum.TryParse(ident, true, out ProtoType type) && type != ProtoType.Custom && type != ProtoType.Undefined)
             return new ProtoReference(type);
 
-        if (local)
-            return new ProtoReference(parentNames.Concat([ident]));
-
-        return new ProtoReference([ident]);
+        return local ? new ProtoReference(parentNames.Append(ident)) : new ProtoReference([ident]);
     }
 
     private static string ParseValue(Lexer lexer, LexemType type, string expected)
     {
-        string value = lexer.Current.Value;
+        var value = lexer.Current.Value;
 
         if (lexer.Current.Type != type)
             throw new ParserException(lexer.Position, "expected {0}, found '{1}'", expected, value);
