@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using NUnit.Framework;
 using Verse.Schemas;
@@ -8,15 +9,27 @@ namespace Verse.Test.Schemas;
 internal class ProtobufSchemaTester
 {
     [Test]
+    [TestCase("Protobuf/Edition2023.proto", "Foo")]
     [TestCase("Protobuf/Example2.proto", "outer")]
     [TestCase("Protobuf/Example3.proto", "outer")]
     [TestCase("Protobuf/Person.proto", "Person")]
     public void Decode(string path, string messageName)
     {
-        var proto = File.ReadAllText(ResourceResolver.Resolve<ProtobufSchemaTester>(path));
+        var proto = ResourceResolver.ReadAsString<ProtobufSchemaTester>(path);
         var schema = new ProtobufSchema<int>(new StringReader(proto), messageName);
 
         Assert.That(schema, Is.Not.Null);
+    }
+
+    [Test]
+    [TestCase("edition = \"nan\";", "edition \"nan\" is not a valid number")]
+    [TestCase("message Foo {} edition = \"0\";", "keyword \"edition\" must be in first position")]
+    [TestCase("syntax = \"proto1\";", "syntax \"proto1\" is not a valid identifier")]
+    [TestCase("message Foo {} syntax = \"proto2\";", "keyword \"syntax\" must be in first position")]
+    public void Parse_ShouldThrowOnInvalidProto(string proto, string expectedMessage)
+    {
+        Assert.That(() => new ProtobufSchema<int>(new StringReader(proto), string.Empty),
+            Throws.InstanceOf<InvalidOperationException>().With.Message.EqualTo(expectedMessage));
     }
 
     private class Person
@@ -30,7 +43,7 @@ internal class ProtobufSchemaTester
     [Ignore("Proto messages are not supported yet")]
     public void DecodeAssign()
     {
-        var proto = File.ReadAllText(ResourceResolver.Resolve<ProtobufSchemaTester>("Protobuf/Person.proto"));
+        var proto = ResourceResolver.ReadAsString<ProtobufSchemaTester>("Protobuf/Person.proto");
         var schema = new ProtobufSchema<Person>(new StringReader(proto), "Person");
         var person = schema.DecoderDescriptor.IsObject(() => new Person());
 
