@@ -2,31 +2,35 @@
 
 namespace Verse.Schemas.Protobuf.Definition;
 
-internal struct Lexem(LexemType type, string value) : IEquatable<Lexem>
+internal readonly struct Lexem(LexemType type, string value) : IEquatable<Lexem>
 {
-    public static readonly Lexem Enum = new Lexem(LexemType.Symbol, "enum");
+    public static readonly Lexem Edition = new(LexemType.Symbol, "edition");
 
-    public static readonly Lexem Extend = new Lexem(LexemType.Symbol, "extend");
+    public static readonly Lexem Enum = new(LexemType.Symbol, "enum");
 
-    public static readonly Lexem Extensions = new Lexem(LexemType.Symbol, "extensions");
+    public static readonly Lexem Extend = new(LexemType.Symbol, "extend");
 
-    public static readonly Lexem Group = new Lexem(LexemType.Symbol, "group");
+    public static readonly Lexem Extensions = new(LexemType.Symbol, "extensions");
 
-    public static readonly Lexem Map = new Lexem(LexemType.Symbol, "map");
+    public static readonly Lexem Group = new(LexemType.Symbol, "group");
 
-    public static readonly Lexem Message = new Lexem(LexemType.Symbol, "message");
+    public static readonly Lexem Map = new(LexemType.Symbol, "map");
 
-    public static readonly Lexem OneOf = new Lexem(LexemType.Symbol, "oneof");
+    public static readonly Lexem Message = new(LexemType.Symbol, "message");
 
-    public static readonly Lexem Option = new Lexem(LexemType.Symbol, "option");
+    public static readonly Lexem OneOf = new(LexemType.Symbol, "oneof");
 
-    public static readonly Lexem Optional = new Lexem(LexemType.Symbol, "optional");
+    public static readonly Lexem Option = new(LexemType.Symbol, "option");
 
-    public static readonly Lexem Repeated = new Lexem(LexemType.Symbol, "repeated");
+    public static readonly Lexem Optional = new(LexemType.Symbol, "optional");
 
-    public static readonly Lexem Required = new Lexem(LexemType.Symbol, "required");
+    public static readonly Lexem Repeated = new(LexemType.Symbol, "repeated");
 
-    public static readonly Lexem Reserved = new Lexem(LexemType.Symbol, "reserved");
+    public static readonly Lexem Required = new(LexemType.Symbol, "required");
+
+    public static readonly Lexem Reserved = new(LexemType.Symbol, "reserved");
+
+    public static readonly Lexem Syntax = new(LexemType.Symbol, "syntax");
 
     public readonly LexemType Type = type;
 

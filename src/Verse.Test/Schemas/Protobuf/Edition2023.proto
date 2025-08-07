@@ -1,0 +1,4 @@
+edition = "2023";
+
+message Foo {
+}
