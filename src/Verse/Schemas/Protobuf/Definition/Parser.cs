@@ -169,7 +169,7 @@ internal static class Parser
 
             if (TryParseType(lexer, LexemType.BracketBegin))
             {
-                ParseOptions(lexer);
+                ParseOptionList(lexer);
                 ParseType(lexer, LexemType.BracketEnd, "closing bracket");
             }
 
@@ -199,32 +199,24 @@ internal static class Parser
 
         if (TryParseType(lexer, LexemType.BracketBegin))
         {
-            ParseOptions(lexer);
+            ParseOptionList(lexer);
             ParseType(lexer, LexemType.BracketEnd, "closing bracket");
         }
 
-        return new ProtoField(number, reference, name, presence);
+        return new ProtoField(number, name, reference, presence);
     }
 
-    private static string ParseFullIdent(Lexer lexer)
+    private static IReadOnlyList<string> ParseIdentifier(Lexer lexer)
     {
-        var name = string.Empty;
+        var identifier = new List<string>();
 
         do
         {
-            if (name.Length > 0)
-                name += ".";
-
-            name += ParseType(lexer, LexemType.Symbol, "identifier");
-
-            if (lexer.Current.Type != LexemType.Dot)
-                break;
-
-            lexer.Next();
+            identifier.Add(ParseType(lexer, LexemType.Symbol, "identifier"));
         }
-        while (true);
+        while (TryParseType(lexer, LexemType.Dot));
 
-        return name;
+        return identifier;
     }
 
     private static (ProtoEntity, ProtoField) ParseMapField(Lexer lexer, IReadOnlyList<string> parentNames)
@@ -233,11 +225,11 @@ internal static class Parser
 
         ParseType(lexer, LexemType.LowerThan, "lower than sign");
 
-        entity.Fields.Add(new ProtoField(1, ParseReference(lexer, parentNames), "key", ProtoPresence.Required));
+        entity.Fields.Add(new ProtoField(1, "key", ParseReference(lexer, parentNames), ProtoPresence.Required));
 
         ParseType(lexer, LexemType.Comma, "comma");
 
-        entity.Fields.Add(new ProtoField(2, ParseReference(lexer, parentNames), "value", ProtoPresence.Required));
+        entity.Fields.Add(new ProtoField(2, "value", ParseReference(lexer, parentNames), ProtoPresence.Required));
 
         ParseType(lexer, LexemType.GreaterThan, "greater than sign");
 
@@ -346,7 +338,7 @@ internal static class Parser
     {
         if (TryParseType(lexer, LexemType.ParenthesisBegin))
         {
-            ParseFullIdent(lexer);
+            ParseIdentifier(lexer);
             ParseType(lexer, LexemType.ParenthesisEnd, "parenthesis end");
         }
         else
@@ -363,7 +355,7 @@ internal static class Parser
         ParseConstant(lexer);
     }
 
-    private static void ParseOptions(Lexer lexer)
+    private static void ParseOptionList(Lexer lexer)
     {
         for (var first = true; first || lexer.Current.Type == LexemType.Comma; first = false)
         {
@@ -390,13 +382,19 @@ internal static class Parser
 
     private static ProtoReference ParseReference(Lexer lexer, IEnumerable<string> parentNames)
     {
-        var local = !TryParseType(lexer, LexemType.Dot);
-        var ident = ParseFullIdent(lexer);
+        var fullyQualified = TryParseType(lexer, LexemType.Dot);
+        var identifier = ParseIdentifier(lexer);
 
-        if (Enum.TryParse(ident, true, out ProtoType type) && type != ProtoType.Custom && type != ProtoType.Undefined)
+        if (!fullyQualified &&
+            identifier.Count == 1 &&
+            Enum.TryParse(identifier[0], true, out ProtoType type) &&
+            type != ProtoType.Custom &&
+            type != ProtoType.Undefined)
+        {
             return new ProtoReference(type);
+        }
 
-        return local ? new ProtoReference(parentNames.Append(ident)) : new ProtoReference([ident]);
+        return fullyQualified ? new ProtoReference(identifier) : new ProtoReference(parentNames.Concat(identifier));
     }
 
     private static void ParseReserved(Lexer lexer, Language language)
