@@ -282,7 +282,7 @@ internal static class Parser
             else if (TryParseLexem(lexer, Lexem.Option))
                 ParseOption(lexer);
             else if (TryParseLexem(lexer, Lexem.Reserved))
-                ParseReserved(lexer);
+                ParseReserved(lexer, language);
             else
             {
                 var presence = ParsePresence(lexer, language);
@@ -399,12 +399,47 @@ internal static class Parser
         return local ? new ProtoReference(parentNames.Append(ident)) : new ProtoReference([ident]);
     }
 
-    private static void ParseReserved(Lexer lexer)
+    private static void ParseReserved(Lexer lexer, Language language)
     {
-        while (TryParseType(lexer, LexemType.Number))
+        switch (lexer.Current.Type)
         {
-            if (!TryParseType(lexer, LexemType.Comma) && !TryParseLexem(lexer, Lexem.To))
+            case LexemType.Number:
+                // Note: this accepts invalid reserved sequences such as "max to 1" or "1, max"
+                while (TryParseLexem(lexer, Lexem.Max) || TryParseType(lexer, LexemType.Number))
+                {
+                    if (!TryParseType(lexer, LexemType.Comma) && !TryParseLexem(lexer, Lexem.To))
+                        break;
+                }
+
                 break;
+
+            case LexemType.String:
+                if (language.Version >= LanguageVersion.Edition2023)
+                    throw new ParserException(lexer.Position, "reserved field names mustn't be quoted in editions");
+
+                while (TryParseType(lexer, LexemType.String))
+                {
+                    if (!TryParseType(lexer, LexemType.Comma))
+                        break;
+                }
+
+                break;
+
+            case LexemType.Symbol:
+                if (language.Version < LanguageVersion.Edition2023)
+                    throw new ParserException(lexer.Position, "reserved field names must be quoted in proto2 & proto3");
+
+                while (TryParseType(lexer, LexemType.Symbol))
+                {
+                    if (!TryParseType(lexer, LexemType.Comma))
+                        break;
+                }
+
+                break;
+
+            default:
+                throw new ParserException(lexer.Position, "expected reserved field number or name, found '{0}'",
+                    lexer.Current.Value);
         }
 
         ParseType(lexer, LexemType.SemiColon, "semicolon");
