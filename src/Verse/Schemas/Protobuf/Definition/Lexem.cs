@@ -32,6 +32,8 @@ internal readonly struct Lexem(LexemType type, string value) : IEquatable<Lexem>
 
     public static readonly Lexem Syntax = new(LexemType.Symbol, "syntax");
 
+    public static readonly Lexem To = new(LexemType.Symbol, "to");
+
     public readonly LexemType Type = type;
 
     public readonly string Value = value;

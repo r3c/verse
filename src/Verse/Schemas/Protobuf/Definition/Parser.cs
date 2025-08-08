@@ -54,10 +54,7 @@ internal static class Parser
                 language = new Language(featureVersion);
             }
             else if (TryParseLexem(lexer, Lexem.Option))
-            {
                 ParseOption(lexer);
-                ParseType(lexer, LexemType.SemiColon, "semicolon");
-            }
             else if (TryParseLexem(lexer, Lexem.Syntax))
             {
                 if (declarationNumber > 0)
@@ -157,24 +154,26 @@ internal static class Parser
             var label = ParseType(lexer, LexemType.Symbol, "enum label");
 
             if (label == "option")
-                ParseOption(lexer);
-            else
             {
-                ParseType(lexer, LexemType.Equal, "equal sign");
+                ParseOption(lexer);
 
-                var enumValue = ParseType(lexer, LexemType.Number, "enum value");
-
-                if (!int.TryParse(enumValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var value))
-                    throw new ParserException(lexer.Position, "invalid enum value");
-
-                if (TryParseType(lexer, LexemType.BracketBegin))
-                {
-                    ParseOptions(lexer);
-                    ParseType(lexer, LexemType.BracketEnd, "closing bracket");
-                }
-
-                entity.Labels.Add(new ProtoLabel(value, label));
+                continue;
             }
+
+            ParseType(lexer, LexemType.Equal, "equal sign");
+
+            var enumValue = ParseType(lexer, LexemType.Number, "enum value");
+
+            if (!int.TryParse(enumValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var value))
+                throw new ParserException(lexer.Position, "invalid enum value");
+
+            if (TryParseType(lexer, LexemType.BracketBegin))
+            {
+                ParseOptions(lexer);
+                ParseType(lexer, LexemType.BracketEnd, "closing bracket");
+            }
+
+            entity.Labels.Add(new ProtoLabel(value, label));
 
             ParseType(lexer, LexemType.SemiColon, "semicolon");
         }
@@ -281,12 +280,9 @@ internal static class Parser
             else if (TryParseLexem(lexer, Lexem.OneOf))
                 entity.Entities.Add(ParseOneOf(lexer, currentNames));
             else if (TryParseLexem(lexer, Lexem.Option))
-            {
                 ParseOption(lexer);
-                ParseType(lexer, LexemType.SemiColon, "semicolon");
-            }
             else if (TryParseLexem(lexer, Lexem.Reserved))
-                throw new InvalidOperationException("reserved fields are not supported yet");
+                ParseReserved(lexer);
             else
             {
                 var presence = ParsePresence(lexer, language);
@@ -342,6 +338,12 @@ internal static class Parser
 
     private static void ParseOption(Lexer lexer)
     {
+        ParseOptionKeyValue(lexer);
+        ParseType(lexer, LexemType.SemiColon, "semicolon");
+    }
+
+    private static void ParseOptionKeyValue(Lexer lexer)
+    {
         if (TryParseType(lexer, LexemType.ParenthesisBegin))
         {
             ParseFullIdent(lexer);
@@ -368,7 +370,7 @@ internal static class Parser
             if (!first)
                 lexer.Next();
 
-            ParseOption(lexer);
+            ParseOptionKeyValue(lexer);
         }
     }
 
@@ -395,6 +397,17 @@ internal static class Parser
             return new ProtoReference(type);
 
         return local ? new ProtoReference(parentNames.Append(ident)) : new ProtoReference([ident]);
+    }
+
+    private static void ParseReserved(Lexer lexer)
+    {
+        while (TryParseType(lexer, LexemType.Number))
+        {
+            if (!TryParseType(lexer, LexemType.Comma) && !TryParseLexem(lexer, Lexem.To))
+                break;
+        }
+
+        ParseType(lexer, LexemType.SemiColon, "semicolon");
     }
 
     private static string ParseType(Lexer lexer, LexemType type, string description)

@@ -1,0 +1,5 @@
+syntax = "proto2";
+
+message Foo {
+    reserved 1, 3 to 5, 7;
+}
