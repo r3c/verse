@@ -1,6 +1,6 @@
 ﻿namespace Verse.Schemas.Protobuf.Definition;
 
-internal struct ProtoField(int number, ProtoReference reference, string name, ProtoPresence presence)
+internal struct ProtoField(int number, string name, ProtoReference reference, ProtoPresence presence)
 {
     public readonly string Name = name;
 
