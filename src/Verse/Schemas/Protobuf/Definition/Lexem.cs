@@ -16,6 +16,8 @@ internal readonly struct Lexem(LexemType type, string value) : IEquatable<Lexem>
 
     public static readonly Lexem Map = new(LexemType.Symbol, "map");
 
+    public static readonly Lexem Max = new(LexemType.Symbol, "max");
+
     public static readonly Lexem Message = new(LexemType.Symbol, "message");
 
     public static readonly Lexem OneOf = new(LexemType.Symbol, "oneof");
