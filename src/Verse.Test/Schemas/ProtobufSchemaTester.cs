@@ -13,6 +13,7 @@ internal class ProtobufSchemaTester
     [TestCase("Protobuf/Example2.proto", "outer")]
     [TestCase("Protobuf/Example3.proto", "outer")]
     [TestCase("Protobuf/Person.proto", "Person")]
+    [TestCase("Protobuf/Proto2.proto", "Foo")]
     public void Decode(string path, string messageName)
     {
         var proto = ResourceResolver.ReadAsString<ProtobufSchemaTester>(path);
