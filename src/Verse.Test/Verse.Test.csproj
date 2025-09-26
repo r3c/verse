@@ -9,7 +9,7 @@
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
         <PackageId>Verse.Test</PackageId>
-        <TargetFramework>net9.0</TargetFramework>
+        <TargetFrameworks>net8.0;net7.0</TargetFrameworks>
     </PropertyGroup>
 
     <ItemGroup>
@@ -18,7 +18,7 @@
 
     <ItemGroup>
         <PackageReference Include="CompareNETObjects" Version="4.84.0" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
         <PackageReference Include="NUnit" Version="4.4.0-beta.2.1" />
         <PackageReference Include="NUnit3TestAdapter" Version="5.1.0-alpha.3" />
         <PackageReference Include="protobuf-net" Version="3.2.56" />
