@@ -17,7 +17,7 @@
         <Title>Verse: Versatile (de)Serializer</Title>
         <Version>0.6.0</Version>
         <Nullable>enable</Nullable>
-        <TargetFrameworks>net8.0;net7.0</TargetFrameworks>
+        <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
     </PropertyGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' ">
